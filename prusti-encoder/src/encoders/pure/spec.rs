@@ -185,8 +185,8 @@ impl TaskEncoder for MirSpecEnc {
                     };
                     let fields = gen_domain_data.snap_data.field_access;
                     let n_fields = fields.len();
-                    assert!(n_fields % 2 == 0);
-                    fields.iter()
+                    assert!(n_fields % 2 == 1);
+                    fields.iter().take(n_fields - 1)
                 };
                 let ghost_field_reads = ghost_fields
                     .map(

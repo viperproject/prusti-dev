@@ -264,9 +264,9 @@ impl TaskEncoder for DomainEnc {
                     Ok((Some(enc.finalize(task_key)), specifics))
                 }
                 &TyKind::Generator(def_id, params, _movability) if vcx.tcx().generator_is_async(def_id) => {
-                    // generators are encoded like a struct with one field per upvar
-                    // as well as an additional ghost field per upvar to capture their initial
-                    // state
+                    // generators are encoded like a struct with one field per upvar,
+                    // and additional ghost field per upvar (capturing their initial state),
+                    // as well as a field for the generator's state
                     // the generics of that struct are given by the parent arguments
                     // (i.e. the async fn's and its parent's)
                     let gen_args = params.as_generator();
@@ -278,10 +278,12 @@ impl TaskEncoder for DomainEnc {
                         .collect::<Vec<_>>();
                     let mut enc = DomainEncData::new(vcx, task_key, generics, deps);
                     enc.deps.emit_output_ref(*task_key, enc.output_ref(base_name))?;
+                    let u32_ty = vcx.tcx().mk_ty_from_kind(ty::TyKind::Uint(UintTy::U32));
                     let fields: Result<Vec<FieldTy>, _> = gen_args
                         .upvar_tys()
                         .iter()
                         .chain(gen_args.upvar_tys().iter())
+                        .chain(std::iter::once(u32_ty))
                         .map(|ty| FieldTy::from_ty(vcx, enc.deps, ty))
                         .collect();
                     let specifics = enc.mk_struct_specifics(fields?);
@@ -289,12 +291,12 @@ impl TaskEncoder for DomainEnc {
                 },
                 // FIXME: for now, we encode closures as wrapper struct-likes for their upvars
                 // in order to use them for async specifications
-                TyKind::Closure(def_id, args) => {
+                TyKind::Closure(_def_id, args) => {
                     // closures are encoded like a struct with one field per upvar
                     let args = args.as_closure();
                     let generics = args
                         .parent_args()
-                        .into_iter()
+                        .iter()
                         .filter_map(|arg| arg.as_type())
                         .map(|ty| deps.require_local::<LiftedTyEnc<EncodeGenericsAsParamTy>>(ty).unwrap().expect_generic())
                         .collect::<Vec<_>>();

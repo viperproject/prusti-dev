@@ -1,5 +1,5 @@
 use prusti_rustc_interface::{
-    ast, hir,
+    hir,
     middle::{
         mir,
         ty::{self, GenericArgs},
@@ -9,16 +9,15 @@ use prusti_rustc_interface::{
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{Method, MethodIdent, UnknownArity};
 
+use super::suspension_points::SuspensionPointAnalysis;
 use crate::encoders::{
     lifted::{
         casters::CastTypePure, func_def_ty_params::LiftedTyParamsEnc,
         rust_ty_cast::RustTyCastersEnc,
     },
-    predicate,
     r#type::rust_ty_predicates::RustTyPredicatesEnc,
     MirLocalDefEnc, MirSpecEnc,
 };
-use super::suspension_points::SuspensionPointAnalysis;
 
 /// Encodes a poll call stub for an async item
 pub struct AsyncPollStubEnc;
@@ -60,10 +59,6 @@ impl TaskEncoder for AsyncPollStubEnc {
         // TODO: for now this is a generic encoding, check whether and how this needs to be adapted
         // for a monomorphic encoding
         let def_id = *task;
-        let trusted = crate::encoders::with_proc_spec(def_id, |def_spec| {
-            def_spec.trusted.extract_inherit().unwrap_or_default()
-        })
-        .unwrap_or_default();
         vir::with_vcx(|vcx| {
             // get generator type
             let gen_ty = vcx.tcx().type_of(def_id).skip_binder();
@@ -135,10 +130,12 @@ impl TaskEncoder for AsyncPollStubEnc {
                     return_ty: ret_ty,
                     arg_tys: vec![recv_ty, cx_ty],
                 },
-            );
+            )?;
 
-
-            let suspension_points = deps.require_local::<SuspensionPointAnalysis>(def_id).unwrap().0;
+            let suspension_points = deps
+                .require_local::<SuspensionPointAnalysis>(def_id)
+                .unwrap()
+                .0;
 
             // encode the stub's specification
             let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false, true))?;
@@ -152,7 +149,8 @@ impl TaskEncoder for AsyncPollStubEnc {
             // note that the signature is (self: std::pin::Pin<&mut Self>, cx: &mut Context)
             // and not the signature of the generator
             let mut pres = Vec::with_capacity(arg_count + spec_invs.len() - 1);
-            let mut args = Vec::with_capacity(arg_count + substs.len() + n_upvars + spec_invs.len() + 1);
+            let mut args =
+                Vec::with_capacity(arg_count + substs.len() + n_upvars + spec_invs.len() + 1);
             for arg_idx in 0..arg_count {
                 let name = local_defs.locals[arg_idx.into()].local.name;
                 args.push(vir::vir_local_decl! { vcx; [name] : Ref });
@@ -217,10 +215,10 @@ impl TaskEncoder for AsyncPollStubEnc {
                 let gen_domain_data = gen_ty.generic_predicate.expect_structlike();
                 gen_domain_data.snap_data.field_access
             };
-            assert_eq!(fields.len(), 2 * n_upvars);
+            assert_eq!(fields.len(), 2 * n_upvars + 1);
             for field in fields[n_upvars..].iter() {
                 let field = field.read.apply(vcx, [gen_snap]);
-                let old_field = vcx.mk_old_expr(field.clone());
+                let old_field = vcx.mk_old_expr(field);
                 posts.push(vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, field, old_field));
             }
 

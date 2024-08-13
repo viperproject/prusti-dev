@@ -206,9 +206,9 @@ where
                     args.as_generator().upvar_tys()
                 };
                 let n_upvars = upvar_tys.len();
-                assert_eq!(fields.len(), 2 * upvar_tys.len());
+                assert_eq!(fields.len(), 2 * upvar_tys.len() + 1);
                 let gen_snap = local_defs.locals[1_u32.into()].impure_snap;
-                for (i, ty) in upvar_tys.iter().enumerate() {
+                for i in 0 .. upvar_tys.len() {
                     let field = fields[i].read.apply(vcx, [gen_snap]);
                     let ghost_field = fields[n_upvars + i].read.apply(vcx, [gen_snap]);
                     pres.push(vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, field, ghost_field));
@@ -223,8 +223,8 @@ where
             posts.push(local_defs.locals[mir::RETURN_PLACE].impure_pred);
             posts.extend(spec_posts);
 
-            // in the case of a future constructor, we also ensure that the generator's upvar and
-            // ghost fields are set correctly
+            // in the case of a future constructor, we also ensure that the generator's upvar
+            // fields, ghost fields, and state field are set correctly
             // NOTE: this detection mechanism is not always correct, specifically, it does not
             // correctly mark the future constructors of async fn's without specifications as such,
             // but this should not matter, as the caller cannot obtain guarantees about this
@@ -233,7 +233,7 @@ where
                 let gen_domain = local_defs.locals[0_u32.into()].ty;
                 let fields = gen_domain.expect_structlike().snap_data.field_access;
                 let n_upvars = local_defs.arg_count;
-                assert_eq!(fields.len(), 2 * n_upvars);
+                assert_eq!(fields.len(), 2 * n_upvars + 1);
                 let gen_snap = local_defs.locals[0_u32.into()].impure_snap;
                 for i in 0 .. n_upvars {
                     let arg = vcx.mk_old_expr(local_defs.locals[(i + 1).into()].impure_snap);
@@ -242,6 +242,16 @@ where
                     posts.push(vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, upvar_field, arg));
                     posts.push(vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, ghost_field, arg));
                 }
+                let state_field = fields[2 * n_upvars].read.apply(vcx, [gen_snap]);
+                let zero = deps
+                    .require_ref::<RustTyPredicatesEnc>(
+                        vcx.tcx().mk_ty_from_kind(ty::TyKind::Uint(ty::UintTy::U32))
+                    )?
+                    .generic_predicate
+                    .expect_prim()
+                    .prim_to_snap
+                    .apply(vcx, [vcx.mk_uint::<0>()]);
+                posts.push(vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, state_field, zero));
             }
 
             Ok(ImpureFunctionEncOutput {

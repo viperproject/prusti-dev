@@ -802,10 +802,9 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
 
                     // future constructors
                     mir::Rvalue::Aggregate(
-                        box kind@mir::AggregateKind::Generator(def_id, params, movbl),
+                        box kind@mir::AggregateKind::Generator(def_id, _params, _movbl),
                         operands
                     ) if self.vcx.tcx().generator_is_async(*def_id) => {
-                        let generator_args = params.as_generator();
                         let generator_ty = self.deps.require_ref::<RustTyPredicatesEnc>(rvalue_ty).unwrap();
                         let snap_cons = generator_ty
                             .generic_predicate
@@ -828,12 +827,24 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                             .map(|oper| self.encode_operand_snap(oper))
                             .collect::<Vec<_>>();
                         let casted_args = ty_caster.apply_casts(self.vcx, operand_snaps.into_iter());
-                        // and duplicate them to also initialize the ghost fields
+                        // duplicate them to also initialize the ghost fields
+                        // and initialize the state to 0
+                        let zero = self
+                            .deps
+                            .require_ref::<RustTyPredicatesEnc>(
+                            self.vcx.tcx().mk_ty_from_kind(ty::TyKind::Uint(ty::UintTy::U32))
+                            )
+                            .unwrap()
+                            .generic_predicate
+                            .expect_prim()
+                            .prim_to_snap
+                            .apply(self.vcx, [self.vcx.mk_uint::<0>()]);
                         let n_args = casted_args.len();
                         let args = casted_args
                             .into_iter()
                             .cycle()
                             .take(2 * n_args)
+                            .chain(std::iter::once(zero))
                             .collect::<Vec<_>>();
                         snap_cons.apply(self.vcx, self.vcx.alloc_slice(&args))
                     }
