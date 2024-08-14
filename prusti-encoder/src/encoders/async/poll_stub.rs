@@ -132,58 +132,10 @@ impl TaskEncoder for AsyncPollStubEnc {
                 },
             )?;
 
-            let suspension_points = deps
-                .require_local::<SuspensionPointAnalysis>(def_id)
-                .unwrap()
-                .0;
-
-            // encode the stub's specification
-            let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false, true))?;
-            let (spec_pres, spec_posts, spec_invs) =
-                (spec.pres, spec.async_stub_posts, spec.async_invariants);
-
             let upvar_tys = gen_args.as_generator().upvar_tys().to_vec();
             let n_upvars = upvar_tys.len();
 
-            // add arguments and preconditions about their types
-            // note that the signature is (self: std::pin::Pin<&mut Self>, cx: &mut Context)
-            // and not the signature of the generator
-            let mut pres = Vec::with_capacity(arg_count + spec_invs.len() - 1);
-            let mut args =
-                Vec::with_capacity(arg_count + substs.len() + n_upvars + spec_invs.len() + 1);
-            for arg_idx in 0..arg_count {
-                let name = local_defs.locals[arg_idx.into()].local.name;
-                args.push(vir::vir_local_decl! { vcx; [name] : Ref });
-            }
-            pres.push(enc_recv_ty.ref_to_pred(vcx, local_defs.locals[1_u32.into()].local_ex, None));
-            pres.push(enc_cx_ty.ref_to_pred(vcx, local_defs.locals[2_u32.into()].local_ex, None));
-            // add type parameters (and their typing preconditions)
-            args.extend(param_ty_decls.iter());
-            pres.extend(spec_pres);
-
-            // add invariants as preconditions
-            for inv in &spec_invs {
-                pres.push(*inv);
-            }
-
-            // add postconditions for the return type and user-annotated ones
-            // we also add a postcondition on the generator type after the call
-            let mut posts = Vec::with_capacity(spec_posts.len() + 1);
-            posts.push(enc_ret_ty.ref_to_pred(
-                vcx,
-                local_defs.locals[mir::RETURN_PLACE].local_ex,
-                None,
-            ));
-            posts.push(enc_recv_ty.ref_to_pred(
-                vcx,
-                local_defs.locals[1_u32.into()].local_ex,
-                None,
-            ));
-            posts.extend(spec_posts);
-
-            // add postconditions that polling the future does not change the ghost fields
-            // so they still capture the initial state of the async fn's arguments
-            // read the generator from the pinned mutable ref
+            // read the generator snapshot from the generator argument
             let gen_snap = {
                 let pin_snap =
                     enc_recv_ty.ref_to_snap(vcx, local_defs.locals[1_u32.into()].local_ex);
@@ -209,17 +161,96 @@ impl TaskEncoder for AsyncPollStubEnc {
                 let caster = deps.require_local::<RustTyCastersEnc<CastTypePure>>(gen_ty)?;
                 caster.cast_to_concrete_if_possible(vcx, gen_snap)
             };
-            // get the generator's fields
-            let fields = {
+            // and read the generator's fields
+            let gen_fields = {
                 let gen_ty = deps.require_ref::<RustTyPredicatesEnc>(gen_ty)?;
                 let gen_domain_data = gen_ty.generic_predicate.expect_structlike();
-                gen_domain_data.snap_data.field_access
+                let fields = gen_domain_data.snap_data.field_access;
+                fields
+                    .iter()
+                    .map(|field| field.read.apply(vcx, [gen_snap]))
+                    .collect::<Vec<_>>()
             };
-            assert_eq!(fields.len(), 2 * n_upvars + 1);
-            for field in fields[n_upvars..].iter() {
-                let field = field.read.apply(vcx, [gen_snap]);
-                let old_field = vcx.mk_old_expr(field);
-                posts.push(vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, field, old_field));
+            assert_eq!(gen_fields.len(), 2 * n_upvars + 1);
+
+            let suspension_points = deps
+                .require_local::<SuspensionPointAnalysis>(def_id)
+                .unwrap()
+                .0;
+
+            // encode the stub's specification
+            let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false, true))?;
+            let (spec_pres, spec_posts, spec_invs) =
+                (spec.pres, spec.async_stub_posts, spec.async_invariants);
+
+            // add arguments and preconditions about their types
+            // note that the signature is (self: std::pin::Pin<&mut Self>, cx: &mut Context)
+            // and not the signature of the generator
+            // TODO: fix capacity here
+            let mut pres = Vec::with_capacity(arg_count + spec_invs.len() - 1);
+            let mut args =
+                Vec::with_capacity(arg_count + substs.len() + n_upvars + spec_invs.len() + 1);
+            for arg_idx in 0..arg_count {
+                let name = local_defs.locals[arg_idx.into()].local.name;
+                args.push(vir::vir_local_decl! { vcx; [name] : Ref });
+            }
+            pres.push(enc_recv_ty.ref_to_pred(vcx, local_defs.locals[1_u32.into()].local_ex, None));
+            pres.push(enc_cx_ty.ref_to_pred(vcx, local_defs.locals[2_u32.into()].local_ex, None));
+            // add type parameters (and their typing preconditions)
+            args.extend(param_ty_decls.iter());
+            pres.extend(spec_pres);
+
+            // constrain possible state values to the suspension-point labels as well as 0
+            let state_value_constraint = {
+                let state_field = gen_fields[2 * n_upvars];
+                let u32_snap = deps
+                    .require_ref::<RustTyPredicatesEnc>(
+                        vcx.tcx().mk_ty_from_kind(ty::TyKind::Uint(ty::UintTy::U32)),
+                    )?
+                    .generic_predicate
+                    .expect_prim()
+                    .prim_to_snap;
+                let state_values = suspension_points
+                    .iter()
+                    .map(|sp| vcx.mk_const_expr(vir::ConstData::Int(sp.label.into())))
+                    .chain(std::iter::once(vcx.mk_uint::<0>()))
+                    .map(|lbl| u32_snap.apply(vcx, [lbl]));
+                state_values
+                    .map(|v| vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, state_field, v))
+                    .reduce(|l, r| vcx.mk_bin_op_expr(vir::BinOpKind::Or, l, r))
+                    .unwrap()
+            };
+            pres.push(state_value_constraint);
+
+            // add invariants as preconditions
+            for inv in &spec_invs {
+                pres.push(*inv);
+            }
+
+            // add postconditions for the return type as well as user-annotated ones
+            // we also add a postcondition on the generator type after the call and the requirement
+            // about its state values
+            // TODO: fix capacities here
+            let mut posts = Vec::with_capacity(spec_posts.len() + 2);
+            posts.push(enc_ret_ty.ref_to_pred(
+                vcx,
+                local_defs.locals[mir::RETURN_PLACE].local_ex,
+                None,
+            ));
+            posts.push(enc_recv_ty.ref_to_pred(
+                vcx,
+                local_defs.locals[1_u32.into()].local_ex,
+                None,
+            ));
+            posts.push(state_value_constraint);
+            posts.extend(spec_posts);
+
+            // add postconditions that polling the future does not change the ghost fields
+            // so they still capture the initial state of the async fn's arguments
+            // read the generator from the pinned mutable ref
+            for ghost_field in gen_fields[n_upvars..2 * n_upvars].iter() {
+                let old_ghost_field = vcx.mk_old_expr(ghost_field);
+                posts.push(vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, ghost_field, old_ghost_field));
             }
 
             // add invariants as postconditions
