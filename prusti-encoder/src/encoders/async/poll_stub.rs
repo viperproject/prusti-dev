@@ -197,28 +197,124 @@ impl TaskEncoder for AsyncPollStubEnc {
             // encode the method's on_exit/on_entry conditions as post-/preconditions
             let (on_exit_posts, on_entry_pres) = {
                 let state_field = gen_fields[2 * n_upvars];
-                let mut on_exit_posts = Vec::new();
-                let mut on_entry_pres = Vec::new();
-
-                for (lbl, on_exits) in &spec.async_on_exit_conditions {
-                    let is_in_state =
-                        vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, state_field, mk_u32_snap(*lbl));
-                    let on_exits = on_exits
+                let to_bool = deps
+                    .require_ref::<RustTyPredicatesEnc>(vcx.tcx().types.bool)
+                    .unwrap()
+                    .generic_predicate
+                    .expect_prim()
+                    .snap_to_prim;
+                // create reference snapshots to the generator's fields
+                let field_refs = {
+                    let fields = &gen_fields[..n_upvars];
+                    upvar_tys
                         .iter()
-                        .map(|cond| vcx.mk_bin_op_expr(vir::BinOpKind::Implies, is_in_state, cond));
+                        .zip(fields)
+                        .map(|(ty, field)| {
+                            let caster = deps
+                                .require_local::<RustTyCastersEnc<CastTypePure>>(*ty)
+                                .unwrap();
+                            let ref_ty = vcx.tcx().mk_ty_from_kind(ty::TyKind::Ref(
+                                ty::Region::new_from_kind(vcx.tcx(), ty::RegionKind::ReErased),
+                                *ty,
+                                mir::Mutability::Not,
+                            ));
+                            let ref_cons = deps
+                                .require_ref::<RustTyPredicatesEnc>(ref_ty)
+                                .unwrap()
+                                .generic_predicate
+                                .expect_ref()
+                                .snap_data
+                                .field_snaps_to_snap;
+                            ref_cons.apply(vcx, &[caster.cast_to_generic_if_necessary(vcx, field)])
+                        })
+                        .collect::<Vec<_>>()
+                };
+
+                let mut encode_condition = |cond_def_id: &DefId| {
+                    // Note that all of these conditions are obtained by encoding their closure's body,
+                    // which takes a reference to the closure as the only parameter and captured values
+                    // (i.e. the generator fields referred to inside the condition) are accessed as
+                    // fields of that closure.
+                    // Hence, we first need to construct a reference to such a closure in order to
+                    // reify the encoded expression
+                    let closure_ty = vcx.tcx().type_of(*cond_def_id).skip_binder();
+                    let closure_snap = {
+                        let closure_ty =
+                            deps.require_ref::<RustTyPredicatesEnc>(closure_ty).unwrap();
+                        let closure_cons = closure_ty
+                            .generic_predicate
+                            .expect_structlike()
+                            .snap_data
+                            .field_snaps_to_snap;
+                        closure_cons.apply(vcx, &field_refs)
+                    };
+                    let closure_ref = {
+                        let caster = deps
+                            .require_local::<RustTyCastersEnc<CastTypePure>>(closure_ty)
+                            .unwrap();
+                        let ref_ty = vcx.tcx().mk_ty_from_kind(ty::TyKind::Ref(
+                            ty::Region::new_from_kind(vcx.tcx(), ty::RegionKind::ReErased),
+                            closure_ty,
+                            mir::Mutability::Not,
+                        ));
+                        let ref_ty = deps.require_ref::<RustTyPredicatesEnc>(ref_ty).unwrap();
+                        let ref_cons = ref_ty
+                            .generic_predicate
+                            .expect_ref()
+                            .snap_data
+                            .field_snaps_to_snap;
+                        ref_cons.apply(
+                            vcx,
+                            &[caster.cast_to_generic_if_necessary(vcx, closure_snap)],
+                        )
+                    };
+                    // given that reference, we can now encode the closure body and reify using
+                    // that reference
+                    let expr = deps
+                        .require_local::<crate::encoders::MirPureEnc>(
+                            crate::encoders::MirPureEncTask {
+                                encoding_depth: 0,
+                                kind: crate::encoders::PureKind::Closure,
+                                parent_def_id: *cond_def_id,
+                                param_env: vcx.tcx().param_env(cond_def_id),
+                                substs,
+                                // TODO: should this be `def_id` or `cond_def_id`
+                                caller_def_id: Some(*cond_def_id),
+                            },
+                        )
+                        .unwrap()
+                        .expr;
+                    use vir::Reify;
+                    let expr = expr.reify(vcx, (*cond_def_id, vcx.alloc_slice(&[closure_ref])));
+                    to_bool.apply(vcx, [expr])
+                };
+
+                let mut on_exit_posts: Vec<&'vir vir::ExprGenData<'_, !, !>> = Vec::new();
+                let mut on_entry_pres: Vec<&'vir vir::ExprGenData<'_, !, !>> = Vec::new();
+
+                for sp in &suspension_points {
+                    let is_in_state = vcx.mk_bin_op_expr(
+                        vir::BinOpKind::CmpEq,
+                        state_field,
+                        mk_u32_snap(sp.label),
+                    );
+                    let on_exits = sp.on_exit_closures.iter().map(|cond_def_id| {
+                        vcx.mk_bin_op_expr(
+                            vir::BinOpKind::Implies,
+                            is_in_state,
+                            encode_condition(cond_def_id),
+                        )
+                    });
                     on_exit_posts.extend(on_exits);
-                }
-
-                for (lbl, on_entries) in &spec.async_on_entry_conditions {
-                    let is_in_state =
-                        vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, state_field, mk_u32_snap(*lbl));
-                    let on_entries = on_entries
-                        .iter()
-                        .map(|cond| vcx.mk_bin_op_expr(vir::BinOpKind::Implies, is_in_state, cond));
+                    let on_entries = sp.on_entry_closures.iter().map(|cond_def_id| {
+                        vcx.mk_bin_op_expr(
+                            vir::BinOpKind::Implies,
+                            is_in_state,
+                            encode_condition(cond_def_id),
+                        )
+                    });
                     on_entry_pres.extend(on_entries);
                 }
-
-                println!("{def_id:?}: adding\n* {} on_exit\n* {} on_entry\n", on_exit_posts.len(), on_entry_pres.len());
 
                 (on_exit_posts, on_entry_pres)
             };
