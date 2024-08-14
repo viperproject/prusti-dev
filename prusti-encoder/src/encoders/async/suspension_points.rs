@@ -19,9 +19,9 @@ pub struct SuspensionPoint<'tcx> {
     pub label: u32,
     // the first BB of the busy loop, which is where invariants should be put
     pub loop_head: mir::BasicBlock,
-    // BBs containing the on_exit/on_entry marker function calls, if any
-    pub on_exit_marker: Option<mir::BasicBlock>,
-    pub on_entry_marker: Option<mir::BasicBlock>,
+    // DefId's of the closures containing the on_exit/on_entry conditions (if any)
+    pub on_exit_closures: Vec<DefId>,
+    pub on_entry_closures: Vec<DefId>,
     // the place containing the future as well as its pinned reference inside the busy loop
     pub future_place: mir::Place<'tcx>,
     pub pin_place: mir::Place<'tcx>,
@@ -54,7 +54,7 @@ impl TaskEncoder for SuspensionPointAnalysis {
     ) -> EncodeFullResult<'vir, Self> {
         let def_id = *task_key;
         deps.emit_output_ref(def_id, ())?;
-        let candidates = vir::with_vcx(|vcx| {
+        vir::with_vcx(|vcx| {
             let local_def_id = def_id
                 .as_local()
                 .expect("SuspensionPointAnalysis requires local item");
@@ -66,34 +66,57 @@ impl TaskEncoder for SuspensionPointAnalysis {
             let mut visitor = SuspensionPointVisitor::new(vcx, def_id, body.clone());
             visitor.visit_body(&body);
 
-            visitor.candidates
-        });
+            // create the list of suspension-points by labeling all unannotated ones
+            let labels: HashSet<u32> = visitor.candidates.iter().flat_map(|c| c.label).collect();
+            let mut next_label = 1;
+            let mut get_next_label = || -> u32 {
+                while labels.contains(&next_label) {
+                    next_label += 1;
+                }
+                next_label
+            };
 
-        // create the list of suspension-points by labeling all unannotated ones
-        let labels: HashSet<u32> = candidates.iter().flat_map(|c| c.label).collect();
-        let mut next_label = 1;
-        let mut get_next_label = || -> u32 {
-            while labels.contains(&next_label) {
-                next_label += 1;
-            }
-            next_label
-        };
+            // extract the DefId's of the closures containing on_exit/on_entry conditions
+            let marker_closure_def_ids = |marker_call_bb: Option<mir::BasicBlock>| -> Vec<DefId> {
+                let Some(marker_call_bb) = marker_call_bb else {
+                    return Vec::new();
+                };
+                let terminator = body.basic_blocks[marker_call_bb].terminator();
+                let mir::TerminatorKind::Call { ref args, .. } = terminator.kind else {
+                    panic!("marker function BB should have call terminator")
+                };
+                assert_eq!(args.len(), 2, "on_exit_marker call should have 2 arguments");
+                let arg_ty = args[1].ty(&body.local_decls, vcx.tcx());
+                let ty::TyKind::Tuple(closure_tys) = arg_ty.kind() else {
+                    panic!("second argument to marker function should be tuple")
+                };
+                closure_tys
+                    .iter()
+                    .map(|ty| {
+                        let ty::TyKind::Closure(def_id, _) = ty.kind() else {
+                            panic!("tuple element of argument to marker function should be closure")
+                        };
+                        *def_id
+                    })
+                    .collect()
+            };
 
-        let suspension_points = candidates
-            .into_iter()
-            .map(|candidate| SuspensionPoint {
-                label: candidate.label.unwrap_or_else(&mut get_next_label),
-                on_exit_marker: candidate.on_exit_marker,
-                loop_head: candidate.loop_head.unwrap(),
-                on_entry_marker: candidate.on_entry_marker,
-                future_place: candidate.future_place.unwrap(),
-                pin_place: candidate.pin_place.unwrap(),
-            })
-            .collect();
+            let suspension_points: Vec<SuspensionPoint> = visitor
+                .candidates
+                .into_iter()
+                .map(|candidate| SuspensionPoint {
+                    label: candidate.label.unwrap_or_else(&mut get_next_label),
+                    on_exit_closures: marker_closure_def_ids(candidate.on_exit_marker),
+                    loop_head: candidate.loop_head.unwrap(),
+                    on_entry_closures: marker_closure_def_ids(candidate.on_entry_marker),
+                    future_place: candidate.future_place.unwrap(),
+                    pin_place: candidate.pin_place.unwrap(),
+                })
+                .collect();
 
-        // TODO: should the ref really be the full result?
-        let res = SuspensionPointAnalysisOutput(suspension_points);
-        Ok((res, ()))
+            let res = SuspensionPointAnalysisOutput(suspension_points);
+            Ok((res, ()))
+        })
     }
 }
 
@@ -137,7 +160,7 @@ impl<'vir> SuspensionPointVisitor<'vir> {
         let mut candidate = SuspensionPointCandidate::default();
 
         // the first BB must be a call to the on_exit marker or into_future
-        let (fn_def_id, ret_place, args, next_bb) = self.check_function_call(data.terminator())?;
+        let (fn_def_id, ret_place, _, next_bb) = self.check_function_call(data.terminator())?;
         let def_path = self.vcx.tcx().def_path_str(fn_def_id);
 
         // if the call is to into_future, we can continue
@@ -312,7 +335,7 @@ impl<'vir> SuspensionPointVisitor<'vir> {
         // then, the future is polled
         let next_bb = {
             let data = &self.body.basic_blocks[next_bb];
-            let (fn_def_id, _, args, next_bb) = self.check_function_call(data.terminator())?;
+            let (_, _, args, next_bb) = self.check_function_call(data.terminator())?;
             match args[..] {
                 [mir::Operand::Move(arg_place), _] if arg_place == candidate.pin_place.unwrap() => {
                 }

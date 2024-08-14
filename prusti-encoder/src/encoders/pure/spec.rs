@@ -4,16 +4,16 @@ use prusti_rustc_interface::{
     span::{def_id::DefId, Symbol},
 };
 
-use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
+use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::Reify;
 
 use crate::encoders::{
-    predicate,
+    lifted::{casters::CastTypePure, rust_ty_cast::RustTyCastersEnc},
     mir_pure::PureKind,
+    most_generic_ty, predicate,
+    r#async::SuspensionPointAnalysis,
     rust_ty_predicates::RustTyPredicatesEnc,
     MirPureEnc,
-    most_generic_ty,
-    lifted::{rust_ty_cast::RustTyCastersEnc, casters::CastTypePure},
 };
 pub struct MirSpecEnc;
 
@@ -23,6 +23,8 @@ pub struct MirSpecEncOutput<'vir> {
     pub posts: Vec<vir::Expr<'vir>>,
     pub async_stub_posts: Vec<vir::Expr<'vir>>,
     pub async_invariants: Vec<vir::Expr<'vir>>,
+    pub async_on_exit_conditions: Vec<(u32, Vec<vir::Expr<'vir>>)>,
+    pub async_on_entry_conditions: Vec<(u32, Vec<vir::Expr<'vir>>)>,
     pub pre_args: &'vir [vir::Expr<'vir>],
     pub post_args: &'vir [vir::Expr<'vir>],
 }
@@ -53,12 +55,11 @@ impl TaskEncoder for MirSpecEnc {
         let (def_id, substs, caller_def_id, pure, is_poll_stub) = *task_key;
         deps.emit_output_ref(*task_key, ())?;
 
-        let local_defs = deps
-            .require_local::<crate::encoders::local_def::MirLocalDefEnc>((
-                def_id,
-                substs,
-                caller_def_id,
-            ))?;
+        let local_defs = deps.require_local::<crate::encoders::local_def::MirLocalDefEnc>((
+            def_id,
+            substs,
+            caller_def_id,
+        ))?;
         let specs = deps
             .require_local::<crate::encoders::SpecEnc>(crate::encoders::SpecEncTask { def_id })?;
 
@@ -130,7 +131,7 @@ impl TaskEncoder for MirSpecEnc {
             // by poll calls / during the body's execution and the second half contains ghost
             // fields, which are not changed and capture the upvars' initial value
             let async_generator_fields = if !is_async {
-                    None
+                None
             } else {
                 let generator_snap = if !is_poll_stub {
                     // the async body simply takes the generator as argument and returns the result
@@ -162,25 +163,36 @@ impl TaskEncoder for MirSpecEnc {
                             let pin_ty = deps.require_ref::<RustTyPredicatesEnc>(pin_ty)?;
                             // note that we cannot use the `LocalDef`'s `impure_snap`, as its type is the
                             // generator itself due to the `DefId` belonging to the generator body
-                            let pin_snap = pin_ty.ref_to_snap(vcx, local_defs.locals[1_u32.into()].local_ex);
-                            let fields = pin_ty.generic_predicate.expect_structlike().snap_data.field_access;
+                            let pin_snap =
+                                pin_ty.ref_to_snap(vcx, local_defs.locals[1_u32.into()].local_ex);
+                            let fields = pin_ty
+                                .generic_predicate
+                                .expect_structlike()
+                                .snap_data
+                                .field_access;
                             assert_eq!(fields.len(), 1, "expected pin domain to have 1 field");
                             let ref_snap = fields[0].read.apply(vcx, [pin_snap]);
-                            let caster = deps.require_local::<RustTyCastersEnc<CastTypePure>>(ref_ty).unwrap();
+                            let caster = deps
+                                .require_local::<RustTyCastersEnc<CastTypePure>>(ref_ty)
+                                .unwrap();
                             caster.cast_to_concrete_if_possible(vcx, ref_snap)
                         };
                         let ref_ty = deps.require_ref::<RustTyPredicatesEnc>(ref_ty)?;
                         let fields = ref_ty.generic_predicate.expect_ref().snap_data.field_access;
                         assert_eq!(fields.len(), 1, "expected ref domain to have 1 field");
                         let gen_snap = fields[0].read.apply(vcx, [ref_snap]);
-                        let caster = deps.require_local::<RustTyCastersEnc<CastTypePure>>(gen_ty).unwrap();
+                        let caster = deps
+                            .require_local::<RustTyCastersEnc<CastTypePure>>(gen_ty)
+                            .unwrap();
                         caster.cast_to_concrete_if_possible(vcx, gen_snap)
                     };
                     gen_snap
                 };
                 let ghost_fields = {
                     let generator_ty = local_defs.locals[mir::Local::from(1_u32)].ty;
-                    let predicate::PredicateEncData::StructLike(gen_domain_data) = generator_ty.specifics else {
+                    let predicate::PredicateEncData::StructLike(gen_domain_data) =
+                        generator_ty.specifics
+                    else {
                         panic!("expected generator domain to be struct-like");
                     };
                     let fields = gen_domain_data.snap_data.field_access;
@@ -189,9 +201,7 @@ impl TaskEncoder for MirSpecEnc {
                     fields.iter().take(n_fields - 1)
                 };
                 let ghost_field_reads = ghost_fields
-                    .map(
-                        |field| field.read.apply(vcx, [generator_snap])
-                    )
+                    .map(|field| field.read.apply(vcx, [generator_snap]))
                     .collect::<Vec<_>>();
                 Some(ghost_field_reads)
             };
@@ -241,17 +251,15 @@ impl TaskEncoder for MirSpecEnc {
 
             let mut mk_post_spec_expr = |spec_def_id: &DefId| {
                 let expr = deps
-                    .require_local::<crate::encoders::MirPureEnc>(
-                        crate::encoders::MirPureEncTask {
-                            encoding_depth: 0,
-                            kind: PureKind::Spec,
-                            parent_def_id: *spec_def_id,
-                            param_env: vcx.tcx().param_env(spec_def_id),
-                            substs,
-                            // TODO: should this be `def_id` or `caller_def_id`
-                            caller_def_id: Some(def_id),
-                        },
-                    )
+                    .require_local::<crate::encoders::MirPureEnc>(crate::encoders::MirPureEncTask {
+                        encoding_depth: 0,
+                        kind: PureKind::Spec,
+                        parent_def_id: *spec_def_id,
+                        param_env: vcx.tcx().param_env(spec_def_id),
+                        substs,
+                        // TODO: should this be `def_id` or `caller_def_id`
+                        caller_def_id: Some(def_id),
+                    })
                     .unwrap()
                     .expr;
                 let expr = expr.reify(vcx, (*spec_def_id, post_args));
@@ -265,7 +273,7 @@ impl TaskEncoder for MirSpecEnc {
                 .collect::<Vec<vir::Expr<'_>>>();
 
             // we also encode the wrapped postconditions for async poll stubs
-            // using the same arguments available to standard postconditions
+            // using the same arguments available to standard postconditions.
             // for non-async items, this will just be empty
             let async_stub_posts = specs
                 .async_stub_posts
@@ -273,25 +281,25 @@ impl TaskEncoder for MirSpecEnc {
                 .map(mk_post_spec_expr)
                 .collect::<Vec<vir::Expr<'_>>>();
 
-            // async invariants are encoded using the same arguments as postconditions
-            // except for `result`, which cannot be used in async invariants
-            // async invariants also need to be encoded using the generator's ghost fields
-            // instead of the function arguments
-            // Note that they are *not* encoded using old-expressions of the ghsot fields,
+            // both async invariants and async on_exit-/on_entry-conditions are encoded
+            // using the same arguments as postconditions except for `result`.
+            // they also need to be encoded using the generator's ghost fields
+            // instead of the function arguments.
+            // Note that they are *not* encoded using old-expressions of the ghost fields,
             // so they cannot be used as a postcondition on the generator's body (as the body
             // consumes the generator). For the poll stub, there is no such restriction.
-            let async_invariants = if !is_async {
-                Vec::new()
+            let (async_invariants, async_on_exit_conditions, async_on_entry_conditions) = if !is_async {
+                (Vec::new(), Vec::new(), Vec::new())
             } else {
                 let gen_fields = async_generator_fields.unwrap();
                 let n_fields = gen_fields.len();
-                let inv_args = vcx.alloc_slice(
+                let args = vcx.alloc_slice(
                     &gen_fields
                         .into_iter()
                         .take(n_fields / 2)
-                        .collect::<Vec<_>>()
+                        .collect::<Vec<_>>(),
                 );
-                specs
+                let invs = specs
                     .async_invariants
                     .iter()
                     .map(|spec_def_id| {
@@ -305,14 +313,48 @@ impl TaskEncoder for MirSpecEnc {
                                     substs,
                                     // TODO: should this be `def_id` or `caller_def_id`
                                     caller_def_id: Some(def_id),
-                                }
+                                },
                             )
                             .unwrap()
                             .expr;
-                        let expr = expr.reify(vcx, (*spec_def_id, inv_args));
+                        let expr = expr.reify(vcx, (*spec_def_id, args));
+
                         to_bool.apply(vcx, [expr])
                     })
-                .collect::<Vec<vir::Expr<'_>>>()
+                    .collect::<Vec<vir::Expr<'_>>>();
+
+                let suspension_points = deps
+                    .require_local::<SuspensionPointAnalysis>(def_id)
+                    .unwrap()
+                    .0;
+
+                let mut encode_cond = |cond_def_id: &DefId| {
+                    let expr = deps
+                        .require_local::<crate::encoders::MirPureEnc>(
+                            crate::encoders::MirPureEncTask {
+                                encoding_depth: 0,
+                                kind: PureKind::Closure,
+                                // TODO: are these correct?
+                                parent_def_id: *cond_def_id,
+                                param_env: vcx.tcx().param_env(cond_def_id),
+                                substs,
+                                caller_def_id: Some(def_id),
+                            },
+                        )
+                        .unwrap()
+                        .expr;
+                    let expr = expr.reify(vcx, (*cond_def_id, args));
+                    to_bool.apply(vcx, [expr])
+                };
+
+                let mut on_exits = Vec::new();
+                let mut on_entries = Vec::new();
+                for sp in suspension_points {
+                    on_exits.push((sp.label, sp.on_exit_closures.iter().map(&mut encode_cond).collect()));
+                    on_entries.push((sp.label, sp.on_entry_closures.iter().map(&mut encode_cond).collect()));
+                }
+
+                (invs, on_exits, on_entries)
             };
 
             let data = MirSpecEncOutput {
@@ -320,6 +362,8 @@ impl TaskEncoder for MirSpecEnc {
                 posts,
                 async_stub_posts,
                 async_invariants,
+                async_on_exit_conditions,
+                async_on_entry_conditions,
                 pre_args,
                 post_args,
             };

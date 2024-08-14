@@ -173,6 +173,19 @@ impl TaskEncoder for AsyncPollStubEnc {
             };
             assert_eq!(gen_fields.len(), 2 * n_upvars + 1);
 
+            // viper function to take snapshot of u32, will be used for state values
+            let u32_snap_fn = deps
+                .require_ref::<RustTyPredicatesEnc>(
+                    vcx.tcx().mk_ty_from_kind(ty::TyKind::Uint(ty::UintTy::U32)),
+                )?
+                .generic_predicate
+                .expect_prim()
+                .prim_to_snap;
+            let mk_u32_snap = |x: u32| {
+                let vir_cnst = vcx.mk_const_expr(vir::ConstData::Int(x.into()));
+                u32_snap_fn.apply(vcx, [vir_cnst])
+            };
+
             let suspension_points = deps
                 .require_local::<SuspensionPointAnalysis>(def_id)
                 .unwrap()
@@ -180,16 +193,44 @@ impl TaskEncoder for AsyncPollStubEnc {
 
             // encode the stub's specification
             let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false, true))?;
-            let (spec_pres, spec_posts, spec_invs) =
-                (spec.pres, spec.async_stub_posts, spec.async_invariants);
+
+            // encode the method's on_exit/on_entry conditions as post-/preconditions
+            let (on_exit_posts, on_entry_pres) = {
+                let state_field = gen_fields[2 * n_upvars];
+                let mut on_exit_posts = Vec::new();
+                let mut on_entry_pres = Vec::new();
+
+                for (lbl, on_exits) in &spec.async_on_exit_conditions {
+                    let is_in_state =
+                        vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, state_field, mk_u32_snap(*lbl));
+                    let on_exits = on_exits
+                        .iter()
+                        .map(|cond| vcx.mk_bin_op_expr(vir::BinOpKind::Implies, is_in_state, cond));
+                    on_exit_posts.extend(on_exits);
+                }
+
+                for (lbl, on_entries) in &spec.async_on_entry_conditions {
+                    let is_in_state =
+                        vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, state_field, mk_u32_snap(*lbl));
+                    let on_entries = on_entries
+                        .iter()
+                        .map(|cond| vcx.mk_bin_op_expr(vir::BinOpKind::Implies, is_in_state, cond));
+                    on_entry_pres.extend(on_entries);
+                }
+
+                println!("{def_id:?}: adding\n* {} on_exit\n* {} on_entry\n", on_exit_posts.len(), on_entry_pres.len());
+
+                (on_exit_posts, on_entry_pres)
+            };
 
             // add arguments and preconditions about their types
             // note that the signature is (self: std::pin::Pin<&mut Self>, cx: &mut Context)
             // and not the signature of the generator
             // TODO: fix capacity here
-            let mut pres = Vec::with_capacity(arg_count + spec_invs.len() - 1);
-            let mut args =
-                Vec::with_capacity(arg_count + substs.len() + n_upvars + spec_invs.len() + 1);
+            let mut pres = Vec::with_capacity(arg_count + spec.async_invariants.len() - 1);
+            let mut args = Vec::with_capacity(
+                arg_count + substs.len() + n_upvars + spec.async_invariants.len() + 1,
+            );
             for arg_idx in 0..arg_count {
                 let name = local_defs.locals[arg_idx.into()].local.name;
                 args.push(vir::vir_local_decl! { vcx; [name] : Ref });
@@ -198,23 +239,16 @@ impl TaskEncoder for AsyncPollStubEnc {
             pres.push(enc_cx_ty.ref_to_pred(vcx, local_defs.locals[2_u32.into()].local_ex, None));
             // add type parameters (and their typing preconditions)
             args.extend(param_ty_decls.iter());
-            pres.extend(spec_pres);
+            pres.extend(spec.pres);
 
             // constrain possible state values to the suspension-point labels as well as 0
             let state_value_constraint = {
                 let state_field = gen_fields[2 * n_upvars];
-                let u32_snap = deps
-                    .require_ref::<RustTyPredicatesEnc>(
-                        vcx.tcx().mk_ty_from_kind(ty::TyKind::Uint(ty::UintTy::U32)),
-                    )?
-                    .generic_predicate
-                    .expect_prim()
-                    .prim_to_snap;
                 let state_values = suspension_points
                     .iter()
                     .map(|sp| vcx.mk_const_expr(vir::ConstData::Int(sp.label.into())))
                     .chain(std::iter::once(vcx.mk_uint::<0>()))
-                    .map(|lbl| u32_snap.apply(vcx, [lbl]));
+                    .map(|lbl| u32_snap_fn.apply(vcx, [lbl]));
                 state_values
                     .map(|v| vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, state_field, v))
                     .reduce(|l, r| vcx.mk_bin_op_expr(vir::BinOpKind::Or, l, r))
@@ -222,8 +256,11 @@ impl TaskEncoder for AsyncPollStubEnc {
             };
             pres.push(state_value_constraint);
 
+            // add preconditions corresponding to on_entry conditions
+            pres.extend(on_entry_pres);
+
             // add invariants as preconditions
-            for inv in &spec_invs {
+            for inv in &spec.async_invariants {
                 pres.push(*inv);
             }
 
@@ -231,7 +268,7 @@ impl TaskEncoder for AsyncPollStubEnc {
             // we also add a postcondition on the generator type after the call and the requirement
             // about its state values
             // TODO: fix capacities here
-            let mut posts = Vec::with_capacity(spec_posts.len() + 2);
+            let mut posts = Vec::with_capacity(spec.async_stub_posts.len() + 2);
             posts.push(enc_ret_ty.ref_to_pred(
                 vcx,
                 local_defs.locals[mir::RETURN_PLACE].local_ex,
@@ -243,7 +280,10 @@ impl TaskEncoder for AsyncPollStubEnc {
                 None,
             ));
             posts.push(state_value_constraint);
-            posts.extend(spec_posts);
+            posts.extend(spec.async_stub_posts);
+
+            // add postconditions corresponding to on_exit conditions
+            posts.extend(on_exit_posts);
 
             // add postconditions that polling the future does not change the ghost fields
             // so they still capture the initial state of the async fn's arguments
@@ -254,7 +294,7 @@ impl TaskEncoder for AsyncPollStubEnc {
             }
 
             // add invariants as postconditions
-            for inv in &spec_invs {
+            for inv in &spec.async_invariants {
                 posts.push(*inv);
             }
 
