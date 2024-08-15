@@ -1034,9 +1034,9 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 ..
             } => {
                 let (mut func_def_id, mut caller_substs) = self.get_def_id_and_caller_substs(func);
-                let is_pure = crate::encoders::with_proc_spec(func_def_id, |spec|
-                    spec.kind.is_pure().unwrap_or_default()
-                ).unwrap_or_default();
+                let (is_pure, proc_kind) = crate::encoders::with_proc_spec(func_def_id, |spec|
+                    (spec.kind.is_pure().unwrap_or_default(), spec.proc_kind)
+                ).unwrap_or((false, ProcedureKind::Method));
 
                 // encode suspension-point on_exit/on_entry markers as assert/assume instead of method calls
                 let def_path = self.vcx.tcx().def_path_str(func_def_id);
@@ -1136,7 +1136,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
 
                 // intercept some calls that are necessary for async code,
                 // but need to be encoded differently
-                if let Some(trait_def_id) = self.vcx.tcx().trait_of_item(func_def_id) {
+                if self.vcx.tcx().trait_of_item(func_def_id).is_some() {
                     let env_query = EnvQuery::new(self.vcx.tcx());
                     let (resolved_def_id, resolved_params) = env_query.resolve_method_call(self.def_id, func_def_id, caller_substs);
                     match self.vcx.tcx().def_path_str(func_def_id).as_ref() {
@@ -1244,7 +1244,12 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     let method_in = args.iter().map(|arg| self.encode_operand(arg)).collect::<Vec<_>>();
 
 
-                   for ((fn_arg_ty, arg), arg_ex) in fn_arg_tys.iter().zip(args.iter()).zip(method_in.iter()) {
+                   for (idx, ((fn_arg_ty, arg), arg_ex)) in fn_arg_tys
+                       .iter()
+                       .zip(args.iter())
+                       .zip(method_in.iter())
+                       .enumerate()
+                   {
                         let local_decls = self.local_decls_src();
                         let tcx = self.vcx().tcx();
                         let arg_ty = arg.ty(local_decls, tcx);
@@ -1258,6 +1263,19 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                         // the impure operation to perform the cast
                         if let Some(stmt) = caster.apply_cast_if_necessary(self.vcx(), arg_ex) {
                             self.stmt(stmt);
+                        }
+
+                        // if this is a call to a future constructor, create a new variable
+                        // capturing a snapshot of the argument
+                        if matches!(proc_kind, ProcedureKind::AsyncConstructor) {
+                            let arg_ty = self.deps.require_ref::<RustTyPredicatesEnc>(*fn_arg_ty).unwrap();
+                            let name = vir::vir_format!(self.vcx, "_fut_arg_snap${dest:?}${idx}");
+                            let snap = arg_ty.generic_predicate.ref_to_snap.apply(self.vcx, &[arg_ex]);
+                            let decl = self.vcx.mk_local_decl_stmt(
+                                vir::vir_local_decl! { self.vcx; [name] : [arg_ty.generic_predicate.snapshot]},
+                                Some(snap),
+                            );
+                            self.stmt(decl);
                         }
                     }
 
