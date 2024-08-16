@@ -624,21 +624,56 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
             let suspension_point = suspension_points
                 .into_iter()
                 .find(|sp| sp.loop_head == block)?;
-            let fut_ty = self.local_decls[suspension_point.future_place.local].ty;
-            let ty::TyKind::Generator(fut_def_id, ..) = self.vcx.tcx().expand_opaque_types(fut_ty).kind() else {
-                return None;
+            let fut_ty = self.local_decls[suspension_point.future_local].ty;
+            let fut_ty = self.vcx.tcx().expand_opaque_types(fut_ty);
+            let ty::TyKind::Generator(fut_def_id, ..) = fut_ty.kind() else {
+                panic!("suspension-point future place does not contain generator type");
+            };
+            // make sure to get generator type without any substitutions already applied
+            let fut_ty = self.vcx.tcx().type_of(fut_def_id).skip_binder();
+            let ty::TyKind::Generator(fut_def_id, params, _) = fut_ty.kind() else {
+                unreachable!()
             };
             // FIXME: this encodes the invariants for the wrong generator, namely the self-arg,
             // as it encodes from the polled future's perspective rather than from the polling
             // future's
+            // we might be able to fix this by manually encoding using `MirPure` and refiying
+            // the result here
             let fut_invs = self.deps.require_local::<MirSpecEnc>(
                 (*fut_def_id, self.substs, None, false, true)
             ).unwrap().async_invariants;
 
-            // we now add the necessary invariant about the `ResumeTy`
-            // as well as the polled future's invariants
-            let mut invs = Vec::with_capacity(1 + fut_invs.len());
+            let upvar_tys = params.as_generator().upvar_tys();
+            let ghost_field_invs = if let Some(original_fut_local) = suspension_point.original_future_local {
+                let gen_snap = self.local_defs.locals[suspension_point.future_local].impure_snap;
+                let fut_ty = self.deps.require_ref::<RustTyPredicatesEnc>(fut_ty).unwrap();
+                let fields = fut_ty.generic_predicate.expect_structlike().snap_data.field_access;
+                assert_eq!(fields.len(), 2 * upvar_tys.len() + 1);
+                let ghost_fields = fields[upvar_tys.len() .. 2 * upvar_tys.len()]
+                    .iter()
+                    .map(|f| f.read.apply(self.vcx, [gen_snap]));
+                ghost_fields
+                    .zip(upvar_tys.iter())
+                    .enumerate()
+                    .map(|(idx, (f, ty))| {
+                        let ty = self.deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap().snapshot();
+                        // TODO: determine original future place and fix name
+                        let name = vir::vir_format!(self.vcx, "_fut_arg_snap${original_fut_local:?}${idx}");
+                        let snap_local = self.vcx.mk_local_ex(name, ty);
+                        self.vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, f, snap_local)
+                    })
+                    .collect()
+            } else {
+                Vec::new()
+            };
+
+            // we now add the necessary invariant about the typing of the generator and `ResumeTy`
+            // argument, the generator ghost fields being equal to the snapshots taken at the
+            // constructor call, as well as the polled future's invariants
+            let mut invs = Vec::with_capacity(2 + upvar_tys.len() + fut_invs.len());
+            invs.push(self.local_defs.locals[suspension_point.future_local].impure_pred);
             invs.push(self.local_defs.locals[2_u32.into()].impure_pred);
+            invs.extend(ghost_field_invs);
             invs.extend(fut_invs);
 
             Some(self.vcx.alloc_slice(&invs))

@@ -1,6 +1,6 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
-use prusti_interface::environment::body::MirBody;
+use prusti_interface::{environment::body::MirBody, specs::typed::ProcedureKind};
 use prusti_rustc_interface::{
     middle::{
         mir::{self, visit::Visitor},
@@ -15,22 +15,27 @@ use vir::VirCtxt;
 pub struct SuspensionPointAnalysis;
 
 #[derive(Clone, Debug)]
-pub struct SuspensionPoint<'tcx> {
+pub struct SuspensionPoint {
     pub label: u32,
     // the first BB of the busy loop, which is where invariants should be put
     pub loop_head: mir::BasicBlock,
     // DefId's of the closures containing the on_exit/on_entry conditions (if any)
     pub on_exit_closures: Vec<DefId>,
     pub on_entry_closures: Vec<DefId>,
-    // the place containing the future as well as its pinned reference inside the busy loop
-    pub future_place: mir::Place<'tcx>,
-    pub pin_place: mir::Place<'tcx>,
+    // the local containing the future as well as its pinned reference inside the busy loop
+    pub future_local: mir::Local,
+    pub pin_local: mir::Local,
+    // the original local containing the future at the time of its construction
+    // Note that this may not be set, e.g. because the future is lacking a specification (in which
+    // case the constructor call is not being detected as such) or because this analysis was unable
+    // to track the future to the suspension-point.
+    pub original_future_local: Option<mir::Local>,
 }
 
 #[derive(Clone, Debug)]
-pub struct SuspensionPointAnalysisOutput<'tcx>(pub Vec<SuspensionPoint<'tcx>>);
+pub struct SuspensionPointAnalysisOutput(pub Vec<SuspensionPoint>);
 
-impl<'tcx> task_encoder::OutputRefAny for SuspensionPointAnalysisOutput<'tcx> {}
+impl task_encoder::OutputRefAny for SuspensionPointAnalysisOutput {}
 
 #[derive(Debug, Clone)]
 pub struct SuspensionPointAnalysisError;
@@ -40,7 +45,7 @@ impl TaskEncoder for SuspensionPointAnalysis {
 
     type TaskDescription<'vir> = DefId;
 
-    type OutputFullLocal<'vir> = SuspensionPointAnalysisOutput<'vir>;
+    type OutputFullLocal<'vir> = SuspensionPointAnalysisOutput;
 
     type EncodingError = SuspensionPointAnalysisError;
 
@@ -63,7 +68,7 @@ impl TaskEncoder for SuspensionPointAnalysis {
                 .body_mut()
                 .get_impure_fn_body(local_def_id, substs, None);
 
-            let mut visitor = SuspensionPointVisitor::new(vcx, def_id, body.clone());
+            let mut visitor = SuspensionPointVisitor::new(vcx, body.clone());
             visitor.visit_body(&body);
 
             // create the list of suspension-points by labeling all unannotated ones
@@ -101,6 +106,12 @@ impl TaskEncoder for SuspensionPointAnalysis {
                     .collect()
             };
 
+            // attempt to track the places containing futures from their construction to their
+            // suspension-points in order to map back from suspension-points to their future's
+            // constructor calls
+            let mut fut_place_tracker = FuturePlaceTracker::new(vcx);
+            fut_place_tracker.visit_body(&body);
+
             let suspension_points: Vec<SuspensionPoint> = visitor
                 .candidates
                 .into_iter()
@@ -109,8 +120,12 @@ impl TaskEncoder for SuspensionPointAnalysis {
                     on_exit_closures: marker_closure_def_ids(candidate.on_exit_marker),
                     loop_head: candidate.loop_head.unwrap(),
                     on_entry_closures: marker_closure_def_ids(candidate.on_entry_marker),
-                    future_place: candidate.future_place.unwrap(),
-                    pin_place: candidate.pin_place.unwrap(),
+                    future_local: candidate.future_place.unwrap(),
+                    pin_local: candidate.pin_place.unwrap(),
+                    original_future_local: fut_place_tracker
+                        .original_fut_place
+                        .get(&candidate.into_future_call.unwrap())
+                        .copied(),
                 })
                 .collect();
 
@@ -120,12 +135,11 @@ impl TaskEncoder for SuspensionPointAnalysis {
     }
 }
 
-// TODO: do we really need to store all this?
 #[derive(Default)]
-struct SuspensionPointCandidate<'tcx> {
+struct SuspensionPointCandidate {
     label: Option<u32>,
-    future_place: Option<mir::Place<'tcx>>,
-    pin_place: Option<mir::Place<'tcx>>,
+    future_place: Option<mir::Local>,
+    pin_place: Option<mir::Local>,
     on_exit_marker: Option<mir::BasicBlock>,
     into_future_call: Option<mir::BasicBlock>,
     loop_head: Option<mir::BasicBlock>,
@@ -134,16 +148,14 @@ struct SuspensionPointCandidate<'tcx> {
 
 struct SuspensionPointVisitor<'vir> {
     vcx: &'vir VirCtxt<'vir>,
-    def_id: DefId,
     body: MirBody<'vir>,
-    candidates: Vec<SuspensionPointCandidate<'vir>>,
+    candidates: Vec<SuspensionPointCandidate>,
 }
 
 impl<'vir> SuspensionPointVisitor<'vir> {
-    fn new(vcx: &'vir VirCtxt<'vir>, def_id: DefId, body: MirBody<'vir>) -> Self {
+    fn new(vcx: &'vir VirCtxt<'vir>, body: MirBody<'vir>) -> Self {
         Self {
             vcx,
-            def_id,
             body,
             candidates: Vec::new(),
         }
@@ -153,14 +165,13 @@ impl<'vir> SuspensionPointVisitor<'vir> {
         &self,
         block: mir::BasicBlock,
         data: &mir::BasicBlockData<'vir>,
-    ) -> Option<SuspensionPointCandidate<'vir>> {
+    ) -> Option<SuspensionPointCandidate> {
         const INVALID_MARKER_MSG: &str =
             "detected use of marker function outside of suspension-point";
-        // TODO: assign all fields (i.e. BBs) of the candidate
         let mut candidate = SuspensionPointCandidate::default();
 
         // the first BB must be a call to the on_exit marker or into_future
-        let (fn_def_id, ret_place, _, next_bb) = self.check_function_call(data.terminator())?;
+        let (fn_def_id, ret_place, _, next_bb) = check_function_call(data.terminator())?;
         let def_path = self.vcx.tcx().def_path_str(fn_def_id);
 
         // if the call is to into_future, we can continue
@@ -172,7 +183,7 @@ impl<'vir> SuspensionPointVisitor<'vir> {
             candidate.on_exit_marker = Some(block);
             let next_bb_data = &self.body.basic_blocks[next_bb];
             let Some((fn_def_id, ret_place, _, next_next_bb)) =
-                self.check_function_call(next_bb_data.terminator())
+                check_function_call(next_bb_data.terminator())
             else {
                 panic!("{INVALID_MARKER_MSG}");
             };
@@ -213,9 +224,7 @@ impl<'vir> SuspensionPointVisitor<'vir> {
                     mir::StatementKind::Assign(box (
                         new_place,
                         mir::Rvalue::Use(mir::Operand::Move(old_place)),
-                    )) if old_place == pre_loop_fut_place && new_place.projection.is_empty() => {
-                        new_place
-                    }
+                    )) if old_place == pre_loop_fut_place => new_place,
                     _ => return None,
                 }
             };
@@ -223,7 +232,11 @@ impl<'vir> SuspensionPointVisitor<'vir> {
                 mir::TerminatorKind::Goto { target } => target,
                 _ => return None,
             };
-            candidate.future_place = Some(fut_place);
+            assert!(
+                fut_place.projection.is_empty(),
+                "expected no projections on place containing future"
+            );
+            candidate.future_place = Some(fut_place.local);
             next_bb
         };
 
@@ -274,7 +287,7 @@ impl<'vir> SuspensionPointVisitor<'vir> {
                         },
                         src_place,
                     ),
-                )) if src_place == candidate.future_place.unwrap()
+                )) if src_place.local == candidate.future_place.unwrap()
                     && ref_place.projection.is_empty() =>
                 {
                     ref_place
@@ -305,8 +318,7 @@ impl<'vir> SuspensionPointVisitor<'vir> {
                 _ => return None,
             };
             // finally, the reborrowd reference is pinned
-            let (fn_def_id, ret_place, args, next_bb) =
-                self.check_function_call(data.terminator())?;
+            let (fn_def_id, ret_place, args, next_bb) = check_function_call(data.terminator())?;
             match args[..] {
                 [mir::Operand::Move(arg_place)] if arg_place == reborrow_place => {}
                 _ => return None,
@@ -316,7 +328,7 @@ impl<'vir> SuspensionPointVisitor<'vir> {
             {
                 return None;
             }
-            candidate.pin_place = Some(ret_place);
+            candidate.pin_place = Some(ret_place.local);
             next_bb
         };
 
@@ -325,7 +337,7 @@ impl<'vir> SuspensionPointVisitor<'vir> {
         // places they use or assign to and rely on just checking terminators
         let next_bb = {
             let data = &self.body.basic_blocks[next_bb];
-            let (fn_def_id, _, _, next_bb) = self.check_function_call(data.terminator())?;
+            let (fn_def_id, _, _, next_bb) = check_function_call(data.terminator())?;
             if self.vcx.tcx().def_path_str(fn_def_id) != "std::future::get_context" {
                 return None;
             }
@@ -335,10 +347,11 @@ impl<'vir> SuspensionPointVisitor<'vir> {
         // then, the future is polled
         let next_bb = {
             let data = &self.body.basic_blocks[next_bb];
-            let (_, _, args, next_bb) = self.check_function_call(data.terminator())?;
+            let (_, _, args, next_bb) = check_function_call(data.terminator())?;
             match args[..] {
-                [mir::Operand::Move(arg_place), _] if arg_place == candidate.pin_place.unwrap() => {
-                }
+                [mir::Operand::Move(arg_place), _]
+                    if arg_place.local == candidate.pin_place.unwrap()
+                        && arg_place.projection.is_empty() => {}
                 _ => return None,
             };
             next_bb
@@ -385,7 +398,8 @@ impl<'vir> SuspensionPointVisitor<'vir> {
         };
         let next_bb = match self.body.basic_blocks[next_bb].terminator().kind {
             mir::TerminatorKind::Drop { place, target, .. }
-                if place == candidate.future_place.unwrap() =>
+                if place.local == candidate.future_place.unwrap()
+                    && place.projection.is_empty() =>
             {
                 target
             }
@@ -398,7 +412,7 @@ impl<'vir> SuspensionPointVisitor<'vir> {
             _ => return None,
         };
         let terminator = self.body.basic_blocks[next_bb].terminator();
-        if let Some((fn_def_id, _, args, _)) = self.check_function_call(terminator) {
+        if let Some((fn_def_id, _, args, _)) = check_function_call(terminator) {
             if self.vcx.tcx().def_path_str(fn_def_id)
                 == "prusti_contracts::suspension_point_on_entry_marker"
             {
@@ -431,40 +445,39 @@ impl<'vir> SuspensionPointVisitor<'vir> {
         assert!(candidate.loop_head.is_some());
         Some(candidate)
     }
+}
 
-    /// Check if the terminator corresponds to a function call and if so, return that function's
-    /// DefId, the place for the return value, and the BB to continue with.
-    /// Function calls that necessarily diverge are *not* considered here.
-    fn check_function_call<'a>(
-        &self,
-        terminator: &'a mir::Terminator<'vir>,
-    ) -> Option<(
-        DefId,
-        mir::Place<'vir>,
-        &'a Vec<mir::Operand<'vir>>,
-        mir::BasicBlock,
-    )> {
-        let mir::TerminatorKind::Call {
-            ref func,
-            destination,
-            ref target,
-            ref args,
-            ..
-        } = terminator.kind
-        else {
-            return None;
-        };
-        let mir::Operand::Constant(box ref cnst) = func else {
-            return None;
-        };
-        let mir::ConstantKind::Val(_, ty) = cnst.literal else {
-            return None;
-        };
-        let ty::TyKind::FnDef(fn_def_id, _) = ty.kind() else {
-            return None;
-        };
-        Some((*fn_def_id, destination, args, *target.as_ref()?))
-    }
+/// Check if the terminator corresponds to a function call and if so, return that function's
+/// DefId, the place for the return value, and the BB to continue with.
+/// Function calls that necessarily diverge are *not* considered here.
+fn check_function_call<'vir, 'a>(
+    terminator: &'a mir::Terminator<'vir>,
+) -> Option<(
+    DefId,
+    mir::Place<'vir>,
+    &'a Vec<mir::Operand<'vir>>,
+    mir::BasicBlock,
+)> {
+    let mir::TerminatorKind::Call {
+        ref func,
+        destination,
+        ref target,
+        ref args,
+        ..
+    } = terminator.kind
+    else {
+        return None;
+    };
+    let mir::Operand::Constant(box ref cnst) = func else {
+        return None;
+    };
+    let mir::ConstantKind::Val(_, ty) = cnst.literal else {
+        return None;
+    };
+    let ty::TyKind::FnDef(fn_def_id, _) = ty.kind() else {
+        return None;
+    };
+    Some((*fn_def_id, destination, args, *target.as_ref()?))
 }
 
 impl<'vir> Visitor<'vir> for SuspensionPointVisitor<'vir> {
@@ -482,6 +495,81 @@ impl<'vir> Visitor<'vir> for SuspensionPointVisitor<'vir> {
         // otherwise, just check if there is a suspension-point starting at this BB
         if let Some(candidate) = self.check_suspension_point(block, data) {
             self.candidates.push(candidate);
+        }
+    }
+}
+
+struct FuturePlaceTracker<'vir> {
+    vcx: &'vir VirCtxt<'vir>,
+    // tracking list mapping places to the original local their future was assigned to
+    current_fut_place: HashMap<mir::Place<'vir>, mir::Local>,
+    // finalized list mapping BBs of `into_future` calls to the original locals
+    // containing their futures upon construction
+    original_fut_place: HashMap<mir::BasicBlock, mir::Local>,
+}
+
+impl<'vir> FuturePlaceTracker<'vir> {
+    fn new(vcx: &'vir VirCtxt<'vir>) -> Self {
+        Self {
+            vcx,
+            current_fut_place: HashMap::new(),
+            original_fut_place: HashMap::new(),
+        }
+    }
+}
+
+impl<'vir> Visitor<'vir> for FuturePlaceTracker<'vir> {
+    fn visit_basic_block_data(&mut self, block: mir::BasicBlock, data: &mir::BasicBlockData<'vir>) {
+        // visit all statements in the BB
+        self.super_basic_block_data(block, data);
+
+        // if this block calls a future constructor, add the local the future is being assigned to
+        // to the tracking list
+        let Some((fn_def_id, dest, args, _)) = check_function_call(data.terminator()) else {
+            return;
+        };
+        let proc_kind = crate::encoders::with_proc_spec(fn_def_id, |proc_spec| proc_spec.proc_kind);
+        if matches!(proc_kind, Some(ProcedureKind::AsyncConstructor)) {
+            assert!(
+                dest.projection.is_empty(),
+                "expected future constructor to assign to local without projections"
+            );
+            self.current_fut_place.insert(dest, dest.local);
+            return;
+        }
+
+        // if this block ends with an `IntoFuture::into_future` call, we can stop tracking that
+        // future
+        if self.vcx.tcx().def_path_str(fn_def_id) == "std::future::IntoFuture::into_future" {
+            assert!(
+                dest.projection.is_empty(),
+                "expected `IntoFuture::into_future` to assign to unprojected local"
+            );
+            let [mir::Operand::Move(place)] = args[..] else {
+                panic!("`IntoFuture::into_future` call should have exactly one moved argument");
+            };
+            if let Some(original_local) = self.current_fut_place.remove(&place) {
+                self.original_fut_place.insert(block, original_local);
+            };
+        }
+    }
+
+    fn visit_statement(&mut self, statement: &mir::Statement<'vir>, _location: mir::Location) {
+        // if this statement is an assignment, check if any of the tracked futures has moved
+        // NOTE: we only track futures being moved to different places, and not e.g. being
+        // referenced and then moved.
+        let mir::StatementKind::Assign(box (
+            new_place,
+            mir::Rvalue::Use(mir::Operand::Move(old_place)),
+        )) = statement.kind
+        else {
+            return;
+        };
+
+        // if the old place being moved out of was in the tracking list, change it so the new place
+        // points to the original local
+        if let Some(original_local) = self.current_fut_place.remove(&old_place) {
+            self.current_fut_place.insert(new_place, original_local);
         }
     }
 }
