@@ -657,7 +657,6 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     .enumerate()
                     .map(|(idx, (f, ty))| {
                         let ty = self.deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap().snapshot();
-                        // TODO: determine original future place and fix name
                         let name = vir::vir_format!(self.vcx, "_fut_arg_snap${original_fut_local:?}${idx}");
                         let snap_local = self.vcx.mk_local_ex(name, ty);
                         self.vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, f, snap_local)
