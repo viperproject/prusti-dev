@@ -182,6 +182,8 @@ pub fn extract_type_params<'tcx>(
         TyKind::Bool | TyKind::Char | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Float(_) | TyKind::Never | TyKind::Str => {
             (MostGenericTy(ty), Vec::new())
         }
+        // for now, we replace OTAs by their underlying type in order to ensure that OTAs to async
+        // generators are correctly encoded to the same viper type as the generator
         TyKind::Alias(ty::AliasKind::Opaque, _alias_ty) => {
             let underlying = tcx.expand_opaque_types(ty);
             extract_type_params(tcx, underlying)
@@ -256,6 +258,7 @@ pub fn extract_type_params<'tcx>(
             let dummy_witness_ty = TyKind::GeneratorWitness(ty::Binder::dummy(ty::List::empty()));
             (MostGenericTy(tcx.mk_ty_from_kind(dummy_witness_ty)), Vec::new())
         },
+        // FIXME: these are only dummies to permit encoding async code
         TyKind::FnPtr(binder) => {
             // we erase the signature to avoid encoding
             // the same dummy domain twice
@@ -269,12 +272,15 @@ pub fn extract_type_params<'tcx>(
             let ty = tcx.mk_ty_from_kind(TyKind::FnPtr(dummy_sig));
             (MostGenericTy(ty), Vec::new())
         }
+        // FIXME: these are only dummies to permit encoding async code
         TyKind::RawPtr(ty::TypeAndMut { ty: orig, mutbl }) => {
             let ty = to_placeholder(tcx, None);
             let ty = tcx.mk_ty_from_kind(TyKind::RawPtr(ty::TypeAndMut { ty, mutbl }));
             (MostGenericTy(ty), Vec::new())
             // (MostGenericTy(ty), vec![orig])
         }
+        // FIXME: for now, we encode closures like simple wrappers around their upvars in order to
+        // use them for on-exit/on-entry conditions in async code
         TyKind::Closure(def_id, args) => {
             // analogous to generator
             let args = args.as_closure();

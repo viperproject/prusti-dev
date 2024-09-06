@@ -490,6 +490,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         (tmp, self.vcx.mk_local_ex_local(tmp))
     }
 
+    /// helper function to create a call to an async generator's poll stub
     fn mk_poll_call(
         &mut self,
         gen_def_id: DefId,
@@ -1432,6 +1433,8 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                         self.stmt(self.vcx.mk_exhale_stmt(inv));
                     }
                 }
+                // TODO: once shared state is supported, we also need to havoc all shared state,
+                // and inhale all invariants again
                 // inhale permissions to the obtained resume-values,
                 let resume_permission = self.local_defs.locals[resume_arg.local].impure_pred;
                 self.stmt(self.vcx.mk_inhale_stmt(resume_permission));
