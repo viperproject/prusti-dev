@@ -19,6 +19,8 @@ pub struct SuspensionPoint {
     pub label: u32,
     // the first BB of the busy loop, which is where invariants should be put
     pub loop_head: mir::BasicBlock,
+    // the last BB of the busy loop containing the yield-terminator
+    pub yield_bb: mir::BasicBlock,
     // DefId's of the closures containing the on_exit/on_entry conditions (if any)
     pub on_exit_closures: Vec<DefId>,
     pub on_entry_closures: Vec<DefId>,
@@ -119,6 +121,7 @@ impl TaskEncoder for SuspensionPointAnalysis {
                     label: candidate.label.unwrap_or_else(&mut get_next_label),
                     on_exit_closures: marker_closure_def_ids(candidate.on_exit_marker),
                     loop_head: candidate.loop_head.unwrap(),
+                    yield_bb: candidate.yield_bb.unwrap(),
                     on_entry_closures: marker_closure_def_ids(candidate.on_entry_marker),
                     future_local: candidate.future_place.unwrap(),
                     pin_local: candidate.pin_place.unwrap(),
@@ -143,6 +146,7 @@ struct SuspensionPointCandidate {
     on_exit_marker: Option<mir::BasicBlock>,
     into_future_call: Option<mir::BasicBlock>,
     loop_head: Option<mir::BasicBlock>,
+    yield_bb: Option<mir::BasicBlock>,
     on_entry_marker: Option<mir::BasicBlock>,
 }
 
@@ -378,7 +382,10 @@ impl<'vir> SuspensionPointVisitor<'vir> {
         let next_bb = {
             let terminator = self.body.basic_blocks[pending_bb].terminator();
             match terminator.kind {
-                mir::TerminatorKind::Yield { resume, .. } => resume,
+                mir::TerminatorKind::Yield { resume, .. } => {
+                    candidate.yield_bb = Some(pending_bb);
+                    resume
+                },
                 _ => return None,
             }
         };
