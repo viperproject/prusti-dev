@@ -7,7 +7,7 @@ use prusti_rustc_interface::{
     hir::hir_id::HirId,
     middle::{
         hir::map::Map,
-        ty::{self, GenericArgsRef, ImplPolarity, ParamEnv, TraitPredicate, TyCtxt},
+        ty::{self, GenericArgsRef, PredicatePolarity, ParamEnv, TraitPredicate, TyCtxt},
     },
     span::{
         def_id::{DefId, LocalDefId},
@@ -146,8 +146,8 @@ impl<'tcx> EnvQuery<'tcx> {
         self.tcx
             .fn_sig(def_id.into_param())
             .instantiate_identity()
-            .unsafety()
-            == prusti_rustc_interface::hir::Unsafety::Unsafe
+            .safety()
+            == prusti_rustc_interface::hir::Safety::Unsafe
     }
 
     /// Computes the signature of the function with subst applied.
@@ -157,7 +157,7 @@ impl<'tcx> EnvQuery<'tcx> {
         substs: GenericArgsRef<'tcx>,
     ) -> ty::PolyFnSig<'tcx> {
         let def_id = def_id.into_param();
-        let sig = if self.tcx.is_closure(def_id) {
+        let sig = if self.tcx.is_closure_like(def_id) {
             ty::EarlyBinder::bind(substs.as_closure().sig())
         } else {
             self.tcx.fn_sig(def_id)
@@ -179,7 +179,7 @@ impl<'tcx> EnvQuery<'tcx> {
 
     /// Returns true iff `def_id` is a closure.
     pub fn is_closure(self, def_id: impl IntoParam<DefId>) -> bool {
-        self.tcx.is_closure(def_id.into_param())
+        self.tcx.is_closure_like(def_id.into_param())
     }
 
     // /// Returns the `DefId` of the corresponding trait method, if any.
@@ -289,7 +289,7 @@ impl<'tcx> EnvQuery<'tcx> {
                 ParamEnv::reveal_all(),
                 TraitPredicate {
                     trait_ref,
-                    polarity: ImplPolarity::Positive,
+                    polarity: PredicatePolarity::Positive,
                 },
             );
             let result = sc.select(&obligation);
@@ -335,7 +335,7 @@ impl<'tcx> EnvQuery<'tcx> {
             let param_env = self.tcx.param_env(caller_def_id.into_param());
             let instance = self
                 .tcx
-                .resolve_instance(param_env.and((called_def_id, clean_substs)))
+                .resolve_instance_raw(param_env.and((called_def_id, clean_substs)))
                 .ok()??;
             let resolved_def_id = instance.def_id();
             let resolved_substs = if resolved_def_id == called_def_id {
@@ -362,8 +362,8 @@ impl<'tcx> EnvQuery<'tcx> {
     ) -> bool {
         let param_env = param_env.into_param(self.tcx);
         // Normalize the type to account for associated types
-        let ty = self.resolve_assoc_types(ty, param_env);
-        let ty = self.tcx.erase_late_bound_regions(ty);
+        let ty = self.resolve_assoc_types(ty, param_env).skip_binder();
+        let ty = self.tcx.erase_regions_ty(ty);
         ty.is_copy_modulo_regions(
             *self.tcx.at(prusti_rustc_interface::span::DUMMY_SP),
             param_env,
@@ -526,13 +526,13 @@ mod sealed {
     impl<'tcx> IntoParamTcx<'tcx, HirId> for OwnerId {
         #[inline(always)]
         fn into_param(self, tcx: TyCtxt<'tcx>) -> HirId {
-            tcx.hir().local_def_id_to_hir_id(self.def_id)
+            tcx.local_def_id_to_hir_id(self.def_id)
         }
     }
     impl<'tcx> IntoParamTcx<'tcx, HirId> for LocalDefId {
         #[inline(always)]
         fn into_param(self, tcx: TyCtxt<'tcx>) -> HirId {
-            tcx.hir().local_def_id_to_hir_id(self)
+            tcx.local_def_id_to_hir_id(self)
         }
     }
     impl<'tcx> IntoParamTcx<'tcx, LocalDefId> for HirId {
