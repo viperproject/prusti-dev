@@ -219,6 +219,7 @@ impl Debug for Place<'_> {
                     write!(fmt, "(*").unwrap();
                 }
                 ProjectionElem::Field(_, _)
+                |  ProjectionElem::Subtype(_)
                 | ProjectionElem::Index(_)
                 | ProjectionElem::ConstantIndex { .. }
                 | ProjectionElem::Subslice { .. } => {}
@@ -288,6 +289,9 @@ impl Debug for Place<'_> {
                     from_end: false,
                 } => {
                     write!(fmt, "[{from:?}..{to:?}]")?;
+                }
+                ProjectionElem::Subtype(ty) => {
+                    write!(fmt, "@{ty}")?;
                 }
             }
         }
