@@ -1002,42 +1002,35 @@ mod rev_doms {
     struct RevBasicBlocks<'a, 'vir>(&'a mir::BasicBlocks<'vir>, Vec<mir::BasicBlock>);
     impl DirectedGraph for RevBasicBlocks<'_, '_> {
         type Node = mir::BasicBlock;
+
+        fn num_nodes(&self) -> usize {
+            self.1.len()
+        }
     }
-    impl WithStartNode for RevBasicBlocks<'_, '_> {
+    impl StartNode for RevBasicBlocks<'_, '_> {
         fn start_node(&self) -> Self::Node {
             self.0.next_index()
         }
     }
-    impl WithNumNodes for RevBasicBlocks<'_, '_> {
-        fn num_nodes(&self) -> usize {
-            self.0.num_nodes() + 1
-        }
-    }
-    impl<'graph> GraphPredecessors<'graph> for RevBasicBlocks<'_, '_> {
-        type Item = mir::BasicBlock;
-        type Iter = Box<dyn Iterator<Item = Self::Item> + 'graph>;
-    }
-    impl WithPredecessors for RevBasicBlocks<'_, '_> {
-        fn predecessors<'a>(&'a self, node: Self::Node) -> <Self as GraphPredecessors<'a>>::Iter {
+
+    impl Predecessors for RevBasicBlocks<'_, '_> {
+        fn predecessors<'a>(&'a self, node: Self::Node) -> impl Iterator<Item = Self::Node> {
             if node == self.start_node() {
                 Box::new([].into_iter())
             } else if self.1.contains(&node) {
                 Box::new([self.start_node()].into_iter())
             } else {
-                Box::new(self.0.successors(node))
+                Box::new(self.0.successors(node)) as Box<dyn Iterator<Item = _>>
             }
         }
     }
-    impl<'graph> GraphSuccessors<'graph> for RevBasicBlocks<'_, '_> {
-        type Item = mir::BasicBlock;
-        type Iter = std::iter::Copied<std::slice::Iter<'graph, mir::BasicBlock>>;
-    }
-    impl WithSuccessors for RevBasicBlocks<'_, '_> {
-        fn successors<'a>(&'a self, node: Self::Node) -> <Self as GraphSuccessors<'a>>::Iter {
+
+    impl Successors for RevBasicBlocks<'_, '_> {
+        fn successors<'a>(&'a self, node: Self::Node) -> impl Iterator<Item = Self::Node> {
             if node == self.start_node() {
-                self.1.iter().copied()
+                Box::new(self.1.iter().copied())  as Box<dyn Iterator<Item = _>>
             } else {
-                (&self.0).predecessors(node)
+                Box::new((&self.0).predecessors(node))  as Box<dyn Iterator<Item = _>>
             }
         }
     }
