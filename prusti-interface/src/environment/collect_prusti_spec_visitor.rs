@@ -39,7 +39,7 @@ impl<'tcx> CollectPrustiSpecVisitor<'tcx> {
 
     pub fn visit_all_item_likes(&mut self) {
         let items = self.env_query.tcx().hir_crate_items(());
-        for id in items.items() {
+        for id in items.free_items() {
             self.visit_item(self.env_query.hir().item(id));
         }
         for id in items.trait_items() {

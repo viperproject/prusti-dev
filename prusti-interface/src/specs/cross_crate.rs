@@ -1,8 +1,8 @@
 use prusti_rustc_interface::{
     metadata::creader::CStore,
     serialize::{Decodable, Encodable},
-    span::DUMMY_SP,
     session::config::OutputType,
+    span::DUMMY_SP,
 };
 use rustc_hash::FxHashMap;
 use std::{fs, io, path};
@@ -79,14 +79,15 @@ impl CrossCrateSpecs {
         def_spec: &DefSpecificationMap,
         path: &path::PathBuf,
     ) -> io::Result<()> {
-        use std::io::Write;
-        let _ = fs::File::create(path)?;
-        fs::create_dir_all(path.parent().unwrap())?;
-        let mut encoder = DefSpecsEncoder::new(env.tcx(), &path)?;
-        def_spec.proc_specs.encode(&mut encoder);
-        def_spec.type_specs.encode(&mut encoder);
-        CrossCrateBodies::from(&env.body).encode(&mut encoder);
-        encoder.finish()
+        DefSpecsEncoder::serialize(
+            env.tcx(),
+            &path,
+            (
+                &def_spec.proc_specs,
+                &def_spec.type_specs,
+                CrossCrateBodies::from(&env.body),
+            ),
+        )
     }
 
     fn import_from_file(

@@ -17,25 +17,37 @@ use prusti_rustc_interface::{
     },
 };
 
-pub struct DefSpecsEncoder<'tcx> {
+pub struct DefSpecsEncoder<'a, 'tcx> {
     tcx: TyCtxt<'tcx>,
     opaque: opaque::FileEncoder,
     type_shorthands: FxHashMap<Ty<'tcx>, usize>,
     predicate_shorthands: FxHashMap<PredicateKind<'tcx>, usize>,
     interpret_allocs: FxIndexSet<AllocId>,
-    hygiene_context: HygieneEncodeContext,
+    hygiene_context: &'a HygieneEncodeContext,
 }
 
-impl<'tcx> DefSpecsEncoder<'tcx> {
-    pub fn new(tcx: TyCtxt<'tcx>, path: &Path) -> io::Result<Self> {
-        Ok(DefSpecsEncoder {
+impl<'a, 'tcx> DefSpecsEncoder<'a, 'tcx> {
+    pub fn serialize<T: for<'b> Encodable<DefSpecsEncoder<'b, 'tcx>>>(
+        tcx: TyCtxt<'tcx>,
+        path: &Path,
+        meta: T,
+    ) -> Result<(), io::Error> {
+        let _ = std::fs::File::create(path)?;
+        std::fs::create_dir_all(path.parent().unwrap())?;
+
+        let hygiene_context = HygieneEncodeContext::default();
+
+        let mut encoder = DefSpecsEncoder {
             tcx,
             opaque: opaque::FileEncoder::new(path)?,
             type_shorthands: Default::default(),
             predicate_shorthands: Default::default(),
             interpret_allocs: Default::default(),
-            hygiene_context: Default::default(),
-        })
+            hygiene_context: &hygiene_context,
+        };
+
+        meta.encode(&mut encoder);
+        encoder.finish().map_err(|e| e.1)
     }
 
     pub fn finish(mut self) -> Result<(), (PathBuf, Error)> {
@@ -53,7 +65,7 @@ macro_rules! encoder_methods {
         })*
     }
 }
-impl<'tcx> Encoder for DefSpecsEncoder<'tcx> {
+impl<'a, 'tcx> Encoder for DefSpecsEncoder<'a, 'tcx> {
     encoder_methods! {
         emit_usize(usize);
         emit_u128(u128);
@@ -76,7 +88,7 @@ impl<'tcx> Encoder for DefSpecsEncoder<'tcx> {
     }
 }
 
-impl<'tcx> SpanEncoder for DefSpecsEncoder<'tcx> {
+impl<'a, 'tcx> SpanEncoder for DefSpecsEncoder<'a, 'tcx> {
     fn encode_span(&mut self, span: Span) {
         let sm = self.tcx.sess.source_map();
         let local_crate_stable_id = self.tcx.stable_crate_id(LOCAL_CRATE);
@@ -123,7 +135,7 @@ impl<'tcx> SpanEncoder for DefSpecsEncoder<'tcx> {
         eid.local_id.as_u32().encode(self);
     }
     fn encode_syntax_context(&mut self, ctx: SyntaxContext) {
-        raw_encode_syntax_context(ctx, &self.hygiene_context, self);
+        raw_encode_syntax_context(ctx, self.hygiene_context, self);
     }
     fn encode_crate_num(&mut self, cnum: CrateNum) {
         self.tcx.stable_crate_id(cnum).encode(self)
@@ -136,7 +148,7 @@ impl<'tcx> SpanEncoder for DefSpecsEncoder<'tcx> {
     }
 }
 
-impl<'tcx> TyEncoder for DefSpecsEncoder<'tcx> {
+impl<'a, 'tcx> TyEncoder for DefSpecsEncoder<'a, 'tcx> {
     type I = TyCtxt<'tcx>;
     const CLEAR_CROSS_CRATE: bool = true;
 
