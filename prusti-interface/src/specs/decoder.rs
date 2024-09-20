@@ -7,7 +7,7 @@ use prusti_rustc_interface::{
         ty::{codec::TyDecoder, Ty, TyCtxt},
     },
     ast::AttrId,
-    serialize::{opaque, Decodable},
+    serialize::{opaque, Decodable, Decoder},
     session::StableCrateId,
     span::{BytePos, ExpnId, Symbol, Span, SpanDecoder, StableSourceFileId, SyntaxContext},
 };
@@ -29,6 +29,16 @@ impl<'a, 'tcx> DefSpecsDecoder<'a, 'tcx> {
     }
 }
 
+//TODO: Unify with Encoder
+// Tags used for encoding Spans:
+const TAG_FULL_SPAN: u8 = 0;
+const TAG_PARTIAL_SPAN: u8 = 1;
+
+// Tags for encoding Symbol's
+const SYMBOL_STR: u8 = 0;
+const SYMBOL_OFFSET: u8 = 1;
+const SYMBOL_PREINTERNED: u8 = 2;
+
 impl<'a, 'tcx> SpanDecoder for DefSpecsDecoder<'a, 'tcx> {
     fn decode_span(&mut self) -> Span {
         let sm = self.tcx.sess.source_map();
@@ -46,7 +56,30 @@ impl<'a, 'tcx> SpanDecoder for DefSpecsDecoder<'a, 'tcx> {
     }
 
     fn decode_symbol(&mut self) -> Symbol {
-        todo!()
+        let tag = self.read_u8();
+
+        match tag {
+            SYMBOL_STR => {
+                let s = self.read_str();
+                Symbol::intern(s)
+            }
+            SYMBOL_OFFSET => {
+                // read str offset
+                let pos = self.read_usize();
+
+                // move to str ofset and read
+                let sym = self.opaque.with_position(pos, |d| {
+                    let s = d.read_str();
+                    Symbol::intern(s)
+                });
+                sym
+            }
+            SYMBOL_PREINTERNED => {
+                let symbol_index = self.read_u32();
+                Symbol::new_from_decoded(symbol_index)
+            }
+            _ => unreachable!(),
+        }
     }
 
     fn decode_expn_id(&mut self) -> ExpnId {

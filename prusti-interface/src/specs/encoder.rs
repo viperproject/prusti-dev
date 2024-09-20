@@ -1,6 +1,5 @@
 use std::{
-    io::{self, Error},
-    path::{Path, PathBuf},
+    collections::hash_map::Entry, io::{self, Error}, path::{Path, PathBuf}
 };
 
 use prusti_rustc_interface::{
@@ -17,6 +16,11 @@ use prusti_rustc_interface::{
     },
 };
 
+// Tags for encoding Symbol's
+const SYMBOL_STR: u8 = 0;
+const SYMBOL_OFFSET: u8 = 1;
+const SYMBOL_PREINTERNED: u8 = 2;
+
 pub struct DefSpecsEncoder<'a, 'tcx> {
     tcx: TyCtxt<'tcx>,
     opaque: opaque::FileEncoder,
@@ -24,6 +28,8 @@ pub struct DefSpecsEncoder<'a, 'tcx> {
     predicate_shorthands: FxHashMap<PredicateKind<'tcx>, usize>,
     interpret_allocs: FxIndexSet<AllocId>,
     hygiene_context: &'a HygieneEncodeContext,
+        symbol_table: FxHashMap<Symbol, usize>,
+
 }
 
 impl<'a, 'tcx> DefSpecsEncoder<'a, 'tcx> {
@@ -44,6 +50,7 @@ impl<'a, 'tcx> DefSpecsEncoder<'a, 'tcx> {
             predicate_shorthands: Default::default(),
             interpret_allocs: Default::default(),
             hygiene_context: &hygiene_context,
+            symbol_table: Default::default(),
         };
 
         meta.encode(&mut encoder);
@@ -106,27 +113,26 @@ impl<'a, 'tcx> SpanEncoder for DefSpecsEncoder<'a, 'tcx> {
         }
     }
     fn encode_symbol(&mut self, sym: Symbol) {
-        // // if symbol preinterned, emit tag and symbol index
-        // if sym.is_preinterned() {
-        //     self.opaque.emit_u8(SYMBOL_PREINTERNED);
-        //     self.opaque.emit_u32(sym.as_u32());
-        // } else {
-        //     // otherwise write it as string or as offset to it
-        //     match self.symbol_table.entry(sym) {
-        //         Entry::Vacant(o) => {
-        //             self.opaque.emit_u8(SYMBOL_STR);
-        //             let pos = self.opaque.position();
-        //             o.insert(pos);
-        //             self.emit_str(sym.as_str());
-        //         }
-        //         Entry::Occupied(o) => {
-        //             let x = *o.get();
-        //             self.emit_u8(SYMBOL_OFFSET);
-        //             self.emit_usize(x);
-        //         }
-        //     }
-        // }
-        todo!()
+        // if symbol preinterned, emit tag and symbol index
+        if sym.is_preinterned() {
+            self.opaque.emit_u8(SYMBOL_PREINTERNED);
+            self.opaque.emit_u32(sym.as_u32());
+        } else {
+            // otherwise write it as string or as offset to it
+            match self.symbol_table.entry(sym) {
+                Entry::Vacant(o) => {
+                    self.opaque.emit_u8(SYMBOL_STR);
+                    let pos = self.opaque.position();
+                    o.insert(pos);
+                    self.emit_str(sym.as_str());
+                }
+                Entry::Occupied(o) => {
+                    let x = *o.get();
+                    self.emit_u8(SYMBOL_OFFSET);
+                    self.emit_usize(x);
+                }
+            }
+        }
     }
 
     fn encode_expn_id(&mut self, eid: ExpnId) {
