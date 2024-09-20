@@ -19,7 +19,7 @@ use log::info;
 use prusti_utils::{config, report::user, Stopwatch};
 use prusti_rustc_interface::{
     driver, errors,
-    session::{self, EarlyErrorHandler},
+    session::{self, EarlyDiagCtxt},
 };
 use std::env;
 use tracing_chrome::{ChromeLayerBuilder, FlushGuard};
@@ -64,9 +64,7 @@ fn init_loggers() -> Option<FlushGuard> {
         None
     };
 
-    let error_handler = EarlyErrorHandler::new(session::config::ErrorOutputType::HumanReadable(
-        errors::emitter::HumanReadableErrorType::Default(errors::emitter::ColorConfig::Auto),
-    ));
+    let error_handler = EarlyDiagCtxt::new(session::config::ErrorOutputType::default());
     prusti_rustc_interface::driver::init_rustc_env_logger(&error_handler);
     guard
 }
@@ -74,7 +72,7 @@ fn init_loggers() -> Option<FlushGuard> {
 fn main() {
     driver::install_ice_hook(BUG_REPORT_URL, |handler| {
         let version_info = get_prusti_version_info();
-        handler.note_without_error(format!("Prusti version: {version_info}"));
+        handler.handle().note(format!("Prusti version: {version_info}"));
     });
 
     // To measure how long Prusti takes to run
