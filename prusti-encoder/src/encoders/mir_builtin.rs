@@ -249,6 +249,10 @@ impl MirBuiltinEnc {
             }
             // Cannot overflow and no undefined behavior
             BitXor | BitAnd | BitOr | Eq | Lt | Le | Ne | Ge | Gt | Offset => (Vec::new(), val),
+            AddWithOverflow => todo!(),
+            SubWithOverflow => todo!(),
+            MulWithOverflow => todo!(),
+            Cmp => todo!(),
         };
         vcx.mk_function(
             name.to_str(),
