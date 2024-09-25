@@ -1,5 +1,4 @@
 use prusti_rustc_interface::{
-    // abi,
     target::abi,
     middle::ty::{self, TyKind},
 };

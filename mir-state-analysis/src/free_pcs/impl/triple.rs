@@ -81,7 +81,7 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
             | CoroutineDrop
             | FalseEdge { .. }
             | FalseUnwind { .. } => (),
-            Return => {
+            Return | TailCall {.. } => {
                 let always_live = self.repacker.always_live_locals();
                 for local in 0..self.repacker.local_count() {
                     let local = Local::from_usize(local);
@@ -98,9 +98,6 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                 self.requires_write(place);
                 self.ensures_write(place);
             }
-            // Based off def of `Call`
-            &TailCall { .. } => {}
-
             &Call { destination, .. } => {
                 self.requires_write(destination);
                 self.ensures_exclusive(destination);
