@@ -1,3 +1,5 @@
+#![feature(rustc_private)]
+
 use rustc_hash::FxHashMap;
 use viper::{self, AstFactory};
 
