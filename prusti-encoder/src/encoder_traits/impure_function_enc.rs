@@ -90,7 +90,7 @@ where
                     .get_impure_fn_body(local_def_id, substs, caller_def_id);
                 // let body = vcx.tcx().mir_promoted(local_def_id).0.borrow();
 
-                let fpcs_analysis = mir_state_analysis::run_free_pcs(&body, vcx.tcx());
+                let fpcs_analysis = mir_state_analysis::run_combined_pcs(&body, vcx.tcx(), None);
 
                 //let ssa_analysis = SsaAnalysis::analyse(&body);
 
