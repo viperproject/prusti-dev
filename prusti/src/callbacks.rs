@@ -1,5 +1,4 @@
 use crate::verifier::verify;
-use mir_state_analysis::test_free_pcs;
 use prusti_utils::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
