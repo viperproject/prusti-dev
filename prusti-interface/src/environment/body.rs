@@ -1,3 +1,4 @@
+use mir_state_analysis::combined_pcs::BodyWithBorrowckFacts;
 use prusti_rustc_interface::{
     macros::{TyDecodable, TyEncodable},
     middle::{
@@ -27,12 +28,12 @@ impl<'tcx> std::ops::Deref for MirBody<'tcx> {
     }
 }
 
-/// Stores body of functions which we'll need to encode as impure
-pub struct BodyWithBorrowckFacts<'tcx> {
-    pub body: MirBody<'tcx>,
-    ///// Cached borrowck information.
-    //borrowck_facts: Rc<BorrowckFacts>,
-}
+// /// Stores body of functions which we'll need to encode as impure
+// pub struct BodyWithBorrowckFacts<'tcx> {
+//     pub body: MirBody<'tcx>,
+//     ///// Cached borrowck information.
+//     //borrowck_facts: Rc<BorrowckFacts>,
+// }
 
 /// Bodies which need not be synched across crates and so can be
 /// loaded dynamically as needed during encoding.
@@ -128,15 +129,14 @@ impl<'tcx> EnvBody<'tcx> {
         // that was used to store the data.
         let body_with_facts = unsafe { mir_storage::retrieve_mir_body(tcx, def_id) };
 
-        //let facts = BorrowckFacts {
-        //    input_facts: RefCell::new(Some(body_with_facts.input_facts)),
-        //    output_facts: body_with_facts.output_facts,
-        //    location_table: RefCell::new(Some(body_with_facts.location_table)),
-        //};
-
         BodyWithBorrowckFacts {
-            body: MirBody(Rc::new(body_with_facts.body)),
-            // borrowck_facts: Rc::new(facts),
+            input_facts: body_with_facts.input_facts,
+            output_facts: body_with_facts.output_facts,
+            location_table: body_with_facts.location_table.map(Rc::new),
+            body: body_with_facts.body,
+            promoted: body_with_facts.promoted,
+            borrow_set: body_with_facts.borrow_set,
+            region_inference_context: body_with_facts.region_inference_context,
         }
     }
 
@@ -189,11 +189,10 @@ impl<'tcx> EnvBody<'tcx> {
     /// Get the MIR body of a local impure function, without any substitutions.
     pub fn get_impure_fn_body_identity(&self, def_id: LocalDefId) -> MirBody<'tcx> {
         let mut impure = self.local_impure_fns.borrow_mut();
-        impure
+        let body = impure
             .entry(def_id)
-            .or_insert_with(|| Self::load_local_mir_with_facts(self.tcx, def_id))
-            .body
-            .clone()
+            .or_insert_with(|| Self::load_local_mir_with_facts(self.tcx, def_id));
+        MirBody(Rc::new(body.body.clone()))
     }
 
     /// Get the MIR body of a local impure function, monomorphised
