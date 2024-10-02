@@ -199,6 +199,15 @@ impl<'tcx> EnvBody<'tcx> {
         MirBody(Rc::new(body.body.clone()))
     }
 
+    /// Get the MIR body of a local impure function, without any substitutions.
+    pub fn get_impure_fn_body_with_facts(&self, def_id: LocalDefId) -> BodyWithBorrowckFacts<'tcx> {
+        let mut impure = self.local_impure_fns.borrow_mut();
+        let body = impure
+            .entry(def_id)
+            .or_insert_with(|| Self::load_local_mir_with_facts(self.tcx, def_id));
+        body.clone()
+    }
+
     /// Get the MIR body of a local impure function, monomorphised
     /// with the given type substitutions.
     pub fn get_impure_fn_body(

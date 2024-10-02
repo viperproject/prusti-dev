@@ -89,7 +89,8 @@ where
                 let body = vcx
                     .body_mut()
                     .get_impure_fn_body(local_def_id, substs, caller_def_id);
-                let body_with_facts = EnvBody::load_local_mir_with_facts(vcx.tcx(), local_def_id);
+                let body_with_facts = vcx
+                    .body_mut().get_impure_fn_body_with_facts(local_def_id);
                 // let body = vcx.tcx().mir_promoted(local_def_id).0.borrow();
 
                 let fpcs_analysis = mir_state_analysis::run_combined_pcs(&body_with_facts, vcx.tcx(), None);
