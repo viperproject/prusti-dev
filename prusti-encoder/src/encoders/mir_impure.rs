@@ -691,6 +691,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                             }
                         }
                     }
+                    // TODO: HERE IS THE CODE TO WRITE Xavier
 
                     //mir::Rvalue::Discriminant(Place<'vir>) => {}
                     //mir::Rvalue::ShallowInitBox(Operand<'vir>, Ty<'vir>) => {}

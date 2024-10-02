@@ -438,6 +438,7 @@ impl<'vir, 'enc> DomainEncData<'vir, 'enc> {
                 UnknownArity::new(self.vcx.alloc_slice(&field_tys.iter().map(|fty| fty.ty).collect::<Vec<_>>())),
                 self.self_ty
             );
+            eprintln!("{ident:?}");
             self.push_function(ident, false);
             ident
         };
