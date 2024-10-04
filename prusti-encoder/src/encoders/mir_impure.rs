@@ -31,6 +31,7 @@ use crate::{
         self,
         lifted::{
             aggregate_cast::{AggregateSnapArgsCastEnc, AggregateSnapArgsCastEncTask},
+            casters::CastTypePure,
             func_app_ty_params::LiftedFuncAppTyParamsEnc,
         },
         FunctionCallTaskDescription, MirBuiltinEnc,
@@ -583,7 +584,6 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     mir::Rvalue::Use(op) => self.encode_operand_snap(op),
 
                     //mir::Rvalue::Repeat(Operand<'vir>, Const<'vir>) => {}
-                    //mir::Rvalue::Ref(Region<'vir>, BorrowKind, Place<'vir>) => {}
                     //mir::Rvalue::ThreadLocalRef(DefId) => {}
                     //mir::Rvalue::AddressOf(Mutability, Place<'vir>) => {}
                     //mir::Rvalue::Len(Place<'vir>) => {}
@@ -678,6 +678,28 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                                 e_rvalue_ty.generic_predicate.expect_prim().prim_to_snap.apply(self.vcx, [zero])
                             }
                         }
+                    }
+                    mir::Rvalue::Ref(reg, kind, place) => {
+                        let e_rvalue_ty = self.deps.require_ref::<RustTyPredicatesEnc>(rvalue_ty).unwrap();
+
+                        let place_ty = place.ty(self.local_decls, self.vcx.tcx());
+                        let ty = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
+                        let place_expr = self.encode_place(Place::from(*place)).expr;
+                        eprintln!("{rvalue_ty:?} {place_ty:?}");
+                          let cast = self
+                            .deps
+                            .require_local::<RustTyCastersEnc<CastTypePure>>(place_ty.ty)
+                            .unwrap();
+
+                        let inner = e_rvalue_ty.generic_predicate.expect_ref();
+                        let generic = cast.cast_to_generic_if_necessary(self.vcx, ty.ref_to_snap(self.vcx, place_expr));
+
+                        eprintln!("{place_expr:?} -> {generic:?}");
+                        let ref_ = inner.snap_data.field_snaps_to_snap.apply(self.vcx, &[generic]);
+                        eprintln!("{ref_:?}");
+                        // e_rvalue_ty.generic_predicate.expect_ref().snap_data.field_snaps_to_snap.apply(self.vcx, inner_ref_to_args);
+                        // e_rvalue_ty.ref_to_snap(self.vcx, place_expr)
+                        ref_
                     }
 
                     //mir::Rvalue::Discriminant(Place<'vir>) => {}
