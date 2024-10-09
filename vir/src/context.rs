@@ -15,10 +15,9 @@ pub struct VirCtxt<'tcx> {
     /// unnecessary cloning.
     pub arena: bumpalo::Bump,
 
-    /// The stack of spans during the encoding process. (TODO)
-    pub span_stack: Vec<i32>,
-    // TODO: span stack
-    // TODO: error positions?
+    /// Rust source code spans used during the encoding process, to be able to
+    /// map Viper errors back to their origin.
+    pub spans: RefCell<crate::spans::VirSpanManager<'tcx>>,
 
     /// The compiler's typing context. This allows convenient access to most
     /// of the compiler's APIs. Is only present when running through `rustc`,
@@ -32,7 +31,7 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn new(tcx: ty::TyCtxt<'tcx>, body: EnvBody<'tcx>) -> Self {
         Self {
             arena: bumpalo::Bump::new(),
-            span_stack: vec![],
+            spans: RefCell::new(Default::default()),
             tcx: Some(tcx),
             body: Some(RefCell::new(body)),
         }
@@ -41,7 +40,7 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn new_without_tcx() -> Self {
         Self {
             arena: bumpalo::Bump::new(),
-            span_stack: vec![],
+            spans: RefCell::new(Default::default()),
             tcx: None,
             body: None,
         }

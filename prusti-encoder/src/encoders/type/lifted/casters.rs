@@ -112,8 +112,12 @@ impl CastType for CastTypeImpure {
                         .collect::<Vec<_>>(),
                 );
                 Some(ImpureCastStmts::new(
-                    vcx.alloc(make_concrete.apply(vcx, args)),
-                    vcx.alloc(make_generic.apply(vcx, args)),
+                    vcx.alloc(vir::StmtGenData::new(
+                        vcx.alloc(make_concrete.apply(vcx, args)),
+                    )),
+                    vcx.alloc(vir::StmtGenData::new(
+                        vcx.alloc(make_generic.apply(vcx, args)),
+                    )),
                 ))
             }
         }

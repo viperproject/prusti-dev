@@ -757,7 +757,7 @@ impl Quantifier {
         match self {
             Self::Forall => quote_spanned! { full_span => ::prusti_contracts::forall(
                 ( #( #trigger_sets, )* ),
-                #[prusti::spec_only] | #args | -> bool { #body }
+                &( #[prusti::spec_only] | #args | -> bool { #body } ),
             ) },
             Self::Exists => quote_spanned! { full_span => ::prusti_contracts::exists(
                 ( #( #trigger_sets, )* ),

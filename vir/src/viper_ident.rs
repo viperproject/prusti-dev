@@ -5,7 +5,7 @@ use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize, Hash)]
 #[serde(transparent)]
-pub struct ViperIdent<'vir>(&'vir str);
+pub struct ViperIdent<'vir>(#[serde(with = "crate::serde::serde_str")] &'vir str);
 
 impl Display for ViperIdent<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {

@@ -9,7 +9,8 @@ macro_rules! const_expr {
     ($expr_kind:expr) => {
         &ExprGenData {
             kind: $expr_kind,
-            debug_info: DEBUGINFO_NONE
+            debug_info: DEBUGINFO_NONE,
+            span: None,
         }
     };
 }
@@ -42,25 +43,25 @@ cfg_if! {
             m: &mut HashMap<&'vir str, Type<'vir>>,
             e: StmtGen<'vir, Curr, Next>
         ) {
-            match e {
-                StmtGenData::LocalDecl(local, e) => {
+            match e.kind {
+                StmtKindGenData::LocalDecl(local, e) => {
                     if let Some(e) = e {
                         check_expr_bindings(m, e);
                     }
                     m.insert(local.name, local.ty);
                 }
-                StmtGenData::PureAssign(p) => {
+                StmtKindGenData::PureAssign(p) => {
                     check_expr_bindings(m, p.lhs);
                     check_expr_bindings(m, p.rhs);
                 }
-                StmtGenData::Inhale(e) |
-                StmtGenData::Exhale(e) => {
+                StmtKindGenData::Inhale(e) |
+                StmtKindGenData::Exhale(e) => {
                     check_expr_bindings(m, e);
                 }
-                StmtGenData::Unfold(app) | StmtGenData::Fold(app) => {
+                StmtKindGenData::Unfold(app) | StmtKindGenData::Fold(app) => {
                     check_predicate_app_bindings(m, app);
                 }
-                StmtGenData::MethodCall(MethodCallGenData {
+                StmtKindGenData::MethodCall(MethodCallGenData {
                     args,
                     ..
                 }) => {
@@ -68,8 +69,8 @@ cfg_if! {
                         check_expr_bindings(m, *arg);
                     }
                 }
-                StmtGenData::Comment(_) => {},
-                StmtGenData::Dummy(_) => todo!(),
+                StmtKindGenData::Comment(_) => {},
+                StmtKindGenData::Dummy(_) => todo!(),
             }
         }
         fn check_expr_bindings<'vir, Curr, Next>(
@@ -519,21 +520,27 @@ impl<'tcx> VirCtxt<'tcx> {
         &'vir self,
         expr: ExprGen<'vir, Curr, Next>
     ) -> StmtGen<'vir, Curr, Next> {
-        self.alloc(StmtGenData::Exhale(expr))
+        self.alloc(StmtGenData::new(
+            self.alloc(StmtKindGenData::Exhale(expr)),
+        ))
     }
 
     pub fn mk_unfold_stmt<'vir, Curr, Next>(
         &'vir self,
         pred_app: PredicateAppGen<'vir, Curr, Next>
     ) -> StmtGen<'vir, Curr, Next> {
-        self.alloc(StmtGenData::Unfold(pred_app))
+        self.alloc(StmtGenData::new(
+            self.alloc(StmtKindGenData::Unfold(pred_app)),
+        ))
     }
 
     pub fn mk_fold_stmt<'vir, Curr, Next>(
         &'vir self,
         pred_app: PredicateAppGen<'vir, Curr, Next>
     ) -> StmtGen<'vir, Curr, Next> {
-        self.alloc(StmtGenData::Fold(pred_app))
+        self.alloc(StmtGenData::new(
+            self.alloc(StmtKindGenData::Fold(pred_app)),
+        ))
     }
 
     pub fn mk_pure_assign_stmt<'vir, Curr, Next>(
@@ -542,14 +549,14 @@ impl<'tcx> VirCtxt<'tcx> {
         rhs: ExprGen<'vir, Curr, Next>
     ) -> StmtGen<'vir, Curr, Next> {
         assert_eq!(lhs.ty(),rhs.ty());
-        self.alloc(
-            StmtGenData::PureAssign(
+        self.alloc(StmtGenData::new(
+            self.alloc(StmtKindGenData::PureAssign(
                 self.alloc(PureAssignGenData {
                     lhs,
-                    rhs
-                })
-            )
-        )
+                    rhs,
+                }),
+            )),
+        ))
     }
 
     pub fn mk_local_decl_stmt<'vir, Curr, Next>(
@@ -557,7 +564,9 @@ impl<'tcx> VirCtxt<'tcx> {
         local: LocalDecl<'vir>,
         expr: Option<ExprGen<'vir, Curr, Next>>
     ) ->  StmtGen<'vir, Curr, Next> {
-        self.alloc(StmtGenData::LocalDecl(local, expr))
+        self.alloc(StmtGenData::new(
+            self.alloc(StmtKindGenData::LocalDecl(local, expr)),
+        ))
     }
 
     pub fn mk_assume_false_stmt<'vir, Curr, Next>(
@@ -590,9 +599,9 @@ impl<'tcx> VirCtxt<'tcx> {
         &'vir self,
         msg: &'vir str
     ) -> StmtGen<'vir, Curr, Next> {
-        self.alloc(
-            StmtGenData::Comment(msg)
-        )
+        self.alloc(StmtGenData::new(
+            self.alloc(StmtKindGenData::Comment(msg)),
+        ))
     }
 
     pub fn mk_goto_if_stmt<'vir, Curr, Next>(

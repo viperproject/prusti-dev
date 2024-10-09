@@ -25,6 +25,7 @@ pub type PredicateApp<'vir> = &'vir crate::data::PredicateAppData<'vir>;
 pub type Program<'vir> = &'vir crate::data::ProgramData<'vir>;
 pub type PureAssign<'vir> = &'vir crate::data::PureAssignData<'vir>;
 pub type Stmt<'vir> = &'vir crate::data::StmtData<'vir>;
+pub type StmtKind<'vir> = &'vir crate::data::StmtKindData<'vir>;
 pub type TerminatorStmt<'vir> = &'vir crate::data::TerminatorStmtData<'vir>;
 pub type Ternary<'vir> = &'vir crate::data::TernaryData<'vir>;
 pub type Trigger<'vir> = &'vir crate::data::TriggerData<'vir>;

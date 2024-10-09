@@ -157,6 +157,24 @@ impl TaskEncoder for DomainEnc {
                     );
                     Ok((Some(enc.finalize(task_key)), specifics))
                 }
+                TyKind::Closure(def_id, args) => {
+                    let cl_args = args.as_closure();
+                    let params = cl_args.parent_args();
+                    let generics = params
+                        .iter()
+                        .filter_map(|p| p.as_type())
+                        .map(|ty| deps.require_local::<LiftedTyEnc<EncodeGenericsAsParamTy>>(ty).unwrap().expect_generic())
+                        .collect();
+                    let fields = cl_args
+                        .upvar_tys()
+                        .iter()
+                        .map(|ty| FieldTy::from_ty(vcx, deps, ty))
+                        .collect::<Result<Vec<_>, _>>()?;
+                    let mut enc = DomainEncData::new(vcx, task_key, generics, deps);
+                    enc.deps.emit_output_ref(*task_key, enc.output_ref(base_name))?;
+                    let specifics = enc.mk_struct_specifics(fields);
+                    Ok((Some(enc.finalize(task_key)), specifics))
+                }
                 TyKind::Adt(adt, params) => {
                     let generics =
                         params

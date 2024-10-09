@@ -343,7 +343,7 @@ pub fn old<T>(arg: T) -> T {
 ///
 /// This is a Prusti-internal representation of the `forall` syntax.
 #[prusti::builtin="forall"]
-pub fn forall<T, F>(_trigger_set: T, _closure: F) -> bool {
+pub fn forall<T, F>(_trigger_set: T, _closure: &F) -> bool {
     true
 }
 

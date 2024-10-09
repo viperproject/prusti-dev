@@ -1,6 +1,10 @@
 use crate::{
-    debug_info::DebugInfo, viper_ident::ViperIdent, with_vcx, DomainParamData, ExprGen, LocalDecl, MethodCallGenData, PredicateAppGen, PredicateAppGenData, StmtGenData, Type, TypeData, VirCtxt
+    debug_info::DebugInfo, viper_ident::ViperIdent, with_vcx, VirCtxt,
 };
+use crate::data::*;
+use crate::refs::*;
+use crate::gendata::*;
+use crate::genrefs::*;
 use sealed::sealed;
 use std::{backtrace::Backtrace, fmt::Debug};
 
@@ -336,9 +340,9 @@ impl<'vir, const N: usize> MethodIdent<'vir, KnownArity<'vir, N>> {
         &self,
         vcx: &'vir VirCtxt<'tcx>,
         args: [ExprGen<'vir, Curr, Next>; N],
-    ) -> StmtGenData<'vir, Curr, Next> {
+    ) -> StmtKindGenData<'vir, Curr, Next> {
         assert!(self.1.types_match(&args));
-        StmtGenData::MethodCall(vcx.alloc(MethodCallGenData {
+        StmtKindGenData::MethodCall(vcx.alloc(MethodCallGenData {
             targets: &[],
             method: self.name().to_str(),
             args: vcx.alloc_slice(&args),
@@ -379,7 +383,7 @@ impl<'vir> MethodIdent<'vir, UnknownArity<'vir>> {
         &self,
         vcx: &'vir VirCtxt<'tcx>,
         args: &[ExprGen<'vir, Curr, Next>],
-    ) -> StmtGenData<'vir, Curr, Next> {
+    ) -> StmtKindGenData<'vir, Curr, Next> {
         if !self.1.types_match(args) {
             panic!(
                 "Method {} could not be applied. Expected arg types: {:?}, Actual arg types: {:?}, Debug info: {}",
@@ -389,7 +393,7 @@ impl<'vir> MethodIdent<'vir, UnknownArity<'vir>> {
                 self.debug_info()
             );
         }
-        StmtGenData::MethodCall(vcx.alloc(MethodCallGenData {
+        StmtKindGenData::MethodCall(vcx.alloc(MethodCallGenData {
             targets: &[],
             method: self.name().to_str(),
             args: vcx.alloc_slice(args),

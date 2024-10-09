@@ -3,6 +3,7 @@ use prusti_rustc_interface::{
     middle::{mir, ty::{GenericArgs, Ty}},
     span::def_id::DefId,
 };
+use rustc_middle::ty::ClosureArgs;
 use task_encoder::{TaskEncoder, EncodeFullResult};
 
 use crate::encoders::lifted::cast::{CastArgs, CastToEnc};
@@ -17,22 +18,30 @@ pub struct AggregateSnapArgsCastEnc;
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct AggregateSnapArgsCastEncTask<'tcx> {
     pub tys: Vec<Ty<'tcx>>,
-    pub aggregate_type: AggregateType,
+    pub aggregate_type: AggregateType<'tcx>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub enum AggregateType {
+pub enum AggregateType<'tcx> {
     Tuple,
+    Closure {
+        def_id: DefId,
+        args: &'tcx GenericArgs<'tcx>,
+    },
     Adt {
         def_id: DefId,
         variant_index: VariantIdx,
     },
 }
 
-impl From<&mir::AggregateKind<'_>> for AggregateType {
-    fn from(aggregate_kind: &mir::AggregateKind) -> Self {
+impl<'tcx> From<&mir::AggregateKind<'tcx>> for AggregateType<'tcx> {
+    fn from(aggregate_kind: &mir::AggregateKind<'tcx>) -> Self {
         match aggregate_kind {
             mir::AggregateKind::Tuple => Self::Tuple,
+            mir::AggregateKind::Closure(def_id, args) => Self::Closure {
+                def_id: *def_id,
+                args: args,
+            },
             mir::AggregateKind::Adt(def_id, variant_index, ..) => {
                 Self::Adt {
                     def_id: *def_id,
@@ -96,6 +105,27 @@ impl TaskEncoder for AggregateSnapArgsCastEnc {
                             cast_functions.to_generic_cast().map(|c| c.map_applicator(|f| f.as_unknown_arity()))
                         })
                         .collect::<Vec<_>>(),
+                    AggregateType::Closure {
+                        def_id,
+                        args,
+                    } => {
+                        let cl_args = args.as_closure();
+                        let upvar_tys = cl_args.upvar_tys();
+                        assert!(upvar_tys.len() == task_key.tys.len());
+                        upvar_tys
+                            .iter()
+                            .zip(task_key.tys.iter())
+                            .map(|(v_ty, actual_ty)| {
+                                let cast = deps
+                                    .require_ref::<CastToEnc<CastTypePure>>(CastArgs {
+                                        expected: v_ty,
+                                        actual: *actual_ty,
+                                    })
+                                    .unwrap();
+                                cast.cast_function()
+                            })
+                            .collect::<Vec<_>>()
+                    }
                     AggregateType::Adt {
                         def_id,
                         variant_index,
