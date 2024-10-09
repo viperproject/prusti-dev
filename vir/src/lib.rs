@@ -13,6 +13,7 @@ mod make;
 mod refs;
 mod reify;
 mod serde;
+mod spans;
 mod callable_idents;
 mod viper_ident;
 
@@ -22,6 +23,7 @@ pub use gendata::*;
 pub use genrefs::*;
 pub use refs::*;
 pub use reify::*;
+pub use spans::VirSpan;
 pub use callable_idents::*;
 pub use viper_ident::*;
 

@@ -208,6 +208,7 @@ pub type PredicateData<'vir> = crate::gendata::PredicateGenData<'vir, !, !>;
 pub type ProgramData<'vir> = crate::gendata::ProgramGenData<'vir, !, !>;
 pub type PureAssignData<'vir> = crate::gendata::PureAssignGenData<'vir, !, !>;
 pub type StmtData<'vir> = crate::gendata::StmtGenData<'vir, !, !>;
+pub type StmtKindData<'vir> = crate::gendata::StmtKindGenData<'vir, !, !>;
 pub type TerminatorStmtData<'vir> = crate::gendata::TerminatorStmtGenData<'vir, !, !>;
 pub type TernaryData<'vir> = crate::gendata::TernaryGenData<'vir, !, !>;
 pub type TriggerData<'vir> = crate::gendata::TriggerGenData<'vir, !, !>;

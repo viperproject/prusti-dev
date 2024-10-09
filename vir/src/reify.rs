@@ -19,7 +19,11 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
     for ExprGen<'vir, Curr, ExprKindGen<'vir, NextA, NextB>> {
     type Next = ExprGen<'vir, NextA, NextB>;
     fn reify<'tcx>(&self, vcx: &'vir VirCtxt<'tcx>, lctx: Curr) -> Self::Next {
-        vcx.alloc(ExprGenData { kind: self.kind.reify(vcx, lctx), debug_info: self.debug_info })
+        vcx.alloc(ExprGenData {
+            kind: self.kind.reify(vcx, lctx),
+            debug_info: self.debug_info,
+            span: self.span,
+        })
     }
 }
 

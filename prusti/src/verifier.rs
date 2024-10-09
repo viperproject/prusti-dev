@@ -53,9 +53,31 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
         );
         let program = request.program;
 
-        let results = prusti_server::verify_programs(vec![program]);
-        println!("verification results: {results:?}");
-        if !results.iter().all(|(_, r)| matches!(r, viper::VerificationResult::Success)) {
+        let mut results = prusti_server::verify_programs(vec![program]);
+        assert_eq!(results.len(), 1); // TODO: eventually verify separate methods as separate programs again?
+
+        let result = results.pop().unwrap().1;
+        println!("verification result: {result:?}");
+
+        let success = match result {
+            viper::VerificationResult::Success => true,
+            viper::VerificationResult::JavaException(_e) => false,
+            viper::VerificationResult::ConsistencyErrors(_e) => false,
+            viper::VerificationResult::Failure(errors) => {
+                errors
+                    .into_iter()
+                    .flat_map(|error| prusti_encoder::backtranslate_error(
+                            &error.full_id,
+                            error.offending_pos_id.unwrap().parse::<usize>().unwrap(),
+                            error.reason_pos_id.and_then(|id| id.parse::<usize>().ok()),
+                        )
+                        .expect("verification error could not be backtranslated")
+                        .into_iter())
+                    .for_each(|prusti_error| prusti_error.emit(&env.diagnostic));
+                false
+            }
+        };
+        if !success {
             // TODO: This will be unnecessary if diagnostic errors are emitted
             // earlier, it's useful for now to ensure that Prusti returns an
             // error code when verification fails
@@ -66,7 +88,6 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
                 &[],
             );
         }
-        // TODO: backtranslate verification results
 
         //let verification_result =
         //    if verification_task.procedures.is_empty() && verification_task.types.is_empty() {

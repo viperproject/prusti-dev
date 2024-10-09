@@ -68,7 +68,7 @@ pub fn derive_serde(input: TokenStream) -> TokenStream {
                                 vcx.alloc_slice(&vec_of_refs)
                             });
                         },
-                        ReifyKind::ReifyOption => quote! {
+                        ReifyKind::ReifyOption | ReifyKind::PassOption => quote! {
                             let opt: Option<_> = seq_val;
                             let #field_ident_f = crate::with_vcx(|vcx| opt.map(|val| vcx.alloc(val)));
                         },
@@ -182,7 +182,7 @@ pub fn derive_serde(input: TokenStream) -> TokenStream {
                                             vcx.alloc_slice(&vec_of_refs)
                                         })
                                     },
-                                    ReifyKind::ReifyOption => quote! {
+                                    ReifyKind::ReifyOption | ReifyKind::PassOption => quote! {
                                         let opt: Option<_> = seq_val;
                                         crate::with_vcx(|vcx| opt.map(|val| vcx.alloc(val)))
                                     },

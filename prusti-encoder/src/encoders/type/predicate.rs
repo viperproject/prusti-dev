@@ -259,6 +259,25 @@ impl TaskEncoder for PredicateEnc {
                 deps.emit_output_ref(*task_key, enc.output_ref(specifics));
                 Ok((enc.mk_prim(&snap.base_name), ()))
             }
+            TyKind::Closure(def_id, args) => {
+                let snap_data = snap.specifics.expect_structlike();
+                let specifics = enc.mk_struct_ref(None, snap_data);
+                deps.emit_output_ref(
+                    *task_key,
+                    enc.output_ref(PredicateEncData::StructLike(specifics)),
+                );
+
+                let fields: Vec<_> = args
+                    .as_closure()
+                    .upvar_tys()
+                    .iter()
+                    .map(|ty| deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap())
+                    .collect();
+                let fields = enc.mk_field_apps(specifics.ref_to_field_refs, fields);
+                let fn_snap_body =
+                    enc.mk_struct_ref_to_snap_body(None, fields, snap_data.field_snaps_to_snap);
+                Ok((enc.mk_struct(fn_snap_body), ()))
+            }
             TyKind::Tuple(tys) => {
                 let snap_data = snap.specifics.expect_structlike();
                 let specifics = enc.mk_struct_ref(None, snap_data);

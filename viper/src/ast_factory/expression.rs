@@ -151,7 +151,7 @@ impl<'a> AstFactory<'a> {
         self.div_with_pos(left, right, self.no_position())
     }
 
-    pub fn module_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+    pub fn mod_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,
             Expr,
@@ -162,8 +162,8 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn module(&self, left: Expr, right: Expr) -> Expr<'a> {
-        self.module_with_pos(left, right, self.no_position())
+    pub fn mod_(&self, left: Expr, right: Expr) -> Expr<'a> {
+        self.mod_with_pos(left, right, self.no_position())
     }
 
     pub fn lt_cmp_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
@@ -1254,7 +1254,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn local_var(&self, name: &str, var_type: Type, position: Position<'a>) -> Expr<'a> {
+    pub fn local_var(&self, name: &str, var_type: Type, position: Position) -> Expr<'a> {
         self.local_var_with_pos(name, var_type, position)
     }
 
