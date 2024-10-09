@@ -2,7 +2,7 @@ use cfg_if::cfg_if;
 use std::fmt::Debug;
 use prusti_rustc_interface::middle::ty;
 use crate::{
-    callable_idents::*, data::*, debug_info::{DebugInfo, DEBUGINFO_NONE}, gendata::*, genrefs::*, refs::*, ViperIdent, VirCtxt
+    callable_idents::*, data::*, debug_info::{DebugInfo, DEBUGINFO_NONE}, gendata::*, genrefs::*, refs::*, typecheck_error, ViperIdent, VirCtxt
 };
 
 macro_rules! const_expr {
@@ -81,11 +81,10 @@ cfg_if! {
                 ExprKindGenData::Local(LocalData { name, ty, debug_info }) => {
                     if let Some(bound_ty) = m.get(name) {
                         if !matches!(bound_ty, TypeData::Unsupported(_)) &&
-                           !matches!(ty, TypeData::Unsupported(_))
+                           !matches!(ty, TypeData::Unsupported(_)) &&
+                           bound_ty != ty
                          {
-                            assert_eq!(
-                                bound_ty,
-                                ty,
+                            typecheck_error!(
                                 "Type mismatch for local variable {name}. \
                                 Scope assigns {name} to type {bound_ty:?}, but the actual type is {ty:?}.\
                                 Debug info: {debug_info}"
@@ -444,7 +443,14 @@ impl<'tcx> VirCtxt<'tcx> {
     ) -> FunctionGen<'vir, Curr, Next> {
         // TODO: Typecheck pre and post conditions
         if let Some(body) = expr {
-            assert!(body.ty() == ret);
+            if body.ty() != ret {
+                typecheck_error!(
+                    "Function {} has inconsistent return type. Expected: {:?}, Actual: {:?}",
+                    name,
+                    ret,
+                    body.ty()
+                );
+            }
             cfg_if! {
                 if #[cfg(debug_assertions)] {
                     let mut m = HashMap::new();
@@ -472,15 +478,17 @@ impl<'tcx> VirCtxt<'tcx> {
         expr: Option<ExprGen<'vir, Curr, Next>>
     ) -> PredicateGen<'vir, Curr, Next> {
         if !ident.arity().types_match(args) {
-            panic!(
-                "Predicate {} could not be applied. Expected: {:?}, Actual: {:?} debug info: {}",
+            typecheck_error!(
+                "Predicate definition for {} does not match signature.
+                Signature params: {:?}
+                Definition params: {:?}
+                Debug info: {}",
                 ident.name(),
                 ident.arity(),
                 args,
                 ident.debug_info()
             );
         }
-        assert!(ident.arity().types_match(args));
         self.mk_predicate_unchecked(
             ident.name().to_str(),
             args,
@@ -548,7 +556,13 @@ impl<'tcx> VirCtxt<'tcx> {
         lhs: ExprGen<'vir, Curr, Next>,
         rhs: ExprGen<'vir, Curr, Next>
     ) -> StmtGen<'vir, Curr, Next> {
-        assert_eq!(lhs.ty(),rhs.ty());
+        if lhs.ty() != rhs.ty() {
+            typecheck_error!(
+                "Pure assign statement requires lhs and rhs to have the same type. lhs: {:?}, rhs: {:?}",
+                lhs.ty(),
+                rhs.ty()
+            );
+        }
         self.alloc(StmtGenData::new(
             self.alloc(StmtKindGenData::PureAssign(
                 self.alloc(PureAssignGenData {
@@ -658,11 +672,13 @@ impl<'tcx> VirCtxt<'tcx> {
         posts: &'vir [ExprGen<'vir, Curr, Next>],
         blocks: Option<&'vir [CfgBlockGen<'vir, Curr, Next>]>, // first one is the entrypoint
     ) -> MethodGen<'vir, Curr, Next> {
-        assert!(ident.arity().types_match(args),
-            "Method {} could not be created. Identifier arity: {:?}, Method decls: {args:?}",
-            ident.name_str(),
-            ident.arity()
-        );
+        if !ident.arity().types_match(args) {
+            typecheck_error!(
+                "Method {} could not be created. Identifier arity: {:?}, Method decls: {args:?}",
+                ident.name_str(),
+                ident.arity()
+            );
+        }
         self.mk_method_unchecked(
             ident.name().to_str(),
             args,
