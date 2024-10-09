@@ -47,7 +47,7 @@ fn success_with_complex_program() {
                         unwrap_domain_function,
                         &[ast.domain_func_app(
                             wrap_domain_function,
-                            &[ast.local_var("x", ast.type_var("T"))],
+                            &[ast.local_var("x", ast.type_var("T"), ast.no_position())],
                             &[(ast.type_var("T"), ast.type_var("T"))],
                         )],
                         &[(ast.type_var("T"), ast.type_var("T"))],
@@ -69,7 +69,7 @@ fn success_with_complex_program() {
                         vir::Position::default(),
                     ),
                      */
-                    ast.local_var("x", ast.type_var("T")),
+                    ast.local_var("x", ast.type_var("T"), ast.no_position()),
                 ),
             ),
             "Wrapper",
@@ -89,7 +89,7 @@ fn success_with_complex_program() {
         Some(
             // x % 2 == 0
             ast.eq_cmp(
-                ast.module(ast.local_var("v", ast.int_type()), ast.int_lit(2)),
+                ast.module(ast.local_var("v", ast.int_type(), ast.no_position()), ast.int_lit(2)),
                 ast.int_lit(0),
             ),
         ),
@@ -103,7 +103,7 @@ fn success_with_complex_program() {
             ast.and(
                 ast.field_access_predicate(
                     ast.field_access(
-                        ast.local_var("box", ast.ref_type()),
+                        ast.local_var("box", ast.ref_type(), ast.no_position()),
                         ast.field("value", ast.int_type()),
                     ),
                     ast.full_perm(),
@@ -111,7 +111,7 @@ fn success_with_complex_program() {
                 ast.func_app(
                     "even",
                     &[ast.field_access(
-                        ast.local_var("box", ast.ref_type()),
+                        ast.local_var("box", ast.ref_type(), ast.no_position()),
                         ast.field("value", ast.int_type()),
                     )],
                     ast.bool_type(),
@@ -129,7 +129,7 @@ fn success_with_complex_program() {
             // even(v)
             ast.func_app(
                 "even",
-                &[ast.local_var("v", ast.int_type())],
+                &[ast.local_var("v", ast.int_type(), ast.no_position())],
                 ast.bool_type(),
                 ast.no_position(),
             ),
@@ -137,7 +137,7 @@ fn success_with_complex_program() {
         &[
             // EvenNumBox(box)
             ast.predicate_access_predicate(
-                ast.predicate_access(&[ast.local_var("box", ast.ref_type())], "EvenNumBox"),
+                ast.predicate_access(&[ast.local_var("box", ast.ref_type(), ast.no_position())], "EvenNumBox"),
                 ast.full_perm(),
             ),
         ],
@@ -145,20 +145,20 @@ fn success_with_complex_program() {
             &[
                 // box = new(value)
                 ast.new_stmt(
-                    ast.local_var("box", ast.ref_type()),
+                    ast.local_var("box", ast.ref_type(), ast.no_position()),
                     &[ast.field("value", ast.int_type())],
                 ),
                 // box.value = unwrap(wrap(v))
                 ast.field_assign(
                     ast.field_access(
-                        ast.local_var("box", ast.ref_type()),
+                        ast.local_var("box", ast.ref_type(), ast.no_position()),
                         ast.field("value", ast.int_type()),
                     ),
                     ast.domain_func_app(
                         unwrap_domain_function,
                         &[ast.domain_func_app(
                             wrap_domain_function,
-                            &[ast.local_var("v", ast.int_type())],
+                            &[ast.local_var("v", ast.int_type(), ast.no_position())],
                             &[(ast.type_var("T"), ast.int_type())],
                         )],
                         &[(ast.type_var("T"), ast.int_type())],
@@ -166,7 +166,7 @@ fn success_with_complex_program() {
                 ),
                 // fold EvenNumBox(box)
                 ast.fold(ast.predicate_access_predicate(
-                    ast.predicate_access(&[ast.local_var("box", ast.ref_type())], "EvenNumBox"),
+                    ast.predicate_access(&[ast.local_var("box", ast.ref_type(), ast.no_position())], "EvenNumBox"),
                     ast.full_perm(),
                 )),
             ],

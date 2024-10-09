@@ -3,7 +3,7 @@ use mir_state_analysis::{
     utils::Place,
 };
 use prusti_rustc_interface::{
-    abi,
+    target::abi,
     middle::{
         mir,
         ty::{GenericArgs, TyKind},
@@ -352,7 +352,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             }
             mir::Operand::Constant(box constant) => self
                 .deps
-                .require_local::<ConstEnc>((constant.literal, 0, self.def_id))
+                .require_local::<ConstEnc>((constant.const_, 0, self.def_id))
                 .unwrap(),
         }
     }
@@ -372,7 +372,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             }
             mir::Operand::Constant(box constant) => {
                 let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap();
-                let constant = self.deps.require_local::<ConstEnc>((constant.literal, 0, self.def_id)).unwrap();
+                let constant = self.deps.require_local::<ConstEnc>((constant.const_, 0, self.def_id)).unwrap();
                 (EncodePlaceResult::new(constant), ty_out)
             }
         };
@@ -461,7 +461,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 let e_ty = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
                 let ref_field = e_ty.generic_predicate.expect_ref().ref_field;
                 let expr = self.vcx.mk_field_expr(expr, ref_field);
-                let inner_ty = place_ty.ty.builtin_deref(true).unwrap().ty;
+                let inner_ty = place_ty.ty.builtin_deref(true).unwrap();
                 if let Some(cast_stmts) = self
                     .deps.require_local::<RustTyCastersEnc<CastTypeImpure>>(inner_ty)
                     .unwrap().cast_to_concrete_if_possible(self.vcx, expr) {
@@ -604,8 +604,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     //mir::Rvalue::Len(Place<'vir>) => {}
                     //mir::Rvalue::Cast(CastKind, Operand<'vir>, Ty<'vir>) => {}
 
-                    rv@mir::Rvalue::BinaryOp(op, box (l, r)) |
-                    rv@mir::Rvalue::CheckedBinaryOp(op, box (l, r)) => {
+                    rv@mir::Rvalue::BinaryOp(op, box (l, r)) => {
                         let l_ty = l.ty(self.local_decls, self.vcx.tcx());
                         let r_ty = r.ty(self.local_decls, self.vcx.tcx());
                         use crate::encoders::MirBuiltinEncTask::{BinOp, CheckedBinOp};
@@ -826,7 +825,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 let sig = self.vcx().tcx().fn_sig(func_def_id);
                 let sig = if self.monomorphize {
                     let param_env = self.vcx().tcx().param_env(self.def_id);
-                    self.vcx().tcx().subst_and_normalize_erasing_regions(
+                    self.vcx().tcx().instantiate_and_normalize_erasing_regions(
                         caller_substs,
                         param_env,
                         sig
@@ -870,13 +869,13 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                         .unwrap();
 
 
-                    let method_in = args.iter().map(|arg| self.encode_operand(arg)).collect::<Vec<_>>();
+                    let method_in = args.iter().map(|arg| self.encode_operand(&arg.node)).collect::<Vec<_>>();
 
 
                    for ((fn_arg_ty, arg), arg_ex) in fn_arg_tys.iter().zip(args.iter()).zip(method_in.iter()) {
                         let local_decls = self.local_decls_src();
                         let tcx = self.vcx().tcx();
-                        let arg_ty = arg.ty(local_decls, tcx);
+                        let arg_ty = arg.node.ty(local_decls, tcx);
                         let caster = self.deps()
                             .require_ref::<CastToEnc<CastTypeImpure>>(CastArgs {
                                 expected: *fn_arg_ty,

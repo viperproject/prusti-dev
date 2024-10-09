@@ -30,6 +30,7 @@ impl From<mir::UnOp> for UnOpKind {
         match value {
             mir::UnOp::Not => UnOpKind::Not,
             mir::UnOp::Neg => UnOpKind::Neg,
+            mir::UnOp::PtrMetadata => todo!(),
         }
     }
 }
@@ -85,6 +86,10 @@ impl From<mir::BinOp> for BinOpKind {
             mir::BinOp::Ge => BinOpKind::CmpGe,
             mir::BinOp::Gt => BinOpKind::CmpGt,
             mir::BinOp::Offset => todo!(),
+            mir::BinOp::AddWithOverflow => todo!(),
+            mir::BinOp::SubWithOverflow => todo!(),
+            mir::BinOp::MulWithOverflow => todo!(),
+            mir::BinOp::Cmp => todo!(),
         }
     }
 }

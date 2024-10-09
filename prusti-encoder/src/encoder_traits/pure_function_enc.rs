@@ -1,12 +1,15 @@
-use prusti_rustc_interface::{
-    middle::{mir, ty::{GenericArgs, Ty}},
-    span::def_id::DefId,
-};
+use prusti_rustc_interface::middle::{mir, ty::Ty};
 use task_encoder::{TaskEncoder, TaskEncoderDependencies};
 use vir::{CallableIdent, ExprGen, FunctionIdent, Reify, UnknownArity, ViperIdent};
 
 use crate::encoders::{
-    domain::DomainEnc, lifted::{func_def_ty_params::LiftedTyParamsEnc, ty::{EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc}}, most_generic_ty::extract_type_params, GenericEnc, MirLocalDefEnc, MirPureEnc, MirPureEncTask, MirSpecEnc, PureKind
+    domain::DomainEnc,
+    lifted::{
+        func_def_ty_params::LiftedTyParamsEnc,
+        ty::{EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc},
+    },
+    most_generic_ty::extract_type_params,
+    GenericEnc, MirLocalDefEnc, MirPureEnc, MirPureEncTask, MirSpecEnc, PureKind,
 };
 
 use super::function_enc::FunctionEnc;
@@ -27,11 +30,11 @@ pub struct MirFunctionEncOutput<'vir> {
 /// functions; see [`MirMonoFunctionEnc`] and [`MirFunctionEnc`]
 pub trait PureFunctionEnc
 where
-    Self: 'static + Sized + FunctionEnc + for <'vir> TaskEncoder<
-        OutputRef<'vir> = MirFunctionEncOutputRef<'vir>
-    >
+    Self: 'static
+        + Sized
+        + FunctionEnc
+        + for<'vir> TaskEncoder<OutputRef<'vir> = MirFunctionEncOutputRef<'vir>>,
 {
-
     /// Generates the identifier for the function; for a monomorphic encoding,
     /// this should be a name including (mangled) type arguments
     fn mk_function_ident<'vir>(
@@ -148,7 +151,7 @@ where
                 );
                 Some(expr)
             };
-            let sig = vcx.tcx().subst_and_normalize_erasing_regions(
+            let sig = vcx.tcx().instantiate_and_normalize_erasing_regions(
                 substs,
                 vcx.tcx().param_env(def_id),
                 vcx.tcx().fn_sig(def_id),

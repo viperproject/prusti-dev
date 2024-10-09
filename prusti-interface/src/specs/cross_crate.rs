@@ -1,5 +1,7 @@
 use prusti_rustc_interface::{
+    metadata::creader::CStore,
     serialize::{Decodable, Encodable},
+    session::config::OutputType,
     span::DUMMY_SP,
 };
 use rustc_hash::FxHashMap;
@@ -16,22 +18,18 @@ use super::{decoder::DefSpecsDecoder, encoder::DefSpecsEncoder};
 pub struct CrossCrateSpecs;
 
 impl CrossCrateSpecs {
-    #[tracing::instrument(level = "debug", skip_all)]
     pub fn import_export_cross_crate(env: &mut Environment, def_spec: &mut DefSpecificationMap) {
         Self::export_specs(env, def_spec);
         Self::import_specs(env, def_spec);
     }
 
-    #[tracing::instrument(level = "debug", skip_all)]
     fn export_specs(env: &Environment, def_spec: &DefSpecificationMap) {
         let outputs = env.tcx().output_filenames(());
-        // If we run `rustc` without the `--out-dir` flag set, then don't export specs
-        if outputs.out_directory.to_string_lossy() == "" {
-            return;
-        }
-        let target_filename = outputs
-            .out_directory
-            .join(format!("lib{}.specs", env.name.local_crate_filename()));
+
+        let metadata_filename = outputs.path(OutputType::Metadata);
+        let target_filename = metadata_filename.as_path().to_owned();
+        let target_filename = target_filename.with_extension("specs");
+
         if let Err(e) = Self::write_into_file(env, def_spec, &target_filename) {
             PrustiError::internal(
                 format!(
@@ -45,24 +43,21 @@ impl CrossCrateSpecs {
         }
     }
 
-    #[tracing::instrument(level = "debug", skip_all)]
     fn import_specs(env: &mut Environment, def_spec: &mut DefSpecificationMap) {
+        let cstore = CStore::from_tcx(env.tcx());
         // TODO: atm one needs to write `extern crate extern_spec_lib` to import the specs
         // from a crate which is not used in the current crate (e.g. an `#[extern_spec]` only crate)
         // Otherwise the crate doesn't show up in `tcx.crates()`.  Is there some better way
         // to get dependency crates, which doesn't ignore unused ones? Maybe:
         // https://doc.rust-lang.org/stable/nightly-rustc/rustc_metadata/creader/struct.CrateMetadataRef.html#method.dependencies
         for crate_num in env.tcx().crates(()) {
-            if let Some(extern_crate) = env.tcx().extern_crate(crate_num.as_def_id()) {
+            if let Some(extern_crate) = env.tcx().extern_crate(*crate_num) {
                 if extern_crate.is_direct() {
-                    let crate_name = env.tcx().crate_name(*crate_num);
-                    let crate_source = env.tcx().used_crate_source(*crate_num);
-                    let mut source = crate_source.paths().next().unwrap().clone();
+                    let cs = env.tcx().used_crate_source(*crate_num);
+                    let mut source = cs.paths().next().unwrap().clone();
                     source.set_extension("specs");
                     if source.is_file() {
-                        if let Err(e) =
-                            Self::import_from_file(env, def_spec, &source, crate_name.as_str())
-                        {
+                        if let Err(e) = Self::import_from_file(env, def_spec, &source) {
                             PrustiError::internal(
                                 format!(
                                     "error importing specs from file \"{}\": {}",
@@ -83,29 +78,28 @@ impl CrossCrateSpecs {
         env: &Environment,
         def_spec: &DefSpecificationMap,
         path: &path::PathBuf,
-    ) -> io::Result<usize> {
-        // Probably not needed; dir should already exist?
-        fs::create_dir_all(path.parent().unwrap())?;
-
-        let mut encoder = DefSpecsEncoder::new(env.tcx(), path)?;
-        def_spec.proc_specs.encode(&mut encoder);
-        def_spec.type_specs.encode(&mut encoder);
-        CrossCrateBodies::from(&env.body).encode(&mut encoder);
-        encoder.finish()
+    ) -> io::Result<()> {
+        DefSpecsEncoder::serialize(
+            env.tcx(),
+            &path,
+            (
+                &def_spec.proc_specs,
+                &def_spec.type_specs,
+                CrossCrateBodies::from(&env.body),
+            ),
+        )
     }
 
-    #[tracing::instrument(level = "debug", skip(env, def_spec))]
     fn import_from_file(
         env: &mut Environment,
         def_spec: &mut DefSpecificationMap,
         path: &path::PathBuf,
-        crate_name: &str,
     ) -> io::Result<()> {
         use std::io::Read;
         let mut data = Vec::new();
         let mut file = fs::File::open(path)?;
         file.read_to_end(&mut data)?;
-        let mut decoder = DefSpecsDecoder::new(env.tcx(), &data, path.clone(), crate_name);
+        let mut decoder = DefSpecsDecoder::new(env.tcx(), &data)?;
 
         let proc_specs = FxHashMap::decode(&mut decoder);
         let type_specs = FxHashMap::decode(&mut decoder);

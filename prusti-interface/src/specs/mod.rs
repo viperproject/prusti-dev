@@ -7,7 +7,6 @@ use crate::{
     PrustiError,
 };
 use log::debug;
-use prusti_utils::config;
 use prusti_rustc_interface::{
     ast::ast,
     data_structures::fx::FxHashMap,
@@ -20,6 +19,7 @@ use prusti_rustc_interface::{
     middle::{hir::map::Map, ty},
     span::Span,
 };
+use prusti_utils::config;
 use std::{convert::TryInto, fmt::Debug};
 
 pub mod checker;
@@ -322,7 +322,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         };
         for def_id in specs.iter().chain(predicates.iter()) {
             let body_id = self.env.query.hir().body_owned_by(def_id.expect_local());
-            intravisit::Visitor::visit_nested_body(&mut cl_visitor, body_id);
+            intravisit::Visitor::visit_nested_body(&mut cl_visitor, body_id.id());
         }
         for def_id in cl_visitor.result {
             self.env.body.load_closure_body(def_id);
@@ -491,13 +491,12 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 
             // TODO: (invariants and trusted flag) visit the struct itself?
             // For now, a method is used to mark the type as "trusted".
-
+            let tcx = self.env.tcx();
             // Collect type invariants
             if has_prusti_attr(attrs, "type_invariant_spec") {
                 let self_id = fn_decl.inputs[0].hir_id;
-                let hir = self.env.query.hir();
-                let impl_id = hir.parent_id(hir.parent_id(self_id));
-                let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
+                let impl_id = tcx.parent_hir_id(tcx.parent_hir_id(self_id));
+                let type_id = get_type_id_from_impl_node(tcx.hir_node(impl_id)).unwrap();
                 self.type_specs
                     .entry(type_id.as_local().unwrap())
                     .or_default()
@@ -508,9 +507,8 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             // Collect trusted type flag
             if has_prusti_attr(attrs, "trusted_type") {
                 let self_id = fn_decl.inputs[0].hir_id;
-                let hir = self.env.query.hir();
-                let impl_id = hir.parent_id(hir.parent_id(self_id));
-                let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
+                let impl_id = tcx.parent_hir_id(tcx.parent_hir_id(self_id));
+                let type_id = get_type_id_from_impl_node(tcx.hir_node(impl_id)).unwrap();
                 self.type_specs
                     .entry(type_id.as_local().unwrap())
                     .or_default()
@@ -521,9 +519,8 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             if has_prusti_attr(attrs, "counterexample_print") {
                 let self_id = fn_decl.inputs[0].hir_id;
                 let name = read_prusti_attr("counterexample_print", attrs);
-                let hir = self.env.query.hir();
-                let impl_id = hir.parent_id(hir.parent_id(self_id));
-                let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
+                let impl_id = tcx.parent_hir_id(tcx.parent_hir_id(self_id));
+                let type_id = get_type_id_from_impl_node(tcx.hir_node(impl_id)).unwrap();
                 self.type_specs
                     .entry(type_id.as_local().unwrap())
                     .or_default()
@@ -566,22 +563,22 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 self.procedure_specs.insert(local_id, procedure_spec_ref);
             }
 
+            let tcx = self.env.tcx();
             // Collect model type flag
             if has_to_model_fn_attr(attrs) {
                 if let FnRetTy::Return(ty) = fn_decl.output {
-                    if let Some(node) = self.env.query.hir().find(ty.hir_id) {
-                        if let Some(model_ty_id) =
-                            get_type_id_from_ty_node(node).and_then(|x| x.as_local())
-                        {
-                            if let Some(attr) = read_prusti_attr("type_models_to_model_fn", attrs) {
-                                let self_id = fn_decl.inputs[0].hir_id;
-                                let hir = self.env.query.hir();
-                                let impl_id = hir.parent_id(hir.parent_id(self_id));
-                                let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
-                                if let Some(local_id) = type_id.as_local() {
-                                    self.type_specs.entry(local_id).or_default().model =
-                                        Some((attr, model_ty_id));
-                                }
+                    let node = tcx.hir_node(ty.hir_id);
+                    if let Some(model_ty_id) =
+                        get_type_id_from_ty_node(node).and_then(|x| x.as_local())
+                    {
+                        if let Some(attr) = read_prusti_attr("type_models_to_model_fn", attrs) {
+                            let self_id = fn_decl.inputs[0].hir_id;
+                            let impl_id = tcx.parent_hir_id(tcx.parent_hir_id(self_id));
+                            let type_id =
+                                get_type_id_from_impl_node(tcx.hir_node(impl_id)).unwrap();
+                            if let Some(local_id) = type_id.as_local() {
+                                self.type_specs.entry(local_id).or_default().model =
+                                    Some((attr, model_ty_id));
                             }
                         }
                     }
@@ -594,7 +591,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
         intravisit::walk_stmt(self, stmt);
 
         // Collect closure specifications
-        if let prusti_rustc_interface::hir::StmtKind::Local(local) = stmt.kind {
+        if let prusti_rustc_interface::hir::StmtKind::Let(local) = stmt.kind {
             let attrs = self.env.query.get_local_attributes(local.hir_id);
             if has_prusti_attr(attrs, "closure") {
                 let init_expr = local.init.expect("closure on Local without assignment");

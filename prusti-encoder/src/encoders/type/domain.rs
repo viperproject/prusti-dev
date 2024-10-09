@@ -1,6 +1,6 @@
 use prusti_rustc_interface::{
     middle::ty::{self, TyKind, util::IntTypeExt, IntTy, UintTy},
-    abi,
+    target::abi,
     span::symbol,
 };
 use rustc_middle::ty::ParamTy;
