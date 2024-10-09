@@ -116,14 +116,14 @@ impl<'vir> GenericCastOutputRef<'vir, MethodIdent<'vir, UnknownArity<'vir>>> {
                 cast_applicator,
                 ty_args,
             }) => Some(
-                vcx.alloc(
-                    cast_applicator.apply(
+                vcx.alloc(vir::StmtGenData::new(
+                    vcx.alloc(cast_applicator.apply(
                         vcx,
                         &std::iter::once(expr)
                             .chain(ty_args.iter().map(|t| t.expr(vcx)))
                             .collect::<Vec<_>>(),
-                    ),
-                ),
+                    )),
+                )),
             ),
         }
     }

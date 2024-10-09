@@ -33,7 +33,12 @@ pub(crate) enum ReifyKind {
     /// Deser: allocate value into arena.
     ReifyOption,
 
-    // TODO: `PassOption`?
+    /// Option of a non-reifiable type, e.g. `Option<VirSpan<'vir>>`.
+    ///
+    /// Reify: passthrough.
+    ///   Ser: serialise value as owned data, if present.
+    /// Deser: allocate value into arena.
+    PassOption,
 
     /// Reifiable owned type.
     ///
@@ -127,8 +132,11 @@ impl ReifyKind {
             arguments: syn::PathArguments::AngleBracketed(..),
         } if ident == "Option")) {
             assert!(!is_ref, "invalid flag on Option: is_ref");
-            assert!(!is_reify_pass, "non-reifiable Options not yet implemented");
-            return ReifyKind::ReifyOption;
+            if is_reify_pass {
+                return ReifyKind::PassOption;
+            } else {
+                return ReifyKind::ReifyOption;
+            }
         }
 
         if is_reify_pass {

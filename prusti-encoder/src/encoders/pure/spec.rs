@@ -1,3 +1,4 @@
+use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
     middle::{mir, ty},
     span::def_id::DefId,
@@ -101,7 +102,10 @@ impl TaskEncoder for MirSpecEnc {
                         .unwrap()
                         .expr;
                     let expr = expr.reify(vcx, (*spec_def_id, pre_args));
-                    to_bool.apply(vcx, [expr])
+                    let span = vcx.tcx().def_span(spec_def_id);
+                    vcx.with_span(span, |vcx| {
+                        to_bool.apply(vcx, [expr])
+                    })
                 })
                 .collect::<Vec<vir::Expr<'_>>>();
 
@@ -119,22 +123,28 @@ impl TaskEncoder for MirSpecEnc {
                 .posts
                 .iter()
                 .map(|spec_def_id| {
-                    let expr = deps
-                        .require_local::<crate::encoders::MirPureEnc>(
-                            crate::encoders::MirPureEncTask {
-                                encoding_depth: 0,
-                                kind: PureKind::Spec,
-                                parent_def_id: *spec_def_id,
-                                param_env: vcx.tcx().param_env(spec_def_id),
-                                substs,
-                                // TODO: should this be `def_id` or `caller_def_id`
-                                caller_def_id: Some(def_id),
-                            },
-                        )
-                        .unwrap()
-                        .expr;
-                    let expr = expr.reify(vcx, (*spec_def_id, post_args));
-                    to_bool.apply(vcx, [expr])
+                    let span = vcx.tcx().def_span(spec_def_id);
+                    vcx.with_span(span, |vcx| {
+                        vcx.handle_error("postcondition.violated:assertion.false", move |_| {
+                            Some(vec![PrustiError::verification("postcondition might not hold", span.into())])
+                        });
+                        let expr = deps
+                            .require_local::<crate::encoders::MirPureEnc>(
+                                crate::encoders::MirPureEncTask {
+                                    encoding_depth: 0,
+                                    kind: PureKind::Spec,
+                                    parent_def_id: *spec_def_id,
+                                    param_env: vcx.tcx().param_env(spec_def_id),
+                                    substs,
+                                    // TODO: should this be `def_id` or `caller_def_id`
+                                    caller_def_id: Some(def_id),
+                                },
+                            )
+                            .unwrap()
+                            .expr;
+                        let expr = expr.reify(vcx, (*spec_def_id, post_args));
+                        to_bool.apply(vcx, [expr])
+                    })
                 })
                 .collect::<Vec<vir::Expr<'_>>>();
             let data = MirSpecEncOutput {

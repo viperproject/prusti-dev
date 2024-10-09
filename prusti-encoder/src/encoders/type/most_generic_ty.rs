@@ -1,4 +1,5 @@
 use prusti_rustc_interface::{
+    hir::{self, def_id::DefId},
     middle::ty::{self, TyKind},
     span::symbol,
 };
@@ -42,7 +43,21 @@ impl<'tcx> MostGenericTy<'tcx> {
                 }
             },
             TyKind::Param(_) => String::from("Param"),
-            other => unimplemented!("get_domain_base_name for {:?}", other),
+            TyKind::Closure(def_id, _) => {
+                let def_key = vcx.tcx().def_key(def_id);
+                match def_key.disambiguated_data.data {
+                    // Asking for the item_name of a closure triggers an ICE in
+                    // the compiler, so we give it a name based on its parent.
+                    hir::definitions::DefPathData::Closure => format!(
+                        "{}_Closure_{}",
+                        vcx.tcx().item_name(DefId { krate: def_id.krate, index: def_key.parent.unwrap() }),
+                        def_key.disambiguated_data.disambiguator,
+                    ),
+                    _ => vcx.tcx().item_name(*def_id).to_ident_string()
+                }
+            }
+            TyKind::FnPtr(..) => String::from("FnPtr"),
+            other => unimplemented!("get_vir_base_name for {:?}", other),
         }
     }
 
@@ -90,7 +105,10 @@ impl<'tcx> MostGenericTy<'tcx> {
             | TyKind::Int(_)
             | TyKind::Never
             | TyKind::Param(_)
-            | TyKind::Uint(_) => Vec::new(),
+            | TyKind::Uint(_)
+            | TyKind::Str
+            | TyKind::Closure(..)
+            | TyKind::FnPtr(..) => Vec::new(),
             other => todo!("generics for {:?}", other),
         }
     }
@@ -149,7 +167,8 @@ pub fn extract_type_params<'tcx>(
             (MostGenericTy(ty), vec![orig])
         }
         TyKind::Param(_) => (MostGenericTy(to_placeholder(tcx, None)), Vec::new()),
-        TyKind::Bool | TyKind::Char | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Float(_) | TyKind::Never | TyKind::Str => {
+        TyKind::Bool | TyKind::Char | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Float(_)
+        | TyKind::Never | TyKind::Str | TyKind::Closure(..) | TyKind::FnPtr(..) => {
             (MostGenericTy(ty), Vec::new())
         }
         _ => todo!("extract_type_params for {:?}", ty),

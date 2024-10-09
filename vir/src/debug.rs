@@ -131,7 +131,9 @@ impl<'vir> Debug for DomainFunctionData<'vir> {
 
 impl<'vir, Curr, Next> Debug for ExprGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        // TODO: Position, etc
+        if let Some(span) = self.span {
+            write!(f, "/*p:{}*/", span.id)?;
+        }
         self.kind.fmt(f)
     }
 }
@@ -300,6 +302,15 @@ impl<'vir, Curr, Next> Debug for PredicateAppGenData<'vir, Curr, Next> {
 }
 
 impl<'vir, Curr, Next> Debug for StmtGenData<'vir, Curr, Next> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(span) = self.span {
+            write!(f, "/*p:{}*/", span.id)?;
+        }
+        self.kind.fmt(f)
+    }
+}
+
+impl<'vir, Curr, Next> Debug for StmtKindGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::LocalDecl(decl, expr) => {

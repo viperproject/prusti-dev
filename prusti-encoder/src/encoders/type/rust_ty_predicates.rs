@@ -34,7 +34,9 @@ impl<'vir> RustTyPredicatesEncOutputRef<'vir> {
         let mut args = vec![self_ref];
         args.extend(self.ty.arg_exprs(vcx));
         args.push(self_new_snap);
-        vcx.alloc(self.generic_predicate.method_assign.apply(vcx, &args))
+        vcx.alloc(vir::StmtData::new(
+            vcx.alloc(self.generic_predicate.method_assign.apply(vcx, &args)),
+        ))
     }
 
     pub fn snapshot(&self) -> Type<'vir> {
