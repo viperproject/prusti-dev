@@ -193,6 +193,7 @@ pub fn has_prusti_attr(attrs: &[ast::Attribute], name: &str) -> bool {
     attrs.iter().any(|attr| match &attr.kind {
         ast::AttrKind::Normal(normal_attr) => {
             let ast::AttrItem {
+                unsafety: _,
                 path:
                     ast::Path {
                         span: _,
@@ -250,6 +251,7 @@ pub fn read_prusti_attrs<T: Borrow<ast::Attribute>>(attr_name: &str, attrs: &[T]
     for attr in attrs {
         if let ast::AttrKind::Normal(normal_attr) = &attr.borrow().kind {
             if let ast::AttrItem {
+                unsafety: _,
                 path:
                     ast::Path {
                         span: _,

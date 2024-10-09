@@ -201,13 +201,14 @@ impl<'tcx> Place<'tcx> {
                 let typ = self.ty(repacker);
                 let kind = match typ.ty.kind() {
                     TyKind::Ref(_, _, mutbl) => ProjectionRefKind::Ref(*mutbl),
-                    TyKind::RawPtr(ptr) => ProjectionRefKind::RawPtr(ptr.mutbl),
+                    TyKind::RawPtr(_, mutbl) => ProjectionRefKind::RawPtr(*mutbl),
                     _ if typ.ty.is_box() => ProjectionRefKind::Box,
                     _ => unreachable!(),
                 };
                 (Vec::new(), kind)
             }
             ProjectionElem::Index(..)
+            | ProjectionElem::Subtype(_)
             | ProjectionElem::Subslice { .. }
             | ProjectionElem::Downcast(..)
             | ProjectionElem::OpaqueCast(..) => (Vec::new(), ProjectionRefKind::Other),
@@ -275,8 +276,8 @@ impl<'tcx> Place<'tcx> {
                     }
                 }
             }
-            TyKind::Generator(_, substs, _) => {
-                for (index, subst_ty) in substs.as_generator().upvar_tys().iter().enumerate() {
+            TyKind::Coroutine(_, substs) => {
+                for (index, subst_ty) in substs.as_coroutine().upvar_tys().iter().enumerate() {
                     if Some(index) != without_field {
                         let field = FieldIdx::from_usize(index);
                         let field_place = repacker.tcx.mk_place_field(

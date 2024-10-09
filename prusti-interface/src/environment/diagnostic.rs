@@ -1,12 +1,12 @@
 use prusti_rustc_interface::{
-    errors::{DiagnosticBuilder, EmissionGuarantee, MultiSpan},
+    errors::{Diag, EmissionGuarantee, MultiSpan},
     middle::ty::TyCtxt,
 };
 use std::cell::RefCell;
 
 pub struct EnvDiagnostic<'tcx> {
     tcx: TyCtxt<'tcx>,
-    warn_buffer: RefCell<Vec<prusti_rustc_interface::errors::Diagnostic>>,
+    warn_buffer: RefCell<Vec<prusti_rustc_interface::errors::Diag<'tcx, ()>>>,
 }
 
 impl<'tcx> EnvDiagnostic<'tcx> {
@@ -18,12 +18,12 @@ impl<'tcx> EnvDiagnostic<'tcx> {
     }
 
     fn configure_diagnostic<S: Into<MultiSpan> + Clone, T: EmissionGuarantee>(
-        diagnostic: &mut DiagnosticBuilder<T>,
+        diagnostic: &mut Diag<'tcx,T>,
         sp: S,
         help: &Option<String>,
         notes: &[(String, Option<S>)],
     ) {
-        diagnostic.set_span(sp);
+        diagnostic.span(sp);
         if let Some(help_msg) = help {
             diagnostic.help(help_msg.clone());
         }
@@ -44,10 +44,10 @@ impl<'tcx> EnvDiagnostic<'tcx> {
         help: &Option<String>,
         notes: &[(String, Option<S>)],
     ) {
-        let mut diagnostic = self.tcx.sess.struct_err(msg.to_string());
+        let mut diagnostic = self.tcx.dcx().struct_err(msg.to_string());
         Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
-        for warn in self.warn_buffer.borrow_mut().iter_mut() {
-            self.tcx.sess.diagnostic().emit_diagnostic(warn);
+        for warn in self.warn_buffer.borrow_mut().drain(..) {
+            warn.emit();
         }
         diagnostic.emit();
     }
@@ -60,7 +60,7 @@ impl<'tcx> EnvDiagnostic<'tcx> {
         help: &Option<String>,
         notes: &[(String, Option<S>)],
     ) {
-        let mut diagnostic = self.tcx.sess.struct_warn(msg.to_string());
+        let mut diagnostic = self.tcx.dcx().struct_warn(msg.to_string());
         Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
         diagnostic.emit();
     }
@@ -73,13 +73,13 @@ impl<'tcx> EnvDiagnostic<'tcx> {
         help: &Option<String>,
         notes: &[(String, Option<S>)],
     ) {
-        let mut diagnostic = self.tcx.sess.struct_warn(msg.to_string());
+        let mut diagnostic = self.tcx.dcx().struct_warn(msg.to_string());
         Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
-        diagnostic.buffer(&mut self.warn_buffer.borrow_mut());
+        self.warn_buffer.borrow_mut().push(diagnostic);
     }
 
     /// Returns true if an error has been emitted
     pub fn has_errors(&self) -> bool {
-        self.tcx.sess.has_errors().is_some()
+        self.tcx.dcx().has_errors().is_some()
     }
 }

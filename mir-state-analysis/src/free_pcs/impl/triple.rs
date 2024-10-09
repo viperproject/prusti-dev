@@ -6,7 +6,7 @@
 
 use prusti_rustc_interface::{
     hir::Mutability,
-    middle::mir::{
+    middle::mir::{FakeBorrowKind,
         visit::Visitor, BorrowKind, Local, Location, Operand, Rvalue, Statement, StatementKind,
         Terminator, TerminatorKind, RETURN_PLACE,
     },
@@ -78,10 +78,10 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
             | UnwindTerminate(_)
             | Unreachable
             | Assert { .. }
-            | GeneratorDrop
+            | CoroutineDrop
             | FalseEdge { .. }
             | FalseUnwind { .. } => (),
-            Return => {
+            Return | TailCall {.. } => {
                 let always_live = self.repacker.always_live_locals();
                 for local in 0..self.repacker.local_count() {
                     let local = Local::from_usize(local);
@@ -119,7 +119,6 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
             | ThreadLocalRef(_)
             | Cast(_, _, _)
             | BinaryOp(_, _)
-            | CheckedBinaryOp(_, _)
             | NullaryOp(_, _)
             | UnaryOp(_, _)
             | Aggregate(_, _)
@@ -131,7 +130,7 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                     // self.ensures_blocked_read(place);
                 }
                 // TODO: this should allow `Shallow Shared` as well
-                BorrowKind::Shallow => {
+                BorrowKind::Fake(_) => {
                     self.requires_read(place);
                     // self.ensures_blocked_read(place);
                 }
@@ -140,7 +139,7 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
                     // self.ensures_blocked_exclusive(place);
                 }
             },
-            &AddressOf(m, place) => match m {
+            &RawPtr(m, place) => match m {
                 Mutability::Not => self.requires_read(place),
                 Mutability::Mut => self.requires_exclusive(place),
             },
@@ -163,11 +162,10 @@ impl ProducesCapability for Rvalue<'_> {
             | Repeat(_, _)
             | Ref(_, _, _)
             | ThreadLocalRef(_)
-            | AddressOf(_, _)
+            | RawPtr(_, _)
             | Len(_)
             | Cast(_, _, _)
             | BinaryOp(_, _)
-            | CheckedBinaryOp(_, _)
             | NullaryOp(_, _)
             | UnaryOp(_, _)
             | Discriminant(_)

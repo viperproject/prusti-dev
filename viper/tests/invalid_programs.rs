@@ -39,7 +39,7 @@ fn runtime_error() {
 #[test]
 fn consistency_error() {
     test_consistency_error_for_method_body(|ast| {
-        let local_var = ast.local_var("x", ast.bool_type());
+        let local_var = ast.local_var("x", ast.bool_type(), ast.no_position());
 
         let assignment = ast.local_var_assign(local_var, ast.true_lit());
 
@@ -62,7 +62,7 @@ fn consistency_error() {
 #[test]
 fn type_error() {
     test_consistency_error_for_method_body(|ast| {
-        let local_var = ast.local_var("x", ast.int_type());
+        let local_var = ast.local_var("x", ast.int_type(), ast.no_position());
 
         let assignment = ast.local_var_assign(local_var, ast.true_lit()); // type error
 

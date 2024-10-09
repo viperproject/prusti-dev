@@ -17,11 +17,12 @@ use prusti_rustc_interface::{
         query::{
             queries::mir_borrowck::ProvidedValue as MirBorrowck,
             ExternProviders,
-            Providers
+            
         },
+        util::Providers,
         ty::TyCtxt,
     },
-    session::{EarlyErrorHandler, Session},
+    session::{EarlyDiagCtxt, Session},
 };
 
 #[derive(Default)]
@@ -77,11 +78,16 @@ fn mir_promoted<'tcx>(
     result
 }
 
+struct NoAnn;
+
+impl prusti_rustc_interface::ast_pretty::pprust::PpAnn for NoAnn {}
+
+
 impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     fn config(&mut self, config: &mut Config) {
         assert!(config.override_queries.is_none());
         config.override_queries = Some(
-            |_session: &Session, providers: &mut Providers, _external: &mut ExternProviders| {
+            |_session: &Session, providers: &mut Providers| {
                 providers.mir_borrowck = mir_borrowck;
                 providers.mir_promoted = mir_promoted;
             },
@@ -93,9 +99,9 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         compiler: &Compiler,
         queries: &'tcx Queries<'tcx>,
     ) -> Compilation {
-        if compiler.session().is_rust_2015() {
+        if compiler.sess.is_rust_2015() {
             compiler
-                .session()
+                .sess.dcx()
                 .struct_warn(
                     "Prusti specifications are supported only from 2018 edition. Please \
                     specify the edition with adding a command line argument `--edition=2018` or \
@@ -103,12 +109,12 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                 )
                 .emit();
         }
-        compiler.session().abort_if_errors();
+        compiler.sess.dcx().abort_if_errors();
         if config::print_desugared_specs() {
             // based on the implementation of rustc_driver::pretty::print_after_parsing
             queries.global_ctxt().unwrap().enter(|tcx| {
-                let sess = compiler.session();
-                let krate = &tcx.resolver_for_lowering(()).borrow().1;
+                let sess = &compiler.sess;
+                let krate = &tcx.resolver_for_lowering().borrow().1;
                 let src_name = sess.io.input.source_name();
                 let src = sess
                     .source_map()
@@ -125,10 +131,10 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                         krate,
                         src_name,
                         src,
-                        &prusti_rustc_interface::ast_pretty::pprust::state::NoAnn,
+                        &NoAnn,
                         false,
                         sess.edition(),
-                        &sess.parse_sess.attr_id_generator,
+                        &sess.psess.attr_id_generator,
                     )
                 );
             });
@@ -142,12 +148,12 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         compiler: &Compiler,
         queries: &'tcx Queries<'tcx>,
     ) -> Compilation {
-        compiler.session().abort_if_errors();
+        compiler.sess.dcx().abort_if_errors();
         queries.global_ctxt().unwrap().enter(|tcx| {
             let mut env = Environment::new(tcx, env!("CARGO_PKG_VERSION"));
             let spec_checker = specs::checker::SpecChecker::new();
             spec_checker.check(&env);
-            compiler.session().abort_if_errors();
+            compiler.sess.dcx().abort_if_errors();
 
             let hir = env.query.hir();
             let mut spec_collector = specs::SpecCollector::new(&mut env);
@@ -178,7 +184,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             }
         });
 
-        compiler.session().abort_if_errors();
+        compiler.sess.dcx().abort_if_errors();
         if config::full_compilation() {
             Compilation::Continue
         } else {

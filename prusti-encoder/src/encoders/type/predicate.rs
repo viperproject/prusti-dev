@@ -1,5 +1,5 @@
 use prusti_rustc_interface::{
-    abi,
+    target::abi,
     middle::ty::{self, TyKind},
 };
 use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};

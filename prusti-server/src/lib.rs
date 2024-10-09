@@ -1,3 +1,5 @@
+#![feature(rustc_private)]
+
 // © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
