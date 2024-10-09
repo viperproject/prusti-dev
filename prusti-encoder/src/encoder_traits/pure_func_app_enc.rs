@@ -3,6 +3,7 @@ use prusti_rustc_interface::{
         mir::{self, HasLocalDecls},
         ty::{self, GenericArg, List, FnSig, Binder},
     },
+    span::source_map::Spanned,
     span::def_id::DefId,
 };
 use task_encoder::{TaskEncoder, TaskEncoderDependencies};
@@ -69,7 +70,7 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
         &mut self,
         sig: Binder<'vir, FnSig<'vir>>,
         substs: &'vir List<GenericArg<'vir>>,
-        args: &[mir::Operand<'vir>],
+        args: &[Spanned<mir::Operand<'vir>>],
         encode_operand_args: &Self::EncodeOperandArgs,
     ) -> Vec<vir::ExprGen<'vir, Self::Curr, Self::Next>> {
         let mono = self.monomorphize();
@@ -96,8 +97,8 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
             .into_iter()
             .zip(args.iter())
             .map(|(expected_ty, oper)| {
-                let base = self.encode_operand(encode_operand_args, oper);
-                let oper_ty = oper.ty(self.local_decls_src(), self.vcx().tcx());
+                let base = self.encode_operand(encode_operand_args, &oper.node);
+                let oper_ty = oper.node.ty(self.local_decls_src(), self.vcx().tcx());
                 let caster = self
                     .deps()
                     .require_ref::<CastToEnc<CastTypePure>>(CastArgs {
@@ -120,7 +121,7 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
         def_id: DefId,
         sig: Binder<'vir, FnSig<'vir>>,
         substs: &'vir List<GenericArg<'vir>>,
-        args: &Vec<mir::Operand<'vir>>,
+        args: &[Spanned<mir::Operand<'vir>>],
         destination: &mir::Place<'vir>,
         caller_def_id: DefId,
         encode_operand_args: &Self::EncodeOperandArgs,

@@ -87,7 +87,7 @@ impl TaskEncoder for MirLocalDefEnc {
             } else {
                 let param_env = vcx.tcx().param_env(caller_def_id.unwrap_or(def_id));
                 let sig = vcx.tcx()
-                    .subst_and_normalize_erasing_regions(substs, param_env, vcx.tcx().fn_sig(def_id));
+                    .instantiate_and_normalize_erasing_regions(substs, param_env, vcx.tcx().fn_sig(def_id));
                 let sig = sig.skip_binder();
 
                 let locals = IndexVec::from_fn_n(|arg: mir::Local| {

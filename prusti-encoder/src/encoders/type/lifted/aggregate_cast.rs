@@ -1,5 +1,5 @@
 use prusti_rustc_interface::{
-    abi::VariantIdx,
+    target::abi::VariantIdx,
     middle::{mir, ty::{GenericArgs, Ty}},
     span::def_id::DefId,
 };

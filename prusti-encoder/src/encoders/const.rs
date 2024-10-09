@@ -2,7 +2,7 @@ use prusti_rustc_interface::{
     middle::{mir, ty},
     span::def_id::DefId,
 };
-use rustc_middle::mir::interpret::{ConstValue, Scalar, GlobalAlloc};
+use rustc_middle::mir::{ConstValue, interpret::{ Scalar, GlobalAlloc}};
 use task_encoder::{
     TaskEncoder,
     TaskEncoderDependencies,
@@ -27,7 +27,7 @@ impl TaskEncoder for ConstEnc {
     task_encoder::encoder_cache!(ConstEnc);
 
     type TaskDescription<'vir> = (
-        mir::ConstantKind<'vir>,
+        mir::Const<'vir>,
         usize, // current encoding depth
         DefId, // DefId of the current function
     );
@@ -45,24 +45,24 @@ impl TaskEncoder for ConstEnc {
         deps.emit_output_ref(*task_key, ())?;
         let (const_, encoding_depth, def_id) = *task_key;
         let res = match const_ {
-            mir::ConstantKind::Val(val, ty) => {
+            mir::Const::Val(val, ty) => {
                 let kind = deps.require_local::<RustTySnapshotsEnc>(ty)?.generic_snapshot.specifics;
                 match val {
                     ConstValue::Scalar(Scalar::Int(int)) => {
                         let prim = kind.expect_primitive();
-                        let val = int.to_bits(int.size()).unwrap();
+                        let val = int.to_bits(int.size());
                         let val = prim.expr_from_bits(ty, val);
                         vir::with_vcx(|vcx| prim.prim_to_snap.apply(vcx, [val]))
                     }
                     ConstValue::Scalar(Scalar::Ptr(ptr, _)) => vir::with_vcx(|vcx| {
-                        match vcx.tcx().global_alloc(ptr.provenance) {
-                            GlobalAlloc::Function(_) => todo!(),
+                        match vcx.tcx().global_alloc(ptr.provenance.alloc_id()) {
+                            GlobalAlloc::Function {..} => todo!(),
                             GlobalAlloc::VTable(_, _) => todo!(),
                             GlobalAlloc::Static(_) => todo!(),
                             GlobalAlloc::Memory(_mem) => {
                                 // If the `unwrap` ever panics we need a different way to get the inner type
                                 // let inner_ty = ty.builtin_deref(true).map(|t| t.ty).unwrap_or(ty);
-                                let _inner_ty = ty.builtin_deref(true).unwrap().ty;
+                                let _inner_ty = ty.builtin_deref(true).unwrap();
                                 todo!()
                             }
                         }
@@ -97,7 +97,7 @@ impl TaskEncoder for ConstEnc {
                     ConstValue::Indirect { .. } => todo!("ConstValue::Indirect"),
                 }
             }
-            mir::ConstantKind::Unevaluated(uneval, _) => vir::with_vcx(|vcx| {
+            mir::Const::Unevaluated(uneval, _) => vir::with_vcx(|vcx| {
                 let task = MirPureEncTask {
                     encoding_depth: encoding_depth + 1,
                     parent_def_id: uneval.def,
@@ -110,7 +110,7 @@ impl TaskEncoder for ConstEnc {
                 use vir::Reify;
                 Ok(expr.reify(vcx, (uneval.def, &[])))
             })?,
-            mir::ConstantKind::Ty(_) => todo!("ConstantKind::Ty"),
+            mir::Const::Ty(_, _) => todo!("ConstantKind::Ty"),
         };
         Ok((res, ()))
     }

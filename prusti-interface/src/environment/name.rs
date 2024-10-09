@@ -16,7 +16,7 @@ impl<'tcx> EnvName<'tcx> {
 
     /// Returns the path of the source that is being compiled
     pub fn source_path(self) -> PathBuf {
-        self.tcx.sess.local_crate_source_file().unwrap()
+        self.tcx.sess.local_crate_source_file().unwrap().into_local_path().unwrap()
     }
 
     /// Returns the file name of the source that is being compiled

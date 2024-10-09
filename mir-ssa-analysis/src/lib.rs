@@ -134,7 +134,7 @@ impl<'tcx> SsaVisitor {
         }
         assert!(self.final_version_in_block[block.as_usize()].replace(final_versions).is_none());
 
-        use prusti_rustc_interface::data_structures::graph::WithSuccessors;
+        use prusti_rustc_interface::data_structures::graph::Successors;
         for succ in body.basic_blocks.successors(block) {
             if !self.block_started[succ.as_usize()] {
                 self.walk_block(body, succ);

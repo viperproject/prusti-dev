@@ -114,8 +114,8 @@ impl<'tcx> Place<'tcx> {
                                     }
                                 }
                             }
-                            TyKind::RawPtr(tnm) => {
-                                match tnm.mutbl {
+                            TyKind::RawPtr(t, m) => {
+                                match m {
                                     // `*const` raw pointers are not mutable
                                     hir::Mutability::Not => Err(self),
                                     // `*mut` raw pointers are always mutable, regardless of
@@ -139,6 +139,7 @@ impl<'tcx> Place<'tcx> {
                     // All other projections are owned by their base path, so mutable if
                     // base path is mutable
                     ProjectionElem::Field(..)
+                    | ProjectionElem::Subtype(_)
                     | ProjectionElem::Index(..)
                     | ProjectionElem::ConstantIndex { .. }
                     | ProjectionElem::Subslice { .. }
@@ -226,7 +227,7 @@ impl<'tcx> Place<'tcx> {
         match place_ref.last_projection() {
             Some((place_base, ProjectionElem::Field(field, _ty))) => {
                 let base_ty = place_base.ty(repacker.body(), repacker.tcx).ty;
-                if (base_ty.is_closure() || base_ty.is_generator())
+                if (base_ty.is_closure() || base_ty.is_coroutine())
                     && (!by_ref || upvars[field.index()].by_ref)
                 {
                     Some(field)

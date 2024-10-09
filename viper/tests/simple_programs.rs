@@ -140,7 +140,7 @@ fn success_with_assign_if_and_assert() {
     let verification_context: VerificationContext = VIPER.attach_current_thread();
     let ast = verification_context.new_ast_factory();
 
-    let local_var = ast.local_var("x", ast.bool_type());
+    let local_var = ast.local_var("x", ast.bool_type(), ast.no_position());
 
     let assignment = ast.local_var_assign(local_var, ast.true_lit());
 
@@ -174,7 +174,7 @@ fn failure_with_assign_if_and_assert() {
     let verification_context: VerificationContext = VIPER.attach_current_thread();
     let ast = verification_context.new_ast_factory();
 
-    let local_var = ast.local_var("x", ast.bool_type());
+    let local_var = ast.local_var("x", ast.bool_type(), ast.no_position());
 
     let assignment = ast.local_var_assign(local_var, ast.true_lit());
 
