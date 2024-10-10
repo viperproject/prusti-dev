@@ -1074,7 +1074,7 @@ mod rev_doms {
         type Node = mir::BasicBlock;
 
         fn num_nodes(&self) -> usize {
-            self.1.len()
+            self.0.len() + 1
         }
     }
     impl StartNode for RevBasicBlocks<'_, '_> {
