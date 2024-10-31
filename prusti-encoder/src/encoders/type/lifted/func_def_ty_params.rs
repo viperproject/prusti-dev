@@ -1,6 +1,6 @@
 use prusti_rustc_interface::middle::ty::{self, ParamTy, Ty, TyKind};
 use std::collections::HashSet;
-use task_encoder::{TaskEncoder, EncodeFullResult};
+use task_encoder::{EncodeFullResult, TaskEncoder};
 
 use super::generic::{LiftedGeneric, LiftedGenericEnc};
 
@@ -56,7 +56,12 @@ fn extract_ty_params(ty: Ty<'_>) -> Vec<ParamTy> {
             .filter_map(|arg| arg.as_type())
             .flat_map(|arg| extract_ty_params(arg))
             .collect(),
-        TyKind::Int(_) | TyKind::Uint(_) | TyKind::Float(_) | TyKind::Bool | TyKind::Char | TyKind::Str => vec![],
+        TyKind::Int(_)
+        | TyKind::Uint(_)
+        | TyKind::Float(_)
+        | TyKind::Bool
+        | TyKind::Char
+        | TyKind::Str => vec![],
         // TODO: special case to support constant strings
         _ if matches!(ty.peel_refs().kind(), TyKind::Str) => vec![],
         other => todo!("{:?}", other),

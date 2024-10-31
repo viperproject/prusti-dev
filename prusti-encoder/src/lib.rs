@@ -8,23 +8,22 @@ mod encoder_traits;
 pub mod request;
 
 use prusti_interface::{environment::EnvBody, PrustiError};
-use prusti_rustc_interface::{
-    middle::ty,
-    hir,
-};
+use prusti_rustc_interface::{hir, middle::ty};
 use task_encoder::TaskEncoder;
 
-use crate::encoders::{lifted::{
-    casters::{CastTypeImpure, CastTypePure, CastersEnc},
-    ty_constructor::TyConstructorEnc
-}, MirPolyImpureEnc};
+use crate::encoders::{
+    lifted::{
+        casters::{CastTypeImpure, CastTypePure, CastersEnc},
+        ty_constructor::TyConstructorEnc,
+    },
+    MirPolyImpureEnc,
+};
 
 pub fn test_entrypoint<'tcx>(
     tcx: ty::TyCtxt<'tcx>,
     body: EnvBody<'tcx>,
     def_spec: prusti_interface::specs::typed::DefSpecificationMap,
 ) -> request::RequestWithContext {
-
     crate::encoders::init_def_spec(def_spec);
     vir::init_vcx(vir::VirCtxt::new(tcx, body));
 
@@ -34,18 +33,18 @@ pub fn test_entrypoint<'tcx>(
         tracing::debug!("test_entrypoint item: {def_id:?}");
         let kind = tcx.def_kind(def_id);
         match kind {
-            hir::def::DefKind::Fn |
-            hir::def::DefKind::AssocFn => {
+            hir::def::DefKind::Fn | hir::def::DefKind::AssocFn => {
                 let def_id = def_id.to_def_id();
                 if prusti_interface::specs::is_spec_fn(tcx, def_id) {
                     continue;
                 }
 
                 let (is_pure, is_trusted) = crate::encoders::with_proc_spec(def_id, |proc_spec| {
-                        let is_pure = proc_spec.kind.is_pure().unwrap_or_default();
-                        let is_trusted = proc_spec.trusted.extract_inherit().unwrap_or_default();
-                        (is_pure, is_trusted)
-                }).unwrap_or_default();
+                    let is_pure = proc_spec.kind.is_pure().unwrap_or_default();
+                    let is_trusted = proc_spec.trusted.extract_inherit().unwrap_or_default();
+                    (is_pure, is_trusted)
+                })
+                .unwrap_or_default();
 
                 if !(is_trusted && is_pure) {
                     let res = MirPolyImpureEnc::encode(def_id, false);
@@ -114,7 +113,7 @@ pub fn test_entrypoint<'tcx>(
     }
 
     header(&mut viper_code, "impure generic casts");
-    for cast_methods in CastersEnc::<CastTypeImpure>:: all_outputs() {
+    for cast_methods in CastersEnc::<CastTypeImpure>::all_outputs() {
         for cast_method in cast_methods {
             viper_code.push_str(&format!("{:?}\n", cast_method));
             program_methods.push(cast_method);
@@ -157,13 +156,15 @@ pub fn test_entrypoint<'tcx>(
 
     //std::fs::write("local-testing/simple.vpr", viper_code).unwrap();
 
-    let program = vir::with_vcx(|vcx| vcx.mk_program(
-        vcx.alloc_slice(&program_fields),
-        vcx.alloc_slice(&program_domains),
-        vcx.alloc_slice(&program_predicates),
-        vcx.alloc_slice(&program_functions),
-        vcx.alloc_slice(&program_methods),
-    ));
+    let program = vir::with_vcx(|vcx| {
+        vcx.mk_program(
+            vcx.alloc_slice(&program_fields),
+            vcx.alloc_slice(&program_domains),
+            vcx.alloc_slice(&program_predicates),
+            vcx.alloc_slice(&program_functions),
+            vcx.alloc_slice(&program_methods),
+        )
+    });
 
     /*
     let source_path = std::path::Path::new("source/path"); // TODO: env.name.source_path();
@@ -185,9 +186,5 @@ pub fn backtranslate_error(
     offending_pos_id: usize,
     reason_pos_id: Option<usize>,
 ) -> Option<Vec<PrustiError>> {
-    vir::with_vcx(|vcx| vcx.backtranslate(
-        error_kind,
-        offending_pos_id,
-        reason_pos_id,
-    ))
+    vir::with_vcx(|vcx| vcx.backtranslate(error_kind, offending_pos_id, reason_pos_id))
 }

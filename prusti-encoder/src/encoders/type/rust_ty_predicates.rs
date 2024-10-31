@@ -1,12 +1,15 @@
 use prusti_rustc_interface::middle::ty::{self};
-use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
+use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{with_vcx, Type, TypeData};
 
 use crate::encoders::{PredicateEnc, PredicateEncOutputRef};
 
 use super::{
-    lifted::{generic::LiftedGeneric, ty::{EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc}},
-    most_generic_ty::extract_type_params
+    lifted::{
+        generic::LiftedGeneric,
+        ty::{EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc},
+    },
+    most_generic_ty::extract_type_params,
 };
 
 pub struct RustTyPredicatesEnc;
@@ -58,7 +61,9 @@ impl<'vir> RustTyPredicatesEncOutputRef<'vir> {
         self_ref: vir::Expr<'vir>,
         perm: Option<vir::Expr<'vir>>,
     ) -> vir::PredicateApp<'vir> {
-        self.generic_predicate.ref_to_pred.apply(vcx, self.ref_to_args(vcx, self_ref), perm)
+        self.generic_predicate
+            .ref_to_pred
+            .apply(vcx, self.ref_to_args(vcx, self_ref), perm)
     }
 
     pub fn ref_to_snap<'tcx>(
@@ -66,7 +71,10 @@ impl<'vir> RustTyPredicatesEncOutputRef<'vir> {
         vcx: &'vir vir::VirCtxt<'tcx>,
         self_ref: vir::Expr<'vir>,
     ) -> vir::Expr<'vir> {
-        let expr = self.generic_predicate.ref_to_snap.apply(vcx, self.ref_to_args(vcx, self_ref));
+        let expr = self
+            .generic_predicate
+            .ref_to_snap
+            .apply(vcx, self.ref_to_args(vcx, self_ref));
         assert!(expr.ty() == self.snapshot());
         expr
     }
@@ -98,8 +106,7 @@ impl TaskEncoder for RustTyPredicatesEnc {
         with_vcx(|vcx| {
             let (generic_ty, args) = extract_type_params(vcx.tcx(), *task_key);
             let generic_predicate = deps.require_ref::<PredicateEnc>(generic_ty)?;
-            let ty = deps
-                .require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(*task_key)?;
+            let ty = deps.require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(*task_key)?;
             deps.emit_output_ref(
                 *task_key,
                 RustTyPredicatesEncOutputRef {

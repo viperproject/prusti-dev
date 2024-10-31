@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use prusti_rustc_interface::middle::ty::{GenericArgsRef, Ty, TyKind};
-use task_encoder::{TaskEncoder, EncodeFullResult};
+use task_encoder::{EncodeFullResult, TaskEncoder};
 
 use super::{
     generic::LiftedGeneric,

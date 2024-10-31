@@ -21,13 +21,11 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
     };
     TokenStream::from(match input.data {
         syn::Data::Struct(syn::DataStruct {
-            fields: syn::Fields::Named(syn::FieldsNamed {
-                named,
-                ..
-            }),
+            fields: syn::Fields::Named(syn::FieldsNamed { named, .. }),
             ..
         }) => {
-            let compute_fields = named.iter()
+            let compute_fields = named
+                .iter()
                 .filter_map(|field| {
                     let name = field.ident.as_ref().unwrap();
                     if ReifyKind::of_field(field).should_reify() {
@@ -39,7 +37,8 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
                     }
                 })
                 .collect::<Vec<_>>();
-            let fields = named.iter()
+            let fields = named
+                .iter()
                 .map(|field| {
                     let name = field.ident.as_ref().unwrap();
                     if ReifyKind::of_field(field).should_reify() {
@@ -62,44 +61,45 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
                 #slice_impl
             }
         }
-        syn::Data::Enum(syn::DataEnum {
-            variants,
-            ..
-        }) => {
-            let variants = variants.iter()
+        syn::Data::Enum(syn::DataEnum { variants, .. }) => {
+            let variants = variants
+                .iter()
                 .map(|variant| {
                     let variant_name = &variant.ident;
                     match &variant.fields {
-                        syn::Fields::Unnamed(syn::FieldsUnnamed {
-                            unnamed,
-                            ..
-                        }) => {
+                        syn::Fields::Unnamed(syn::FieldsUnnamed { unnamed, .. }) => {
                             let vbinds = (0..unnamed.len())
                                 .map(|idx| quote::format_ident!("v{idx}"))
                                 .collect::<Vec<_>>();
                             let obinds = (0..unnamed.len())
                                 .map(|idx| quote::format_ident!("opt{idx}"))
                                 .collect::<Vec<_>>();
-                            let compute_fields = unnamed.iter()
+                            let compute_fields = unnamed
+                                .iter()
                                 .enumerate()
-                                .filter_map(|(idx, field)| if ReifyKind::of_field(field).should_reify() {
-                                    let vbind = &vbinds[idx];
-                                    let obind = &obinds[idx];
-                                    Some(quote! {
-                                        let #obind = #vbind.reify(vcx, lctx);
-                                    })
-                                } else {
-                                    None
+                                .filter_map(|(idx, field)| {
+                                    if ReifyKind::of_field(field).should_reify() {
+                                        let vbind = &vbinds[idx];
+                                        let obind = &obinds[idx];
+                                        Some(quote! {
+                                            let #obind = #vbind.reify(vcx, lctx);
+                                        })
+                                    } else {
+                                        None
+                                    }
                                 })
                                 .collect::<Vec<_>>();
-                            let fields = unnamed.iter()
+                            let fields = unnamed
+                                .iter()
                                 .enumerate()
-                                .map(|(idx, field)| if ReifyKind::of_field(field).should_reify() {
-                                    let obind = &obinds[idx];
-                                    quote! { #obind }
-                                } else {
-                                    let vbind = &vbinds[idx];
-                                    quote! { #vbind }
+                                .map(|(idx, field)| {
+                                    if ReifyKind::of_field(field).should_reify() {
+                                        let obind = &obinds[idx];
+                                        quote! { #obind }
+                                    } else {
+                                        let vbind = &vbinds[idx];
+                                        quote! { #vbind }
+                                    }
                                 })
                                 .collect::<Vec<_>>();
                             quote! {
@@ -108,7 +108,7 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
                                     vcx.alloc(#name::#variant_name(#(#fields),*))
                                 }
                             }
-                        },
+                        }
                         syn::Fields::Unit => quote! {
                             #name::#variant_name => &#name::#variant_name
                         },
