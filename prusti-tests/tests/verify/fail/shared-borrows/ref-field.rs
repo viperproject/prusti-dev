@@ -18,11 +18,11 @@ fn pure_get_field(x: &U) -> u32 {
 }
 
 fn test_wrong_precondition_pure(x: &U) -> u32 {
-    pure_get_field(x) //~ ERROR precondition of pure function call might not hold
+    pure_get_field(x) //~ERROR: precondition of pure function call might not hold
 }
 
 #[requires(x.v == 123)]
-#[ensures(x.v == 456)] //~ ERROR postcondition might not hold
+#[ensures(x.v == 456)] //~ERROR: postcondition might not hold
 fn test_wrong_postcondition_pure(x: &U) -> u32 {
     pure_get_field(x)
 }
@@ -34,11 +34,11 @@ fn get_field(x: &U) -> u32 {
 }
 
 fn test_wrong_precondition(x: &U) -> u32 {
-    get_field(x) //~ ERROR precondition might not hold
+    get_field(x) //~ERROR: precondition might not hold
 }
 
 #[requires(x.v == 123)]
-#[ensures(x.v == 456)] //~ ERROR postcondition might not hold
+#[ensures(x.v == 456)] //~ERROR: postcondition might not hold
 fn test_wrong_postcondition(x: &U) -> u32 {
     get_field(x)
 }

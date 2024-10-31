@@ -26,7 +26,7 @@ fn fast_fft_len(
             std::cmp::Ordering::Equal => return product,
             std::cmp::Ordering::Greater => {
                 best = min(best, product);
-                if product % multi_factor2 != 0 { //~ ERROR attempt to calculate the remainder with a divisor of zero
+                if product % multi_factor2 != 0 { //~ERROR: attempt to calculate the remainder with a divisor of zero
                     return best;
                 }
                 product /= multi_factor2;

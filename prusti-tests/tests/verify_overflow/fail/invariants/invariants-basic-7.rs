@@ -10,7 +10,7 @@ struct Percentage {
 
 
 #[requires(percentage.value >= 10)]
-fn adjust_percentage(percentage: &mut Percentage, flag: bool) { //~ ERROR type invariants
+fn adjust_percentage(percentage: &mut Percentage, flag: bool) { //~ERROR: type invariants
    let mut f0 = flag;
    if flag {
        percentage.value += 10; // temporarily break invariant

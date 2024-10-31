@@ -7,7 +7,7 @@ use prusti_contracts::*;
 fn test1(a: i32) {}
 
 #[requires(a == 4)]
-#[ensures(old(a) == 5)] //~ ERROR postcondition might not hold.
+#[ensures(old(a) == 5)] //~ERROR: postcondition might not hold.
 fn test2(a: i32) {}
 
 #[requires(a == 4)]
@@ -17,7 +17,7 @@ fn test3(mut a: i32) {
 }
 
 #[requires(a == 4)]
-#[ensures(old(a) == 5)] //~ ERROR postcondition might not hold.
+#[ensures(old(a) == 5)] //~ERROR: postcondition might not hold.
 fn test4(mut a: i32) {
     a = 5;
 }
@@ -29,14 +29,14 @@ fn test5(mut a: i32) {
 }
 
 #[requires(a == 4)]
-#[ensures(a == 5)] //~ ERROR postcondition might not hold.
+#[ensures(a == 5)] //~ERROR: postcondition might not hold.
 fn test6(mut a: i32) {
     a = 5;
 }
 
 fn test7() {
     test5(4);
-    assert!(false); //~ ERROR the asserted expression might not hold
+    assert!(false); //~ERROR: the asserted expression might not hold
 }
 
 #[requires(a < 10)]
@@ -55,7 +55,7 @@ fn test9() {
     let a = 5;
     let b = inc1(a);
     assert!(b == 6);
-    assert!(false); //~ ERROR the asserted expression might not hold
+    assert!(false); //~ERROR: the asserted expression might not hold
 }
 
 #[requires(a < 10)]
@@ -75,7 +75,7 @@ fn test11() {
     let a = 5;
     let b = inc2(a);
     assert!(b == 6);
-    assert!(false); //~ ERROR the asserted expression might not hold
+    assert!(false); //~ERROR: the asserted expression might not hold
 }
 
 #[requires(a < 10)]
@@ -94,7 +94,7 @@ fn test13() {
     let a = 5;
     let b = inc3(a);
     assert!(b == 6);
-    assert!(false); //~ ERROR the asserted expression might not hold
+    assert!(false); //~ERROR: the asserted expression might not hold
 }
 
 #[requires(a == 4)]

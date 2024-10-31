@@ -13,7 +13,7 @@ fn test1(a: usize) -> usize {
     identity(a)
 }
 
-#[ensures(a != result)] //~ ERROR postcondition might not hold.
+#[ensures(a != result)] //~ERROR: postcondition might not hold.
 fn test1_neg(a: usize) -> usize {
     identity(a)
 }
@@ -30,7 +30,7 @@ fn identity2(a: usize) -> usize {
 #[ensures(a == identity2(a))]
 fn test3(a: usize) {}
 
-#[ensures(a != identity2(a))]   //~ ERROR postcondition might not hold.
+#[ensures(a != identity2(a))]   //~ERROR: postcondition might not hold.
 fn test4(a: usize) {}
 
 #[pure]

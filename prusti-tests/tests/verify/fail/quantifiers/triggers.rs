@@ -20,7 +20,7 @@ pub fn test1() {
 
 pub fn test2() {
     // We unroll the function at most once, hence this fails.
-    assert!(fib(4) == 5);   //~ ERROR the asserted expression might not hold
+    assert!(fib(4) == 5);   //~ERROR: the asserted expression might not hold
 }
 
 #[pure]

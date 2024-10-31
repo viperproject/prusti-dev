@@ -43,7 +43,7 @@ impl List {
 #[requires(a.sorted() && a.get(a.len() - 1) <= v)]
 #[ensures(a.len() == old(a.len()) + 1)]
 // #[ensures(a.get(0) == old(a.get(0)))] // missing
-#[ensures(a.sorted())] //~ ERROR postcondition might not hold
+#[ensures(a.sorted())] //~ERROR: postcondition might not hold
 fn append(a: &mut List, v: i32) {
     if let Some(box ref mut tail) = a.next {
         append(tail, v);

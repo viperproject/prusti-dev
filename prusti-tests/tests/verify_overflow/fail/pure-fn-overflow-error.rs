@@ -2,7 +2,7 @@ use prusti_contracts::*;
 
 #[pure]
 fn test_usize(x: usize) -> usize {
-    x - 1 //~ ERROR overflow
+    x - 1 //~ERROR: overflow
 }
 
 pub fn test() {

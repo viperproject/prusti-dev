@@ -62,15 +62,10 @@ mod syn_extensions {
     /// Abstraction over everything that has a [syn::Signature]
     pub(crate) trait HasSignature {
         fn sig(&self) -> &Signature;
-        fn sig_mut(&mut self) -> &mut Signature;
     }
 
     impl HasSignature for Signature {
         fn sig(&self) -> &Signature {
-            self
-        }
-
-        fn sig_mut(&mut self) -> &mut Signature {
             self
         }
     }
@@ -79,19 +74,11 @@ mod syn_extensions {
         fn sig(&self) -> &Signature {
             &self.sig
         }
-
-        fn sig_mut(&mut self) -> &mut Signature {
-            &mut self.sig
-        }
     }
 
     impl HasSignature for ItemFn {
         fn sig(&self) -> &Signature {
             &self.sig
-        }
-
-        fn sig_mut(&mut self) -> &mut Signature {
-            &mut self.sig
         }
     }
 
@@ -99,19 +86,11 @@ mod syn_extensions {
         fn sig(&self) -> &Signature {
             &self.sig
         }
-
-        fn sig_mut(&mut self) -> &mut Signature {
-            &mut self.sig
-        }
     }
 
     impl HasSignature for ForeignItemFn {
         fn sig(&self) -> &Signature {
             &self.sig
-        }
-
-        fn sig_mut(&mut self) -> &mut Signature {
-            &mut self.sig
         }
     }
 

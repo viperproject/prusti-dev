@@ -21,7 +21,6 @@ cfg_if::cfg_if! {
 
 
 pub use mono::task_description::*;
-pub use pure::*;
 pub use pure::spec::MirSpecEnc;
 pub use local_def::*;
 pub use r#type::*;
@@ -40,7 +39,6 @@ pub use mir_pure::{
 };
 pub use spec::{
     SpecEnc,
-    SpecEncOutput,
     SpecEncTask,
 };
 pub(super) use spec::{init_def_spec, with_proc_spec};
@@ -48,7 +46,6 @@ pub use snapshot::SnapshotEnc;
 pub use predicate::{
     PredicateEnc,
     PredicateEncOutputRef,
-    PredicateEncOutput,
 };
 pub use domain::all_outputs as DomainEnc_all_outputs;
 pub use viper_tuple::{

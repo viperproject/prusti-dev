@@ -201,18 +201,24 @@ impl<'vir, Curr, Next> ExprGenData<'vir, Curr, Next> {
     pub fn lift<Prev>(&self) -> ExprGen<'vir, Prev, ExprKindGen<'vir, Curr, Next>> {
         match self.kind {
             ExprKindGenData::Lazy(_) => panic!("cannot lift lazy expression"),
-            _ => unsafe { std::mem::transmute(self) },
+            _ => unsafe {
+                std::mem::transmute::<
+                    &ExprGenData<'vir, Curr, Next>,
+                    &ExprGenData<'vir, Prev, ExprKindGen<'vir, Curr, Next>>,
+                >(self)
+            },
         }
     }
 }
 
 pub struct LazyGenData<'vir, Curr: 'vir, Next: 'vir> {
     pub name: &'vir str,
+    #[allow(clippy::type_complexity)]
     pub func: Box<dyn for<'a> Fn(&'vir crate::VirCtxt<'a>, Curr) -> Next + 'vir>,
 }
 
 impl<'vir, Curr: 'vir, Next: 'vir> std::hash::Hash for LazyGenData<'vir, Curr, Next> {
-    fn hash<H>(&self, state: &mut H)
+    fn hash<H>(&self, _state: &mut H)
     where
         H: std::hash::Hasher,
     {
@@ -293,10 +299,11 @@ pub struct MethodCallGenData<'vir, Curr, Next> {
 pub struct StmtGenData<'vir, Curr, Next> {
     pub kind: StmtKindGen<'vir, Curr, Next>,
     // #[vir(reify_pass)] pub debug_info: DebugInfo<'vir>,
-    #[vir(reify_pass)] pub span: Option<&'vir VirSpan<'vir>>,
+    #[vir(reify_pass)]
+    pub span: Option<&'vir VirSpan<'vir>>,
 }
 
-impl <'vir, Curr: 'vir, Next: 'vir> StmtGenData<'vir, Curr, Next> {
+impl<'vir, Curr: 'vir, Next: 'vir> StmtGenData<'vir, Curr, Next> {
     pub fn new(kind: StmtKindGen<'vir, Curr, Next>) -> Self {
         with_vcx(|vcx| Self {
             kind,
@@ -395,7 +402,11 @@ impl<'vir> ProgramGenData<'vir, !, !> {
             // SAFETY: this transmutes a `'vir` (or shorter) reference to a
             //   `'static` reference. The reference is not used except in
             //   `VirCtxt::get_program`. See comment there.
-            program: unsafe { std::mem::transmute(self) },
+            program: unsafe {
+                std::mem::transmute::<&ProgramGenData<'vir, !, !>, &ProgramGenData<'static, !, !>>(
+                    self,
+                )
+            },
         }
     }
 }
@@ -416,8 +427,6 @@ impl<'vir, Curr, Next> ProgramGenData<'vir, Curr, Next> {
 
 #[cfg(test)]
 mod tests {
-    use crate::debug_info::DebugInfo;
-
     macro_rules! roundtrip_test_eq {
         ($name:ident, $vcx:ident, $val:expr) => {
             #[test]
@@ -508,8 +517,8 @@ mod tests {
     roundtrip_test_match!(
         rt_stmt,
         _vcx,
-        crate::StmtGenData::<!, !>::Dummy("hello",),
-        crate::StmtGenData::Dummy("hello",)
+        crate::StmtKindGenData::<!, !>::Dummy("hello",),
+        crate::StmtKindGenData::Dummy("hello",)
     );
     roundtrip_test_match!(
         rt_terminatorstmt,

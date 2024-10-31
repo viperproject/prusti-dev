@@ -22,7 +22,7 @@ pub enum VerificationResult {
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct ConsistencyError {
     pub message: String,
-    pub pos_id: Option<String>
+    pub pos_id: Option<String>,
 }
 
 impl VerificationResult {

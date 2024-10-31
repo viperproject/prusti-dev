@@ -5,7 +5,7 @@ use prusti_contracts::*;
 #[pure]
 fn pure1() -> (u32, u32) {
     let mut x = (1, 2);
-    x.1 = 3; //~ ERROR only assignments to local variables are supported in pure code
+    x.1 = 3; //~ERROR: only assignments to local variables are supported in pure code
     x
 }
 
@@ -13,7 +13,7 @@ fn pure1() -> (u32, u32) {
 fn pure2() -> (u32, u32) {
     let mut x = (1, 2);
     let y = &mut x.1;
-    *y = 3; //~ ERROR only assignments to local variables are supported in pure code
+    *y = 3; //~ERROR: only assignments to local variables are supported in pure code
     x
 }
 

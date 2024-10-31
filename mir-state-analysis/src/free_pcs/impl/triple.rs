@@ -6,7 +6,7 @@
 
 use prusti_rustc_interface::{
     hir::Mutability,
-    middle::mir::{FakeBorrowKind,
+    middle::mir::{
         visit::Visitor, BorrowKind, Local, Location, Operand, Rvalue, Statement, StatementKind,
         Terminator, TerminatorKind, RETURN_PLACE,
     },
@@ -81,7 +81,7 @@ impl<'tcx> Visitor<'tcx> for Fpcs<'_, 'tcx> {
             | CoroutineDrop
             | FalseEdge { .. }
             | FalseUnwind { .. } => (),
-            Return | TailCall {.. } => {
+            Return | TailCall { .. } => {
                 let always_live = self.repacker.always_live_locals();
                 for local in 0..self.repacker.local_count() {
                     let local = Local::from_usize(local);

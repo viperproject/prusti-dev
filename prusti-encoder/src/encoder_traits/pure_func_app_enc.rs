@@ -116,6 +116,7 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
 
     /// Encodes the function application. The resulting application is casted
     /// to the appropriate generic/concrete type to match the type of `destination`.
+    #[allow(clippy::too_many_arguments)]
     fn encode_pure_func_app(
         &mut self,
         def_id: DefId,

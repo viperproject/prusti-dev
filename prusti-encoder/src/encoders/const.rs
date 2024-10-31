@@ -1,8 +1,10 @@
 use prusti_rustc_interface::{
-    middle::{mir, ty},
+    middle::{
+        mir::{self, ConstValue, interpret::{Scalar, GlobalAlloc}},
+        ty,
+    },
     span::def_id::DefId,
 };
-use rustc_middle::mir::{ConstValue, interpret::{ Scalar, GlobalAlloc}};
 use task_encoder::{
     TaskEncoder,
     TaskEncoderDependencies,
@@ -11,13 +13,6 @@ use task_encoder::{
 use vir::{CallableIdent, Arity};
 
 pub struct ConstEnc;
-
-#[derive(Clone, Debug)]
-pub struct ConstEncOutputRef<'vir> {
-    pub base_name: String,
-    pub snap_inst: vir::Type<'vir>,
-}
-impl<'vir> task_encoder::OutputRefAny for ConstEncOutputRef<'vir> {}
 
 use crate::encoders::{MirPureEnc, mir_pure::PureKind, MirPureEncTask};
 

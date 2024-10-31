@@ -26,7 +26,7 @@ impl Nonsense {
 #[requires(arg.valid())]
 #[ensures(arg.valid())]
 fn test(arg: &mut Nonsense) {
-    let m3 = arg.m3_mut(); //~ ERROR obligation might not hold on borrow expiry
+    let m3 = arg.m3_mut(); //~ERROR: obligation might not hold on borrow expiry
     *m3 += 5; // mistake
 }
 

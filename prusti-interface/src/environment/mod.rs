@@ -24,9 +24,9 @@ mod name;
 mod query;
 
 pub use self::{
+    body::EnvBody,
     collect_closure_defs_visitor::CollectClosureDefsVisitor,
     collect_prusti_spec_visitor::CollectPrustiSpecVisitor,
-    body::EnvBody,
     diagnostic::EnvDiagnostic,
     //loops::{LoopAnalysisError, PlaceAccess, PlaceAccessKind, ProcedureLoops},
     //loops_utils::*,

@@ -1,23 +1,28 @@
-use std::collections::HashMap;
-use std::fmt::Debug;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, fmt::Debug};
 
 use prusti_rustc_interface::middle::mir;
 
-use crate::{debug_info::DebugInfo, refs::*, viper_ident::ViperIdent, CallableIdent, FunctionIdent, UnknownArity};
+use crate::{
+    debug_info::DebugInfo, refs::*, viper_ident::ViperIdent, CallableIdent, FunctionIdent,
+    UnknownArity,
+};
 
 #[derive(Serialize, Deserialize, Hash)]
 pub struct LocalData<'vir> {
-    #[serde(with = "crate::serde::serde_str")] pub name: &'vir str, // TODO: identifiers
-    #[serde(with = "crate::serde::serde_ref")] pub ty: Type<'vir>,
-    pub debug_info: DebugInfo<'vir>
+    #[serde(with = "crate::serde::serde_str")]
+    pub name: &'vir str, // TODO: identifiers
+    #[serde(with = "crate::serde::serde_ref")]
+    pub ty: Type<'vir>,
+    pub debug_info: DebugInfo<'vir>,
 }
 
-#[derive(Eq, PartialEq)]
-#[derive(Serialize, Deserialize, Hash)]
+#[derive(Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub struct LocalDeclData<'vir> {
-    #[serde(with = "crate::serde::serde_str")] pub name: &'vir str, // TODO: identifiers
-    #[serde(with = "crate::serde::serde_ref")] pub ty: Type<'vir>,
+    #[serde(with = "crate::serde::serde_str")]
+    pub name: &'vir str, // TODO: identifiers
+    #[serde(with = "crate::serde::serde_ref")]
+    pub ty: Type<'vir>,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize, Hash)]
@@ -61,12 +66,15 @@ pub enum BinOpKind {
 impl From<mir::BinOp> for BinOpKind {
     fn from(value: mir::BinOp) -> Self {
         match value {
-            mir::BinOp::Add => BinOpKind::Add,
-            mir::BinOp::AddUnchecked => todo!(),
-            mir::BinOp::Sub => BinOpKind::Sub,
-            mir::BinOp::SubUnchecked => todo!(),
-            mir::BinOp::Mul => BinOpKind::Mul,
-            mir::BinOp::MulUnchecked => todo!(),
+            mir::BinOp::Add | mir::BinOp::AddUnchecked | mir::BinOp::AddWithOverflow => {
+                BinOpKind::Add
+            }
+            mir::BinOp::Sub | mir::BinOp::SubUnchecked | mir::BinOp::SubWithOverflow => {
+                BinOpKind::Sub
+            }
+            mir::BinOp::Mul | mir::BinOp::MulUnchecked | mir::BinOp::MulWithOverflow => {
+                BinOpKind::Mul
+            }
             mir::BinOp::Div => BinOpKind::Div,
             mir::BinOp::Rem => BinOpKind::Mod,
             mir::BinOp::BitXor => todo!(),
@@ -86,9 +94,6 @@ impl From<mir::BinOp> for BinOpKind {
             mir::BinOp::Ge => BinOpKind::CmpGe,
             mir::BinOp::Gt => BinOpKind::CmpGt,
             mir::BinOp::Offset => todo!(),
-            mir::BinOp::AddWithOverflow => todo!(),
-            mir::BinOp::SubWithOverflow => todo!(),
-            mir::BinOp::MulWithOverflow => todo!(),
             mir::BinOp::Cmp => todo!(),
         }
     }
@@ -113,7 +118,7 @@ impl ConstData {
             ConstData::Bool(_) => &TypeData::Bool,
             ConstData::Int(_) => &TypeData::Int,
             ConstData::Wildcard => &TypeData::Perm,
-            ConstData::Null => &TypeData::Ref
+            ConstData::Null => &TypeData::Ref,
         }
     }
 }
@@ -125,31 +130,35 @@ pub enum TypeData<'vir> {
     DomainTypeParam(DomainParamData<'vir>), // TODO: identifiers
     Domain(
         #[serde(with = "crate::serde::serde_str")] &'vir str, // TODO: identifiers
-        #[serde(with = "crate::serde::serde_slice")] &'vir [Type<'vir>]
+        #[serde(with = "crate::serde::serde_slice")] &'vir [Type<'vir>],
     ),
     // TODO: separate `TyParam` variant? `Domain` used for now
     Ref, // TODO: typed references ?
     Perm,
     Predicate, // The type of a predicate application
-    Unsupported(UnsupportedType<'vir>)
+    Unsupported(UnsupportedType<'vir>),
 }
 
 #[derive(PartialEq, Eq, Clone, Ord, PartialOrd, Serialize, Deserialize, Hash)]
 pub struct UnsupportedType<'vir> {
-    #[serde(with = "crate::serde::serde_str")] pub name: &'vir str,
+    #[serde(with = "crate::serde::serde_str")]
+    pub name: &'vir str,
 }
 
 pub type TySubsts<'vir> = HashMap<&'vir str, Type<'vir>>;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Ord, PartialOrd, Serialize, Deserialize, Hash)]
 pub struct DomainParamData<'vir> {
-    #[serde(with = "crate::serde::serde_str")] pub name: &'vir str, // TODO: identifiers
+    #[serde(with = "crate::serde::serde_str")]
+    pub name: &'vir str, // TODO: identifiers
 }
 
 #[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
 pub struct FieldData<'vir> {
-    #[serde(with = "crate::serde::serde_str")] pub name: &'vir str, // TODO: identifiers
-    #[serde(with = "crate::serde::serde_ref")] pub ty: Type<'vir>,
+    #[serde(with = "crate::serde::serde_str")]
+    pub name: &'vir str, // TODO: identifiers
+    #[serde(with = "crate::serde::serde_ref")]
+    pub ty: Type<'vir>,
 }
 
 #[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
@@ -157,17 +166,15 @@ pub struct FieldData<'vir> {
 pub struct DomainFunctionData<'vir> {
     pub unique: bool,
     pub name: ViperIdent<'vir>,
-    #[serde(with = "crate::serde::serde_slice")] pub args: &'vir [Type<'vir>],
-    #[serde(with = "crate::serde::serde_ref")] pub ret: Type<'vir>,
+    #[serde(with = "crate::serde::serde_slice")]
+    pub args: &'vir [Type<'vir>],
+    #[serde(with = "crate::serde::serde_ref")]
+    pub ret: Type<'vir>,
 }
 
-impl <'vir> DomainFunctionData<'vir> {
+impl<'vir> DomainFunctionData<'vir> {
     pub fn ident(&self) -> FunctionIdent<'vir, UnknownArity<'vir>> {
-        FunctionIdent::new(
-            self.name,
-            UnknownArity::new(self.args),
-            self.ret,
-        )
+        FunctionIdent::new(self.name, UnknownArity::new(self.args), self.ret)
     }
 }
 
@@ -194,7 +201,7 @@ pub type CfgBlockData<'vir> = crate::gendata::CfgBlockGenData<'vir, !, !>;
 pub type DomainAxiomData<'vir> = crate::gendata::DomainAxiomGenData<'vir, !, !>;
 pub type DomainData<'vir> = crate::gendata::DomainGenData<'vir, !, !>;
 pub type ExprData<'vir> = crate::gendata::ExprGenData<'vir, !, !>;
-pub type ExprKindData<'vir> = crate::gendata::ExprKindGenData<'vir, ! ,!>;
+pub type ExprKindData<'vir> = crate::gendata::ExprKindGenData<'vir, !, !>;
 pub type ForallData<'vir> = crate::gendata::ForallGenData<'vir, !, !>;
 pub type FuncAppData<'vir> = crate::gendata::FuncAppGenData<'vir, !, !>;
 pub type FunctionData<'vir> = crate::gendata::FunctionGenData<'vir, !, !>;

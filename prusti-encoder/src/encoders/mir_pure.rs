@@ -3,11 +3,10 @@ use prusti_rustc_interface::{
     index::IndexVec,
     middle::{
         mir::{self, Body},
-        ty::{self, GenericArgs, TyKind},
+        ty::{self, Binder, FnSig, GenericArgs, TyKind},
     },
     span::{def_id::DefId, source_map::Spanned},
 };
-use rustc_middle::ty::{Binder, FnSig};
 use task_encoder::{
     TaskEncoder,
     TaskEncoderDependencies,
@@ -37,8 +36,8 @@ pub struct MirPureEnc;
 
 #[derive(Clone, Debug)]
 pub enum MirPureEncError {
-    UnsupportedStatement,
-    UnsupportedTerminator,
+    // UnsupportedStatement,
+    // UnsupportedTerminator,
 }
 
 // TODO: does this need to be `&'vir [..]`?
@@ -182,12 +181,12 @@ impl<'vir> Update<'vir> {
             binds: self
                 .binds
                 .into_iter()
-                .chain(newer.binds.into_iter())
+                .chain(newer.binds)
                 .collect(),
             versions: self
                 .versions
                 .into_iter()
-                .chain(newer.versions.into_iter())
+                .chain(newer.versions)
                 .collect(),
         }
     }
@@ -207,7 +206,7 @@ struct Enc<'vir: 'enc, 'enc> {
     body: &'enc mir::Body<'vir>,
     rev_doms: rev_doms::ReverseDominators,
     deps: &'enc mut TaskEncoderDependencies<'vir, MirPureEnc>,
-    visited: IndexVec<mir::BasicBlock, bool>,
+    // visited: IndexVec<mir::BasicBlock, bool>,
     version_ctr: IndexVec<mir::Local, usize>,
     phi_ctr: usize,
 }
@@ -268,7 +267,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             body,
             rev_doms,
             deps,
-            visited: IndexVec::from_elem_n(false, body.basic_blocks.len()),
+            // visited: IndexVec::from_elem_n(false, body.basic_blocks.len()),
             version_ctr: IndexVec::from_elem_n(0, body.local_decls.len()),
             phi_ctr: 0,
         }
@@ -337,7 +336,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     fn reify_branch(
         &mut self,
         tuple_ref: &crate::encoders::ViperTupleEncOutput<'vir>,
-        mod_locals: &Vec<mir::Local>,
+        mod_locals: &[mir::Local],
         curr_ver: &HashMap<mir::Local, usize>,
         update: Update<'vir>,
     ) -> ExprRet<'vir> {
@@ -348,7 +347,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     *local,
                     update.versions.get(local).copied().unwrap_or_else(|| {
                         // TODO: remove (debug)
-                        if !curr_ver.contains_key(&local) {
+                        if !curr_ver.contains_key(local) {
                             tracing::error!("unknown version of local! {}", local.as_usize());
                             return 0xff;
                         }
@@ -445,9 +444,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 // defined before the branch
                 let mut mod_locals = updates
                     .iter()
-                    .map(|update| update.versions.keys())
-                    .flatten()
-                    .filter(|local| new_curr_ver.contains_key(&local))
+                    .flat_map(|update| update.versions.keys())
+                    .filter(|local| new_curr_ver.contains_key(local))
                     .copied()
                     .collect::<Vec<_>>();
                 mod_locals.sort();
@@ -459,9 +457,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .require_local::<ViperTupleEnc>(mod_locals.len())
                     .unwrap();
                 let otherwise_update = updates.pop().unwrap();
-                let phi_expr = targets.iter().zip(updates.into_iter()).fold(
+                let phi_expr = targets.iter().zip(updates).fold(
                     self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, otherwise_update),
-                    |expr, ((cond_val, target), branch_update)| {
+                    |expr, ((cond_val, _target), branch_update)| {
                         self.vcx.mk_ternary_expr(
                             self.vcx.mk_bin_op_expr(
                                 vir::BinOpKind::CmpEq,
@@ -639,14 +637,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             // AddressOf
             // Len
             // Cast
-            rv @ mir::Rvalue::BinaryOp(op, box (l, r)) => {
+            mir::Rvalue::BinaryOp(op, box (l, r)) => {
                 let l_ty = l.ty(self.body, self.vcx.tcx());
                 let r_ty = r.ty(self.body, self.vcx.tcx());
                 use crate::encoders::MirBuiltinEncTask::{BinOp, CheckedBinOp};
-                let task = if matches!(rv, mir::Rvalue::BinaryOp(..)) {
-                    BinOp(rvalue_ty, *op, l_ty, r_ty)
-                } else {
+                let task = if op.is_overflowing() {
                     CheckedBinOp(rvalue_ty, *op, l_ty, r_ty)
+                } else {
+                    BinOp(rvalue_ty, *op, l_ty, r_ty)
                 };
                 let binop_function = self
                     .deps
@@ -914,8 +912,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         match builtin.expect("call to unknown non-pure function in pure code") {
             PrustiBuiltin::SnapshotEquality => {
                 assert_eq!(args.len(), 2);
-                let lhs = self.encode_operand(&curr_ver, &args[0].node);
-                let rhs = self.encode_operand(&curr_ver, &args[1].node);
+                let lhs = self.encode_operand(curr_ver, &args[0].node);
+                let rhs = self.encode_operand(curr_ver, &args[1].node);
                 let eq_expr = self.vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, lhs, rhs);
 
                 let bool_cons = self
@@ -939,7 +937,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 //   - expression for the body
                 assert_eq!(encoded_args.len(), 4);
 
-                let (qvar_tys, upvar_tys, cl_def_id) = match arg_tys[1].expect_ty().peel_refs().kind() {
+                let (qvar_tys, _upvar_tys, cl_def_id) = match arg_tys[1].expect_ty().peel_refs().kind() {
                     TyKind::Closure(cl_def_id, cl_args) => (
                         match cl_args.as_closure().sig().skip_binder().inputs()[0].kind() {
                             TyKind::Tuple(list) => list,
@@ -984,7 +982,10 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 //   operation, which will work like reify
                 //   but panicking on a Lazy(..)?
                 reify_args.push(unsafe {
-                    std::mem::transmute(encoded_args[3])
+                    std::mem::transmute::<
+                        ExprRet<'_>,
+                        vir::ExprGen<'_, !, !>,
+                    >(encoded_args[3])
                 });
                 reify_args.extend(
                     qvars
@@ -1046,6 +1047,7 @@ mod rev_doms {
         pub end: mir::BasicBlock,
     }
     impl ReverseDominators {
+        #[allow(clippy::needless_lifetimes)]
         pub fn new<'a, 'vir>(blocks: &'a mir::BasicBlocks<'vir>) -> Self {
             let no_succ_blocks = blocks
                 .iter_enumerated()
@@ -1084,7 +1086,7 @@ mod rev_doms {
     }
 
     impl Predecessors for RevBasicBlocks<'_, '_> {
-        fn predecessors<'a>(&'a self, node: Self::Node) -> impl Iterator<Item = Self::Node> {
+        fn predecessors(&self, node: Self::Node) -> impl Iterator<Item = Self::Node> {
             if node == self.start_node() {
                 Box::new([].into_iter())
             } else if self.1.contains(&node) {
@@ -1096,7 +1098,7 @@ mod rev_doms {
     }
 
     impl Successors for RevBasicBlocks<'_, '_> {
-        fn successors<'a>(&'a self, node: Self::Node) -> impl Iterator<Item = Self::Node> {
+        fn successors(&self, node: Self::Node) -> impl Iterator<Item = Self::Node> {
             if node == self.start_node() {
                 Box::new(self.1.iter().copied()) as Box<dyn Iterator<Item = _>>
             } else {

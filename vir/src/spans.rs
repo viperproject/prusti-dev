@@ -1,7 +1,7 @@
-use std::collections::HashMap;
+use crate::VirCtxt;
 use prusti_interface::PrustiError;
 use prusti_rustc_interface::span::Span;
-use crate::VirCtxt;
+use std::collections::HashMap;
 
 pub struct VirSpanHandler<'vir> {
     error_kind: &'static str,
@@ -21,14 +21,16 @@ unsafe impl<'vir> Sync for VirSpan<'vir> {}
 
 impl serde::Serialize for VirSpan<'_> {
     fn serialize<S>(&self, ser: S) -> Result<S::Ok, S::Error>
-    where S: serde::ser::Serializer
+    where
+        S: serde::ser::Serializer,
     {
         ser.serialize_u64(self.id as u64)
     }
 }
 impl<'de> serde::Deserialize<'de> for VirSpan<'_> {
     fn deserialize<D>(deser: D) -> Result<Self, D::Error>
-    where D: serde::de::Deserializer<'de>
+    where
+        D: serde::de::Deserializer<'de>,
     {
         let id = u64::deserialize(deser)? as usize;
         Ok(VirSpan {
@@ -98,11 +100,14 @@ impl<'tcx> VirCtxt<'tcx> {
         let top_span_id = self.top_span().unwrap().id;
         let mut manager = self.spans.borrow_mut();
         let previous = manager.handlers.remove(&top_span_id);
-        manager.handlers.insert(top_span_id, VirSpanHandler {
-            error_kind,
-            handler: Box::new(handler),
-            next: previous.map(Box::new),
-        });
+        manager.handlers.insert(
+            top_span_id,
+            VirSpanHandler {
+                error_kind,
+                handler: Box::new(handler),
+                next: previous.map(Box::new),
+            },
+        );
     }
 
     // TODO: eventually, this should not be an Option
@@ -116,7 +121,7 @@ impl<'tcx> VirCtxt<'tcx> {
         error_kind: &str,
         offending_pos_id: usize,
         reason_pos_id: Option<usize>,
-     ) -> Option<Vec<PrustiError>> {
+    ) -> Option<Vec<PrustiError>> {
         let manager = self.spans.borrow();
         let reason_span_opt = reason_pos_id
             .and_then(|id| manager.all.get(id))

@@ -440,52 +440,52 @@ impl<'a> AstFactory<'a> {
             BinOpBv::BitAnd => ast::utility::BVFactory::call_and(
                 &factory_,
                 factory,
-                self.jni.new_string(&format!("bv{size}_and")),
+                self.jni.new_string(format!("bv{size}_and")),
             ),
             BinOpBv::BitOr => ast::utility::BVFactory::call_or(
                 &factory_,
                 factory,
-                self.jni.new_string(&format!("bv{size}_or")),
+                self.jni.new_string(format!("bv{size}_or")),
             ),
             BinOpBv::BitXor => ast::utility::BVFactory::call_xor(
                 &factory_,
                 factory,
-                self.jni.new_string(&format!("bv{size}_xor")),
+                self.jni.new_string(format!("bv{size}_xor")),
             ),
             BinOpBv::BvAdd => ast::utility::BVFactory::call_add(
                 &factory_,
                 factory,
-                self.jni.new_string(&format!("bv{size}_add")),
+                self.jni.new_string(format!("bv{size}_add")),
             ),
             BinOpBv::BvSub => ast::utility::BVFactory::call_sub(
                 &factory_,
                 factory,
-                self.jni.new_string(&format!("bv{size}_sub")),
+                self.jni.new_string(format!("bv{size}_sub")),
             ),
             BinOpBv::BvMul => ast::utility::BVFactory::call_mul(
                 &factory_,
                 factory,
-                self.jni.new_string(&format!("bv{size}_mul")),
+                self.jni.new_string(format!("bv{size}_mul")),
             ),
             BinOpBv::BvUDiv => ast::utility::BVFactory::call_udiv(
                 &factory_,
                 factory,
-                self.jni.new_string(&format!("bv{size}_udiv")),
+                self.jni.new_string(format!("bv{size}_udiv")),
             ),
             BinOpBv::BvShl => ast::utility::BVFactory::call_shl(
                 &factory_,
                 factory,
-                self.jni.new_string(&format!("bv{size}_shl")),
+                self.jni.new_string(format!("bv{size}_shl")),
             ),
             BinOpBv::BvLShr => ast::utility::BVFactory::call_lshr(
                 &factory_,
                 factory,
-                self.jni.new_string(&format!("bv{size}_lshr")),
+                self.jni.new_string(format!("bv{size}_lshr")),
             ),
             BinOpBv::BvAShr => ast::utility::BVFactory::call_ashr(
                 &factory_,
                 factory,
-                self.jni.new_string(&format!("bv{size}_ashr")),
+                self.jni.new_string(format!("bv{size}_ashr")),
             ),
         }
         .unwrap();

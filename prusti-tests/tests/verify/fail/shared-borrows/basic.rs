@@ -3,12 +3,12 @@ use prusti_contracts::*;
 pub fn test1() {
     let a = 4;
     let _x = &a;
-    assert!(false); //~ ERROR the asserted expression might not hold
+    assert!(false); //~ERROR: the asserted expression might not hold
 }
 
 pub fn test2(a: u32) {
     let _x = &a;
-    assert!(false); //~ ERROR the asserted expression might not hold
+    assert!(false); //~ERROR: the asserted expression might not hold
 }
 
 pub fn test3() {
@@ -19,7 +19,7 @@ pub fn test3() {
     let _c = *y;
     a = 6;
     let _b = a;
-    assert!(false); //~ ERROR the asserted expression might not hold
+    assert!(false); //~ERROR: the asserted expression might not hold
 }
 
 /*
@@ -45,7 +45,7 @@ pub fn test4(a: u32) {
     let y = &a;
     let _b = *x;
     let _c = *y;
-    assert!(false); //~ ERROR the asserted expression might not hold
+    assert!(false); //~ERROR: the asserted expression might not hold
 }
 
 pub fn test5() {
@@ -56,7 +56,7 @@ pub fn test5() {
     let _c = *y;
     a = 6;
     let _b = a;
-    assert!(false); //~ ERROR the asserted expression might not hold
+    assert!(false); //~ERROR: the asserted expression might not hold
 }
 
 fn main() {

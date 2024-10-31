@@ -1,10 +1,11 @@
-//! This module allows storing mir bodies with borrowck facts in a thread-local
-//! storage. Unfortunately, thread local storage requires all data stored in it
-//! to have a `'static` lifetime. Therefore, we transmute the lifetime `'tcx`
-//! away when storing the data. To ensure that nothing gets meessed up, we
-//! require the client to provide a witness: an instance of type `TyCtxt<'tcx>`
-//! that is used to show that the lifetime that the client provided is indeed
-//! `'tcx`.
+//! This module allows storing mir bodies with borrowck facts in thread-local
+//! storage.
+//!
+//! Unfortunately, thread-local storage requires all data stored in it to have
+//! a `'static` lifetime. Therefore, we transmute the lifetime `'tcx` away when
+//! storing the data. To ensure that nothing gets messed up, we require the
+//! client to provide a witness: an instance of type `TyCtxt<'tcx>` that is
+//! used to show that the lifetime that the client provided is indeed `'tcx`.
 
 use prusti_rustc_interface::{
     borrowck::consumers::BodyWithBorrowckFacts,

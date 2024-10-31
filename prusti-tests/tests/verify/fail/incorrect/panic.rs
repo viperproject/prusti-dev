@@ -7,7 +7,7 @@ fn prepare_client(client_state: &AnyClientState) -> Result<u32, u64> {
         AnyClientState::Tendermint(cs) => cs,
         _ =>  return Err(0)
     };
-    panic!() //~ ERROR panic!(..) statement might be reachable
+    panic!() //~ERROR: panic!(..) statement might be reachable
 }
 
 fn main() {

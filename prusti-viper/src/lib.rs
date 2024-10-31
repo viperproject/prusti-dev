@@ -4,7 +4,10 @@ use rustc_hash::FxHashMap;
 use viper::{self, AstFactory, Position};
 
 /// Convert the given VIR program into a Viper program (i.e., Java object).
-pub fn program_to_viper<'vir, 'v>(program: vir::Program<'vir>, ast: &'vir AstFactory<'v>) -> viper::Program<'vir> {
+pub fn program_to_viper<'vir>(
+    program: vir::Program<'vir>,
+    ast: &'vir AstFactory<'_>,
+) -> viper::Program<'vir> {
     let mut domains: FxHashMap<_, _> = Default::default();
     let mut domain_functions: FxHashMap<_, _> = Default::default();
     let mut domain_axioms: FxHashMap<_, _> = Default::default();
@@ -26,9 +29,11 @@ pub fn program_to_viper<'vir, 'v>(program: vir::Program<'vir>, ast: &'vir AstFac
     program.to_viper_no_pos(&ctx)
 }
 
-/// Context for conversion of VIR nodes to Viper AST. We need to keep track of
-/// domain information in particular, since domain function application nodes
-/// must be created with information that we do not store in the VIR.
+/// Context for conversion of VIR nodes to Viper AST.
+///
+/// We need to keep track of domain information in particular, since domain
+/// function application nodes must be created with information that we do not
+/// store in the VIR.
 pub struct ToViperContext<'vir, 'v> {
     /// Wrapper around JNI methods to create Viper AST methods.
     ast: &'v AstFactory<'v>,
@@ -87,7 +92,12 @@ pub trait ToViperVec<'vir, 'v> {
     type Output;
 
     /// Extend the given vector with the converted contents of `self`.
-    fn to_viper_extend(&self, vec: &mut Vec<Self::Output>, ctx: &ToViperContext<'vir, 'v>, pos: Position);
+    fn to_viper_extend(
+        &self,
+        vec: &mut Vec<Self::Output>,
+        ctx: &ToViperContext<'vir, 'v>,
+        pos: Position,
+    );
 
     /// Indicate how many elements there are in `self`. Does not need to be
     /// provided, nor does it need to be accurate; this is only used to set a
@@ -110,14 +120,22 @@ pub trait ToViperVec<'vir, 'v> {
 trait ToViperPosHelper<'vir, 'v> {
     type Output;
     fn to_viper_no_pos(&self, ctx: &ToViperContext<'vir, 'v>) -> Self::Output;
-    fn to_viper_with_span(&self, ctx: &ToViperContext<'vir, 'v>, span: Option<&'vir vir::VirSpan<'vir>>) -> Self::Output;
+    fn to_viper_with_span(
+        &self,
+        ctx: &ToViperContext<'vir, 'v>,
+        span: Option<&'vir vir::VirSpan<'vir>>,
+    ) -> Self::Output;
 }
 impl<'vir, 'v, T: ToViper<'vir, 'v>> ToViperPosHelper<'vir, 'v> for T {
     type Output = <Self as ToViper<'vir, 'v>>::Output;
     fn to_viper_no_pos(&self, ctx: &ToViperContext<'vir, 'v>) -> Self::Output {
         self.to_viper(ctx, ctx.ast.no_position())
     }
-    fn to_viper_with_span(&self, ctx: &ToViperContext<'vir, 'v>, span: Option<&'vir vir::VirSpan<'vir>>) -> Self::Output {
+    fn to_viper_with_span(
+        &self,
+        ctx: &ToViperContext<'vir, 'v>,
+        span: Option<&'vir vir::VirSpan<'vir>>,
+    ) -> Self::Output {
         self.to_viper(ctx, ctx.span_to_pos(span))
     }
 }
@@ -125,16 +143,16 @@ impl<'vir, 'v, T: ToViper<'vir, 'v>> ToViperPosHelper<'vir, 'v> for T {
 trait ToViperVecPosHelper<'vir, 'v> {
     type Output;
     fn to_viper_extend_no_pos(&self, vec: &mut Vec<Self::Output>, ctx: &ToViperContext<'vir, 'v>);
-    fn to_viper_vec_no_pos(&self, ctx: &ToViperContext<'vir, 'v>) -> Vec<Self::Output>;
+    //fn to_viper_vec_no_pos(&self, ctx: &ToViperContext<'vir, 'v>) -> Vec<Self::Output>;
 }
 impl<'vir, 'v, T: ToViperVec<'vir, 'v>> ToViperVecPosHelper<'vir, 'v> for T {
     type Output = <Self as ToViperVec<'vir, 'v>>::Output;
     fn to_viper_extend_no_pos(&self, vec: &mut Vec<Self::Output>, ctx: &ToViperContext<'vir, 'v>) {
         self.to_viper_extend(vec, ctx, ctx.ast.no_position());
     }
-    fn to_viper_vec_no_pos(&self, ctx: &ToViperContext<'vir, 'v>) -> Vec<Self::Output> {
-        self.to_viper_vec(ctx, ctx.ast.no_position())
-    }
+    //fn to_viper_vec_no_pos(&self, ctx: &ToViperContext<'vir, 'v>) -> Vec<Self::Output> {
+    //    self.to_viper_vec(ctx, ctx.ast.no_position())
+    //}
 }
 
 impl<'vir, 'v> ToViper<'vir, 'v> for vir::AccField<'vir> {
@@ -146,7 +164,9 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::AccField<'vir> {
                 self.field.to_viper_no_pos(ctx),
                 pos,
             ),
-            self.perm.map(|v| v.to_viper_no_pos(ctx)).unwrap_or_else(|| ctx.ast.full_perm()),
+            self.perm
+                .map(|v| v.to_viper_no_pos(ctx))
+                .unwrap_or_else(|| ctx.ast.full_perm()),
             pos,
         )
     }
@@ -182,7 +202,12 @@ impl<'vir, 'v> ToViperVec<'vir, 'v> for vir::CfgBlock<'vir> {
     fn size_hint(&self) -> Option<usize> {
         Some(1 + self.stmts.len() + self.terminator.size_hint().unwrap_or(1))
     }
-    fn to_viper_extend(&self, vec: &mut Vec<Self::Output>, ctx: &ToViperContext<'vir, 'v>, _pos: Position) {
+    fn to_viper_extend(
+        &self,
+        vec: &mut Vec<Self::Output>,
+        ctx: &ToViperContext<'vir, 'v>,
+        _pos: Position,
+    ) {
         vec.push(self.label.to_viper_no_pos(ctx)); // TODO: pass own position to label?
         vec.extend(self.stmts.iter().map(|v| v.to_viper_no_pos(ctx)));
         self.terminator.to_viper_extend_no_pos(vec, ctx);
@@ -208,7 +233,9 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Const<'vir> {
         match self {
             vir::ConstData::Bool(true) => ctx.ast.true_lit_with_pos(pos),
             vir::ConstData::Bool(false) => ctx.ast.false_lit_with_pos(pos),
-            vir::ConstData::Int(v) if *v < (i64::MAX as u128) => ctx.ast.int_lit_with_pos(*v as i64, pos),
+            vir::ConstData::Int(v) if *v < (i64::MAX as u128) => {
+                ctx.ast.int_lit_with_pos(*v as i64, pos)
+            }
             vir::ConstData::Int(v) => ctx.ast.int_lit_from_ref_with_pos(v, pos),
             vir::ConstData::Wildcard => ctx.ast.wildcard_perm(),
             vir::ConstData::Null => ctx.ast.null_lit_with_pos(pos),
@@ -221,9 +248,21 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Domain<'vir> {
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
         ctx.ast.domain(
             self.name,
-            &self.functions.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
-            &self.axioms.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
-            &self.typarams.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
+            &self
+                .functions
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
+            &self
+                .axioms
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
+            &self
+                .typarams
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
         )
     }
 }
@@ -231,25 +270,33 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Domain<'vir> {
 impl<'vir, 'v> ToViper<'vir, 'v> for vir::DomainAxiom<'vir> {
     type Output = viper::NamedDomainAxiom<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
-        let (domain, _) = ctx.domain_axioms.get(self.name).expect("no domain for domain axiom");
-        ctx.ast.named_domain_axiom(
-            self.name,
-            self.expr.to_viper_no_pos(ctx),
-            domain.name,
-        )
+        let (domain, _) = ctx
+            .domain_axioms
+            .get(self.name)
+            .expect("no domain for domain axiom");
+        ctx.ast
+            .named_domain_axiom(self.name, self.expr.to_viper_no_pos(ctx), domain.name)
     }
 }
 
 impl<'vir, 'v> ToViper<'vir, 'v> for vir::DomainFunction<'vir> {
     type Output = viper::DomainFunc<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
-        let (domain, _) = ctx.domain_functions.get(self.name.to_str()).expect("no domain for domain function");
+        let (domain, _) = ctx
+            .domain_functions
+            .get(self.name.to_str())
+            .expect("no domain for domain function");
         ctx.ast.domain_func(
             self.name.to_str(),
-            &self.args.iter().enumerate().map(|(idx, v)| ctx.ast.local_var_decl(
-                &format!("arg{idx}"),
-                v.to_viper_no_pos(ctx),
-            )).collect::<Vec<_>>(),
+            &self
+                .args
+                .iter()
+                .enumerate()
+                .map(|(idx, v)| {
+                    ctx.ast
+                        .local_var_decl(&format!("arg{idx}"), v.to_viper_no_pos(ctx))
+                })
+                .collect::<Vec<_>>(),
             self.ret.to_viper_no_pos(ctx),
             self.unique,
             domain.name,
@@ -282,17 +329,15 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Expr<'vir> {
             vir::ExprKindData::Local(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Old(v) => ctx.ast.old(v.to_viper_no_pos(ctx)), // TODO: position
             vir::ExprKindData::PredicateApp(v) => v.to_viper_with_span(ctx, self.span),
-            vir::ExprKindData::Result(ty) => ctx.ast.result_with_pos(
-                ty.to_viper_no_pos(ctx),
-                ctx.span_to_pos(self.span),
-            ),
+            vir::ExprKindData::Result(ty) => ctx
+                .ast
+                .result_with_pos(ty.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
             vir::ExprKindData::Ternary(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Unfolding(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::UnOp(v) => v.to_viper_with_span(ctx, self.span),
 
             //vir::ExprKindData::Lazy(&'vir str, Box<dyn for <'a> Fn(&'vir crate::VirCtxt<'a>, Curr) -> Next + 'vir>),
             //vir::ExprKindData::Todo(&'vir str) => unreachable!(),
-
             _ => unimplemented!(),
         }
     }
@@ -301,10 +346,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Expr<'vir> {
 impl<'vir, 'v> ToViper<'vir, 'v> for vir::Field<'vir> {
     type Output = viper::Field<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
-        ctx.ast.field(
-            self.name,
-            self.ty.to_viper_no_pos(ctx),
-        )
+        ctx.ast.field(self.name, self.ty.to_viper_no_pos(ctx))
     }
 }
 
@@ -313,8 +355,16 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Forall<'vir> {
     // `pos` coming from the parent `Expr` is used
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, pos: Position) -> Self::Output {
         ctx.ast.forall_with_pos(
-            &self.qvars.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
-            &self.triggers.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
+            &self
+                .qvars
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
+            &self
+                .triggers
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
             self.body.to_viper_no_pos(ctx),
             pos,
         )
@@ -328,7 +378,11 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::FuncApp<'vir> {
         if let Some((domain, _)) = ctx.domain_functions.get(self.target) {
             ctx.ast.domain_func_app2(
                 self.target,
-                &self.args.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
+                &self
+                    .args
+                    .iter()
+                    .map(|v| v.to_viper_no_pos(ctx))
+                    .collect::<Vec<_>>(),
                 &[],
                 self.result_ty.to_viper_no_pos(ctx),
                 domain.name,
@@ -337,7 +391,11 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::FuncApp<'vir> {
         } else {
             ctx.ast.func_app(
                 self.target,
-                &self.args.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
+                &self
+                    .args
+                    .iter()
+                    .map(|v| v.to_viper_no_pos(ctx))
+                    .collect::<Vec<_>>(),
                 self.result_ty.to_viper_no_pos(ctx),
                 pos,
             )
@@ -350,10 +408,22 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Function<'vir> {
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
         ctx.ast.function(
             self.name,
-            &self.args.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
+            &self
+                .args
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
             self.ret.to_viper_no_pos(ctx),
-            &self.pres.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
-            &self.posts.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
+            &self
+                .pres
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
+            &self
+                .posts
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
             ctx.ast.no_position(), // TODO: position (each function should have its own)
             self.expr.map(|v| v.to_viper_no_pos(ctx)),
         )
@@ -371,36 +441,44 @@ impl<'vir, 'v> ToViperVec<'vir, 'v> for vir::GotoIf<'vir> {
     }
     // `pos` coming from the parent `Stmt` should be used, but the nodes
     //   created her cannot be created with positions
-    fn to_viper_extend(&self, vec: &mut Vec<Self::Output>, ctx: &ToViperContext<'vir, 'v>, _pos: Position) {
+    fn to_viper_extend(
+        &self,
+        vec: &mut Vec<Self::Output>,
+        ctx: &ToViperContext<'vir, 'v>,
+        _pos: Position,
+    ) {
         if self.targets.is_empty() {
-            self.otherwise_statements.iter()
+            self.otherwise_statements
+                .iter()
                 .for_each(|v| vec.push(v.to_viper_no_pos(ctx)));
             vec.push(ctx.ast.goto(&self.otherwise.name()));
             return;
         }
         let value = self.value.to_viper_no_pos(ctx);
-        vec.push(self.targets.iter()
-            .rfold({
+        vec.push(self.targets.iter().rfold(
+            {
                 let mut vec_otherwise = Vec::with_capacity(1 + self.otherwise_statements.len());
-                self.otherwise_statements.iter()
+                self.otherwise_statements
+                    .iter()
                     .for_each(|v| vec_otherwise.push(v.to_viper_no_pos(ctx)));
                 vec_otherwise.push(ctx.ast.goto(&self.otherwise.name()));
                 ctx.ast.seqn(&vec_otherwise, &[])
-            }, |else_, target| {
+            },
+            |else_, target| {
                 let mut vec_then = Vec::with_capacity(1 + target.statements.len());
-                target.statements.iter()
+                target
+                    .statements
+                    .iter()
                     .for_each(|v| vec_then.push(v.to_viper_no_pos(ctx)));
                 vec_then.push(ctx.ast.goto(&target.label.name()));
                 let stmt = ctx.ast.if_stmt(
-                    ctx.ast.eq_cmp(
-                        value,
-                        target.value.to_viper_no_pos(ctx),
-                    ),
+                    ctx.ast.eq_cmp(value, target.value.to_viper_no_pos(ctx)),
                     ctx.ast.seqn(&vec_then, &[]),
                     else_,
                 );
                 ctx.ast.seqn(&[stmt], &[])
-            }))
+            },
+        ))
     }
 }
 
@@ -409,10 +487,8 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Let<'vir> {
     // `pos` coming from the parent `Expr` is used
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, pos: Position) -> Self::Output {
         ctx.ast.let_expr_with_pos(
-            ctx.ast.local_var_decl(
-                self.name,
-                self.val.ty().to_viper_no_pos(ctx),
-            ),
+            ctx.ast
+                .local_var_decl(self.name, self.val.ty().to_viper_no_pos(ctx)),
             self.val.to_viper_no_pos(ctx),
             self.expr.to_viper_no_pos(ctx),
             pos,
@@ -424,21 +500,16 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::LocalData<'vir> {
     type Output = viper::Expr<'v>;
     // `pos` coming from the parent `Expr` is used
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, pos: Position) -> Self::Output {
-        ctx.ast.local_var(
-            self.name,
-            self.ty.to_viper_no_pos(ctx),
-            pos,
-        )
+        ctx.ast
+            .local_var(self.name, self.ty.to_viper_no_pos(ctx), pos)
     }
 }
 
 impl<'vir, 'v> ToViper<'vir, 'v> for vir::LocalDeclData<'vir> {
     type Output = viper::LocalVarDecl<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
-        ctx.ast.local_var_decl(
-            self.name,
-            self.ty.to_viper_no_pos(ctx),
-        )
+        ctx.ast
+            .local_var_decl(self.name, self.ty.to_viper_no_pos(ctx))
     }
 }
 
@@ -447,10 +518,26 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Method<'vir> {
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
         ctx.ast.method(
             self.name,
-            &self.args.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
-            &self.rets.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
-            &self.pres.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
-            &self.posts.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
+            &self
+                .args
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
+            &self
+                .rets
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
+            &self
+                .pres
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
+            &self
+                .posts
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
             self.body.map(|body| {
                 let size_hint = body.blocks.iter().flat_map(|b| b.size_hint()).sum();
                 let mut result = if size_hint > 0 {
@@ -458,24 +545,18 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Method<'vir> {
                 } else {
                     Vec::new()
                 };
-                let mut declarations: Vec<viper::Declaration> = Vec::with_capacity(1 + body.blocks.len());
-                body.blocks.iter()
-                    .for_each(|b| {
-                        declarations.push(ctx.ast.label(
-                            &b.label.name(),
-                            &[],
-                        ).into());
-                        b.stmts.iter()
-                            .for_each(|s| match s.kind {
-                                vir::StmtKindGenData::LocalDecl(decl, _) => declarations.push(decl.to_viper_no_pos(ctx).into()),
-                                _ => (),
-                            });
-                        b.to_viper_extend_no_pos(&mut result, ctx);
+                let mut declarations: Vec<viper::Declaration> =
+                    Vec::with_capacity(1 + body.blocks.len());
+                body.blocks.iter().for_each(|b| {
+                    declarations.push(ctx.ast.label(&b.label.name(), &[]).into());
+                    b.stmts.iter().for_each(|s| {
+                        if let vir::StmtKindGenData::LocalDecl(decl, _) = s.kind {
+                            declarations.push(decl.to_viper_no_pos(ctx).into());
+                        }
                     });
-                ctx.ast.seqn(
-                    &result,
-                    &declarations,
-                )
+                    b.to_viper_extend_no_pos(&mut result, ctx);
+                });
+                ctx.ast.seqn(&result, &declarations)
             }),
         )
     }
@@ -487,8 +568,16 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::MethodCall<'vir> {
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, pos: Position) -> Self::Output {
         ctx.ast.method_call_with_pos(
             self.method,
-            &self.args.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
-            &self.targets.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
+            &self
+                .args
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
+            &self
+                .targets
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
             pos,
         )
     }
@@ -500,11 +589,17 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::PredicateApp<'vir> {
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, pos: Position) -> Self::Output {
         ctx.ast.predicate_access_predicate_with_pos(
             ctx.ast.predicate_access_with_pos(
-                &self.args.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
+                &self
+                    .args
+                    .iter()
+                    .map(|v| v.to_viper_no_pos(ctx))
+                    .collect::<Vec<_>>(),
                 self.target,
                 pos,
             ),
-            self.perm.map(|v| v.to_viper_no_pos(ctx)).unwrap_or_else(|| ctx.ast.full_perm()),
+            self.perm
+                .map(|v| v.to_viper_no_pos(ctx))
+                .unwrap_or_else(|| ctx.ast.full_perm()),
             pos,
         )
     }
@@ -515,7 +610,11 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Predicate<'vir> {
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
         ctx.ast.predicate(
             self.name,
-            &self.args.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
+            &self
+                .args
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
             self.expr.map(|v| v.to_viper_no_pos(ctx)),
         )
     }
@@ -525,11 +624,31 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Program<'vir> {
     type Output = viper::Program<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
         ctx.ast.program(
-            &self.domains.iter().map(|v| v.to_viper_no_pos(&ctx)).collect::<Vec<_>>(),
-            &self.fields.iter().map(|v| v.to_viper_no_pos(&ctx)).collect::<Vec<_>>(),
-            &self.functions.iter().map(|v| v.to_viper_no_pos(&ctx)).collect::<Vec<_>>(),
-            &self.predicates.iter().map(|v| v.to_viper_no_pos(&ctx)).collect::<Vec<_>>(),
-            &self.methods.iter().map(|v| v.to_viper_no_pos(&ctx)).collect::<Vec<_>>(),
+            &self
+                .domains
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
+            &self
+                .fields
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
+            &self
+                .functions
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
+            &self
+                .predicates
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
+            &self
+                .methods
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
         )
     }
 }
@@ -550,18 +669,15 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Stmt<'vir> {
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
         match self.kind {
             vir::StmtKindGenData::Comment(v) => ctx.ast.comment(v),
-            vir::StmtKindGenData::Exhale(v) => ctx.ast.exhale(
-                v.to_viper_no_pos(ctx),
-                ctx.span_to_pos(self.span),
-            ),
-            vir::StmtKindGenData::Fold(pred) => ctx.ast.fold_with_pos(
-                pred.to_viper_no_pos(ctx),
-                ctx.span_to_pos(self.span),
-            ),
-            vir::StmtKindGenData::Inhale(v) => ctx.ast.inhale(
-                v.to_viper_no_pos(ctx),
-                ctx.span_to_pos(self.span),
-            ),
+            vir::StmtKindGenData::Exhale(v) => ctx
+                .ast
+                .exhale(v.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
+            vir::StmtKindGenData::Fold(pred) => ctx
+                .ast
+                .fold_with_pos(pred.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
+            vir::StmtKindGenData::Inhale(v) => ctx
+                .ast
+                .inhale(v.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
             vir::StmtKindGenData::LocalDecl(decl, Some(expr)) => ctx.ast.local_var_assign(
                 ctx.ast.local_var_with_pos(
                     decl.name,
@@ -571,13 +687,14 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Stmt<'vir> {
                 expr.to_viper_no_pos(ctx),
                 // TODO: position?
             ),
-            vir::StmtKindGenData::LocalDecl(decl, None) => ctx.ast.comment(&format!("var {}", decl.name)),
+            vir::StmtKindGenData::LocalDecl(decl, None) => {
+                ctx.ast.comment(&format!("var {}", decl.name))
+            }
             vir::StmtKindGenData::MethodCall(v) => v.to_viper_with_span(ctx, self.span),
             vir::StmtKindGenData::PureAssign(v) => v.to_viper_with_span(ctx, self.span),
-            vir::StmtKindGenData::Unfold(pred) => ctx.ast.unfold_with_pos(
-                pred.to_viper_no_pos(ctx),
-                ctx.span_to_pos(self.span),
-            ),
+            vir::StmtKindGenData::Unfold(pred) => ctx
+                .ast
+                .unfold_with_pos(pred.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
             //vir::StmtGenData::Dummy(#[reify_copy] &'vir str),
             _ => unimplemented!(),
         }
@@ -594,22 +711,23 @@ impl<'vir, 'v> ToViperVec<'vir, 'v> for vir::TerminatorStmt<'vir> {
         }
     }
     // `pos` coming from the parent `TerminatorStmt` is used
-    fn to_viper_extend(&self, vec: &mut Vec<Self::Output>, ctx: &ToViperContext<'vir, 'v>, pos: Position) {
+    fn to_viper_extend(
+        &self,
+        vec: &mut Vec<Self::Output>,
+        ctx: &ToViperContext<'vir, 'v>,
+        pos: Position,
+    ) {
         match self {
-            vir::TerminatorStmtGenData::AssumeFalse => vec.push(ctx.ast.inhale(
-                ctx.ast.false_lit_with_pos(pos),
-                pos,
-            )),
+            vir::TerminatorStmtGenData::AssumeFalse => {
+                vec.push(ctx.ast.inhale(ctx.ast.false_lit_with_pos(pos), pos))
+            }
             vir::TerminatorStmtGenData::Goto(label) => vec.push(ctx.ast.goto(&label.name())),
             vir::TerminatorStmtGenData::GotoIf(v) => v.to_viper_extend_no_pos(vec, ctx),
             vir::TerminatorStmtGenData::Exit => vec.push(ctx.ast.comment("return")),
             vir::TerminatorStmtGenData::Dummy(v) => vec.push(ctx.ast.seqn(
                 &[
                     ctx.ast.comment(v),
-                    ctx.ast.assert(
-                        ctx.ast.false_lit_with_pos(pos),
-                        pos,
-                    ),
+                    ctx.ast.assert(ctx.ast.false_lit_with_pos(pos), pos),
                 ],
                 &[],
             )),
@@ -634,7 +752,11 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Trigger<'vir> {
     type Output = viper::Trigger<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
         ctx.ast.trigger(
-            &self.exprs.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
+            &self
+                .exprs
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
             // TODO: position (each trigger should have its own)
         )
     }
@@ -648,14 +770,26 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Type<'vir> {
             vir::TypeData::Bool => ctx.ast.bool_type(),
             vir::TypeData::DomainTypeParam(param) => ctx.ast.type_var(param.name),
             vir::TypeData::Domain(name, params) => {
-                let domain = ctx.domains.get(name).unwrap_or_else(|| panic!("Domain {name} not found"));
+                let domain = ctx
+                    .domains
+                    .get(name)
+                    .unwrap_or_else(|| panic!("Domain {name} not found"));
                 ctx.ast.domain_type(
                     name,
-                    &domain.typarams.iter()
+                    &domain
+                        .typarams
+                        .iter()
                         .zip(params.iter())
-                        .map(|(domain_param, actual)| (ctx.ast.type_var(domain_param.name), actual.to_viper_no_pos(ctx)))
+                        .map(|(domain_param, actual)| {
+                            (
+                                ctx.ast.type_var(domain_param.name),
+                                actual.to_viper_no_pos(ctx),
+                            )
+                        })
                         .collect::<Vec<_>>(),
-                    &domain.typarams.iter()
+                    &domain
+                        .typarams
+                        .iter()
                         .map(|v| ctx.ast.type_var(v.name))
                         .collect::<Vec<_>>(),
                 )

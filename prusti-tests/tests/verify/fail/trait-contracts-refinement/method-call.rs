@@ -13,7 +13,7 @@ trait Foo {
     }
 
     #[requires(-1 <= c && c <= 1)]
-    #[ensures(result > 1)] //~ ERROR postcondition
+    #[ensures(result > 1)] //~ERROR: postcondition
     fn baz(&self, c: isize) -> isize {
         assert!(-1 <= c && c <= 1); // Ok
         100
@@ -36,7 +36,7 @@ impl Foo for Dummy {
 
 fn test_foo_pre() {
     let d = Dummy;
-    d.foo(100); //~ ERROR precondition
+    d.foo(100); //~ERROR: precondition
 }
 
 fn test_foo_post() {
@@ -52,7 +52,7 @@ fn test_bar_1_pre() {
 
 fn test_bar_2_pre() {
     let d = Dummy;
-    d.bar(100); //~ ERROR precondition
+    d.bar(100); //~ERROR: precondition
 }
 
 fn test_bar_1_post() {

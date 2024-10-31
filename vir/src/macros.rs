@@ -112,8 +112,12 @@ macro_rules! vir_expr {
 
 #[macro_export]
 macro_rules! vir_ident {
-    ($vcx:expr; [ $name:expr ]) => { $name };
-    ($vcx:expr; $name:ident ) => { $vcx.alloc_str(stringify!($name)) };
+    ($vcx:expr; [ $name:expr ]) => {
+        $name
+    };
+    ($vcx:expr; $name:ident ) => {
+        $vcx.alloc_str(stringify!($name))
+    };
 }
 
 #[macro_export]
@@ -128,13 +132,32 @@ macro_rules! vir_format_identifier {
 
 #[macro_export]
 macro_rules! vir_type {
-    ($vcx:expr; Bool) => { & $crate::TypeData::Bool };
-    ($vcx:expr; Ref) => { & $crate::TypeData::Ref };
-    ($vcx:expr; Uint($bit_width:expr)) => { $vcx.alloc($crate::TypeData::Int { signed: false, bit_width: $bit_width }) };
-    ($vcx:expr; Int($bit_width:expr)) => { $vcx.alloc($crate::TypeData::Int { signed: true, bit_width: $bit_width }) };
-    ($vcx:expr; [ $ty:expr ]) => { $ty };
+    ($vcx:expr; Bool) => {
+        &$crate::TypeData::Bool
+    };
+    ($vcx:expr; Ref) => {
+        &$crate::TypeData::Ref
+    };
+    ($vcx:expr; Uint($bit_width:expr)) => {
+        $vcx.alloc($crate::TypeData::Int {
+            signed: false,
+            bit_width: $bit_width,
+        })
+    };
+    ($vcx:expr; Int($bit_width:expr)) => {
+        $vcx.alloc($crate::TypeData::Int {
+            signed: true,
+            bit_width: $bit_width,
+        })
+    };
+    ($vcx:expr; [ $ty:expr ]) => {
+        $ty
+    };
     ($vcx:expr; $name:ident) => {
-        $vcx.alloc($crate::TypeData::Domain($vcx.alloc_str(stringify!($name)), &[]))
+        $vcx.alloc($crate::TypeData::Domain(
+            $vcx.alloc_str(stringify!($name)),
+            &[],
+        ))
     };
 }
 

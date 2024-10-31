@@ -25,12 +25,12 @@ fn identity3(x: &mut T, v: i32) -> &mut i32 {
     &mut x.val
 }
 
-#[after_expiry(x.val == 5)] //~ ERROR pledge
+#[after_expiry(x.val == 5)] //~ERROR: pledge
 fn identity4(x: &mut T) -> &mut T {
     x
 }
 
-#[after_expiry(x.val != before_expiry(result.val))] //~ ERROR pledge
+#[after_expiry(x.val != before_expiry(result.val))] //~ERROR: pledge
 fn identity5(x: &mut T) -> &mut T {
     x
 }

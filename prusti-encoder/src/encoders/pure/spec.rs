@@ -15,6 +15,7 @@ pub struct MirSpecEncOutput<'vir> {
     pub pres: Vec<vir::Expr<'vir>>,
     pub posts: Vec<vir::Expr<'vir>>,
     pub pre_args: &'vir [vir::Expr<'vir>],
+    #[allow(dead_code)]
     pub post_args: &'vir [vir::Expr<'vir>],
 }
 

@@ -18,7 +18,7 @@ use viper::{PersistentCache, Viper};
 use warp::Filter;
 
 #[derive(Debug)]
-struct BincodeReject(bincode::Error);
+struct BincodeReject(#[allow(dead_code)] bincode::Error);
 impl warp::reject::Reject for BincodeReject {}
 
 pub fn start_server_on_port(port: u16) {

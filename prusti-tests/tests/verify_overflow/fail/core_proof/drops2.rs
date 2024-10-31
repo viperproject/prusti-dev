@@ -21,7 +21,7 @@ impl Drop for T {
 fn test1() {
     {
         let a = T { f: 4 };
-    }   //~ ERROR the drop handler was called.
+    }   //~ERROR: the drop handler was called.
     let b = T2 { f: 4 };
 }
 
@@ -43,7 +43,7 @@ fn test3() {
 fn test4() {
     let a = T { f: 4 };
     let b = T3 { g: a };
-}   //~ ERROR the drop handler was called.
+}   //~ERROR: the drop handler was called.
 
 fn test5() {
     let a = T { f: 4 };
@@ -67,7 +67,7 @@ fn test7() {
     if random() {
         drop(b.g);
     }
-}    //~ ERROR the drop handler was called.
+}    //~ERROR: the drop handler was called.
 
 fn test8() {
     let c = random();
@@ -90,7 +90,7 @@ fn test9() {
     } else {
         drop(b);
     }
-}    //~ ERROR the drop handler was called.
+}    //~ERROR: the drop handler was called.
 
 fn main() {}
 

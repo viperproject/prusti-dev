@@ -5,7 +5,7 @@ impl QueryClient
     pub async fn accounts(
         &mut self,
         _request: u32
-    ) -> Result<u32, u32> { //~ ERROR unsupported type
+    ) -> Result<u32, u32> { //~ERROR: unsupported type
         unimplemented!()
     }
 }

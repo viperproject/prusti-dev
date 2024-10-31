@@ -18,7 +18,7 @@ fn lookup(head: &List, index: usize) -> u32 {
     } else {
         match head.next {
             Some(box ref tail) => lookup(tail, index - 1),
-            None => unreachable!() //~ ERROR unreachable!(..) statement might be reachable
+            None => unreachable!() //~ERROR: unreachable!(..) statement might be reachable
         }
     }
 }
@@ -32,7 +32,7 @@ fn len(head: &List) -> usize {
 }
 
 #[ensures(len(&result) == old(len(&tail)) + 1)]
-#[ensures(lookup(&result, 0) == old(x))] //~ ERROR postcondition might not hold
+#[ensures(lookup(&result, 0) == old(x))] //~ERROR: postcondition might not hold
 #[ensures(if len(&result) >= 2 { old(lookup(&tail, 0)) == lookup(&result, 1) } else { true })]
 #[ensures(forall(|i: usize| (0 <= i && i < old(len(&tail))) ==> old(lookup(&tail, i)) == lookup(&result, i)))]
 #[ensures(forall(|i: usize| (0 <= i && i < old(len(&tail))) ==> i * 2 == i + i))]

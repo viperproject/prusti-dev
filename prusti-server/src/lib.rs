@@ -1,17 +1,15 @@
 #![feature(rustc_private)]
-
 // © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
 #![warn(clippy::disallowed_types)]
 
 use log::info;
+use once_cell::sync::Lazy;
 use prusti_utils::{config, Stopwatch};
 use viper::{PersistentCache, Viper};
-use once_cell::sync::Lazy;
 
 mod client;
 mod process_verification;

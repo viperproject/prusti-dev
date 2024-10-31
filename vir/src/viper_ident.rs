@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::VirCtxt;
 use std::fmt::{self, Display, Formatter};
@@ -13,14 +13,13 @@ impl Display for ViperIdent<'_> {
     }
 }
 
-impl <'vir> ViperIdent<'vir> {
-
+impl<'vir> ViperIdent<'vir> {
     pub fn new(ident: &'vir str) -> ViperIdent<'vir> {
         assert!(is_valid_identifier(ident));
         ViperIdent(ident)
     }
 
-    pub fn sanitize(vcx: &'vir VirCtxt<'_>,  ident: String) -> ViperIdent<'vir> {
+    pub fn sanitize(vcx: &'vir VirCtxt<'_>, ident: String) -> ViperIdent<'vir> {
         let ident = sanitize_str(&ident);
         // Just a sanity check, if this fails there is a problem in `sanitize`
         assert!(is_valid_identifier(ident.as_str()));

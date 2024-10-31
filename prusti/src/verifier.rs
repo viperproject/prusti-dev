@@ -1,13 +1,8 @@
 //! A module that invokes the verifier `prusti-viper`
 
 use log::{debug, warn};
+use prusti_interface::{data::VerificationTask, environment::Environment, specs::typed};
 use prusti_utils::{config, report::user};
-use prusti_interface::{
-    data::{VerificationResult, VerificationTask},
-    environment::Environment,
-    specs::typed,
-};
-use prusti_rustc_interface::errors::MultiSpan;
 
 #[tracing::instrument(name = "prusti::verify", level = "debug", skip(env))]
 pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
@@ -46,48 +41,33 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
         // encode the crate to a RequestWithContext
         // TODO: push RequestWithContext through (replace VerificationRequest
         //   which is constructed further inside `prusti_server`)
-        let request = prusti_encoder::test_entrypoint(
-            env.tcx(),
-            env.body,
-            def_spec,
-        );
+        let request = prusti_encoder::test_entrypoint(env.tcx(), env.body, def_spec);
         let program = request.program;
 
         let mut results = prusti_server::verify_programs(vec![program]);
         assert_eq!(results.len(), 1); // TODO: eventually verify separate methods as separate programs again?
 
         let result = results.pop().unwrap().1;
-        println!("verification result: {result:?}");
-
-        let success = match result {
+        let _success = match result {
             viper::VerificationResult::Success => true,
             viper::VerificationResult::JavaException(_e) => false,
             viper::VerificationResult::ConsistencyErrors(_e) => false,
             viper::VerificationResult::Failure(errors) => {
                 errors
                     .into_iter()
-                    .flat_map(|error| prusti_encoder::backtranslate_error(
+                    .flat_map(|error| {
+                        prusti_encoder::backtranslate_error(
                             &error.full_id,
                             error.offending_pos_id.unwrap().parse::<usize>().unwrap(),
                             error.reason_pos_id.and_then(|id| id.parse::<usize>().ok()),
                         )
                         .expect("verification error could not be backtranslated")
-                        .into_iter())
+                        .into_iter()
+                    })
                     .for_each(|prusti_error| prusti_error.emit(&env.diagnostic));
                 false
             }
         };
-        if !success {
-            // TODO: This will be unnecessary if diagnostic errors are emitted
-            // earlier, it's useful for now to ensure that Prusti returns an
-            // error code when verification fails
-            env.diagnostic.span_err_with_help_and_notes(
-                MultiSpan::new(),
-                "Verification failed",
-                &None,
-                &[],
-            );
-        }
 
         //let verification_result =
         //    if verification_task.procedures.is_empty() && verification_task.types.is_empty() {

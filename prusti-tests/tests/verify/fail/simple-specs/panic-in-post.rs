@@ -8,7 +8,7 @@ use prusti_contracts::*;
 fn good(x: u32) {}
 
 #[ensures({
-    assert!(x != 0); //~ ERROR postcondition might not hold
+    assert!(x != 0); //~ERROR: postcondition might not hold
     true
 })]
 fn bad(x: u32) {}

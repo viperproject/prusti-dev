@@ -24,7 +24,7 @@ fn test2<Z>(arg: &mut Number<Z>) {
 #[ensures(arg.i >= 8000)]
 fn test3(arg: &mut Number<i32>) {
     // using specs with a typaram in a non-generic function
-    test2(arg); //~ ERROR precondition might not hold
+    test2(arg); //~ERROR: precondition might not hold
 }
 
 fn main() {}

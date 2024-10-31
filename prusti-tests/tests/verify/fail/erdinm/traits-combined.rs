@@ -1,7 +1,7 @@
 use prusti_contracts::*;
 
 trait Percentage {
-    #[ensures(result <= 100)] //~ ERROR postcondition might not hold
+    #[ensures(result <= 100)] //~ERROR: postcondition might not hold
     fn get(&self) -> u8;
 
     #[requires(arg <= 100)]
@@ -15,7 +15,7 @@ impl Percentage for Fail {
         101
     }
     fn set(&mut self, arg: u8) {
-        assert!(arg <= 99); //~ ERROR the asserted expression might not hold
+        assert!(arg <= 99); //~ERROR: the asserted expression might not hold
     }
 }
 
@@ -32,7 +32,7 @@ impl Percentage for Pass {
 
 fn test_get_fail<T: Percentage>(t: &T) {
     let p = t.get();
-    assert!(p <= 99); //~ ERROR the asserted expression might not hold
+    assert!(p <= 99); //~ERROR: the asserted expression might not hold
 }
 
 fn test_get_pass<T: Percentage>(t: &T) {
@@ -41,7 +41,7 @@ fn test_get_pass<T: Percentage>(t: &T) {
 }
 
 fn test_set_fail<T: Percentage>(t: &mut T) {
-    t.set(101); //~ ERROR precondition might not hold
+    t.set(101); //~ERROR: precondition might not hold
 }
 
 fn test_set_pass<T: Percentage>(t: &mut T) {

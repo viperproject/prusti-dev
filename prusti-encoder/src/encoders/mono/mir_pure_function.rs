@@ -63,6 +63,6 @@ impl TaskEncoder for MirMonoFunctionEnc {
         task_key: &Self::TaskKey<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
-        Ok((<Self as PureFunctionEnc>::encode(*task_key, deps), ()))
+        Ok((<Self as PureFunctionEnc>::encode(*task_key, deps)?, ()))
     }
 }

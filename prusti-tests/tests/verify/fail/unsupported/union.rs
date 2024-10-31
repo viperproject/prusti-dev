@@ -4,5 +4,5 @@ union Foo {
 }
 
 fn main() {
-    let _ = Foo { a: [0] }; //~ ERROR unions are not supported
+    let _ = Foo { a: [0] }; //~ERROR: unions are not supported
 }

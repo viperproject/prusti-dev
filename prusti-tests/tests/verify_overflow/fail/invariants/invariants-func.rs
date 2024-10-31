@@ -22,7 +22,7 @@ fn adjust_percentage(percentage: &mut Percentage, flag: bool) {
        f0 = true;
    }
 
-   print_percentage(percentage); //~ ERROR  precondition
+   print_percentage(percentage); //~ERROR:  precondition
 
    if f0 {
        percentage.value /= 2; // restore invariant

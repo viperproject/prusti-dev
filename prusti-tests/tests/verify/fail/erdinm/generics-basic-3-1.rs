@@ -17,7 +17,7 @@ fn test1<Y>(arg: &mut Number<Y>) {
 #[ensures(arg.i >= 8000)]
 fn test2<Z>(arg: &mut Number<Z>) {
     // using specs with a *different* typaram
-    test1(arg); //~ ERROR precondition might not hold
+    test1(arg); //~ERROR: precondition might not hold
 }
 
 #[requires(arg.i >= 9000)]

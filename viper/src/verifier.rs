@@ -11,7 +11,8 @@ use crate::{
     silicon_counterexample::SiliconCounterexample,
     smt_manager::SmtManager,
     verification_backend::VerificationBackend,
-    verification_result::{VerificationError, VerificationResult}, ConsistencyError,
+    verification_result::{VerificationError, VerificationResult},
+    ConsistencyError,
 };
 use jni::{errors::Result, objects::JObject, JNIEnv};
 use log::{debug, error, info};
@@ -173,10 +174,8 @@ impl<'a> Verifier<'a> {
             .is_instance_of(pos, "viper/silver/ast/HasIdentifier")
         {
             Some(
-                self.jni.get_string(
-                    self.jni
-                        .unwrap_result(has_identifier_wrapper.call_id(pos)),
-                ),
+                self.jni
+                    .get_string(self.jni.unwrap_result(has_identifier_wrapper.call_id(pos))),
             )
         } else {
             None

@@ -8,7 +8,7 @@ struct Number<X> {
 }
 
 #[requires(arg.i >= 9000)]
-#[ensures(arg.i >= 8001)] //~ ERROR postcondition might not hold
+#[ensures(arg.i >= 8001)] //~ERROR: postcondition might not hold
 fn test1<Y>(arg: &mut Number<Y>) {
     arg.i -= 1000;
 }

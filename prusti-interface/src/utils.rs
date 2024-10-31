@@ -47,7 +47,10 @@ pub fn expand_one_level<'tcx>(
     let res = current_place.expand_one_level(Place::from(guide_place), repacker);
     (
         res.0.to_rust_place(repacker),
-        res.1.into_iter().map(|r| r.to_rust_place(repacker)).collect(),
+        res.1
+            .into_iter()
+            .map(|r| r.to_rust_place(repacker))
+            .collect(),
     )
 }
 

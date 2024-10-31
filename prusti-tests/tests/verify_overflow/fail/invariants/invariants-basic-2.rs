@@ -19,7 +19,7 @@ impl Percentage {
 //#[requires(x <= 100)]
 fn test(x: u8) {
     let mut perc = Percentage { value: x };
-    perc.incr(); //~ ERROR precondition might not hold
+    perc.incr(); //~ERROR: precondition might not hold
 }
 
 fn main() {}

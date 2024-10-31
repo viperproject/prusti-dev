@@ -18,7 +18,7 @@ impl Request {
         Ok(req)
     }
 
-    #[ensures(matches!(result, Ok(_)))] //~ ERROR postcondition might not hold
+    #[ensures(matches!(result, Ok(_)))] //~ERROR: postcondition might not hold
     pub fn bad_parse() -> result::Result<Request, ErrorTypes> {
         Err(ErrorTypes::Err2)
     }

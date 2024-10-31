@@ -12,7 +12,7 @@ fn magic(n: i32) -> i32 {
     }
 }
 
-#[ensures(magic(-1) == 123)] //~ ERROR
+#[ensures(magic(-1) == 123)] //~ERROR: postcondition might not hold
 #[ensures(magic(0) == -1)]
 #[ensures(magic(1) == 1)]
 #[ensures(magic(2) == 42)]

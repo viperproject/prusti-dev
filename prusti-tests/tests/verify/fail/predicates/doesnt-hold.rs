@@ -10,5 +10,5 @@ predicate! {
 fn precond_fail() {}
 
 fn main() {
-    precond_fail(); //~ ERROR precondition might not hold
+    precond_fail(); //~ERROR: precondition might not hold
 }

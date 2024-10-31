@@ -80,7 +80,7 @@ impl TaskEncoder for SpecEnc {
         task_key: &Self::TaskKey<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
-        deps.emit_output_ref(task_key.clone(), ())?;
+        deps.emit_output_ref(*task_key, ())?;
         vir::with_vcx(|vcx| {
             with_def_spec(|def_spec| {
                 let specs = def_spec.get_proc_spec(&task_key.0);

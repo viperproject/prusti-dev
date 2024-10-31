@@ -1,9 +1,12 @@
+// TODO: this lint is something we should fix; to address there should probably
+//   be an indirection in error storage somewhere, maybe even in `task-encoder`?
+#![allow(clippy::result_large_err)]
+
 use prusti_rustc_interface::{
-    middle::ty::{self, TyKind, util::IntTypeExt, IntTy, UintTy},
+    middle::ty::{self, ParamTy, TyKind, util::IntTypeExt, IntTy, UintTy},
     target::abi,
     span::symbol,
 };
-use rustc_middle::ty::ParamTy;
 use task_encoder::{
     EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies
 };
@@ -99,7 +102,7 @@ impl <'vir> DomainEncOutputRef<'vir> {
 
 impl<'vir> task_encoder::OutputRefAny for DomainEncOutputRef<'vir> {}
 
-use crate::encoders::{generic::GenericEncOutputRef, GenericEnc};
+use crate::encoders::GenericEnc;
 
 use super::{
     lifted::{
@@ -157,7 +160,7 @@ impl TaskEncoder for DomainEnc {
                     );
                     Ok((Some(enc.finalize(task_key)), specifics))
                 }
-                TyKind::Closure(def_id, args) => {
+                TyKind::Closure(_def_id, args) => {
                     let cl_args = args.as_closure();
                     let params = cl_args.parent_args();
                     let generics = params
@@ -303,7 +306,7 @@ struct DomainEncData<'vir, 'enc> {
     self_decl: &'vir [vir::LocalDecl<'vir>; 1],
     axioms: Vec<vir::DomainAxiom<'vir>>,
     functions: Vec<vir::DomainFunction<'vir>>,
-    generic_enc: GenericEncOutputRef<'vir>,
+    // generic_enc: GenericEncOutputRef<'vir>,
     deps: &'enc mut TaskEncoderDependencies<'vir, DomainEnc>,
 }
 impl<'vir, 'enc> DomainEncData<'vir, 'enc> {
@@ -353,7 +356,7 @@ impl<'vir, 'enc> DomainEncData<'vir, 'enc> {
             functions,
             deps,
             typeof_function,
-            generic_enc,
+            // generic_enc,
         }
     }
 
@@ -397,11 +400,11 @@ impl<'vir, 'enc> DomainEncData<'vir, 'enc> {
             snap_to_prim,
             prim_to_snap: data.field_snaps_to_snap.to_known(),
         };
-        specifics.bounds(ty).map(|(lower, upper)| {
+        if let Some((lower, upper)) = specifics.bounds(ty) {
             let exp = snap_to_prim.apply(self.vcx, [self.self_ex]);
             let axiom = self.mk_bounds_axiom(self.domain.name_str(), exp, lower, upper);
             self.axioms.push(axiom);
-        });
+        }
         DomainEncSpecifics::Primitive(specifics)
     }
     pub fn mk_struct_specifics(
@@ -442,7 +445,7 @@ impl<'vir, 'enc> DomainEncData<'vir, 'enc> {
     // Helper functions
     fn mk_field_functions(
         &mut self,
-        field_tys: &Vec<FieldTy<'vir>>,
+        field_tys: &[FieldTy<'vir>],
         discr: Option<(FunctionIdent<'vir, UnaryArity<'vir>>, vir::Expr<'vir>, symbol::Symbol)>,
         stronger_cons_axiom: bool,
     ) -> DomainDataStruct<'vir> {
@@ -761,7 +764,7 @@ impl<'vir> DomainDataPrim<'vir> {
                 };
                 let size = abi::Size::from_bits(bit_width);
                 let negative_value = if signed {
-                    let value = size.sign_extend(value) as i128;
+                    let value = size.sign_extend(value);
                     Some(value).filter(|value| value.is_negative())
                 } else {
                     None
@@ -781,9 +784,9 @@ impl<'vir> DomainDataPrim<'vir> {
     fn bounds(&self, ty: ty::Ty<'vir>) -> Option<(vir::Expr<'vir>, vir::Expr<'vir>)> {
         match *self.prim_type {
             vir::TypeData::Bool => None,
-            ref int@vir::TypeData::Int { .. } => {
+            vir::TypeData::Int { .. } => {
                 let rust_ty = ty.kind();
-                Some(vir::with_vcx(|vcx| (vcx.get_min_int(int, rust_ty), vcx.get_max_int(int, rust_ty))))
+                Some(vir::with_vcx(|vcx| (vcx.get_min_int(rust_ty), vcx.get_max_int(rust_ty))))
             },
             ref k => todo!("{k:?}"),
         }

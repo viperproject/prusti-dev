@@ -10,7 +10,7 @@ struct Percentage {
 
 impl Percentage {
     //#[requires(value <= 100)]
-    fn new(value: u8) -> Self { //~ ERROR type invariants
+    fn new(value: u8) -> Self { //~ERROR: type invariants
         Percentage {
             value: value,
         }

@@ -13,5 +13,5 @@ impl<T: PartialEq> Foo<T> {
 
 #[pure]
 pub fn test() {
-    assert!(Foo::eq(0, 0)); //~ ERROR use of impure function
+    assert!(Foo::eq(0, 0)); //~ERROR: use of impure function
 }
