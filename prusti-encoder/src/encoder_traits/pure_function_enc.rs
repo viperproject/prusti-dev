@@ -92,8 +92,8 @@ where
         .unwrap_or_default();
         vir::with_vcx(|vcx| {
             let substs = Self::get_substs(vcx, &task_key);
-            let local_defs = deps
-                .require_local::<MirLocalDefEnc>((def_id, substs, caller_def_id))?;
+            let local_defs =
+                deps.require_local::<MirLocalDefEnc>((def_id, substs, caller_def_id))?;
 
             tracing::debug!("encoding {def_id:?}");
 
@@ -110,8 +110,7 @@ where
             let function_ref = FunctionIdent::new(function_ident, ident_args, return_type.snapshot);
             deps.emit_output_ref(task_key, MirFunctionEncOutputRef { function_ref })?;
 
-            let spec = deps
-                .require_local::<MirSpecEnc>((def_id, substs, None, true))?;
+            let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, true))?;
 
             let mut func_args = ty_arg_decls
                 .iter()

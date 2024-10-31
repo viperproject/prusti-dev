@@ -1,7 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput};
-use syn::spanned::Spanned;
+use syn::{parse_macro_input, spanned::Spanned, DeriveInput};
 
 pub fn derive_hash(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -9,13 +8,11 @@ pub fn derive_hash(input: TokenStream) -> TokenStream {
 
     TokenStream::from(match input.data {
         syn::Data::Struct(syn::DataStruct {
-            fields: syn::Fields::Named(syn::FieldsNamed {
-                named,
-                ..
-            }),
+            fields: syn::Fields::Named(syn::FieldsNamed { named, .. }),
             ..
         }) => {
-            let field_idents = named.iter()
+            let field_idents = named
+                .iter()
                 .map(|field| field.ident.as_ref().unwrap())
                 .collect::<Vec<_>>();
 
@@ -32,19 +29,14 @@ pub fn derive_hash(input: TokenStream) -> TokenStream {
             }
         }
 
-        syn::Data::Enum(syn::DataEnum {
-            variants,
-            ..
-        }) => {
-            let variant_hash_arms = variants.iter()
+        syn::Data::Enum(syn::DataEnum { variants, .. }) => {
+            let variant_hash_arms = variants
+                .iter()
                 .enumerate()
                 .map(|(variant_index, variant)| {
                     let variant_ident = &variant.ident;
                     match &variant.fields {
-                        syn::Fields::Unnamed(syn::FieldsUnnamed {
-                            unnamed,
-                            ..
-                        }) => {
+                        syn::Fields::Unnamed(syn::FieldsUnnamed { unnamed, .. }) => {
                             let variant_fields_pat = (0..unnamed.len())
                                 .map(|idx| syn::Ident::new(&format!("f{idx}"), unnamed.span()))
                                 .collect::<Vec<_>>();
@@ -55,7 +47,7 @@ pub fn derive_hash(input: TokenStream) -> TokenStream {
                                     #(#variant_fields_pat.hash(state);)*
                                 }
                             }
-                        },
+                        }
                         syn::Fields::Unit => quote! {
                             Self::#variant_ident => state.write_u8(#variant_index as u8),
                         },

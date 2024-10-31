@@ -19,37 +19,19 @@ cfg_if::cfg_if! {
     }
 }
 
-
-pub use mono::task_description::*;
-pub use pure::spec::MirSpecEnc;
-pub use local_def::*;
-pub use r#type::*;
-pub use generic::GenericEnc;
-pub use mir_builtin::{
-    MirBuiltinEnc,
-    MirBuiltinEncTask,
-};
-pub use mir_poly_impure::MirPolyImpureEnc;
-pub use mono::mir_impure::MirMonoImpureEnc;
-pub use mir_impure::{ImpureEncVisitor, MirImpureEnc};
-pub use mir_pure::{
-    PureKind,
-    MirPureEnc,
-    MirPureEncTask,
-};
-pub use spec::{
-    SpecEnc,
-    SpecEncTask,
-};
-pub(super) use spec::{init_def_spec, with_proc_spec};
-pub use snapshot::SnapshotEnc;
-pub use predicate::{
-    PredicateEnc,
-    PredicateEncOutputRef,
-};
 pub use domain::all_outputs as DomainEnc_all_outputs;
-pub use viper_tuple::{
-    ViperTupleEnc,
-    ViperTupleEncOutput,
-};
+pub use generic::GenericEnc;
+pub use local_def::*;
+pub use mir_builtin::{MirBuiltinEnc, MirBuiltinEncTask};
+pub use mir_impure::{ImpureEncVisitor, MirImpureEnc};
+pub use mir_poly_impure::MirPolyImpureEnc;
+pub use mir_pure::{MirPureEnc, MirPureEncTask, PureKind};
+pub use mono::{mir_impure::MirMonoImpureEnc, task_description::*};
+pub use predicate::{PredicateEnc, PredicateEncOutputRef};
+pub use pure::spec::MirSpecEnc;
 pub use r#const::ConstEnc;
+pub use r#type::*;
+pub use snapshot::SnapshotEnc;
+pub(super) use spec::{init_def_spec, with_proc_spec};
+pub use spec::{SpecEnc, SpecEncTask};
+pub use viper_tuple::{ViperTupleEnc, ViperTupleEncOutput};

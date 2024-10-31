@@ -1,7 +1,5 @@
-use task_encoder::{OutputRefAny, TaskEncoder, EncodeFullResult};
-use vir::{
-    vir_format_identifier, CallableIdent, FunctionIdent, UnaryArity, UnknownArity
-};
+use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder};
+use vir::{vir_format_identifier, CallableIdent, FunctionIdent, UnaryArity, UnknownArity};
 
 use crate::encoders::{
     most_generic_ty::{extract_type_params, MostGenericTy},
@@ -20,7 +18,7 @@ pub struct TyConstructorEncOutputRef<'vir> {
     pub ty_param_accessors: &'vir [vir::FunctionIdent<'vir, UnaryArity<'vir>>],
 }
 
-impl <'vir> TyConstructorEncOutputRef<'vir> {
+impl<'vir> TyConstructorEncOutputRef<'vir> {
     pub fn arity(&self) -> UnknownArity<'vir> {
         *self.ty_constructor.arity()
     }
@@ -30,7 +28,7 @@ impl<'vir> OutputRefAny for TyConstructorEncOutputRef<'vir> {}
 
 #[derive(Clone)]
 pub struct TyConstructorEncOutput<'vir> {
-    pub domain: vir::Domain<'vir>
+    pub domain: vir::Domain<'vir>,
 }
 
 /// Encodes the lifted representation of a Rust type constructor (e.g. Option,
@@ -65,7 +63,11 @@ impl TaskEncoder for TyConstructorEnc {
             let args = ty_constructor.generics();
             let type_function_args = vcx.alloc_slice(&vec![generic_ref.type_snapshot; args.len()]);
             let type_function_ident = FunctionIdent::new(
-                vir::vir_format_identifier!(vcx, "s_{}_type", ty_constructor.get_vir_base_name(vcx)),
+                vir::vir_format_identifier!(
+                    vcx,
+                    "s_{}_type",
+                    ty_constructor.get_vir_base_name(vcx)
+                ),
                 UnknownArity::new(type_function_args),
                 generic_ref.type_snapshot,
             );
@@ -111,12 +113,9 @@ impl TaskEncoder for TyConstructorEnc {
             )?;
 
             let axiom_qvars = vcx.alloc_slice(&ty_arg_decls);
-            let axiom_triggers = vcx.alloc_slice(
-                &[vcx.mk_trigger(
-                    &[func_app]
-                )]
-            );
-            for (accessor_function, ty_arg) in ty_accessor_functions.iter().zip(ty_arg_exprs.iter()) {
+            let axiom_triggers = vcx.alloc_slice(&[vcx.mk_trigger(&[func_app])]);
+            for (accessor_function, ty_arg) in ty_accessor_functions.iter().zip(ty_arg_exprs.iter())
+            {
                 functions.push(vcx.mk_domain_function(*accessor_function, false));
                 axioms.push(vcx.mk_domain_axiom(
                     vir::vir_format_identifier!(vcx, "ax_{}", accessor_function.name()),
@@ -129,11 +128,15 @@ impl TaskEncoder for TyConstructorEnc {
             }
             let result = TyConstructorEncOutput {
                 domain: vcx.mk_domain(
-                    vir_format_identifier!(vcx, "s_{}_ty_constructor", task_key.get_vir_base_name(vcx)),
+                    vir_format_identifier!(
+                        vcx,
+                        "s_{}_ty_constructor",
+                        task_key.get_vir_base_name(vcx)
+                    ),
                     &[],
                     vcx.alloc_slice(&axioms),
                     vcx.alloc_slice(&functions),
-                )
+                ),
             };
             Ok((result, ()))
         })

@@ -1,18 +1,15 @@
 use prusti_rustc_interface::{
-    target::abi, ast,
+    ast,
     index::IndexVec,
     middle::{
         mir::{self, Body},
         ty::{self, Binder, FnSig, GenericArgs, TyKind},
     },
     span::{def_id::DefId, source_map::Spanned},
-};
-use task_encoder::{
-    TaskEncoder,
-    TaskEncoderDependencies,
-    EncodeFullResult,
+    target::abi,
 };
 use std::collections::HashMap;
+use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::add_debug_note;
 // TODO: replace uses of `PredicateEnc` with `SnapshotEnc`
 use super::{
@@ -178,16 +175,8 @@ impl<'vir> Update<'vir> {
 
     fn merge(self, newer: Self) -> Self {
         Self {
-            binds: self
-                .binds
-                .into_iter()
-                .chain(newer.binds)
-                .collect(),
-            versions: self
-                .versions
-                .into_iter()
-                .chain(newer.versions)
-                .collect(),
+            binds: self.binds.into_iter().chain(newer.binds).collect(),
+            versions: self.versions.into_iter().chain(newer.versions).collect(),
         }
     }
 
@@ -536,13 +525,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             &new_curr_ver,
                         )
                     } else {
-                        self.encode_prusti_builtin(
-                            def_id,
-                            sig,
-                            arg_tys,
-                            args,
-                            &new_curr_ver,
-                        )
+                        self.encode_prusti_builtin(def_id, sig, arg_tys, args, &new_curr_ver)
                     }
                 };
 
@@ -673,7 +656,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             }
             // Discriminant
             mir::Rvalue::Aggregate(box kind, fields) => match kind {
-                mir::AggregateKind::Adt(..) | mir::AggregateKind::Tuple | mir::AggregateKind::Closure(..) => {
+                mir::AggregateKind::Adt(..)
+                | mir::AggregateKind::Tuple
+                | mir::AggregateKind::Closure(..) => {
                     let e_rvalue_ty = self
                         .deps
                         .require_ref::<RustTyPredicatesEnc>(rvalue_ty)
@@ -836,8 +821,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 let proj_app = proj.apply(self.vcx, [expr]);
                 let proj_app = if let TyKind::Adt(def, _) = tykind {
                     // The ADT type for the field might be generic, concretize if necessary
-                    let variant =
-                        def.variant(place_ty.variant_index.unwrap_or(abi::FIRST_VARIANT));
+                    let variant = def.variant(place_ty.variant_index.unwrap_or(abi::FIRST_VARIANT));
                     let generic_field_ty = variant.fields[field_idx].ty(
                         self.vcx.tcx(),
                         GenericArgs::identity_for_item(self.vcx.tcx(), def.did()),
@@ -859,8 +843,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     proj_app
                 };
                 let place_ref = place_ref.map(|pr| {
-                    struct_like.ref_to_field_refs[field_idx.as_usize()]
-                        .apply(self.vcx, [pr])
+                    struct_like.ref_to_field_refs[field_idx.as_usize()].apply(self.vcx, [pr])
                 });
                 (proj_app, place_ref)
             }
@@ -937,17 +920,18 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 //   - expression for the body
                 assert_eq!(encoded_args.len(), 4);
 
-                let (qvar_tys, _upvar_tys, cl_def_id) = match arg_tys[1].expect_ty().peel_refs().kind() {
-                    TyKind::Closure(cl_def_id, cl_args) => (
-                        match cl_args.as_closure().sig().skip_binder().inputs()[0].kind() {
-                            TyKind::Tuple(list) => list,
-                            _ => unreachable!(),
-                        },
-                        cl_args.as_closure().upvar_tys().iter().collect::<Vec<_>>(),
-                        *cl_def_id,
-                    ),
-                    _ => panic!("illegal prusti::forall"),
-                };
+                let (qvar_tys, _upvar_tys, cl_def_id) =
+                    match arg_tys[1].expect_ty().peel_refs().kind() {
+                        TyKind::Closure(cl_def_id, cl_args) => (
+                            match cl_args.as_closure().sig().skip_binder().inputs()[0].kind() {
+                                TyKind::Tuple(list) => list,
+                                _ => unreachable!(),
+                            },
+                            cl_args.as_closure().upvar_tys().iter().collect::<Vec<_>>(),
+                            *cl_def_id,
+                        ),
+                        _ => panic!("illegal prusti::forall"),
+                    };
 
                 let qvars = self.vcx.alloc_slice(
                     &qvar_tys
@@ -982,10 +966,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 //   operation, which will work like reify
                 //   but panicking on a Lazy(..)?
                 reify_args.push(unsafe {
-                    std::mem::transmute::<
-                        ExprRet<'_>,
-                        vir::ExprGen<'_, !, !>,
-                    >(encoded_args[3])
+                    std::mem::transmute::<ExprRet<'_>, vir::ExprGen<'_, !, !>>(encoded_args[3])
                 });
                 reify_args.extend(
                     qvars

@@ -1,8 +1,8 @@
 use prusti_rustc_interface::{
-    target::abi,
     middle::ty::{self, TyKind},
+    target::abi,
 };
-use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
+use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{
     add_debug_note, CallableIdent, FunctionIdent, MethodIdent, NullaryArity, PredicateIdent,
     TypeData, UnaryArity, UnknownArity, VirCtxt,
@@ -71,7 +71,7 @@ pub struct PredicateEncOutputRef<'vir> {
     /// snapshot. Ensures predicate access to ref with snapshot value. This
     /// probably shouldn't be accessed directly, instead see
     /// `RustTyPredicatesEncOutputRef::apply_method_assign`.
-    pub (super) method_assign: MethodIdent<'vir, UnknownArity<'vir>>,
+    pub(super) method_assign: MethodIdent<'vir, UnknownArity<'vir>>,
     /// Always `TypeData::Domain`.
     pub snapshot: vir::Type<'vir>,
     //pub method_refold: &'vir str,
@@ -82,7 +82,6 @@ pub struct PredicateEncOutputRef<'vir> {
 impl<'vir> task_encoder::OutputRefAny for PredicateEncOutputRef<'vir> {}
 
 impl<'vir> PredicateEncOutputRef<'vir> {
-
     /// Constructs arguments for [`PredicateEncOutputRef::ref_to_pred`] and
     /// [`PredicateEncOutputRef::ref_to_snap`]. Takes as input a Ref representing
     /// the self, and the encoded Rust type (see [`LiftedTy`]). The arguments to the
@@ -182,7 +181,14 @@ pub struct PredicateEncOutput<'vir> {
 use crate::encoders::GenericEnc;
 
 use super::{
-    domain::{DiscrBounds, DomainDataEnum, DomainDataPrim, DomainDataStruct}, lifted::{generic::LiftedGeneric, ty::{EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc}}, most_generic_ty::MostGenericTy, rust_ty_predicates::{RustTyPredicatesEnc, RustTyPredicatesEncOutputRef}, snapshot::SnapshotEnc
+    domain::{DiscrBounds, DomainDataEnum, DomainDataPrim, DomainDataStruct},
+    lifted::{
+        generic::LiftedGeneric,
+        ty::{EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc},
+    },
+    most_generic_ty::MostGenericTy,
+    rust_ty_predicates::{RustTyPredicatesEnc, RustTyPredicatesEncOutputRef},
+    snapshot::SnapshotEnc,
 };
 
 impl TaskEncoder for PredicateEnc {
@@ -319,7 +325,9 @@ impl TaskEncoder for PredicateEnc {
                     } else {
                         // Box special case (this should be replaced by an
                         // extern spec in the future)
-                        vec![deps.require_ref::<RustTyPredicatesEnc>(args[0].expect_ty()).unwrap()]
+                        vec![deps
+                            .require_ref::<RustTyPredicatesEnc>(args[0].expect_ty())
+                            .unwrap()]
                     };
                     let fields = enc.mk_field_apps(specifics.ref_to_field_refs, fields);
                     let fn_snap_body =
@@ -344,8 +352,10 @@ impl TaskEncoder for PredicateEnc {
                                         .fields
                                         .iter()
                                         .map(|f| {
-                                            deps.require_ref::<RustTyPredicatesEnc>(f.ty(enc.tcx(), args))
-                                                .unwrap()
+                                            deps.require_ref::<RustTyPredicatesEnc>(
+                                                f.ty(enc.tcx(), args),
+                                            )
+                                            .unwrap()
                                         })
                                         .collect(),
                                 )
@@ -360,22 +370,18 @@ impl TaskEncoder for PredicateEnc {
             TyKind::Never => {
                 let specifics = enc.mk_enum_ref(snap.specifics.expect_enumlike());
                 assert!(specifics.is_none());
-                deps.emit_output_ref(
-                    *task_key,
-                    enc.output_ref(PredicateEncData::EnumLike(None)),
-                )?;
+                deps.emit_output_ref(*task_key, enc.output_ref(PredicateEncData::EnumLike(None)))?;
 
                 Ok((enc.mk_enum(None), ()))
             }
             &TyKind::Ref(_, inner, m) => {
                 let snap_data = snap.specifics.expect_structlike();
                 let specifics = enc.mk_ref_ref(snap_data, m.is_mut());
-                deps.emit_output_ref(
-                    *task_key,
-                    enc.output_ref(PredicateEncData::Ref(specifics)),
-                )?;
+                deps.emit_output_ref(*task_key, enc.output_ref(PredicateEncData::Ref(specifics)))?;
 
-                let lifted_ty = deps.require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(inner).unwrap();
+                let lifted_ty = deps
+                    .require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(inner)
+                    .unwrap();
                 let inner = deps
                     .require_ref::<RustTyPredicatesEnc>(inner)?
                     .generic_predicate;
@@ -438,8 +444,10 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
         let ref_to_arg_tys = vir::UnknownArity::new(
             vcx.alloc_slice(&ref_to_decls.iter().map(|d| d.ty).collect::<Vec<_>>()),
         );
-        let ref_to_pred =
-            vir::PredicateIdent::new(vir::vir_format_identifier!(vcx, "p_{base_name}"), ref_to_arg_tys);
+        let ref_to_pred = vir::PredicateIdent::new(
+            vir::vir_format_identifier!(vcx, "p_{base_name}"),
+            ref_to_arg_tys,
+        );
         let ref_to_snap = FunctionIdent::new(
             vir::vir_format_identifier!(vcx, "{}_snap", ref_to_pred.name()),
             ref_to_arg_tys,
@@ -566,8 +574,12 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
                 .variants
                 .iter()
                 .map(|variant| {
-                    let base_name =
-                        vir::vir_format_identifier!(self.vcx, "{}_{}", self.ref_to_pred.name(), variant.name);
+                    let base_name = vir::vir_format_identifier!(
+                        self.vcx,
+                        "{}_{}",
+                        self.ref_to_pred.name(),
+                        variant.name
+                    );
                     let predicate = vir::PredicateIdent::new(
                         base_name,
                         vir::UnknownArity::new(self.vcx.alloc_slice(
@@ -593,10 +605,7 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
         })
     }
 
-    pub fn output_ref(
-        &self,
-        specifics: PredicateEncData<'vir>,
-    ) -> PredicateEncOutputRef<'vir> {
+    pub fn output_ref(&self, specifics: PredicateEncData<'vir>) -> PredicateEncOutputRef<'vir> {
         PredicateEncOutputRef {
             ref_to_pred: self.ref_to_pred,
             ref_to_snap: self.ref_to_snap,
@@ -690,11 +699,7 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
         let non_null = self
             .vcx
             .mk_bin_op_expr(vir::BinOpKind::CmpNe, self_ref, self.vcx.mk_null());
-        let inner_ref_to_args = inner.ref_to_args(
-            self.vcx,
-            lifted_ty,
-            self_ref
-        );
+        let inner_ref_to_args = inner.ref_to_args(self.vcx, lifted_ty, self_ref);
         let inner_pred = self.vcx.mk_predicate_app_expr(inner.ref_to_pred.apply(
             self.vcx,
             inner_ref_to_args,
