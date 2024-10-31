@@ -109,75 +109,88 @@ impl PrustiTokenStream {
         while pos < source.len() {
             // no matter what tokens we see, we will consume at least one
             pos += 1;
-            tokens.push_back(match (&source[pos - 1], source.get(pos), source.get(pos + 1), source.get(pos + 2)) {
-                (
-                    TokenTree::Punct(p1),
-                    Some(TokenTree::Punct(p2)),
-                    Some(TokenTree::Punct(p3)),
-                    Some(TokenTree::Punct(p4)),
-                ) if let Some(op) = PrustiToken::parse_op4(p1, p2, p3, p4) => {
-                    // this was a four-character operator, consume three
-                    // additional tokens
-                    pos += 3;
-                    op
-                }
-                (
-                    TokenTree::Punct(p1),
-                    Some(TokenTree::Punct(p2)),
-                    Some(TokenTree::Punct(p3)),
-                    _
-                ) if let Some(op) = PrustiToken::parse_op3(p1, p2, p3) => {
-                    // this was a three-character operator, consume two
-                    // additional tokens
-                    pos += 2;
-                    op
-                }
-                (
-                    TokenTree::Punct(p1),
-                    Some(TokenTree::Punct(p2)),
-                    _,
-                    _,
-                ) if let Some(op) = PrustiToken::parse_op2(p1, p2) => {
-                    // this was a two-character operator, consume one
-                    // additional token
-                    pos += 1;
-                    op
-                }
-                (TokenTree::Ident(ident), _, _, _) if ident == "outer" =>
-                    PrustiToken::Outer(ident.span()),
-                (TokenTree::Ident(ident), _, _, _) if ident == "forall" =>
-                    PrustiToken::Quantifier(ident.span(), Quantifier::Forall),
-                (TokenTree::Ident(ident), _, _, _) if ident == "exists" =>
-                    PrustiToken::Quantifier(ident.span(), Quantifier::Exists),
-                (TokenTree::Punct(punct), _, _, _)
-                    if punct.as_char() == ',' && punct.spacing() == Alone =>
-                    PrustiToken::BinOp(punct.span(), PrustiBinaryOp::Rust(RustOp::Comma)),
-                (TokenTree::Punct(punct), _, _, _)
-                    if punct.as_char() == ';' && punct.spacing() == Alone =>
-                    PrustiToken::BinOp(punct.span(), PrustiBinaryOp::Rust(RustOp::Semicolon)),
-                (TokenTree::Punct(punct), _, _, _)
-                    if punct.as_char() == '=' && punct.spacing() == Alone =>
-                    PrustiToken::BinOp(punct.span(), PrustiBinaryOp::Rust(RustOp::Assign)),
-                (token @ TokenTree::Punct(punct), _, _, _) if punct.spacing() == Joint => {
-                    // make sure to fully consume any Rust operator
-                    // to avoid later mis-identifying its suffix
-                    tokens.push_back(PrustiToken::Token(token.clone()));
-                    while let Some(token @ TokenTree::Punct(p)) = source.get(pos) {
-                        pos += 1;
-                        tokens.push_back(PrustiToken::Token(token.clone()));
-                        if p.spacing() != Joint {
-                            break;
-                        }
+            tokens.push_back(
+                match (
+                    &source[pos - 1],
+                    source.get(pos),
+                    source.get(pos + 1),
+                    source.get(pos + 2),
+                ) {
+                    (
+                        TokenTree::Punct(p1),
+                        Some(TokenTree::Punct(p2)),
+                        Some(TokenTree::Punct(p3)),
+                        Some(TokenTree::Punct(p4)),
+                    ) if let Some(op) = PrustiToken::parse_op4(p1, p2, p3, p4) => {
+                        // this was a four-character operator, consume three
+                        // additional tokens
+                        pos += 3;
+                        op
                     }
-                    continue;
-                }
-                (TokenTree::Group(group), _, _, _) => PrustiToken::Group(
-                    group.span(),
-                    group.delimiter(),
-                    Box::new(Self::new(group.stream())),
-                ),
-                (token, _, _, _) => PrustiToken::Token(token.clone()),
-            });
+                    (
+                        TokenTree::Punct(p1),
+                        Some(TokenTree::Punct(p2)),
+                        Some(TokenTree::Punct(p3)),
+                        _,
+                    ) if let Some(op) = PrustiToken::parse_op3(p1, p2, p3) => {
+                        // this was a three-character operator, consume two
+                        // additional tokens
+                        pos += 2;
+                        op
+                    }
+                    (TokenTree::Punct(p1), Some(TokenTree::Punct(p2)), _, _)
+                        if let Some(op) = PrustiToken::parse_op2(p1, p2) =>
+                    {
+                        // this was a two-character operator, consume one
+                        // additional token
+                        pos += 1;
+                        op
+                    }
+                    (TokenTree::Ident(ident), _, _, _) if ident == "outer" => {
+                        PrustiToken::Outer(ident.span())
+                    }
+                    (TokenTree::Ident(ident), _, _, _) if ident == "forall" => {
+                        PrustiToken::Quantifier(ident.span(), Quantifier::Forall)
+                    }
+                    (TokenTree::Ident(ident), _, _, _) if ident == "exists" => {
+                        PrustiToken::Quantifier(ident.span(), Quantifier::Exists)
+                    }
+                    (TokenTree::Punct(punct), _, _, _)
+                        if punct.as_char() == ',' && punct.spacing() == Alone =>
+                    {
+                        PrustiToken::BinOp(punct.span(), PrustiBinaryOp::Rust(RustOp::Comma))
+                    }
+                    (TokenTree::Punct(punct), _, _, _)
+                        if punct.as_char() == ';' && punct.spacing() == Alone =>
+                    {
+                        PrustiToken::BinOp(punct.span(), PrustiBinaryOp::Rust(RustOp::Semicolon))
+                    }
+                    (TokenTree::Punct(punct), _, _, _)
+                        if punct.as_char() == '=' && punct.spacing() == Alone =>
+                    {
+                        PrustiToken::BinOp(punct.span(), PrustiBinaryOp::Rust(RustOp::Assign))
+                    }
+                    (token @ TokenTree::Punct(punct), _, _, _) if punct.spacing() == Joint => {
+                        // make sure to fully consume any Rust operator
+                        // to avoid later mis-identifying its suffix
+                        tokens.push_back(PrustiToken::Token(token.clone()));
+                        while let Some(token @ TokenTree::Punct(p)) = source.get(pos) {
+                            pos += 1;
+                            tokens.push_back(PrustiToken::Token(token.clone()));
+                            if p.spacing() != Joint {
+                                break;
+                            }
+                        }
+                        continue;
+                    }
+                    (TokenTree::Group(group), _, _, _) => PrustiToken::Group(
+                        group.span(),
+                        group.delimiter(),
+                        Box::new(Self::new(group.stream())),
+                    ),
+                    (token, _, _, _) => PrustiToken::Token(token.clone()),
+                },
+            );
         }
         Self {
             tokens,
@@ -221,8 +234,7 @@ impl PrustiTokenStream {
                     PrustiToken::BinOp(span, PrustiBinaryOp::Rust(op)) => Ok(op.to_tokens(span)),
                     _ => err(token.span(), "unexpected Prusti syntax"),
                 })
-                .collect::<Result<Vec<_>, _>>()?
-                .into_iter(),
+                .collect::<Result<Vec<_>, _>>()?,
         ))
     }
 
@@ -650,6 +662,8 @@ enum PrustiToken {
     Outer(Span),
     Quantifier(Span, Quantifier),
     SpecEnt(Span, bool),
+    #[allow(unused)]
+    // TODO: the "once" flag is not used since there is no calldesc translation yet
     CallDesc(Span, bool),
 }
 

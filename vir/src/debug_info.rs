@@ -1,5 +1,5 @@
-use cfg_if::cfg_if;
 use crate::VirCtxt;
+use cfg_if::cfg_if;
 
 // Imports
 cfg_if! {
@@ -38,24 +38,27 @@ cfg_if! {
 // serde and hash no-ops
 impl serde::Serialize for DebugInfo<'_> {
     fn serialize<S>(&self, ser: S) -> Result<S::Ok, S::Error>
-    where S: serde::ser::Serializer
+    where
+        S: serde::ser::Serializer,
     {
         ser.serialize_unit()
     }
 }
 impl<'de> serde::Deserialize<'de> for DebugInfo<'_> {
     fn deserialize<D>(deser: D) -> Result<Self, D::Error>
-    where D: serde::de::Deserializer<'de>
+    where
+        D: serde::de::Deserializer<'de>,
     {
         deser.deserialize_unit(serde::de::IgnoredAny)?;
         Ok(DEBUGINFO_NONE)
     }
 }
 impl std::hash::Hash for DebugInfo<'_> {
-    fn hash<H>(&self, state: &mut H)
+    fn hash<H>(&self, _state: &mut H)
     where
         H: std::hash::Hasher,
-    {}
+    {
+    }
 }
 
 // DEBUGINFO_NONE
@@ -99,7 +102,7 @@ cfg_if! {
     }
 }
 
-impl <'vir> DebugInfo<'vir> {
+impl<'vir> DebugInfo<'vir> {
     cfg_if! {
         if #[cfg(feature="vir_debug")] {
             pub fn new(vcx: &'vir VirCtxt<'_>) -> DebugInfo<'vir> {
@@ -158,9 +161,7 @@ cfg_if! {
     } else {
         #[macro_export]
         macro_rules! add_debug_note {
-            ($debug_info:expr, $($arg:tt)*) => {{
-                ()
-            }};
+            ($debug_info:expr, $($arg:tt)*) => {};
         }
     }
 }

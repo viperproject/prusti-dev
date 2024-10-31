@@ -1,19 +1,8 @@
 use prusti_rustc_interface::{middle::ty::GenericArgs, span::def_id::DefId};
 use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
-use vir::{MethodIdent, UnknownArity};
+
 /// Encodes a Rust function as a Viper method using the monomorphic encoding of generics.
 pub struct MirMonoImpureEnc;
-
-#[derive(Clone, Debug)]
-pub struct MirImpureEncOutputRef<'vir> {
-    pub method_ref: MethodIdent<'vir, UnknownArity<'vir>>,
-}
-impl<'vir> task_encoder::OutputRefAny for MirImpureEncOutputRef<'vir> {}
-
-#[derive(Clone, Debug)]
-pub struct MirImpureEncOutput<'vir> {
-    pub method: vir::Method<'vir>,
-}
 
 use crate::{
     encoder_traits::{

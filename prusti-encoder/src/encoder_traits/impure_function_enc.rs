@@ -88,18 +88,9 @@ where
                 let body = vcx
                     .body_mut()
                     .get_impure_fn_body(local_def_id, substs, caller_def_id);
-                // let body = vcx.tcx().mir_promoted(local_def_id).0.borrow();
-
                 let fpcs_analysis = mir_state_analysis::run_free_pcs(&body, vcx.tcx());
 
-                //let ssa_analysis = SsaAnalysis::analyse(&body);
-
                 let block_count = body.basic_blocks.len();
-
-                // Local count for the Viper method:
-                // - one for each basic block;
-                // - one (`Ref`) for each non-argument, non-return local.
-                let _local_count = block_count + 1 * (body.local_decls.len() - arg_count);
 
                 let mut encoded_blocks = Vec::with_capacity(
                     // extra blocks: Start, End
@@ -133,7 +124,6 @@ where
                     deps,
                     def_id,
                     local_decls: &body.local_decls,
-                    //ssa_analysis,
                     fpcs_analysis,
                     local_defs,
 

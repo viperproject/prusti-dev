@@ -1,6 +1,6 @@
 use serde::{
-    ser::{Serialize, Serializer},
     de::{Deserialize, Deserializer},
+    ser::{Serialize, Serializer},
 };
 
 pub mod serde_slice {

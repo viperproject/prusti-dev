@@ -129,7 +129,7 @@ mod private {
     use core::{marker::PhantomData, ops::*};
 
     /// A macro for defining a closure with a specification.
-    pub use prusti_contracts_proc_macros::{closure, pure, trusted};
+    pub use prusti_contracts_proc_macros::{closure, pure};
 
     pub fn prusti_set_union_active_field<T>(_arg: T) {
         unreachable!();
@@ -342,7 +342,7 @@ pub fn old<T>(arg: T) -> T {
 /// Universal quantifier.
 ///
 /// This is a Prusti-internal representation of the `forall` syntax.
-#[prusti::builtin="forall"]
+#[cfg_attr(feature = "prusti", prusti::builtin = "forall")]
 pub fn forall<T, F>(_trigger_set: T, _closure: &F) -> bool {
     true
 }
@@ -350,6 +350,7 @@ pub fn forall<T, F>(_trigger_set: T, _closure: &F) -> bool {
 /// Existential quantifier.
 ///
 /// This is a Prusti-internal representation of the `exists` syntax.
+#[cfg_attr(feature = "prusti", prusti::builtin = "exists")]
 pub fn exists<T, F>(_trigger_set: T, _closure: F) -> bool {
     true
 }
@@ -365,7 +366,7 @@ pub fn snap<T>(_x: &T) -> T {
 /// `PartialEq` nor `Copy` implementation. The in-memory representation is
 /// constructed recursively: references are followed, unsafe pointers and cells
 /// are not. Importantly, addresses are not taken into consideration.
-#[prusti::builtin="snapshot_equality"]
+#[cfg_attr(feature = "prusti", prusti::builtin = "snapshot_equality")]
 pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
     true
 }

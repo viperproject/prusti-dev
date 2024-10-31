@@ -1,10 +1,8 @@
 use prusti_interface::environment::EnvBody;
 use prusti_rustc_interface::middle::ty;
-use std::cell::RefCell;
-use std::fmt::Debug;
+use std::{cell::RefCell, fmt::Debug};
 
 use crate::{data::*, refs::*};
-
 
 /// The VIR context is a data structure used throughout the encoding process.
 pub struct VirCtxt<'tcx> {
@@ -75,14 +73,21 @@ impl<'tcx> VirCtxt<'tcx> {
         self.arena.reset();
     }
 
-    pub fn apply_ty_substs<'vir>(&'vir self, ty: Type<'vir>, substs: &TySubsts<'vir>) -> Type<'vir> {
+    pub fn apply_ty_substs<'vir>(
+        &'vir self,
+        ty: Type<'vir>,
+        substs: &TySubsts<'vir>,
+    ) -> Type<'vir> {
         match ty {
             TypeData::DomainTypeParam(p) => substs.get(p.name).unwrap_or(&ty),
             TypeData::Domain(name, args) => {
-                let args = args.iter().map(|t| self.apply_ty_substs(t, substs)).collect::<Vec<_>>();
-                self.alloc(TypeData::Domain(name, &self.alloc(args)))
+                let args = args
+                    .iter()
+                    .map(|t| self.apply_ty_substs(t, substs))
+                    .collect::<Vec<_>>();
+                self.alloc(TypeData::Domain(name, self.alloc(args)))
             }
-            other => other
+            other => other,
         }
     }
 
@@ -106,16 +111,25 @@ impl ProgramRef {
         self.hash
     }
 
-    pub fn get_name(&self) -> &str { "program" }
-    pub fn get_rust_name(&self) -> &str { "rustprogram" }
-    pub fn get_check_mode(&self) -> &str { "check" }
-    pub fn get_name_with_check_mode(&self) -> &str { "program-check" }
+    pub fn get_name(&self) -> &str {
+        "program"
+    }
+    pub fn get_rust_name(&self) -> &str {
+        "rustprogram"
+    }
+    pub fn get_check_mode(&self) -> &str {
+        "check"
+    }
+    pub fn get_name_with_check_mode(&self) -> &str {
+        "program-check"
+    }
     pub fn set_name(&mut self, _name: &str) {}
 }
 
 impl serde::Serialize for ProgramRef {
     fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
-    where S: serde::Serializer
+    where
+        S: serde::Serializer,
     {
         with_vcx(|vcx| {
             let program = vcx.get_program(*self);
@@ -125,7 +139,8 @@ impl serde::Serialize for ProgramRef {
 }
 impl<'de> serde::Deserialize<'de> for ProgramRef {
     fn deserialize<D>(d: D) -> Result<Self, D::Error>
-    where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
         let program = Program::deserialize(d)?;
         Ok(program.to_ref())
@@ -133,17 +148,23 @@ impl<'de> serde::Deserialize<'de> for ProgramRef {
 }
 
 thread_local! {
-    static VCTX: RefCell<Option<VirCtxt<'static>>> = RefCell::new(None);
+    static VCTX: RefCell<Option<VirCtxt<'static>>> = const { RefCell::new(None) };
 }
 
 /// Initialises the VIR context. Should only be called once, when the type
 /// context is available.
 pub fn init_vcx<'tcx>(vcx: VirCtxt<'tcx>) {
-    VCTX.replace(Some(unsafe { std::mem::transmute(vcx) }));
+    VCTX.replace(Some(unsafe {
+        std::mem::transmute::<VirCtxt<'_>, VirCtxt<'_>>(vcx)
+    }));
 }
 
+#[cfg(test)]
 pub(crate) fn replace_vcx<'tcx>(vcx: VirCtxt<'tcx>) -> Option<VirCtxt<'tcx>> {
-    unsafe { std::mem::transmute(VCTX.replace(Some(std::mem::transmute(vcx)))) }
+    let old = VCTX.replace(Some(unsafe {
+        std::mem::transmute::<VirCtxt<'_>, VirCtxt<'_>>(vcx)
+    }));
+    unsafe { std::mem::transmute::<Option<VirCtxt<'_>>, Option<VirCtxt<'_>>>(old) }
 }
 
 /// Perform an action with the VIR context.
@@ -156,7 +177,7 @@ where
         //   the same (or shorter) than the lifetimes of the VIR arena and
         //   the rustc type context, respectively
         let vcx = vcx.as_ref().expect("VIR context was not initialised");
-        let vcx = unsafe { std::mem::transmute(vcx) };
+        let vcx = unsafe { std::mem::transmute::<&VirCtxt<'_>, &VirCtxt<'_>>(vcx) };
         f(vcx)
     })
 }
@@ -170,7 +191,7 @@ where
         //   the same (or shorter) than the lifetimes of the VIR arena and
         //   the rustc type context, respectively
         let vcx = vcx.as_mut().expect("VIR context was not initialised");
-        let vcx = unsafe { std::mem::transmute(vcx) };
+        let vcx = unsafe { std::mem::transmute::<&mut VirCtxt<'_>, &mut VirCtxt<'_>>(vcx) };
         f(vcx)
     })
 }

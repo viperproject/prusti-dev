@@ -89,15 +89,6 @@ impl HasSignature for AnyFnItem {
             Self::ForeignFn(item) => item.sig(),
         }
     }
-
-    fn sig_mut(&mut self) -> &mut Signature {
-        match self {
-            Self::Fn(item) => item.sig_mut(),
-            Self::ImplMethod(item) => item.sig_mut(),
-            Self::TraitMethod(item) => item.sig_mut(),
-            Self::ForeignFn(item) => item.sig_mut(),
-        }
-    }
 }
 
 impl ToTokens for AnyFnItem {

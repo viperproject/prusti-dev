@@ -89,7 +89,10 @@ fn success_with_complex_program() {
         Some(
             // x % 2 == 0
             ast.eq_cmp(
-                ast.module(ast.local_var("v", ast.int_type(), ast.no_position()), ast.int_lit(2)),
+                ast.mod_(
+                    ast.local_var("v", ast.int_type(), ast.no_position()),
+                    ast.int_lit(2),
+                ),
                 ast.int_lit(0),
             ),
         ),
@@ -137,7 +140,10 @@ fn success_with_complex_program() {
         &[
             // EvenNumBox(box)
             ast.predicate_access_predicate(
-                ast.predicate_access(&[ast.local_var("box", ast.ref_type(), ast.no_position())], "EvenNumBox"),
+                ast.predicate_access(
+                    &[ast.local_var("box", ast.ref_type(), ast.no_position())],
+                    "EvenNumBox",
+                ),
                 ast.full_perm(),
             ),
         ],
@@ -166,7 +172,10 @@ fn success_with_complex_program() {
                 ),
                 // fold EvenNumBox(box)
                 ast.fold(ast.predicate_access_predicate(
-                    ast.predicate_access(&[ast.local_var("box", ast.ref_type(), ast.no_position())], "EvenNumBox"),
+                    ast.predicate_access(
+                        &[ast.local_var("box", ast.ref_type(), ast.no_position())],
+                        "EvenNumBox",
+                    ),
                     ast.full_perm(),
                 )),
             ],

@@ -6,8 +6,8 @@
 
 use crate::environment::EnvDiagnostic;
 use ::log::warn;
-use prusti_utils::config;
 use prusti_rustc_interface::{errors::MultiSpan, span::Span};
+use prusti_utils::config;
 
 /// The Prusti message that will be reported to the user.
 ///
@@ -42,6 +42,7 @@ pub enum PrustiErrorKind {
     WarningOnError,
 }
 
+#[allow(clippy::non_canonical_partial_ord_impl)]
 impl PartialOrd for PrustiError {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.span

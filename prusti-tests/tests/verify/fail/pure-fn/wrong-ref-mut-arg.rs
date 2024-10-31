@@ -20,7 +20,7 @@ fn lookup(head: &List, index: usize) -> u32 {
     } else {
         match head.next {
             Some(box ref tail) => lookup(tail, index - 1),
-            None => unreachable!() //~ ERROR might be reachable
+            None => unreachable!() //~ERROR: might be reachable
         }
     }
 }
@@ -43,7 +43,7 @@ fn prepend_list(x: u32, tail: List, check: bool) -> List {
         next: Some(Box::new(tail)),
     };
     if check {
-        assert!(lookup(&result, 0) == 123); //~ ERROR the asserted expression might not hold
+        assert!(lookup(&result, 0) == 123); //~ERROR: the asserted expression might not hold
         diverging()
     }
     result

@@ -14,7 +14,7 @@ pub struct PredicateEnc;
 
 #[derive(Clone, Debug)]
 pub enum PredicateEncError {
-    UnsupportedType,
+    // UnsupportedType,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -29,7 +29,7 @@ pub struct PredicateEncDataEnum<'vir> {
     pub discr: vir::Field<'vir>,
     pub discr_prim: DomainDataPrim<'vir>,
     pub discr_bounds: DiscrBounds<'vir>,
-    pub snap_to_discr_snap: FunctionIdent<'vir, UnaryArity<'vir>>,
+    // pub snap_to_discr_snap: FunctionIdent<'vir, UnaryArity<'vir>>,
     pub variants: &'vir [PredicateEncDataVariant<'vir>],
 }
 #[derive(Clone, Copy, Debug)]
@@ -65,6 +65,7 @@ pub struct PredicateEncOutputRef<'vir> {
     /// Construct snapshot from Viper ref.
     pub ref_to_snap: FunctionIdent<'vir, UnknownArity<'vir>>,
     /// Construct snapshot from an unreachable.
+    #[allow(dead_code)]
     pub unreachable_to_snap: FunctionIdent<'vir, NullaryArity<'vir>>,
     /// Ref as first argument, followed by type parameters, followed by
     /// snapshot. Ensures predicate access to ref with snapshot value. This
@@ -75,6 +76,7 @@ pub struct PredicateEncOutputRef<'vir> {
     pub snapshot: vir::Type<'vir>,
     //pub method_refold: &'vir str,
     pub specifics: PredicateEncData<'vir>,
+    #[allow(dead_code)]
     pub generics: &'vir [vir::LocalDecl<'vir>],
 }
 impl<'vir> task_encoder::OutputRefAny for PredicateEncOutputRef<'vir> {}
@@ -230,7 +232,7 @@ impl TaskEncoder for PredicateEnc {
                         specifics: PredicateEncData::Param,
                         generics: &[],
                     },
-                );
+                )?;
                 let dep = deps.require_local::<GenericEnc>(())?;
                 vir::with_vcx(|vcx| {
                     let method_assign = mk_method_assign(
@@ -256,16 +258,16 @@ impl TaskEncoder for PredicateEnc {
             }
             TyKind::Bool | TyKind::Char | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Float(_) => {
                 let specifics = PredicateEncData::Primitive(snap.specifics.expect_primitive());
-                deps.emit_output_ref(*task_key, enc.output_ref(specifics));
+                deps.emit_output_ref(*task_key, enc.output_ref(specifics))?;
                 Ok((enc.mk_prim(&snap.base_name), ()))
             }
-            TyKind::Closure(def_id, args) => {
+            TyKind::Closure(_def_id, args) => {
                 let snap_data = snap.specifics.expect_structlike();
                 let specifics = enc.mk_struct_ref(None, snap_data);
                 deps.emit_output_ref(
                     *task_key,
                     enc.output_ref(PredicateEncData::StructLike(specifics)),
-                );
+                )?;
 
                 let fields: Vec<_> = args
                     .as_closure()
@@ -284,7 +286,7 @@ impl TaskEncoder for PredicateEnc {
                 deps.emit_output_ref(
                     *task_key,
                     enc.output_ref(PredicateEncData::StructLike(specifics)),
-                );
+                )?;
 
                 let fields: Vec<_> = tys
                     .iter()
@@ -302,7 +304,7 @@ impl TaskEncoder for PredicateEnc {
                     deps.emit_output_ref(
                         *task_key,
                         enc.output_ref(PredicateEncData::StructLike(specifics)),
-                    );
+                    )?;
 
                     let fields = if !adt.is_box() {
                         let variant = adt.non_enum_variant();
@@ -329,7 +331,7 @@ impl TaskEncoder for PredicateEnc {
                     deps.emit_output_ref(
                         *task_key,
                         enc.output_ref(PredicateEncData::EnumLike(specifics)),
-                    );
+                    )?;
 
                     let specifics = specifics.map(|specifics| {
                         let variants: Vec<_> = specifics
@@ -361,7 +363,7 @@ impl TaskEncoder for PredicateEnc {
                 deps.emit_output_ref(
                     *task_key,
                     enc.output_ref(PredicateEncData::EnumLike(None)),
-                );
+                )?;
 
                 Ok((enc.mk_enum(None), ()))
             }
@@ -371,7 +373,7 @@ impl TaskEncoder for PredicateEnc {
                 deps.emit_output_ref(
                     *task_key,
                     enc.output_ref(PredicateEncData::Ref(specifics)),
-                );
+                )?;
 
                 let lifted_ty = deps.require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(inner).unwrap();
                 let inner = deps
@@ -385,7 +387,7 @@ impl TaskEncoder for PredicateEnc {
                 deps.emit_output_ref(
                     *task_key,
                     enc.output_ref(PredicateEncData::StructLike(specifics)),
-                );
+                )?;
                 Ok((enc.mk_prim(&snap.base_name), ()))
             }
             unsupported_type => todo!("type not supported: {unsupported_type:?}"),
@@ -585,7 +587,7 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
                 discr,
                 discr_prim: data.discr_prim,
                 discr_bounds: data.discr_bounds,
-                snap_to_discr_snap: data.snap_to_discr_snap,
+                // snap_to_discr_snap: data.snap_to_discr_snap,
                 variants: self.vcx.alloc_slice(&variants),
             }
         })
@@ -719,6 +721,7 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
         let fn_snap_body = self.vcx.mk_unfolding_expr(self.self_pred_read, snap);
         self.finalize(Some(fn_snap_body))
     }
+    #[allow(clippy::type_complexity)]
     pub fn mk_enum(
         mut self,
         data: Option<(
@@ -815,10 +818,7 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
         let method_assign = mk_method_assign(
             self.vcx,
             self.method_assign,
-            self.generics
-                .iter()
-                .map(|g| (*g).into())
-                .collect::<Vec<_>>(),
+            self.generics.to_vec(),
             self.snap_inst,
             self.ref_to_pred,
             self.ref_to_snap,
@@ -839,8 +839,8 @@ struct FieldApp<'vir> {
     self_field_snap: vir::Expr<'vir>,
 }
 
-fn mk_method_assign<'vir, 'tcx>(
-    vcx: &'vir VirCtxt<'tcx>,
+fn mk_method_assign<'vir>(
+    vcx: &'vir VirCtxt<'_>,
     ident: MethodIdent<'vir, UnknownArity<'vir>>,
     generics: Vec<vir::LocalDecl<'vir>>,
     snapshot: vir::Type<'vir>,
@@ -869,5 +869,5 @@ fn mk_method_assign<'vir, 'tcx>(
             vcx.mk_local_ex(self_new_local.name, snapshot),
         ),
     ]);
-    vcx.mk_method(ident, &assign_args, &[], &[], posts, None)
+    vcx.mk_method(ident, assign_args, &[], &[], posts, None)
 }

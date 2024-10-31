@@ -6,7 +6,7 @@ fn test(x: i32) {
     let mut i = 100;
     while i > 0 {
         if i == 10 {
-            foo(123); //~ ERROR please use a local variable as argument
+            foo(123); //~ERROR: please use a local variable as argument
         }
         i -= 1;
     }

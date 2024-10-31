@@ -7,7 +7,7 @@ fn random(i: u32) -> bool {
 
 fn continue_before_invariant() {
     let mut i = 0;
-    'myloop: while { //~ ERROR the loop invariant cannot be in a conditional branch of the loop
+    'myloop: while { //~ERROR: the loop invariant cannot be in a conditional branch of the loop
         if random(i + 2) {
             continue 'myloop;
         }

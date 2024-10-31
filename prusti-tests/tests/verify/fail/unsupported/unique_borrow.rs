@@ -19,8 +19,8 @@ impl Lazy<u32> {
     {
         {
             let r = &mut self.0;
-            self.1.call_once(|| { //~ ERROR unsuported creation of unique borrows (implicitly created in closure bindings)
-                *r = None; //~ ERROR determining the region of a dereferentiation is not supported
+            self.1.call_once(|| { //~ERROR: unsuported creation of unique borrows (implicitly created in closure bindings)
+                *r = None; //~ERROR: determining the region of a dereferentiation is not supported
             });
         }
     }

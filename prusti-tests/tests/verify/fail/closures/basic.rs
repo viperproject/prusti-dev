@@ -8,5 +8,5 @@ fn main() {
         #[ensures(true)]
         |i: i32| -> i32 { i }
     );
-    f(0); //~ ERROR precondition might not hold
+    f(0); //~ERROR: precondition might not hold
 }

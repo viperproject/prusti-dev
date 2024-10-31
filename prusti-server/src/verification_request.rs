@@ -13,7 +13,7 @@ pub struct VerificationRequest {
     pub backend_config: ViperBackendConfig,
 }
 
-impl<'vir> VerificationRequest {
+impl VerificationRequest {
     pub(crate) fn get_hash(&self) -> u64 {
         self.program.get_hash()
     }

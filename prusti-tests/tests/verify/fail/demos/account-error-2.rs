@@ -25,7 +25,7 @@ impl Account {
 
     #[ensures(self.balance() == old(self.balance()) - amount)]
     fn transfer(&mut self, other: &mut Account, amount: u32) {
-        self.withdraw(amount); //~ ERROR precondition might not hold
+        self.withdraw(amount); //~ERROR: precondition might not hold
         other.deposit(amount);
     }
 }
