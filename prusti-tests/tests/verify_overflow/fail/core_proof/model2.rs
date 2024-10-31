@@ -37,7 +37,7 @@ fn push_i32(v: &mut VecWrapper<Tmp>, val: i32) {
 }
 
 
-#[ensures(v.model().last_pushed.x == 5)] //~ ERROR postcondition might not hold.
+#[ensures(v.model().last_pushed.x == 5)] //~ERROR: postcondition might not hold.
 fn len(v: VecWrapper<Tmp>){
     ()
 }

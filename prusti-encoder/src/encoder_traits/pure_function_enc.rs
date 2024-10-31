@@ -1,5 +1,5 @@
 use prusti_rustc_interface::middle::{mir, ty::Ty};
-use task_encoder::{TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{CallableIdent, ExprGen, FunctionIdent, Reify, UnknownArity, ViperIdent};
 
 use crate::encoders::{
@@ -83,7 +83,7 @@ where
     fn encode<'vir>(
         task_key: Self::TaskKey<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
-    ) -> MirFunctionEncOutput<'vir> {
+    ) -> Result<MirFunctionEncOutput<'vir>, EncodeFullError<'vir, Self>> {
         let def_id = Self::get_def_id(&task_key);
         let caller_def_id = Self::get_caller_def_id(&task_key);
         let trusted = crate::encoders::with_proc_spec(def_id, |def_spec| {
@@ -93,13 +93,12 @@ where
         vir::with_vcx(|vcx| {
             let substs = Self::get_substs(vcx, &task_key);
             let local_defs = deps
-                .require_local::<MirLocalDefEnc>((def_id, substs, caller_def_id))
-                .unwrap();
+                .require_local::<MirLocalDefEnc>((def_id, substs, caller_def_id))?;
 
             tracing::debug!("encoding {def_id:?}");
 
             let function_ident = Self::mk_function_ident(vcx, &task_key);
-            let ty_arg_decls = deps.require_local::<LiftedTyParamsEnc>(substs).unwrap();
+            let ty_arg_decls = deps.require_local::<LiftedTyParamsEnc>(substs)?;
             let mut ident_args = ty_arg_decls.iter().map(|arg| arg.ty()).collect::<Vec<_>>();
             ident_args.extend(
                 (1..=local_defs.arg_count)
@@ -109,11 +108,10 @@ where
             let ident_args = UnknownArity::new(vcx.alloc_slice(&ident_args));
             let return_type = local_defs.locals[mir::RETURN_PLACE].ty;
             let function_ref = FunctionIdent::new(function_ident, ident_args, return_type.snapshot);
-            deps.emit_output_ref(task_key, MirFunctionEncOutputRef { function_ref });
+            deps.emit_output_ref(task_key, MirFunctionEncOutputRef { function_ref })?;
 
             let spec = deps
-                .require_local::<MirSpecEnc>((def_id, substs, None, true))
-                .unwrap();
+                .require_local::<MirSpecEnc>((def_id, substs, None, true))?;
 
             let mut func_args = ty_arg_decls
                 .iter()
@@ -139,8 +137,7 @@ where
                         param_env: vcx.tcx().param_env(def_id),
                         substs,
                         caller_def_id,
-                    })
-                    .unwrap()
+                    })?
                     .expr;
                 let expr = expr.reify(vcx, (def_id, spec.pre_args));
                 assert!(
@@ -184,7 +181,7 @@ where
                 posts.push(pc);
             }
 
-            MirFunctionEncOutput {
+            Ok(MirFunctionEncOutput {
                 function: vcx.mk_function(
                     function_ident.to_str(),
                     vcx.alloc_slice(&func_args),
@@ -193,7 +190,7 @@ where
                     vcx.alloc_slice(&posts),
                     expr,
                 ),
-            }
+            })
         })
     }
 }

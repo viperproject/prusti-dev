@@ -43,7 +43,7 @@ impl VecWrapperI32 {
 }
 
 fn test0(x: VecWrapperI32) {
-    let z = x.lookup(0); //~ ERROR precondition of pure function call might not hold
+    let z = x.lookup(0); //~ERROR: precondition of pure function call might not hold
 }
 
 fn main() {

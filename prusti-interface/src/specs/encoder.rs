@@ -1,5 +1,7 @@
 use std::{
-    collections::hash_map::Entry, io::{self, Error}, path::{Path, PathBuf}
+    collections::hash_map::Entry,
+    io::{self, Error},
+    path::{Path, PathBuf},
 };
 
 use prusti_rustc_interface::{
@@ -12,7 +14,7 @@ use prusti_rustc_interface::{
     serialize::{opaque, Encodable, Encoder},
     span::{
         hygiene::{raw_encode_syntax_context, HygieneEncodeContext},
-        ExpnId, SourceFile, Span, SpanEncoder, StableSourceFileId, Symbol, SyntaxContext,
+        ExpnId, Span, SpanEncoder, StableSourceFileId, Symbol, SyntaxContext,
     },
 };
 
@@ -28,8 +30,7 @@ pub struct DefSpecsEncoder<'a, 'tcx> {
     predicate_shorthands: FxHashMap<PredicateKind<'tcx>, usize>,
     interpret_allocs: FxIndexSet<AllocId>,
     hygiene_context: &'a HygieneEncodeContext,
-        symbol_table: FxHashMap<Symbol, usize>,
-
+    symbol_table: FxHashMap<Symbol, usize>,
 }
 
 impl<'a, 'tcx> DefSpecsEncoder<'a, 'tcx> {

@@ -63,7 +63,7 @@ fn do_solve1(i: isize, fruits: &mut VecWrapperU32) -> u32 {
     } else {
         //do_solve1(i - 1, fruits)
         max(
-            fruits.lookup(to_usize(i)) //~ ERROR precondition
+            fruits.lookup(to_usize(i)) //~ERROR: precondition
                 + do_solve1(i - 2, fruits),
             do_solve1(i - 1, fruits)
         )

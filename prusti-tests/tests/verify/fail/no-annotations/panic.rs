@@ -1,3 +1,3 @@
 fn main() {
-    panic!();  //~ ERROR panic!(..) statement might be reachable
+    panic!();  //~ERROR: panic!(..) statement might be reachable
 }

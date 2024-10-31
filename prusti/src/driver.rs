@@ -7,6 +7,7 @@
 #![feature(rustc_private)]
 #![feature(proc_macro_internals)]
 #![feature(decl_macro)]
+#![allow(internal_features)]
 #![deny(unused_must_use)]
 
 mod arg_value;
@@ -16,11 +17,11 @@ mod verifier;
 use arg_value::arg_value;
 use callbacks::PrustiCompilerCalls;
 use log::info;
-use prusti_utils::{config, report::user, Stopwatch};
 use prusti_rustc_interface::{
-    driver, errors,
+    driver,
     session::{self, EarlyDiagCtxt},
 };
+use prusti_utils::{config, report::user, Stopwatch};
 use std::env;
 use tracing_chrome::{ChromeLayerBuilder, FlushGuard};
 use tracing_subscriber::{filter::EnvFilter, prelude::*};
@@ -72,7 +73,9 @@ fn init_loggers() -> Option<FlushGuard> {
 fn main() {
     driver::install_ice_hook(BUG_REPORT_URL, |handler| {
         let version_info = get_prusti_version_info();
-        handler.handle().note(format!("Prusti version: {version_info}"));
+        handler
+            .handle()
+            .note(format!("Prusti version: {version_info}"));
     });
 
     // To measure how long Prusti takes to run

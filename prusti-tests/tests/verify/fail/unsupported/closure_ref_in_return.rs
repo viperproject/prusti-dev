@@ -19,7 +19,7 @@ pub enum ChainRequest {
 
 
 fn go(key_name: String) -> () {
-    || ChainRequest::AddKey { //~ ERROR access to reference-typed fields is not supported
+    || ChainRequest::AddKey { //~ERROR: access to reference-typed fields is not supported
         key_name
     };
 }

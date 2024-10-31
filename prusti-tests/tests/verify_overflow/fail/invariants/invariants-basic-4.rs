@@ -9,7 +9,7 @@ struct Percentage {
 }
 
 impl Percentage {
-    fn incr(&mut self) { //~ ERROR type invariants
+    fn incr(&mut self) { //~ERROR: type invariants
         if self.value <= 100 { // mistake
             self.value += 1;
         }

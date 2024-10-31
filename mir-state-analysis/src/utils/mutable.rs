@@ -114,7 +114,7 @@ impl<'tcx> Place<'tcx> {
                                     }
                                 }
                             }
-                            TyKind::RawPtr(t, m) => {
+                            TyKind::RawPtr(_t, m) => {
                                 match m {
                                     // `*const` raw pointers are not mutable
                                     hir::Mutability::Not => Err(self),

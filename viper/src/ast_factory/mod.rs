@@ -15,7 +15,7 @@ use crate::jni_utils::JniUtils;
 use jni::{objects::JObject, JNIEnv};
 use viper_sys::wrappers::viper::silver::ast;
 
-pub use self::{ast_type::*, expression::*, position::*, program::*, statement::*, structs::*};
+pub use self::{expression::*, structs::*};
 
 #[derive(Clone, Copy)]
 pub struct AstFactory<'a> {

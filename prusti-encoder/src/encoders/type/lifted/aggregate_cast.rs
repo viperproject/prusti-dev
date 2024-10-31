@@ -3,7 +3,6 @@ use prusti_rustc_interface::{
     middle::{mir, ty::{GenericArgs, Ty}},
     span::def_id::DefId,
 };
-use rustc_middle::ty::ClosureArgs;
 use task_encoder::{TaskEncoder, EncodeFullResult};
 
 use crate::encoders::lifted::cast::{CastArgs, CastToEnc};
@@ -40,7 +39,7 @@ impl<'tcx> From<&mir::AggregateKind<'tcx>> for AggregateType<'tcx> {
             mir::AggregateKind::Tuple => Self::Tuple,
             mir::AggregateKind::Closure(def_id, args) => Self::Closure {
                 def_id: *def_id,
-                args: args,
+                args,
             },
             mir::AggregateKind::Adt(def_id, variant_index, ..) => {
                 Self::Adt {
@@ -106,8 +105,8 @@ impl TaskEncoder for AggregateSnapArgsCastEnc {
                         })
                         .collect::<Vec<_>>(),
                     AggregateType::Closure {
-                        def_id,
                         args,
+                        ..
                     } => {
                         let cl_args = args.as_closure();
                         let upvar_tys = cl_args.upvar_tys();

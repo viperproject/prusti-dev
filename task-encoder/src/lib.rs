@@ -8,7 +8,6 @@ impl OutputRefAny for () {}
 
 pub enum TaskEncoderCacheState<'vir, E: TaskEncoder + 'vir + ?Sized> {
     // None, // indicated by absence in the cache
-
     /// Task was enqueued but not yet started.
     Enqueued,
 
@@ -29,9 +28,7 @@ pub enum TaskEncoderCacheState<'vir, E: TaskEncoder + 'vir + ?Sized> {
     },
 
     /// An error occurred when enqueing the task.
-    ErrorEnqueue {
-        error: TaskEncoderError<E>,
-    },
+    ErrorEnqueue { error: TaskEncoderError<E> },
 
     /// An error occurred when encoding the task. The full "local" encoding is
     /// not available. However, tasks which depend on this task may still
@@ -49,16 +46,12 @@ pub enum TaskEncoderCacheState<'vir, E: TaskEncoder + 'vir + ?Sized> {
 
 /// Cache for a task encoder. See `TaskEncoderCacheState` for a description of
 /// the possible values in the encoding process.
-pub type Cache<'vir, E> = LinkedHashMap<
-    <E as TaskEncoder>::TaskKey<'vir>,
-    TaskEncoderCacheState<'vir, E>,
->;
+pub type Cache<'vir, E> =
+    LinkedHashMap<<E as TaskEncoder>::TaskKey<'vir>, TaskEncoderCacheState<'vir, E>>;
 pub type CacheRef<'vir, E> = RefCell<Cache<'vir, E>>;
 
-pub type CacheStatic<E> = LinkedHashMap<
-    <E as TaskEncoder>::TaskKey<'static>,
-    TaskEncoderCacheState<'static, E>,
->;
+pub type CacheStatic<E> =
+    LinkedHashMap<<E as TaskEncoder>::TaskKey<'static>, TaskEncoderCacheState<'static, E>>;
 pub type CacheStaticRef<E> = RefCell<CacheStatic<E>>;
 /*
 pub struct TaskEncoderOutput<'vir, E: TaskEncoder>(
@@ -78,11 +71,24 @@ impl<'vir, E: TaskEncoder> TaskEncoderOutput<'vir, E> {
 }
 */
 
+/// The result of an `encode` call.
+pub type EncodeResult<'vir, E /*: TaskEncoder + 'vir + ?Sized*/> = Result<
+    Option<(
+        <E as TaskEncoder>::OutputRef<'vir>,
+        <E as TaskEncoder>::OutputFullLocal<'vir>,
+        <E as TaskEncoder>::OutputFullDependency<'vir>,
+    )>,
+    TaskEncoderError<E>,
+>;
+
 /// The result of the actual encoder implementation (`do_encode_full`).
-pub type EncodeFullResult<'vir, E: TaskEncoder + 'vir + ?Sized> = Result<(
-    E::OutputFullLocal<'vir>,
-    E::OutputFullDependency<'vir>,
-), EncodeFullError<'vir, E>>;
+pub type EncodeFullResult<'vir, E /*: TaskEncoder + 'vir + ?Sized*/> = Result<
+    (
+        <E as TaskEncoder>::OutputFullLocal<'vir>,
+        <E as TaskEncoder>::OutputFullDependency<'vir>,
+    ),
+    EncodeFullError<'vir, E>,
+>;
 
 /// An unsuccessful result occurring in `do_encode_full`.
 pub enum EncodeFullError<'vir, E: TaskEncoder + 'vir + ?Sized> {
@@ -97,7 +103,10 @@ pub enum EncodeFullError<'vir, E: TaskEncoder + 'vir + ?Sized> {
     AlreadyEncoded,
 
     /// An actual error occurred during encoding.
-    EncodingError(<E as TaskEncoder>::EncodingError, Option<E::OutputFullDependency<'vir>>),
+    EncodingError(
+        <E as TaskEncoder>::EncodingError,
+        Option<E::OutputFullDependency<'vir>>,
+    ),
 
     DependencyError,
 }
@@ -108,7 +117,10 @@ impl<'vir, E: TaskEncoder + 'vir + ?Sized> std::fmt::Debug for EncodeFullError<'
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::AlreadyEncoded => write!(f, "AlreadyEncoded"),
-            Self::EncodingError(err, _output_dep) => f.debug_tuple("EncodingError").field(err)/*.field(output_dep)*/.finish(),
+            Self::EncodingError(err, _output_dep) => f
+                .debug_tuple("EncodingError")
+                .field(err) /*.field(output_dep)*/
+                .finish(),
             Self::DependencyError => write!(f, "DependencyError"),
         }
     }
@@ -122,7 +134,8 @@ pub enum TaskEncoderError<E: TaskEncoder + ?Sized> {
 }
 
 impl<E: TaskEncoder + ?Sized> std::fmt::Debug for TaskEncoderError<E>
-    where <E as TaskEncoder>::EncodingError: std::fmt::Debug
+where
+    <E as TaskEncoder>::EncodingError: std::fmt::Debug,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut helper = f.debug_struct("TaskEncoderError");
@@ -155,12 +168,16 @@ pub struct TaskEncoderDependencies<'vir, E: TaskEncoder + 'vir + ?Sized> {
 impl<'vir, E: TaskEncoder + 'vir + ?Sized> TaskEncoderDependencies<'vir, E> {
     fn check_cycle(&self) -> Result<(), EncodeFullError<'vir, E>> {
         if let Some(task_key) = self.task_key.as_ref() {
-            if E::with_cache(move |cache| matches!(
-                cache.borrow().get(task_key),
-                Some(TaskEncoderCacheState::Encoded { .. }
-                    | TaskEncoderCacheState::ErrorEncode { .. }
-                    | TaskEncoderCacheState::ErrorEnqueue { .. }),
-            )) {
+            if E::with_cache(move |cache| {
+                matches!(
+                    cache.borrow().get(task_key),
+                    Some(
+                        TaskEncoderCacheState::Encoded { .. }
+                            | TaskEncoderCacheState::ErrorEncode { .. }
+                            | TaskEncoderCacheState::ErrorEnqueue { .. }
+                    ),
+                )
+            }) {
                 return Err(EncodeFullError::AlreadyEncoded);
             }
         }
@@ -170,10 +187,7 @@ impl<'vir, E: TaskEncoder + 'vir + ?Sized> TaskEncoderDependencies<'vir, E> {
     pub fn require_ref<EOther: TaskEncoder>(
         &mut self,
         task: <EOther as TaskEncoder>::TaskDescription<'vir>,
-    ) -> Result<
-        <EOther as TaskEncoder>::OutputRef<'vir>,
-        EncodeFullError<'vir, E>,
-    > {
+    ) -> Result<<EOther as TaskEncoder>::OutputRef<'vir>, EncodeFullError<'vir, E>> {
         EOther::encode_ref(task)
             .map_err(|_| EncodeFullError::DependencyError)
             .and_then(|result| {
@@ -185,10 +199,7 @@ impl<'vir, E: TaskEncoder + 'vir + ?Sized> TaskEncoderDependencies<'vir, E> {
     pub fn require_local<EOther: TaskEncoder + 'vir>(
         &mut self,
         task: <EOther as TaskEncoder>::TaskDescription<'vir>,
-    ) -> Result<
-        <EOther as TaskEncoder>::OutputFullLocal<'vir>,
-        EncodeFullError<'vir, E>,
-    > {
+    ) -> Result<<EOther as TaskEncoder>::OutputFullLocal<'vir>, EncodeFullError<'vir, E>> {
         EOther::encode(task, true)
             .map(Option::unwrap)
             .map(|(_output_ref, output_local, _output_dep)| output_local)
@@ -202,10 +213,7 @@ impl<'vir, E: TaskEncoder + 'vir + ?Sized> TaskEncoderDependencies<'vir, E> {
     pub fn require_dep<EOther: TaskEncoder + 'vir>(
         &mut self,
         task: <EOther as TaskEncoder>::TaskDescription<'vir>,
-    ) -> Result<
-        <EOther as TaskEncoder>::OutputFullDependency<'vir>,
-        EncodeFullError<'vir, E>,
-    > {
+    ) -> Result<<EOther as TaskEncoder>::OutputFullDependency<'vir>, EncodeFullError<'vir, E>> {
         EOther::encode(task, true)
             .map(Option::unwrap)
             .map(|(_output_ref, _output_local, output_dep)| output_dep)
@@ -221,13 +229,17 @@ impl<'vir, E: TaskEncoder + 'vir + ?Sized> TaskEncoderDependencies<'vir, E> {
         task_key: E::TaskKey<'vir>,
         output_ref: E::OutputRef<'vir>,
     ) -> Result<(), EncodeFullError<'vir, E>> {
-        assert!(self.task_key.replace(task_key.clone()).is_none(), "output ref already set for task key {task_key:?}");
+        assert!(
+            self.task_key.replace(task_key.clone()).is_none(),
+            "output ref already set for task key {task_key:?}"
+        );
         self.check_cycle()?;
-        assert!(E::with_cache(move |cache| matches!(cache.borrow_mut().insert(
-            task_key,
-            TaskEncoderCacheState::Started { output_ref },
-        ), Some(TaskEncoderCacheState::Enqueued
-            | TaskEncoderCacheState::Started { .. }))));
+        assert!(E::with_cache(move |cache| matches!(
+            cache
+                .borrow_mut()
+                .insert(task_key, TaskEncoderCacheState::Started { output_ref },),
+            Some(TaskEncoderCacheState::Enqueued | TaskEncoderCacheState::Started { .. })
+        )));
         Ok(())
     }
 }
@@ -241,7 +253,8 @@ pub trait TaskEncoder {
     /// for example if the description should be normalised or some non-trivial
     /// resolution needs to happen. In other words, multiple descriptions may
     /// lead to the same key and hence the same output.
-    type TaskKey<'vir>: std::hash::Hash + Eq + Clone + std::fmt::Debug = Self::TaskDescription<'vir>;
+    type TaskKey<'vir>: std::hash::Hash + Eq + Clone + std::fmt::Debug =
+        Self::TaskDescription<'vir>;
 
     /// A reference to an encoded item. Should be non-unit for tasks which can
     /// be "referred" to from other parts of a program, as opposed to tasks
@@ -253,7 +266,8 @@ pub trait TaskEncoder {
     /// dependencies (such as methods), this output should only be emitted in
     /// one Viper program.
     type OutputFullLocal<'vir>: Clone
-        where Self: 'vir;
+    where
+        Self: 'vir;
 
     /// Fully encoded output for this task for dependents. When encoding items
     /// which can be dependencies (such as methods), this output should be
@@ -267,7 +281,9 @@ pub trait TaskEncoder {
     /// Enters the given function with a reference to the cache for this
     /// encoder.
     fn with_cache<'vir, F, R>(f: F) -> R
-        where Self: 'vir, F: FnOnce(&'vir CacheRef<'vir, Self>) -> R;
+    where
+        Self: 'vir,
+        F: FnOnce(&'vir CacheRef<'vir, Self>) -> R;
 
     //fn get_all_outputs() -> Self::CacheRef<'vir> {
     //  todo!()
@@ -276,7 +292,8 @@ pub trait TaskEncoder {
     //}
 
     fn enqueue<'vir>(task: Self::TaskDescription<'vir>)
-        where Self: 'vir
+    where
+        Self: 'vir,
     {
         let task_key = Self::task_to_key(&task);
         let task_key_clone = task_key.clone(); // TODO: remove?
@@ -286,28 +303,32 @@ pub trait TaskEncoder {
         }
 
         // enqueue, expecting no entry (we just checked)
-        assert!(Self::with_cache(move |cache| cache.borrow_mut().insert(
-            task_key,
-            TaskEncoderCacheState::Enqueued,
-        ).is_none()));
+        assert!(Self::with_cache(move |cache| cache
+            .borrow_mut()
+            .insert(task_key, TaskEncoderCacheState::Enqueued,)
+            .is_none()));
     }
 
-    fn encode_ref<'vir>(task: Self::TaskDescription<'vir>) -> Result<
-        Self::OutputRef<'vir>,
-        TaskEncoderError<Self>,
-    >
-        where Self: 'vir
+    fn encode_ref<'vir>(
+        task: Self::TaskDescription<'vir>,
+    ) -> Result<Self::OutputRef<'vir>, TaskEncoderError<Self>>
+    where
+        Self: 'vir,
     {
         let task_key = Self::task_to_key(&task);
 
         // is there an output ref available already?
         let task_key_clone = task_key.clone();
-        if let Some(output_ref) = Self::with_cache(move |cache| match cache.borrow().get(&task_key_clone) {
-            Some(TaskEncoderCacheState::Started { output_ref, .. })
-            | Some(TaskEncoderCacheState::Encoded { output_ref, .. })
-            | Some(TaskEncoderCacheState::ErrorEncode { output_ref, .. }) => Some(output_ref.clone()),
-            _ => None,
-        }) {
+        if let Some(output_ref) =
+            Self::with_cache(move |cache| match cache.borrow().get(&task_key_clone) {
+                Some(TaskEncoderCacheState::Started { output_ref, .. })
+                | Some(TaskEncoderCacheState::Encoded { output_ref, .. })
+                | Some(TaskEncoderCacheState::ErrorEncode { output_ref, .. }) => {
+                    Some(output_ref.clone())
+                }
+                _ => None,
+            })
+        {
             return Ok(output_ref);
         }
 
@@ -320,24 +341,28 @@ pub trait TaskEncoder {
         Self::encode(task, false)?;
 
         let task_key_clone = task_key.clone();
-        if let Some(output_ref) = Self::with_cache(move |cache| match cache.borrow().get(&task_key_clone) {
-            Some(TaskEncoderCacheState::Started { output_ref, .. })
-            | Some(TaskEncoderCacheState::Encoded { output_ref, .. })
-            | Some(TaskEncoderCacheState::ErrorEncode { output_ref, .. }) => Some(output_ref.clone()),
-            _ => None,
-        }) {
+        if let Some(output_ref) =
+            Self::with_cache(move |cache| match cache.borrow().get(&task_key_clone) {
+                Some(TaskEncoderCacheState::Started { output_ref, .. })
+                | Some(TaskEncoderCacheState::Encoded { output_ref, .. })
+                | Some(TaskEncoderCacheState::ErrorEncode { output_ref, .. }) => {
+                    Some(output_ref.clone())
+                }
+                _ => None,
+            })
+        {
             return Ok(output_ref);
         }
 
         panic!("output ref not found after encoding") // TODO: error?
     }
 
-    fn encode<'vir>(task: Self::TaskDescription<'vir>, need_output: bool) -> Result<Option<(
-        Self::OutputRef<'vir>,
-        Self::OutputFullLocal<'vir>,
-        Self::OutputFullDependency<'vir>,
-    )>, TaskEncoderError<Self>>
-        where Self: 'vir
+    fn encode<'vir>(
+        task: Self::TaskDescription<'vir>,
+        need_output: bool,
+    ) -> EncodeResult<'vir, Self>
+    where
+        Self: 'vir,
     {
         let task_key = Self::task_to_key(&task);
 
@@ -353,14 +378,16 @@ pub trait TaskEncoder {
                         output_local,
                         output_dep,
                         ..
-                    } => if need_output {
-                        Some(Ok(Some((
-                            output_ref.clone(),
-                            output_local.clone(),
-                            output_dep.clone(),
-                        ))))
-                    } else {
-                        Some(Ok(None))
+                    } => {
+                        if need_output {
+                            Some(Ok(Some((
+                                output_ref.clone(),
+                                output_local.clone(),
+                                output_dep.clone(),
+                            ))))
+                        } else {
+                            Some(Ok(None))
+                        }
                     }
                     // TODO: should we return Some(Ok(None)) for `Started`, if `!need_output` ?
                     TaskEncoderCacheState::Enqueued | TaskEncoderCacheState::Started { .. } => None,
@@ -385,198 +412,217 @@ pub trait TaskEncoder {
         let encode_result = Self::do_encode_full(&task_key, &mut deps);
 
         let output_ref = Self::with_cache(|cache| match cache.borrow().get(&task_key) {
-            Some(TaskEncoderCacheState::Started { output_ref }
-                | TaskEncoderCacheState::Encoded { output_ref, .. }) => output_ref.clone(),
+            Some(
+                TaskEncoderCacheState::Started { output_ref }
+                | TaskEncoderCacheState::Encoded { output_ref, .. },
+            ) => output_ref.clone(),
             _ => panic!("encoder did not provide output ref for task {task_key:?}"),
         });
 
         match encode_result {
             Ok((output_local, output_dep)) => {
                 if need_output {
+                    Self::with_cache(|cache| {
+                        cache.borrow_mut().insert(
+                            task_key,
+                            TaskEncoderCacheState::Encoded {
+                                output_ref: output_ref.clone(),
+                                deps,
+                                output_local: output_local.clone(),
+                                output_dep: output_dep.clone(),
+                            },
+                        )
+                    });
+                    Ok(Some((output_ref, output_local, output_dep)))
+                } else {
+                    Self::with_cache(|cache| {
+                        cache.borrow_mut().insert(
+                            task_key,
+                            TaskEncoderCacheState::Encoded {
+                                output_ref,
+                                deps,
+                                output_local,
+                                output_dep,
+                            },
+                        )
+                    });
+                    Ok(None)
+                }
+            }
+            Err(EncodeFullError::AlreadyEncoded) => {
+                Self::with_cache(|cache| match cache.borrow().get(&task_key).unwrap() {
+                    TaskEncoderCacheState::Encoded {
+                        output_ref,
+                        output_local,
+                        output_dep,
+                        ..
+                    } => {
+                        if need_output {
+                            Ok(Some((
+                                // TODO: does it even make sense for an encoder to request the full encoding
+                                //   when a cycle can occur?
+                                output_ref.clone(),
+                                output_local.clone(),
+                                output_dep.clone(),
+                            )))
+                        } else {
+                            Ok(None)
+                        }
+                    }
+                    TaskEncoderCacheState::ErrorEnqueue { error }
+                    | TaskEncoderCacheState::ErrorEncode { error, .. } => Err(error.clone()),
+                    TaskEncoderCacheState::Started { .. } | TaskEncoderCacheState::Enqueued => {
+                        panic!("encoder did not finish for task {task_key:?}")
+                    }
+                })
+            }
+            Err(EncodeFullError::DependencyError) => todo!(),
+            Err(EncodeFullError::EncodingError(err, maybe_output_dep)) => {
+                Self::with_cache(|cache| {
+                    cache.borrow_mut().insert(
+                        task_key,
+                        TaskEncoderCacheState::ErrorEncode {
+                            output_ref: output_ref.clone(),
+                            deps,
+                            error: TaskEncoderError::EncodingError(err.clone()),
+                            output_dep: maybe_output_dep,
+                        },
+                    )
+                });
+                Err(TaskEncoderError::EncodingError(err))
+            }
+        }
+    }
+    /*
+        /// Given a task description for this encoder, enqueue it and return the
+        /// reference to the output. If the task is already enqueued, the output
+        /// reference already exists.
+        fn encode<'vir>(task: Self::TaskDescription<'vir>) -> Self::OutputRef<'vir>
+            where Self: 'vir
+        {
+            let task_key = Self::task_to_key(&task);
+            let task_key_clone = task_key.clone();
+            if let Some(output_ref) = Self::with_cache(move |cache| match cache.borrow().get(&task_key_clone) {
+                Some(TaskEncoderCacheState::Enqueued { output_ref })
+                | Some(TaskEncoderCacheState::Started { output_ref, .. })
+                | Some(TaskEncoderCacheState::Encoded { output_ref, .. })
+                | Some(TaskEncoderCacheState::ErrorEncode { output_ref, .. }) => Some(output_ref.clone()),
+                _ => None,
+            }) {
+                return output_ref;
+            }
+            let task_ref = Self::task_to_output_ref(&task);
+            let task_key_clone = task_key.clone();
+            let task_ref_clone = task_ref.clone();
+            assert!(Self::with_cache(move |cache| cache.borrow_mut().insert(
+                task_key_clone,
+                TaskEncoderCacheState::Enqueued { output_ref: task_ref_clone },
+            ).is_none()));
+            task_ref
+        }
+
+        // TODO: this function should not be needed
+        fn encode_eager<'vir>(task: Self::TaskDescription<'vir>) -> Result<(
+            Self::OutputRef<'vir>,
+            Self::OutputFullLocal<'vir>,
+            Self::OutputFullDependency<'vir>,
+        ), TaskEncoderError<Self>>
+            where Self: 'vir
+        {
+            let task_key = Self::task_to_key(&task);
+            // enqueue
+            let output_ref = Self::encode(task);
+            // process
+            Self::encode_full(task_key)
+                .map(|(output_full_local, output_full_dep)| (output_ref, output_full_local, output_full_dep))
+        }
+
+        /// Given a task key, fully encode the given task. If this task was already
+        /// finished, the encoding is not repeated. If this task was enqueued, but
+        /// not finished, return a `CyclicError`.
+        fn encode_full<'vir>(task_key: Self::TaskKey<'vir>) -> Result<(
+            Self::OutputFullLocal<'vir>,
+            Self::OutputFullDependency<'vir>,
+        ), TaskEncoderError<Self>>
+            where Self: 'vir
+        {
+            let mut output_ref_opt = None;
+            let ret = Self::with_cache(|cache| {
+                // should be queued by now
+                match cache.borrow().get(&task_key).unwrap() {
+                    TaskEncoderCacheState::Enqueued { output_ref } => {
+                        output_ref_opt = Some(output_ref.clone());
+                        None
+                    }
+                    TaskEncoderCacheState::Started { .. } => Some(Err(TaskEncoderError::CyclicError)),
+                    TaskEncoderCacheState::Encoded { output_local, output_dep, .. } =>
+                        Some(Ok((
+                            output_local.clone(),
+                            output_dep.clone(),
+                        ))),
+                    TaskEncoderCacheState::ErrorEncode { error, .. } =>
+                        Some(Err(error.clone())),
+                }
+            });
+            if let Some(ret) = ret {
+                return ret;
+            }
+            let output_ref = output_ref_opt.unwrap();
+
+            let mut deps: TaskEncoderDependencies<'vir> = Default::default();
+            match Self::do_encode_full(&task_key, &mut deps) {
+                Ok((output_local, output_dep)) => {
                     Self::with_cache(|cache| cache.borrow_mut().insert(task_key, TaskEncoderCacheState::Encoded {
                         output_ref: output_ref.clone(),
                         deps,
                         output_local: output_local.clone(),
                         output_dep: output_dep.clone(),
                     }));
-                    Ok(Some((
-                        output_ref,
+                    Ok((
                         output_local,
                         output_dep,
-                    )))
-                } else {
-                    Self::with_cache(|cache| cache.borrow_mut().insert(task_key, TaskEncoderCacheState::Encoded {
-                        output_ref: output_ref,
+                    ))
+                }
+                Err((err, maybe_output_dep)) => {
+                    Self::with_cache(|cache| cache.borrow_mut().insert(task_key, TaskEncoderCacheState::ErrorEncode {
+                        output_ref: output_ref.clone(),
                         deps,
-                        output_local: output_local,
-                        output_dep: output_dep,
+                        error: TaskEncoderError::EncodingError(err.clone()),
+                        output_dep: maybe_output_dep,
                     }));
-                    Ok(None)
+                    Err(TaskEncoderError::EncodingError(err))
                 }
             }
-            Err(EncodeFullError::AlreadyEncoded) => Self::with_cache(|cache| match cache.borrow().get(&task_key).unwrap() {
-                TaskEncoderCacheState::Encoded {
-                    output_ref,
-                    output_local,
-                    output_dep,
-                    ..
-                } => if need_output {
-                    Ok(Some((
-                        // TODO: does it even make sense for an encoder to request the full encoding
-                        //   when a cycle can occur?
-                        output_ref.clone(),
-                        output_local.clone(),
-                        output_dep.clone(),
-                    )))
-                } else {
-                    Ok(None)
-                },
-                TaskEncoderCacheState::ErrorEnqueue { error }
-                | TaskEncoderCacheState::ErrorEncode { error, .. } => Err(error.clone()),
-                TaskEncoderCacheState::Started { .. }
-                | TaskEncoderCacheState::Enqueued => panic!("encoder did not finish for task {task_key:?}"),
-            }),
-            Err(EncodeFullError::DependencyError) => todo!(),
-            Err(EncodeFullError::EncodingError(err, maybe_output_dep)) => {
-                Self::with_cache(|cache| cache.borrow_mut().insert(task_key, TaskEncoderCacheState::ErrorEncode {
-                    output_ref: output_ref.clone(),
-                    deps,
-                    error: TaskEncoderError::EncodingError(err.clone()),
-                    output_dep: maybe_output_dep,
-                }));
-                Err(TaskEncoderError::EncodingError(err))
-            }
         }
-    }
-
-    /*
-    /// Given a task description for this encoder, enqueue it and return the
-    /// reference to the output. If the task is already enqueued, the output
-    /// reference already exists.
-    fn encode<'vir>(task: Self::TaskDescription<'vir>) -> Self::OutputRef<'vir>
-        where Self: 'vir
-    {
-        let task_key = Self::task_to_key(&task);
-        let task_key_clone = task_key.clone();
-        if let Some(output_ref) = Self::with_cache(move |cache| match cache.borrow().get(&task_key_clone) {
-            Some(TaskEncoderCacheState::Enqueued { output_ref })
-            | Some(TaskEncoderCacheState::Started { output_ref, .. })
-            | Some(TaskEncoderCacheState::Encoded { output_ref, .. })
-            | Some(TaskEncoderCacheState::ErrorEncode { output_ref, .. }) => Some(output_ref.clone()),
-            _ => None,
-        }) {
-            return output_ref;
-        }
-        let task_ref = Self::task_to_output_ref(&task);
-        let task_key_clone = task_key.clone();
-        let task_ref_clone = task_ref.clone();
-        assert!(Self::with_cache(move |cache| cache.borrow_mut().insert(
-            task_key_clone,
-            TaskEncoderCacheState::Enqueued { output_ref: task_ref_clone },
-        ).is_none()));
-        task_ref
-    }
-
-    // TODO: this function should not be needed
-    fn encode_eager<'vir>(task: Self::TaskDescription<'vir>) -> Result<(
-        Self::OutputRef<'vir>,
-        Self::OutputFullLocal<'vir>,
-        Self::OutputFullDependency<'vir>,
-    ), TaskEncoderError<Self>>
-        where Self: 'vir
-    {
-        let task_key = Self::task_to_key(&task);
-        // enqueue
-        let output_ref = Self::encode(task);
-        // process
-        Self::encode_full(task_key)
-            .map(|(output_full_local, output_full_dep)| (output_ref, output_full_local, output_full_dep))
-    }
-
-    /// Given a task key, fully encode the given task. If this task was already
-    /// finished, the encoding is not repeated. If this task was enqueued, but
-    /// not finished, return a `CyclicError`.
-    fn encode_full<'vir>(task_key: Self::TaskKey<'vir>) -> Result<(
-        Self::OutputFullLocal<'vir>,
-        Self::OutputFullDependency<'vir>,
-    ), TaskEncoderError<Self>>
-        where Self: 'vir
-    {
-        let mut output_ref_opt = None;
-        let ret = Self::with_cache(|cache| {
-            // should be queued by now
-            match cache.borrow().get(&task_key).unwrap() {
-                TaskEncoderCacheState::Enqueued { output_ref } => {
-                    output_ref_opt = Some(output_ref.clone());
-                    None
-                }
-                TaskEncoderCacheState::Started { .. } => Some(Err(TaskEncoderError::CyclicError)),
-                TaskEncoderCacheState::Encoded { output_local, output_dep, .. } =>
-                    Some(Ok((
-                        output_local.clone(),
-                        output_dep.clone(),
-                    ))),
-                TaskEncoderCacheState::ErrorEncode { error, .. } =>
-                    Some(Err(error.clone())),
-            }
-        });
-        if let Some(ret) = ret {
-            return ret;
-        }
-        let output_ref = output_ref_opt.unwrap();
-
-        let mut deps: TaskEncoderDependencies<'vir> = Default::default();
-        match Self::do_encode_full(&task_key, &mut deps) {
-            Ok((output_local, output_dep)) => {
-                Self::with_cache(|cache| cache.borrow_mut().insert(task_key, TaskEncoderCacheState::Encoded {
-                    output_ref: output_ref.clone(),
-                    deps,
-                    output_local: output_local.clone(),
-                    output_dep: output_dep.clone(),
-                }));
-                Ok((
-                    output_local,
-                    output_dep,
-                ))
-            }
-            Err((err, maybe_output_dep)) => {
-                Self::with_cache(|cache| cache.borrow_mut().insert(task_key, TaskEncoderCacheState::ErrorEncode {
-                    output_ref: output_ref.clone(),
-                    deps,
-                    error: TaskEncoderError::EncodingError(err.clone()),
-                    output_dep: maybe_output_dep,
-                }));
-                Err(TaskEncoderError::EncodingError(err))
-            }
-        }
-    }
-*/
+    */
     /// Given a task description, create a key for storing it in the cache.
-    fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> // Result<
-        Self::TaskKey<'vir>;//,
-    //    Self::EnqueueingError,
-    //>
-/*
-    /// Given a task description, create a reference to the output.
-    fn task_to_output_ref<'vir>(task: &Self::TaskDescription<'vir>) -> Self::OutputRef<'vir>;
-*/
+    fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir>;
+    /*
+        /// Given a task description, create a reference to the output.
+        fn task_to_output_ref<'vir>(task: &Self::TaskDescription<'vir>) -> Self::OutputRef<'vir>;
+    */
     fn do_encode_full<'vir>(
         task_key: &Self::TaskKey<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self>;
 
     fn all_outputs<'vir>() -> Vec<Self::OutputFullLocal<'vir>>
-        where Self: 'vir
+    where
+        Self: 'vir,
     {
         Self::with_cache(|cache| {
-            let mut ret = vec![];
-            for (_task_key, cache_state) in cache.borrow().iter() {
-                match cache_state { // TODO: make this into an iterator chain
-                    TaskEncoderCacheState::Encoded { output_local, .. } => ret.push(output_local.clone()),
-                    _ => {}
-                }
-            }
-            ret
+            cache
+                .borrow()
+                .iter()
+                .flat_map(|(_, cache_state)| {
+                    if let TaskEncoderCacheState::Encoded { output_local, .. } = cache_state {
+                        Some(output_local)
+                    } else {
+                        None
+                    }
+                })
+                .cloned()
+                .collect()
         })
     }
 }

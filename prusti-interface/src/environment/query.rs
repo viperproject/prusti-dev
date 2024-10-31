@@ -7,7 +7,7 @@ use prusti_rustc_interface::{
     hir::hir_id::HirId,
     middle::{
         hir::map::Map,
-        ty::{self, GenericArgsRef, PredicatePolarity, ParamEnv, TraitPredicate, TyCtxt},
+        ty::{self, GenericArgsRef, ParamEnv, PredicatePolarity, TraitPredicate, TyCtxt},
     },
     span::{
         def_id::{DefId, LocalDefId},
