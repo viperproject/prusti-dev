@@ -33,7 +33,7 @@ fn test2b<D>(arg: &mut Number<i8, D>) {
 #[ensures(arg.i >= 7000)]
 fn test3(arg: &mut Number<i8, i16>) {
     test2a(arg);
-    test2b(arg); //~ ERROR precondition might not hold
+    test2b(arg); //~ERROR: precondition might not hold
 }
 
 fn main() {}

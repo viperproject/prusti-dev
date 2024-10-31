@@ -46,42 +46,42 @@ pub fn process_verification_request<'v, 't: 'v>(
         request.program.get_name(),
     );
     /*
-    let build_or_dump_viper_program = || {
-        let mut stopwatch = Stopwatch::start("prusti-server", "construction of JVM objects");
-        let ast_factory = verification_context.new_ast_factory();
+        let build_or_dump_viper_program = || {
+            let mut stopwatch = Stopwatch::start("prusti-server", "construction of JVM objects");
+            let ast_factory = verification_context.new_ast_factory();
 
-        let viper_program = prusti_viper::program_to_viper(request.program, &ast_factory);
-        //let viper_program = request
-        //    .program
-        //    .to_viper(prusti_common::vir::LoweringContext::default(), &ast_factory);
-        if config::dump_viper_program() {
-            stopwatch.start_next("dumping viper program");
-            dump_viper_program(
-                &ast_utils,
-                viper_program,
-                &request.program.get_name_with_check_mode(),
+            let viper_program = prusti_viper::program_to_viper(request.program, &ast_factory);
+            //let viper_program = request
+            //    .program
+            //    .to_viper(prusti_common::vir::LoweringContext::default(), &ast_factory);
+            if config::dump_viper_program() {
+                stopwatch.start_next("dumping viper program");
+                dump_viper_program(
+                    &ast_utils,
+                    viper_program,
+                    &request.program.get_name_with_check_mode(),
+                );
+            }
+
+            viper_program
+        };
+
+        // Only for testing: Print the hash and skip verification.
+        if config::print_hash() {
+            println!(
+                "Received verification request for: {}",
+                request.program.get_name()
             );
+            println!("Hash of the request is: {hash}");
+            // Some tests need the dump to report a diff of the Viper programs.
+            if config::dump_viper_program() {
+                ast_utils.with_local_frame(16, || {
+                    let _ = build_or_dump_viper_program();
+                });
+            }
+            return viper::VerificationResult::Success;
         }
-
-        viper_program
-    };
-
-    // Only for testing: Print the hash and skip verification.
-    if config::print_hash() {
-        println!(
-            "Received verification request for: {}",
-            request.program.get_name()
-        );
-        println!("Hash of the request is: {hash}");
-        // Some tests need the dump to report a diff of the Viper programs.
-        if config::dump_viper_program() {
-            ast_utils.with_local_frame(16, || {
-                let _ = build_or_dump_viper_program();
-            });
-        }
-        return viper::VerificationResult::Success;
-    }
-*/
+    */
     // Early return in case of cache hit
     if config::enable_cache() {
         if let Some(result) = cache.get(hash) {

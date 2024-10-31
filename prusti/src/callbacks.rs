@@ -1,6 +1,4 @@
 use crate::verifier::verify;
-use mir_state_analysis::test_free_pcs;
-use prusti_utils::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
     specs::{self, cross_crate::CrossCrateSpecs, is_spec_fn},
@@ -9,21 +7,16 @@ use prusti_rustc_interface::{
     borrowck::consumers,
     data_structures::steal::Steal,
     driver::Compilation,
+    hir::{def::DefKind, def_id::LocalDefId},
     index::IndexVec,
     interface::{interface::Compiler, Config, Queries},
-    hir::{def::DefKind, def_id::LocalDefId},
     middle::{
-        mir,
-        query::{
-            queries::mir_borrowck::ProvidedValue as MirBorrowck,
-            ExternProviders,
-            
-        },
+        mir, query::queries::mir_borrowck::ProvidedValue as MirBorrowck, ty::TyCtxt,
         util::Providers,
-        ty::TyCtxt,
     },
-    session::{EarlyDiagCtxt, Session},
+    session::Session,
 };
+use prusti_utils::config;
 
 #[derive(Default)]
 pub struct PrustiCompilerCalls;
@@ -82,16 +75,13 @@ struct NoAnn;
 
 impl prusti_rustc_interface::ast_pretty::pprust::PpAnn for NoAnn {}
 
-
 impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     fn config(&mut self, config: &mut Config) {
         assert!(config.override_queries.is_none());
-        config.override_queries = Some(
-            |_session: &Session, providers: &mut Providers| {
-                providers.mir_borrowck = mir_borrowck;
-                providers.mir_promoted = mir_promoted;
-            },
-        );
+        config.override_queries = Some(|_session: &Session, providers: &mut Providers| {
+            providers.mir_borrowck = mir_borrowck;
+            providers.mir_promoted = mir_promoted;
+        });
     }
     #[tracing::instrument(level = "debug", skip_all)]
     fn after_expansion<'tcx>(
@@ -101,7 +91,8 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     ) -> Compilation {
         if compiler.sess.is_rust_2015() {
             compiler
-                .sess.dcx()
+                .sess
+                .dcx()
                 .struct_warn(
                     "Prusti specifications are supported only from 2018 edition. Please \
                     specify the edition with adding a command line argument `--edition=2018` or \
@@ -179,7 +170,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                         test_free_pcs(&mir, tcx);
                     }
                 } else {*/
-                    verify(env, def_spec);
+                verify(env, def_spec);
                 //}
             }
         });

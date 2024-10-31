@@ -1,6 +1,6 @@
 macro_rules! assert {
     ( $( $args:expr ),* ) => {
-        panic!( $( $args ),* )  //~ ERROR panic!(..) statement might be reachable
+        panic!( $( $args ),* )  //~ERROR: panic!(..) statement might be reachable
     };
 }
 

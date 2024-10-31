@@ -25,7 +25,7 @@ fn get_ok_bool(x: Result<bool, UnexpectedValue>) -> bool {
     }
 }
 
-#[ensures(is_ok(result) && get_ok_bool(result))] //~ ERROR use of moved value
+#[ensures(is_ok(result) && get_ok_bool(result))] //~ERROR: use of moved value
 fn test(i: u32) -> Result<bool, UnexpectedValue> {
     Ok(true)
 }

@@ -18,7 +18,7 @@ impl<'tcx> EnvDiagnostic<'tcx> {
     }
 
     fn configure_diagnostic<S: Into<MultiSpan> + Clone, T: EmissionGuarantee>(
-        diagnostic: &mut Diag<'tcx,T>,
+        diagnostic: &mut Diag<'tcx, T>,
         sp: S,
         help: &Option<String>,
         notes: &[(String, Option<S>)],

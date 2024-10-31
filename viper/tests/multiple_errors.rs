@@ -23,7 +23,11 @@ fn verify_multiple_errors(backend: viper::VerificationBackend, args: Vec<String>
     let pos_1 = ast.identifier_position(123, 0, "pos-id:123");
     let pos_1b = ast.identifier_position(1230, 0, "pos-id:1230");
     let assertion_1 = ast.assert(
-        ast.eq_cmp_with_pos(ast.local_var("x", ast.int_type(), ast.no_position()), ast.int_lit(0), pos_1b),
+        ast.eq_cmp_with_pos(
+            ast.local_var("x", ast.int_type(), ast.no_position()),
+            ast.int_lit(0),
+            pos_1b,
+        ),
         pos_1,
     );
 
@@ -35,7 +39,11 @@ fn verify_multiple_errors(backend: viper::VerificationBackend, args: Vec<String>
     let pos_2 = ast.identifier_position(456, 0, "pos-id:456");
     let pos_2b = ast.identifier_position(4560, 0, "pos-id:4560");
     let assertion_2 = ast.assert(
-        ast.eq_cmp_with_pos(ast.local_var("x", ast.int_type(), ast.no_position()), ast.int_lit(0), pos_2b),
+        ast.eq_cmp_with_pos(
+            ast.local_var("x", ast.int_type(), ast.no_position()),
+            ast.int_lit(0),
+            pos_2b,
+        ),
         pos_2,
     );
 

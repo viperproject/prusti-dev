@@ -3,10 +3,6 @@
 #![feature(box_patterns)]
 #![feature(never_type)]
 
-extern crate rustc_middle;
-extern crate rustc_serialize;
-extern crate rustc_type_ir;
-
 mod encoders;
 mod encoder_traits;
 pub mod request;
@@ -159,7 +155,7 @@ pub fn test_entrypoint<'tcx>(
         program_methods.push(output.method_assign);
     }
 
-    std::fs::write("local-testing/simple.vpr", viper_code).unwrap();
+    //std::fs::write("local-testing/simple.vpr", viper_code).unwrap();
 
     let program = vir::with_vcx(|vcx| vcx.mk_program(
         vcx.alloc_slice(&program_fields),

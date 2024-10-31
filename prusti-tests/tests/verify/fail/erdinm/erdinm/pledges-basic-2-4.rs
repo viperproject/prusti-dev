@@ -24,7 +24,7 @@ impl Nonsense {
 }
 
 #[requires(arg.valid())]
-#[ensures(arg.valid())] //~ ERROR postcondition might not hold
+#[ensures(arg.valid())] //~ERROR: postcondition might not hold
 fn test(arg: &mut Nonsense) {
     let m3 = arg.m3_mut();
     *m3 += 3;

@@ -15,24 +15,12 @@ use prusti_rustc_interface::{
 //    SsaAnalysis,
 //};
 use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
-use vir::{MethodIdent, UnknownArity};
 
 pub struct MirImpureEnc;
 
 #[derive(Clone, Debug)]
 pub enum MirImpureEncError {
-    Unsupported,
-}
-
-#[derive(Clone, Debug)]
-pub struct MirImpureEncOutputRef<'vir> {
-    pub method_ref: MethodIdent<'vir, UnknownArity<'vir>>,
-}
-impl<'vir> task_encoder::OutputRefAny for MirImpureEncOutputRef<'vir> {}
-
-#[derive(Clone, Debug)]
-pub struct MirImpureEncOutput<'vir> {
-    pub method: vir::Method<'vir>,
+    // Unsupported,
 }
 
 use crate::{
@@ -96,7 +84,7 @@ impl TaskEncoder for MirImpureEnc {
         } else {
             deps.require_ref::<MirPolyImpureEnc>(task_key.def_id)?
         };
-        deps.emit_output_ref(*task_key, output_ref);
+        deps.emit_output_ref(*task_key, output_ref)?;
         let output: ImpureFunctionEncOutput<'_> = if monomorphize {
             deps.require_local::<MirMonoImpureEnc>(*task_key)?
         } else {
@@ -268,7 +256,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
                     let ref_p = self.encode_place(place).expr;
                     let args = place_ty_out.ref_to_args(self.vcx, ref_p);
-                    let predicate = ref_to_pred.apply(self.vcx, &args, None);
+                    let predicate = ref_to_pred.apply(self.vcx, args, None);
                     if matches!(
                         repack_op,
                         mir_state_analysis::free_pcs::RepackOp::Expand(..)
@@ -556,7 +544,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
         // TODO: these should not be ignored, but should havoc the local instead
         // This clears up the noise a bit, making sure StorageLive and other
         // kinds do not show up in the comments.
-        let IGNORE_NOP_STMTS = true;
+        const IGNORE_NOP_STMTS: bool = true;
         if IGNORE_NOP_STMTS {
             match &statement.kind {
                 mir::StatementKind::StorageLive(..)
@@ -600,14 +588,14 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     //mir::Rvalue::Len(Place<'vir>) => {}
                     //mir::Rvalue::Cast(CastKind, Operand<'vir>, Ty<'vir>) => {}
 
-                    rv@mir::Rvalue::BinaryOp(op, box (l, r)) => {
+                    mir::Rvalue::BinaryOp(op, box (l, r)) => {
                         let l_ty = l.ty(self.local_decls, self.vcx.tcx());
                         let r_ty = r.ty(self.local_decls, self.vcx.tcx());
                         use crate::encoders::MirBuiltinEncTask::{BinOp, CheckedBinOp};
-                        let task = if matches!(rv, mir::Rvalue::BinaryOp(..)) {
-                            BinOp(rvalue_ty, *op, l_ty, r_ty)
-                        } else {
+                        let task = if op.is_overflowing() {
                             CheckedBinOp(rvalue_ty, *op, l_ty, r_ty)
+                        } else {
+                            BinOp(rvalue_ty, *op, l_ty, r_ty)
                         };
                         let binop_function = self.deps.require_ref::<MirBuiltinEnc>(
                             task

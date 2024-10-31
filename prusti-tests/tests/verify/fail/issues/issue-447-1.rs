@@ -36,7 +36,7 @@ fn index_slice<T>(slice: &[T], ix: usize) -> &T {
 }
 
 fn push_all<T: Clone>(vec: &mut Vec<T>, slice: &[T]) {
-    for i in 0..slice_len(slice) { //~ ERROR iterators are not fully supported
+    for i in 0..slice_len(slice) { //~ERROR: iterators are not fully supported
         push(vec, index_slice(slice, i).clone())
     }
 }

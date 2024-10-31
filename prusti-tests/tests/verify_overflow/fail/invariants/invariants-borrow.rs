@@ -6,7 +6,7 @@ struct Percentage {
     value: u8,
 }
 
-fn make_percentage() -> Percentage { //~ ERROR type invariants
+fn make_percentage() -> Percentage { //~ERROR: type invariants
     let mut p = Percentage { value: 100 };
     double(&mut p.value);
     p

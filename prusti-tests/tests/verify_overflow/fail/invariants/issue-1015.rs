@@ -5,7 +5,7 @@ use prusti_contracts::*;
 struct S;
 
 #[pure]
-#[ensures(false)] //~ ERROR postcondition might not hold.
+#[ensures(false)] //~ERROR: postcondition might not hold.
 fn foo(s: &S) {}
 
 fn main() {

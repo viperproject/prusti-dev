@@ -8,7 +8,7 @@ pub struct GenericEnc;
 
 #[derive(Clone, Debug)]
 pub enum GenericEncError {
-    UnsupportedType,
+    // UnsupportedType,
 }
 
 #[derive(Clone, Debug)]
@@ -19,7 +19,7 @@ pub struct GenericEncOutputRef<'vir> {
     pub ref_to_pred: PredicateIdent<'vir, BinaryArity<'vir>>,
     pub ref_to_snap: FunctionIdent<'vir, BinaryArity<'vir>>,
     pub unreachable_to_snap: FunctionIdent<'vir, NullaryArity<'vir>>,
-    pub domain_type_name: DomainIdent<'vir, KnownArityAny<'vir, DomainParamData<'vir>, 0>>,
+    // pub domain_type_name: DomainIdent<'vir, KnownArityAny<'vir, DomainParamData<'vir>, 0>>,
     pub domain_param_name: DomainIdent<'vir, KnownArityAny<'vir, DomainParamData<'vir>, 0>>,
 }
 impl<'vir> task_encoder::OutputRefAny for GenericEncOutputRef<'vir> {}
@@ -57,7 +57,7 @@ impl TaskEncoder for GenericEnc {
     ) -> EncodeFullResult<'vir, Self> {
         let ref_to_pred =
             PredicateIdent::new(ViperIdent::new("p_Param"), BinaryArity::new(&[&TypeData::Ref, &TYP_DOMAIN]));
-        let type_domain_ident = DomainIdent::nullary(ViperIdent::new("Type"));
+        // let type_domain_ident = DomainIdent::nullary(ViperIdent::new("Type"));
         let param_domain_ident = DomainIdent::nullary(ViperIdent::new("s_Param"));
         let ref_to_snap = FunctionIdent::new(
             ViperIdent::new("p_Param_snap"),
@@ -81,7 +81,7 @@ impl TaskEncoder for GenericEnc {
             type_snapshot: &TYP_DOMAIN,
             param_snapshot: &SNAPSHOT_PARAM_DOMAIN,
             ref_to_pred,
-            domain_type_name: type_domain_ident,
+            // domain_type_name: type_domain_ident,
             domain_param_name: param_domain_ident,
             ref_to_snap,
             unreachable_to_snap,

@@ -24,7 +24,7 @@ impl Account {
     }
 
     #[requires(amount <= self.balance())]
-    #[ensures(self.balance() == old(self.balance()) + amount)] //~ ERROR postcondition might not hold
+    #[ensures(self.balance() == old(self.balance()) + amount)] //~ERROR: postcondition might not hold
     fn transfer(&mut self, other: &mut Account, amount: u32) {
         self.withdraw(amount);
         other.deposit(amount);

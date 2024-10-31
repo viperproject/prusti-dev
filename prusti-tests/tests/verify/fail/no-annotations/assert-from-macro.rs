@@ -1,6 +1,6 @@
 macro_rules! my_assert {
     ( $( $args:expr ),* ) => {
-        assert!( $( $args ),* )  //~ ERROR the asserted expression might not hold
+        assert!( $( $args ),* )  //~ERROR: the asserted expression might not hold
     };
 }
 
