@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
+use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{Arity, CallableIdent, FunctionIdent, MethodIdent, TypeData, UnknownArity};
 
 use crate::encoders::{
@@ -244,9 +244,7 @@ impl TaskEncoder for CastersEnc<CastTypePure> {
             let generic_ref = deps.require_ref::<GenericEnc>(())?;
             let self_ty = domain_ref.domain.apply(vcx, []);
             let base_name = &domain_ref.base_name;
-            let ty_constructor = deps
-                .require_ref::<TyConstructorEnc>(*ty)?
-                .ty_constructor;
+            let ty_constructor = deps.require_ref::<TyConstructorEnc>(*ty)?.ty_constructor;
 
             let ty_params = ty
                 .generics()
@@ -283,15 +281,14 @@ impl TaskEncoder for CastersEnc<CastTypePure> {
             let make_generic_arg = vcx.mk_local_decl("self", self_ty);
             let make_generic_expr = vcx.mk_local_ex(make_generic_arg.name, make_generic_arg.ty);
 
-            let make_generic_arg_decls = vcx.alloc_slice(&std::iter::once(make_generic_arg)
-                .chain(ty_params.iter().map(|t| t.decl()))
-                .collect::<Vec<_>>()
+            let make_generic_arg_decls = vcx.alloc_slice(
+                &std::iter::once(make_generic_arg)
+                    .chain(ty_params.iter().map(|t| t.decl()))
+                    .collect::<Vec<_>>(),
             );
 
-            let make_concrete_ty_param_exprs = ty_params
-                .iter()
-                .map(|t| t.expr(vcx))
-                .collect::<Vec<_>>();
+            let make_concrete_ty_param_exprs =
+                ty_params.iter().map(|t| t.expr(vcx)).collect::<Vec<_>>();
 
             let make_generic_result = vcx.mk_result(generic_ref.param_snapshot);
 

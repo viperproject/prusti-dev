@@ -37,7 +37,6 @@ impl TaskEncoder for MirPolyImpureEnc {
         def_id: &Self::TaskKey<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
-        <Self as ImpureFunctionEnc>::encode(*def_id, deps)
-            .map(|r| (r, ()))
+        <Self as ImpureFunctionEnc>::encode(*def_id, deps).map(|r| (r, ()))
     }
 }

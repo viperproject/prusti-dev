@@ -3,7 +3,8 @@ use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{MethodIdent, UnknownArity, ViperIdent};
 
 use crate::encoders::{
-    lifted::func_def_ty_params::LiftedTyParamsEnc, ImpureEncVisitor, MirImpureEnc, MirLocalDefEnc, MirSpecEnc
+    lifted::func_def_ty_params::LiftedTyParamsEnc, ImpureEncVisitor, MirImpureEnc, MirLocalDefEnc,
+    MirSpecEnc,
 };
 
 use super::function_enc::FunctionEnc;
@@ -41,10 +42,7 @@ where
     fn encode<'vir>(
         task_key: Self::TaskKey<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
-    ) -> Result<
-        ImpureFunctionEncOutput<'vir>,
-        EncodeFullError<'vir, Self>,
-    > {
+    ) -> Result<ImpureFunctionEncOutput<'vir>, EncodeFullError<'vir, Self>> {
         let def_id = Self::get_def_id(&task_key);
         let caller_def_id = Self::get_caller_def_id(&task_key);
         let trusted = crate::encoders::with_proc_spec(def_id, |def_spec| {
@@ -54,8 +52,8 @@ where
         vir::with_vcx(|vcx| {
             use mir::visit::Visitor;
             let substs = Self::get_substs(vcx, &task_key);
-            let local_defs = deps
-                .require_local::<MirLocalDefEnc>((def_id, substs, caller_def_id))?;
+            let local_defs =
+                deps.require_local::<MirLocalDefEnc>((def_id, substs, caller_def_id))?;
 
             // Argument count for the Viper method:
             // - one (`Ref`) for the return place;
@@ -147,8 +145,7 @@ where
                 None
             };
 
-            let spec = deps
-                .require_local::<MirSpecEnc>((def_id, substs, None, false))?;
+            let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false))?;
             let (spec_pres, spec_posts) = (spec.pres, spec.posts);
 
             let mut pres = Vec::with_capacity(arg_count - 1);

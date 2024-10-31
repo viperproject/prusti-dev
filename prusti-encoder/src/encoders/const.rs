@@ -1,22 +1,25 @@
 use prusti_rustc_interface::{
     middle::{
-        mir::{self, ConstValue, interpret::{Scalar, GlobalAlloc}},
+        mir::{
+            self,
+            interpret::{GlobalAlloc, Scalar},
+            ConstValue,
+        },
         ty,
     },
     span::def_id::DefId,
 };
-use task_encoder::{
-    TaskEncoder,
-    TaskEncoderDependencies,
-    EncodeFullResult,
-};
-use vir::{CallableIdent, Arity};
+use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+use vir::{Arity, CallableIdent};
 
 pub struct ConstEnc;
 
-use crate::encoders::{MirPureEnc, mir_pure::PureKind, MirPureEncTask};
+use crate::encoders::{mir_pure::PureKind, MirPureEnc, MirPureEncTask};
 
-use super::{lifted::{casters::CastTypePure, rust_ty_cast::RustTyCastersEnc}, rust_ty_snapshots::RustTySnapshotsEnc};
+use super::{
+    lifted::{casters::CastTypePure, rust_ty_cast::RustTyCastersEnc},
+    rust_ty_snapshots::RustTySnapshotsEnc,
+};
 
 impl TaskEncoder for ConstEnc {
     task_encoder::encoder_cache!(ConstEnc);
@@ -41,7 +44,10 @@ impl TaskEncoder for ConstEnc {
         let (const_, encoding_depth, def_id) = *task_key;
         let res = match const_ {
             mir::Const::Val(val, ty) => {
-                let kind = deps.require_local::<RustTySnapshotsEnc>(ty)?.generic_snapshot.specifics;
+                let kind = deps
+                    .require_local::<RustTySnapshotsEnc>(ty)?
+                    .generic_snapshot
+                    .specifics;
                 match val {
                     ConstValue::Scalar(Scalar::Int(int)) => {
                         let prim = kind.expect_primitive();
@@ -51,7 +57,7 @@ impl TaskEncoder for ConstEnc {
                     }
                     ConstValue::Scalar(Scalar::Ptr(ptr, _)) => vir::with_vcx(|vcx| {
                         match vcx.tcx().global_alloc(ptr.provenance.alloc_id()) {
-                            GlobalAlloc::Function {..} => todo!(),
+                            GlobalAlloc::Function { .. } => todo!(),
                             GlobalAlloc::VTable(_, _) => todo!(),
                             GlobalAlloc::Static(_) => todo!(),
                             GlobalAlloc::Memory(_mem) => {
@@ -99,7 +105,7 @@ impl TaskEncoder for ConstEnc {
                     param_env: vcx.tcx().param_env(uneval.def),
                     substs: ty::List::identity_for_item(vcx.tcx(), uneval.def),
                     kind: PureKind::Constant(uneval.promoted.unwrap()),
-                    caller_def_id: Some(def_id)
+                    caller_def_id: Some(def_id),
                 };
                 let expr = deps.require_local::<MirPureEnc>(task)?.expr;
                 use vir::Reify;

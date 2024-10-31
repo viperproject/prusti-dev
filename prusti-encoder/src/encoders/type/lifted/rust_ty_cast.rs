@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use prusti_rustc_interface::middle::ty;
-use task_encoder::{TaskEncoder, TaskEncoderError, EncodeFullResult};
+use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderError};
 use vir::with_vcx;
 
 use crate::encoders::most_generic_ty::{extract_type_params, MostGenericTy};
