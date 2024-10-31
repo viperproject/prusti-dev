@@ -4,7 +4,6 @@ use syn::punctuated::Punctuated;
 /// de/serialisation.
 pub(crate) enum ReifyKind {
     // There is no `ReifyString`, since there is nothing to reify.
-
     /// String reference, `&'vir str`.
     ///
     /// Reify: passthrough.
@@ -69,14 +68,20 @@ impl ReifyKind {
             ReifyPass,
             IsRef,
         }
-        let flags = field.attrs.iter()
+        let flags = field
+            .attrs
+            .iter()
             .filter(|attr| match &attr.meta {
-                syn::Meta::List(l) => l.path.segments.len() == 1 && l.path.segments[0].ident == "vir",
+                syn::Meta::List(l) => {
+                    l.path.segments.len() == 1 && l.path.segments[0].ident == "vir"
+                }
                 _ => false,
             })
-            .flat_map(|attr| attr.parse_args_with(Punctuated::<syn::Ident, syn::Token![,]>::parse_terminated)
-                .expect("invalid vir attribute arguments")
-                .into_iter())
+            .flat_map(|attr| {
+                attr.parse_args_with(Punctuated::<syn::Ident, syn::Token![,]>::parse_terminated)
+                    .expect("invalid vir attribute arguments")
+                    .into_iter()
+            })
             .map(|ident| match ident.to_string().as_str() {
                 "reify_pass" => VirFlag::ReifyPass,
                 "is_ref" => VirFlag::IsRef,
@@ -100,18 +105,22 @@ impl ReifyKind {
         }) if segments.len() == 1 && matches!(&segments[0], syn::PathSegment {
             ident,
             arguments: syn::PathArguments::None,
-        } if ident == "str")) {
+        } if ident == "str"))
+        {
             assert!(!is_ref, "invalid flag on string: is_ref");
             assert!(!is_reify_pass, "invalid flag on string: is_reify_pass");
             return ReifyKind::PassString;
         }
 
         // is this a slice? `&'vir [..]`
-        if matches!(&field.ty, syn::Type::Reference(syn::TypeReference {
-            mutability: None,
-            elem: box syn::Type::Slice(_),
-            ..
-        })) {
+        if matches!(
+            &field.ty,
+            syn::Type::Reference(syn::TypeReference {
+                mutability: None,
+                elem: box syn::Type::Slice(_),
+                ..
+            })
+        ) {
             assert!(!is_ref, "invalid flag on slice: is_ref");
             if is_reify_pass {
                 return ReifyKind::PassSlice;
@@ -130,7 +139,8 @@ impl ReifyKind {
         }) if segments.len() == 1 && matches!(&segments[0], syn::PathSegment {
             ident,
             arguments: syn::PathArguments::AngleBracketed(..),
-        } if ident == "Option")) {
+        } if ident == "Option"))
+        {
             assert!(!is_ref, "invalid flag on Option: is_ref");
             if is_reify_pass {
                 return ReifyKind::PassOption;
@@ -153,6 +163,9 @@ impl ReifyKind {
 
     /// Should `reify` be called on this field when reifying its container?
     pub(crate) fn should_reify(&self) -> bool {
-        matches!(self, Self::ReifySlice | Self::ReifyOption | Self::ReifyOwned)
+        matches!(
+            self,
+            Self::ReifySlice | Self::ReifyOption | Self::ReifyOwned
+        )
     }
 }

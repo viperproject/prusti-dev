@@ -1,10 +1,13 @@
 use prusti_rustc_interface::middle::ty;
-use task_encoder::{TaskEncoder, EncodeFullResult};
+use task_encoder::{EncodeFullResult, TaskEncoder};
 use vir::with_vcx;
 
 use crate::encoders::SnapshotEnc;
 
-use super::{most_generic_ty::extract_type_params, snapshot::{SnapshotEncOutput, SnapshotEncOutputRef}};
+use super::{
+    most_generic_ty::extract_type_params,
+    snapshot::{SnapshotEncOutput, SnapshotEncOutputRef},
+};
 
 pub struct RustTySnapshotsEnc;
 
@@ -43,15 +46,11 @@ impl TaskEncoder for RustTySnapshotsEnc {
         with_vcx(|vcx| {
             let (generic_ty, args) = extract_type_params(vcx.tcx(), *task_key);
             let generic_snapshot = deps.require_ref::<SnapshotEnc>(generic_ty)?;
-            deps.emit_output_ref(
-                *task_key,
-                RustTySnapshotsEncOutputRef { generic_snapshot },
-            )?;
+            deps.emit_output_ref(*task_key, RustTySnapshotsEncOutputRef { generic_snapshot })?;
             for arg in args {
                 deps.require_ref::<RustTySnapshotsEnc>(arg)?;
             }
-            let generic_snapshot = deps
-                .require_local::<SnapshotEnc>(generic_ty)?;
+            let generic_snapshot = deps.require_local::<SnapshotEnc>(generic_ty)?;
             Ok((RustTySnapshotsEncOutput { generic_snapshot }, ()))
         })
     }

@@ -1,11 +1,9 @@
 use prusti_rustc_interface::middle::ty;
-use task_encoder::{TaskEncoder, TaskEncoderDependencies, TaskEncoderError, EncodeFullResult};
+use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies, TaskEncoderError};
 use vir::{FunctionIdent, MethodIdent, StmtGen, UnknownArity, VirCtxt};
 
 use super::{
-    casters::{
-        CastType, CastTypeImpure, CastTypePure, Casters, CastersEncOutputRef,
-    },
+    casters::{CastType, CastTypeImpure, CastTypePure, Casters, CastersEncOutputRef},
     generic::LiftedGeneric,
     rust_ty_cast::{RustTyCastersEnc, RustTyGenericCastEncOutput},
     ty::LiftedTy,
@@ -117,12 +115,14 @@ impl<'vir> GenericCastOutputRef<'vir, MethodIdent<'vir, UnknownArity<'vir>>> {
                 ty_args,
             }) => Some(
                 vcx.alloc(vir::StmtGenData::new(
-                    vcx.alloc(cast_applicator.apply(
-                        vcx,
-                        &std::iter::once(expr)
-                            .chain(ty_args.iter().map(|t| t.expr(vcx)))
-                            .collect::<Vec<_>>(),
-                    )),
+                    vcx.alloc(
+                        cast_applicator.apply(
+                            vcx,
+                            &std::iter::once(expr)
+                                .chain(ty_args.iter().map(|t| t.expr(vcx)))
+                                .collect::<Vec<_>>(),
+                        ),
+                    ),
                 )),
             ),
         }
@@ -192,7 +192,10 @@ where
                 .require_local::<RustTyCastersEnc<T>>(task_key.actual)
                 .unwrap();
             if let CastersEncOutputRef::Casters { make_generic, .. } = generic_cast.cast {
-                GenericCastOutputRef::Cast(Cast::new(T::to_generic_applicator(make_generic), generic_cast.ty_args))
+                GenericCastOutputRef::Cast(Cast::new(
+                    T::to_generic_applicator(make_generic),
+                    generic_cast.ty_args,
+                ))
             } else {
                 unreachable!()
             }

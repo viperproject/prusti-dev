@@ -41,7 +41,7 @@ impl<'tcx> MostGenericTy<'tcx> {
                 } else {
                     String::from("Ref_immutable")
                 }
-            },
+            }
             TyKind::Param(_) => String::from("Param"),
             TyKind::Closure(def_id, _) => {
                 let def_key = vcx.tcx().def_key(def_id);
@@ -50,10 +50,13 @@ impl<'tcx> MostGenericTy<'tcx> {
                     // the compiler, so we give it a name based on its parent.
                     hir::definitions::DefPathData::Closure => format!(
                         "{}_Closure_{}",
-                        vcx.tcx().item_name(DefId { krate: def_id.krate, index: def_key.parent.unwrap() }),
+                        vcx.tcx().item_name(DefId {
+                            krate: def_id.krate,
+                            index: def_key.parent.unwrap()
+                        }),
                         def_key.disambiguated_data.disambiguator,
                     ),
-                    _ => vcx.tcx().item_name(*def_id).to_ident_string()
+                    _ => vcx.tcx().item_name(*def_id).to_ident_string(),
                 }
             }
             TyKind::FnPtr(..) => String::from("FnPtr"),
@@ -167,10 +170,15 @@ pub fn extract_type_params<'tcx>(
             (MostGenericTy(ty), vec![orig])
         }
         TyKind::Param(_) => (MostGenericTy(to_placeholder(tcx, None)), Vec::new()),
-        TyKind::Bool | TyKind::Char | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Float(_)
-        | TyKind::Never | TyKind::Str | TyKind::Closure(..) | TyKind::FnPtr(..) => {
-            (MostGenericTy(ty), Vec::new())
-        }
+        TyKind::Bool
+        | TyKind::Char
+        | TyKind::Int(_)
+        | TyKind::Uint(_)
+        | TyKind::Float(_)
+        | TyKind::Never
+        | TyKind::Str
+        | TyKind::Closure(..)
+        | TyKind::FnPtr(..) => (MostGenericTy(ty), Vec::new()),
         _ => todo!("extract_type_params for {:?}", ty),
     }
 }

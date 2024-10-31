@@ -1,13 +1,10 @@
+use prusti_rustc_interface::{middle::ty::GenericArgs, span::def_id::DefId};
 use task_encoder::TaskEncoder;
-use prusti_rustc_interface::{
-    middle::ty::GenericArgs,
-    span::def_id::DefId
-};
 
 /// Task encoders for Rust functions should implement this trait.
 pub trait FunctionEnc
-    where
-        Self: 'static + Sized + TaskEncoder
+where
+    Self: 'static + Sized + TaskEncoder,
 {
     /// Obtains the function's [`DefId`] from the task key
     fn get_def_id(task_key: &Self::TaskKey<'_>) -> DefId;
@@ -26,7 +23,7 @@ pub trait FunctionEnc
 }
 
 /// Implementation for polymorphic encoding
-impl <T: 'static + for<'vir> TaskEncoder<TaskKey<'vir> = DefId>> FunctionEnc for T {
+impl<T: 'static + for<'vir> TaskEncoder<TaskKey<'vir> = DefId>> FunctionEnc for T {
     fn get_def_id(task_key: &Self::TaskKey<'_>) -> DefId {
         *task_key
     }
@@ -41,5 +38,4 @@ impl <T: 'static + for<'vir> TaskEncoder<TaskKey<'vir> = DefId>> FunctionEnc for
     ) -> &'vir GenericArgs<'vir> {
         GenericArgs::identity_for_item(vcx.tcx(), *def_id)
     }
-
 }

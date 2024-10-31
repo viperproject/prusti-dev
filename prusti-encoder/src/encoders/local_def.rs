@@ -1,10 +1,10 @@
 use prusti_rustc_interface::{
     index::IndexVec,
     middle::{mir, ty},
-    span::def_id::DefId
+    span::def_id::DefId,
 };
 
-use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
+use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 
 use crate::encoders::{
     rust_ty_predicates::{RustTyPredicatesEnc, RustTyPredicatesEncOutputRef},
@@ -32,9 +32,9 @@ impl TaskEncoder for MirLocalDefEnc {
     task_encoder::encoder_cache!(MirLocalDefEnc);
 
     type TaskDescription<'vir> = (
-        DefId, // ID of the function
+        DefId,                    // ID of the function
         ty::GenericArgsRef<'vir>, // ? this should be the "signature", after applying the env/substs
-        Option<DefId>, // ID of the caller function, if any
+        Option<DefId>,            // ID of the caller function, if any
     );
 
     type OutputFullLocal<'vir> = MirLocalDefEncOutput<'vir>;
@@ -72,36 +72,45 @@ impl TaskEncoder for MirLocalDefEnc {
 
         vir::with_vcx(|vcx| {
             let data = if let Some(local_def_id) = def_id.as_local() {
-                let body = vcx.body_mut().get_impure_fn_body(local_def_id, substs, caller_def_id);
-                let locals = IndexVec::from_fn_n(|arg: mir::Local| {
-                    let local = vir::vir_format!(vcx, "_{}p", arg.index());
-                    let ty = deps.require_ref::<RustTyPredicatesEnc>(
-                        body.local_decls[arg].ty,
-                    ).unwrap();
-                    mk_local_def(vcx, local, ty)
-                }, body.local_decls.len());
+                let body = vcx
+                    .body_mut()
+                    .get_impure_fn_body(local_def_id, substs, caller_def_id);
+                let locals = IndexVec::from_fn_n(
+                    |arg: mir::Local| {
+                        let local = vir::vir_format!(vcx, "_{}p", arg.index());
+                        let ty = deps
+                            .require_ref::<RustTyPredicatesEnc>(body.local_decls[arg].ty)
+                            .unwrap();
+                        mk_local_def(vcx, local, ty)
+                    },
+                    body.local_decls.len(),
+                );
                 MirLocalDefEncOutput {
                     locals: vcx.alloc(locals),
                     arg_count: body.arg_count,
                 }
             } else {
                 let param_env = vcx.tcx().param_env(caller_def_id.unwrap_or(def_id));
-                let sig = vcx.tcx()
-                    .instantiate_and_normalize_erasing_regions(substs, param_env, vcx.tcx().fn_sig(def_id));
+                let sig = vcx.tcx().instantiate_and_normalize_erasing_regions(
+                    substs,
+                    param_env,
+                    vcx.tcx().fn_sig(def_id),
+                );
                 let sig = sig.skip_binder();
 
-                let locals = IndexVec::from_fn_n(|arg: mir::Local| {
-                    let local = vir::vir_format!(vcx, "_{}p", arg.index());
-                    let ty = if arg.index() == 0 {
-                        sig.output()
-                    } else {
-                        sig.inputs()[arg.index() - 1]
-                    };
-                    let ty = deps.require_ref::<RustTyPredicatesEnc>(
-                        ty,
-                    ).unwrap();
-                    mk_local_def(vcx, local, ty)
-                }, sig.inputs_and_output.len());
+                let locals = IndexVec::from_fn_n(
+                    |arg: mir::Local| {
+                        let local = vir::vir_format!(vcx, "_{}p", arg.index());
+                        let ty = if arg.index() == 0 {
+                            sig.output()
+                        } else {
+                            sig.inputs()[arg.index() - 1]
+                        };
+                        let ty = deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap();
+                        mk_local_def(vcx, local, ty)
+                    },
+                    sig.inputs_and_output.len(),
+                );
 
                 MirLocalDefEncOutput {
                     locals: vcx.alloc(locals),

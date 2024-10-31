@@ -1,7 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput};
-use syn::spanned::Spanned;
+use syn::{parse_macro_input, spanned::Spanned, DeriveInput};
 
 use super::reify_kind::ReifyKind;
 
@@ -26,10 +25,7 @@ pub fn derive_serde(input: TokenStream) -> TokenStream {
 
     TokenStream::from(match input.data {
         syn::Data::Struct(syn::DataStruct {
-            fields: syn::Fields::Named(syn::FieldsNamed {
-                named,
-                ..
-            }),
+            fields: syn::Fields::Named(syn::FieldsNamed { named, .. }),
             ..
         }) => {
             // "struct UnOpGenData"
@@ -39,7 +35,8 @@ pub fn derive_serde(input: TokenStream) -> TokenStream {
             );
 
             // kind, expr
-            let field_idents = named.iter()
+            let field_idents = named
+                .iter()
                 .map(|field| field.ident.as_ref().unwrap())
                 .collect::<Vec<_>>();
 
@@ -47,38 +44,40 @@ pub fn derive_serde(input: TokenStream) -> TokenStream {
             let field_count = field_idents.len();
 
             // f_kind, f_expr
-            let field_idents_f = field_idents.iter()
-                .map(|ident| syn::Ident::new(&format!("f_{}", ident.to_string().as_str()), ident.span()))
+            let field_idents_f = field_idents
+                .iter()
+                .map(|ident| {
+                    syn::Ident::new(&format!("f_{}", ident.to_string().as_str()), ident.span())
+                })
                 .collect::<Vec<_>>();
 
-            let field_allocs = named.iter()
+            let field_allocs = named
+                .iter()
                 .zip(field_idents_f.iter())
-                .map(|(field, field_ident_f)| {
-                    match ReifyKind::of_field(field) {
-                        ReifyKind::PassString => quote! {
-                            let s: String = seq_val;
-                            let #field_ident_f = crate::with_vcx(|vcx| vcx.alloc_str(&s));
-                        },
-                        ReifyKind::ReifySlice | ReifyKind::PassSlice => quote! {
-                            let vec_of_data: Vec<_> = seq_val;
-                            let #field_ident_f = crate::with_vcx(|vcx| {
-                                let vec_of_refs = vec_of_data.into_iter()
-                                    .map(|val| vcx.alloc(val))
-                                    .collect::<Vec<_>>();
-                                vcx.alloc_slice(&vec_of_refs)
-                            });
-                        },
-                        ReifyKind::ReifyOption | ReifyKind::PassOption => quote! {
-                            let opt: Option<_> = seq_val;
-                            let #field_ident_f = crate::with_vcx(|vcx| opt.map(|val| vcx.alloc(val)));
-                        },
-                        ReifyKind::PassOwned => quote! {
-                            let #field_ident_f = seq_val;
-                        },
-                        ReifyKind::PassRef | ReifyKind::ReifyOwned => quote! {
-                            let #field_ident_f = crate::with_vcx(|vcx| vcx.alloc(seq_val));
-                        },
-                    }
+                .map(|(field, field_ident_f)| match ReifyKind::of_field(field) {
+                    ReifyKind::PassString => quote! {
+                        let s: String = seq_val;
+                        let #field_ident_f = crate::with_vcx(|vcx| vcx.alloc_str(&s));
+                    },
+                    ReifyKind::ReifySlice | ReifyKind::PassSlice => quote! {
+                        let vec_of_data: Vec<_> = seq_val;
+                        let #field_ident_f = crate::with_vcx(|vcx| {
+                            let vec_of_refs = vec_of_data.into_iter()
+                                .map(|val| vcx.alloc(val))
+                                .collect::<Vec<_>>();
+                            vcx.alloc_slice(&vec_of_refs)
+                        });
+                    },
+                    ReifyKind::ReifyOption | ReifyKind::PassOption => quote! {
+                        let opt: Option<_> = seq_val;
+                        let #field_ident_f = crate::with_vcx(|vcx| opt.map(|val| vcx.alloc(val)));
+                    },
+                    ReifyKind::PassOwned => quote! {
+                        let #field_ident_f = seq_val;
+                    },
+                    ReifyKind::PassRef | ReifyKind::ReifyOwned => quote! {
+                        let #field_ident_f = crate::with_vcx(|vcx| vcx.alloc(seq_val));
+                    },
                 })
                 .collect::<Vec<_>>();
 
@@ -132,23 +131,20 @@ pub fn derive_serde(input: TokenStream) -> TokenStream {
             }
         }
 
-        syn::Data::Enum(syn::DataEnum {
-            variants,
-            ..
-        }) => {
+        syn::Data::Enum(syn::DataEnum { variants, .. }) => {
             // "enum StmtGenData"
-            let expecting = syn::LitStr::new(
-                &format!("enum {}", name.to_string().as_str()),
-                name.span(),
-            );
+            let expecting =
+                syn::LitStr::new(&format!("enum {}", name.to_string().as_str()), name.span());
 
             // LocalDecl, PureAssign, ...
-            let variant_idents = variants.iter()
+            let variant_idents = variants
+                .iter()
                 .map(|variant| &variant.ident)
                 .collect::<Vec<_>>();
 
             // "localdecl", "pureassign", ...
-            let variant_strs = variant_idents.iter()
+            let variant_strs = variant_idents
+                .iter()
                 .map(|ident| syn::LitStr::new(ident.to_string().as_str(), ident.span()))
                 .collect::<Vec<_>>();
 

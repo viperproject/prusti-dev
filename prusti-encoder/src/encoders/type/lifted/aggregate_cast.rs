@@ -1,9 +1,12 @@
 use prusti_rustc_interface::{
-    target::abi::VariantIdx,
-    middle::{mir, ty::{GenericArgs, Ty}},
+    middle::{
+        mir,
+        ty::{GenericArgs, Ty},
+    },
     span::def_id::DefId,
+    target::abi::VariantIdx,
 };
-use task_encoder::{TaskEncoder, EncodeFullResult};
+use task_encoder::{EncodeFullResult, TaskEncoder};
 
 use crate::encoders::lifted::cast::{CastArgs, CastToEnc};
 
@@ -41,21 +44,17 @@ impl<'tcx> From<&mir::AggregateKind<'tcx>> for AggregateType<'tcx> {
                 def_id: *def_id,
                 args,
             },
-            mir::AggregateKind::Adt(def_id, variant_index, ..) => {
-                Self::Adt {
-                    def_id: *def_id,
-                    variant_index: *variant_index,
-                }
-            }
+            mir::AggregateKind::Adt(def_id, variant_index, ..) => Self::Adt {
+                def_id: *def_id,
+                variant_index: *variant_index,
+            },
             _ => unimplemented!(),
         }
     }
 }
 
 #[derive(Clone)]
-pub struct AggregateSnapArgsCastEncOutput<'vir>(
-    &'vir [Option<PureCast<'vir>>],
-);
+pub struct AggregateSnapArgsCastEncOutput<'vir>(&'vir [Option<PureCast<'vir>>]);
 
 impl<'vir> AggregateSnapArgsCastEncOutput<'vir> {
     pub fn apply_casts<Curr, Next>(
@@ -93,62 +92,61 @@ impl TaskEncoder for AggregateSnapArgsCastEnc {
     ) -> EncodeFullResult<'vir, Self> {
         deps.emit_output_ref(task_key.clone(), ())?;
         vir::with_vcx(|vcx| {
-            let cast_functions: Vec<Option<PureCast<'vir>>> =
-                match task_key.aggregate_type {
-                    AggregateType::Tuple => task_key
-                        .tys
+            let cast_functions: Vec<Option<PureCast<'vir>>> = match task_key.aggregate_type {
+                AggregateType::Tuple => task_key
+                    .tys
+                    .iter()
+                    .map(|ty| {
+                        let cast_functions = deps
+                            .require_local::<RustTyCastersEnc<CastTypePure>>(*ty)
+                            .unwrap();
+                        cast_functions
+                            .to_generic_cast()
+                            .map(|c| c.map_applicator(|f| f.as_unknown_arity()))
+                    })
+                    .collect::<Vec<_>>(),
+                AggregateType::Closure { args, .. } => {
+                    let cl_args = args.as_closure();
+                    let upvar_tys = cl_args.upvar_tys();
+                    assert!(upvar_tys.len() == task_key.tys.len());
+                    upvar_tys
                         .iter()
-                        .map(|ty| {
-                            let cast_functions =
-                                deps.require_local::<RustTyCastersEnc<CastTypePure>>(*ty).unwrap();
-                            cast_functions.to_generic_cast().map(|c| c.map_applicator(|f| f.as_unknown_arity()))
+                        .zip(task_key.tys.iter())
+                        .map(|(v_ty, actual_ty)| {
+                            let cast = deps
+                                .require_ref::<CastToEnc<CastTypePure>>(CastArgs {
+                                    expected: v_ty,
+                                    actual: *actual_ty,
+                                })
+                                .unwrap();
+                            cast.cast_function()
                         })
-                        .collect::<Vec<_>>(),
-                    AggregateType::Closure {
-                        args,
-                        ..
-                    } => {
-                        let cl_args = args.as_closure();
-                        let upvar_tys = cl_args.upvar_tys();
-                        assert!(upvar_tys.len() == task_key.tys.len());
-                        upvar_tys
-                            .iter()
-                            .zip(task_key.tys.iter())
-                            .map(|(v_ty, actual_ty)| {
-                                let cast = deps
-                                    .require_ref::<CastToEnc<CastTypePure>>(CastArgs {
-                                        expected: v_ty,
-                                        actual: *actual_ty,
-                                    })
-                                    .unwrap();
-                                cast.cast_function()
-                            })
-                            .collect::<Vec<_>>()
-                    }
-                    AggregateType::Adt {
-                        def_id,
-                        variant_index,
-                    } => {
-                        let adt_def = vcx.tcx().adt_def(def_id);
-                        let variant = &adt_def.variant(variant_index);
-                        assert!(variant.fields.len() == task_key.tys.len());
-                        let identity_substs = GenericArgs::identity_for_item(vcx.tcx(), def_id);
-                        variant
-                            .fields
-                            .iter()
-                            .zip(task_key.tys.iter())
-                            .map(|(v_field, actual_ty)| {
-                                let cast = deps
-                                    .require_ref::<CastToEnc<CastTypePure>>(CastArgs {
-                                        expected: v_field.ty(vcx.tcx(), identity_substs),
-                                        actual: *actual_ty,
-                                    })
-                                    .unwrap();
-                                cast.cast_function()
-                            })
-                            .collect::<Vec<_>>()
-                    }
-                };
+                        .collect::<Vec<_>>()
+                }
+                AggregateType::Adt {
+                    def_id,
+                    variant_index,
+                } => {
+                    let adt_def = vcx.tcx().adt_def(def_id);
+                    let variant = &adt_def.variant(variant_index);
+                    assert!(variant.fields.len() == task_key.tys.len());
+                    let identity_substs = GenericArgs::identity_for_item(vcx.tcx(), def_id);
+                    variant
+                        .fields
+                        .iter()
+                        .zip(task_key.tys.iter())
+                        .map(|(v_field, actual_ty)| {
+                            let cast = deps
+                                .require_ref::<CastToEnc<CastTypePure>>(CastArgs {
+                                    expected: v_field.ty(vcx.tcx(), identity_substs),
+                                    actual: *actual_ty,
+                                })
+                                .unwrap();
+                            cast.cast_function()
+                        })
+                        .collect::<Vec<_>>()
+                }
+            };
             Ok((
                 AggregateSnapArgsCastEncOutput(vcx.alloc(cast_functions)),
                 (),

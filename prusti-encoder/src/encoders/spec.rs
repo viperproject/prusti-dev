@@ -1,13 +1,9 @@
+use prusti_interface::specs::typed::{DefSpecificationMap, ProcedureSpecification};
 use prusti_rustc_interface::{
     //middle::{mir, ty},
     span::def_id::DefId,
 };
-use prusti_interface::specs::typed::{DefSpecificationMap, ProcedureSpecification};
-use task_encoder::{
-    TaskEncoder,
-    TaskEncoderDependencies,
-    EncodeFullResult,
-};
+use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 
 pub struct SpecEnc;
 
@@ -42,7 +38,10 @@ where
     DEF_SPEC_MAP.with_borrow(|def_spec: &Option<DefSpecificationMap>| {
         let def_spec = def_spec.as_ref().unwrap();
         // TODO: handle `SpecGraph` better than simply taking the `base_spec`
-        def_spec.get_proc_spec(&def_id).map(|spec| &spec.base_spec).map(f)
+        def_spec
+            .get_proc_spec(&def_id)
+            .map(|spec| &spec.base_spec)
+            .map(f)
     })
 }
 
@@ -53,7 +52,7 @@ pub fn init_def_spec(def_spec: DefSpecificationMap) {
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct SpecEncTask {
     pub def_id: DefId, // ID of the function
-    // TODO: substs here?
+                       // TODO: substs here?
 }
 
 impl TaskEncoder for SpecEnc {
@@ -93,7 +92,7 @@ impl TaskEncoder for SpecEnc {
                     .and_then(|specs| specs.base_spec.posts.expect_empty_or_inherent())
                     .map(|specs| vcx.alloc_slice(specs))
                     .unwrap_or_default();
-                Ok((SpecEncOutput { pres, posts, }, () ))
+                Ok((SpecEncOutput { pres, posts }, ()))
             })
         })
     }

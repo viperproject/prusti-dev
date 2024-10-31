@@ -4,7 +4,7 @@ use prusti_rustc_interface::{
     span::def_id::DefId,
 };
 
-use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
+use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::Reify;
 
 use crate::encoders::{mir_pure::PureKind, rust_ty_predicates::RustTyPredicatesEnc, MirPureEnc};
@@ -44,12 +44,11 @@ impl TaskEncoder for MirSpecEnc {
         let (def_id, substs, caller_def_id, pure) = *task_key;
         deps.emit_output_ref(*task_key, ())?;
 
-        let local_defs = deps
-            .require_local::<crate::encoders::local_def::MirLocalDefEnc>((
-                def_id,
-                substs,
-                caller_def_id,
-            ))?;
+        let local_defs = deps.require_local::<crate::encoders::local_def::MirLocalDefEnc>((
+            def_id,
+            substs,
+            caller_def_id,
+        ))?;
         let specs = deps
             .require_local::<crate::encoders::SpecEnc>(crate::encoders::SpecEncTask { def_id })?;
 
@@ -104,9 +103,7 @@ impl TaskEncoder for MirSpecEnc {
                         .expr;
                     let expr = expr.reify(vcx, (*spec_def_id, pre_args));
                     let span = vcx.tcx().def_span(spec_def_id);
-                    vcx.with_span(span, |vcx| {
-                        to_bool.apply(vcx, [expr])
-                    })
+                    vcx.with_span(span, |vcx| to_bool.apply(vcx, [expr]))
                 })
                 .collect::<Vec<vir::Expr<'_>>>();
 
@@ -127,7 +124,10 @@ impl TaskEncoder for MirSpecEnc {
                     let span = vcx.tcx().def_span(spec_def_id);
                     vcx.with_span(span, |vcx| {
                         vcx.handle_error("postcondition.violated:assertion.false", move |_| {
-                            Some(vec![PrustiError::verification("postcondition might not hold", span.into())])
+                            Some(vec![PrustiError::verification(
+                                "postcondition might not hold",
+                                span.into(),
+                            )])
                         });
                         let expr = deps
                             .require_local::<crate::encoders::MirPureEnc>(

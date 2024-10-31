@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use prusti_rustc_interface::middle::ty::{self, ParamTy, TyKind};
-use task_encoder::{TaskEncoder, EncodeFullResult};
+use task_encoder::{EncodeFullResult, TaskEncoder};
 use vir::{with_vcx, FunctionIdent, UnknownArity};
 
 use crate::encoders::{
@@ -130,8 +130,7 @@ impl TaskEncoder for LiftedTyEnc<EncodeGenericsAsLifted> {
     ) -> EncodeFullResult<'vir, Self> {
         deps.emit_output_ref(*task_key, ())?;
         with_vcx(|vcx| {
-            let result = deps
-                .require_local::<LiftedTyEnc<EncodeGenericsAsParamTy>>(*task_key)?;
+            let result = deps.require_local::<LiftedTyEnc<EncodeGenericsAsParamTy>>(*task_key)?;
             let result = result.map(vcx, &mut |g| {
                 deps.require_ref::<LiftedGenericEnc>(g).unwrap()
             });

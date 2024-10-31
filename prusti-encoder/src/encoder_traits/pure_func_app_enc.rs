@@ -1,17 +1,19 @@
 use prusti_rustc_interface::{
     middle::{
         mir::{self, HasLocalDecls},
-        ty::{self, GenericArg, List, FnSig, Binder},
+        ty::{self, Binder, FnSig, GenericArg, List},
     },
-    span::source_map::Spanned,
-    span::def_id::DefId,
+    span::{def_id::DefId, source_map::Spanned},
 };
 use task_encoder::{TaskEncoder, TaskEncoderDependencies};
 
 use crate::encoders::{
     lifted::{
-        cast::{CastArgs, CastToEnc}, casters::CastTypePure, func_app_ty_params::LiftedFuncAppTyParamsEnc
-    }, FunctionCallTaskDescription, PureFunctionEnc
+        cast::{CastArgs, CastToEnc},
+        casters::CastTypePure,
+        func_app_ty_params::LiftedFuncAppTyParamsEnc,
+    },
+    FunctionCallTaskDescription, PureFunctionEnc,
 };
 
 /// Encoders (such as [`crate::encoders::MirPureEnc`],
@@ -82,9 +84,7 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
             .collect::<Vec<_>>();
         let encoded_ty_args = self
             .deps()
-            .require_local::<LiftedFuncAppTyParamsEnc>(
-                (mono, substs)
-            )
+            .require_local::<LiftedFuncAppTyParamsEnc>((mono, substs))
             .unwrap();
 
         // Initial arguments are lifted type parameters
@@ -103,7 +103,7 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
                     .deps()
                     .require_ref::<CastToEnc<CastTypePure>>(CastArgs {
                         expected: expected_ty,
-                        actual: oper_ty
+                        actual: oper_ty,
                     })
                     .unwrap();
                 caster.apply_cast_if_necessary(self.vcx(), base)
@@ -131,7 +131,11 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
         let fn_result_ty = sig.output().skip_binder();
         let pure_func = self
             .deps()
-            .require_ref::<PureFunctionEnc>(FunctionCallTaskDescription::new(def_id, substs, caller_def_id))
+            .require_ref::<PureFunctionEnc>(FunctionCallTaskDescription::new(
+                def_id,
+                substs,
+                caller_def_id,
+            ))
             .unwrap()
             .function_ref;
         let encoded_args = self.encode_fn_args(sig, substs, args, encode_operand_args);

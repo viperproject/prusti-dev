@@ -1,6 +1,10 @@
-use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
+use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 
-use super::{domain::{DomainEnc, DomainEncSpecifics}, lifted::generic::{LiftedGeneric, LiftedGenericEnc}, most_generic_ty::MostGenericTy};
+use super::{
+    domain::{DomainEnc, DomainEncSpecifics},
+    lifted::generic::{LiftedGeneric, LiftedGenericEnc},
+    most_generic_ty::MostGenericTy,
+};
 
 /// Takes a Rust `Ty` and returns a Viper `Type`. The returned type is always a
 /// domain type. To get specifics such as constructors for the domain, use the
@@ -40,18 +44,13 @@ impl TaskEncoder for SnapshotEnc {
         vir::with_vcx(|vcx| {
             let out = deps.require_ref::<DomainEnc>(*ty)?;
             let snapshot = out.domain.apply(vcx, []);
-            deps.emit_output_ref(
-                *ty,
-                SnapshotEncOutputRef {
-                    snapshot,
-                },
-            )?;
+            deps.emit_output_ref(*ty, SnapshotEncOutputRef { snapshot })?;
             let specifics = deps.require_dep::<DomainEnc>(*ty)?;
             let generics = vcx.alloc_slice(
                 &ty.generics()
                     .into_iter()
                     .map(|g| deps.require_ref::<LiftedGenericEnc>(*g).unwrap())
-                    .collect::<Vec<_>>()
+                    .collect::<Vec<_>>(),
             );
             Ok((
                 SnapshotEncOutput {

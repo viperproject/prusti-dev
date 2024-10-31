@@ -43,6 +43,7 @@ RUSTFMT_CRATES = [
     'prusti-contracts/prusti-specs',
     'prusti-contracts/prusti-std',
     'prusti-contracts-build',
+    'prusti-encoder',
     'prusti-interface',
     'prusti-launch',
     'prusti-rustc-interface',
@@ -57,6 +58,7 @@ RUSTFMT_CRATES = [
     'viper',
     'viper-sys',
     'vir',
+    'vir-proc-macro',
 ]
 
 
