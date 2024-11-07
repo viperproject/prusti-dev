@@ -41,7 +41,7 @@ pub fn expand_one_level<'tcx>(
     current_place: mir::Place<'tcx>,
     guide_place: mir::Place<'tcx>,
 ) -> (mir::Place<'tcx>, Vec<mir::Place<'tcx>>) {
-    use mir_state_analysis::utils::{Place, PlaceRepacker};
+    use pcs::utils::{Place, PlaceRepacker};
     let repacker = PlaceRepacker::new(mir, tcx);
     let current_place = Place::from(current_place);
     let res = current_place.expand_one_level(Place::from(guide_place), repacker);

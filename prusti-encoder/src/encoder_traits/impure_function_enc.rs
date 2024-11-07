@@ -1,4 +1,3 @@
-use prusti_interface::environment::EnvBody;
 use prusti_rustc_interface::middle::mir;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{MethodIdent, UnknownArity, ViperIdent};
@@ -91,7 +90,7 @@ where
                     .body_mut()
                     .get_impure_fn_body_with_facts(local_def_id);
 
-                let fpcs_analysis = mir_state_analysis::run_combined_pcs(&body_with_facts, vcx.tcx(), None);
+                let fpcs_analysis = pcs::run_combined_pcs(&body_with_facts, vcx.tcx(), None);
 
                 let block_count = body.basic_blocks.len();
 

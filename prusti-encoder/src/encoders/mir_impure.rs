@@ -1,5 +1,5 @@
-use mir_state_analysis::{
-    borrows::engine::BorrowsDomain, free_pcs::{CapabilityKind, FreePcsAnalysis, FreePcsBasicBlock, FreePcsLocation, RepackOp}, utils::Place, FpcsOutput, ReborrowBridge
+use pcs::{
+    borrows::engine::BorrowsDomain, free_pcs::{CapabilityKind, FreePcsBasicBlock, FreePcsLocation, RepackOp}, utils::{Place, PlaceRepacker}, FpcsOutput, ReborrowBridge
 };
 use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
@@ -256,7 +256,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     let predicate = ref_to_pred.apply(self.vcx, args, None);
                     if matches!(
                         repack_op,
-                        mir_state_analysis::free_pcs::RepackOp::Expand(..)
+                        pcs::free_pcs::RepackOp::Expand(..)
                     ) {
                         self.stmt(self.vcx.mk_unfold_stmt(predicate));
                     } else {
@@ -562,6 +562,38 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
             vir::vir_format!(self.vcx, "{statement:?}"),
         ));
 
+        let body = self.vcx
+            .body_mut()
+            .get_impure_fn_body_identity(self.def_id.expect_local());
+        let repacker = PlaceRepacker::new(&body, self.vcx.tcx());
+
+        let current_fpcs = self.current_fpcs.take().unwrap();
+        self.stmt(self.vcx.mk_comment_stmt(
+            vir::vir_format!(self.vcx, "added reborrows (start): {:?}", current_fpcs.statements[location.statement_index].extra_start.added_reborrows),
+        ));
+        self.stmt(self.vcx.mk_comment_stmt(
+            vir::vir_format!(self.vcx, "expands (start): {:?}", current_fpcs.statements[location.statement_index].extra_start.expands),
+        ));
+        self.stmt(self.vcx.mk_comment_stmt(
+            vir::vir_format!(self.vcx, "ug actions (start): {:?}", current_fpcs.statements[location.statement_index].extra_start.ug.clone().actions(repacker)),
+        ));
+        self.stmt(self.vcx.mk_comment_stmt(
+            vir::vir_format!(self.vcx, "repacks (start): {:?}", current_fpcs.statements[location.statement_index].repacks_start),
+        ));
+        self.stmt(self.vcx.mk_comment_stmt(
+            vir::vir_format!(self.vcx, "added reborrows (middle): {:?}", current_fpcs.statements[location.statement_index].extra_middle.as_ref().map(|e| &e.added_reborrows)),
+        ));
+        self.stmt(self.vcx.mk_comment_stmt(
+            vir::vir_format!(self.vcx, "expands (middle): {:?}", current_fpcs.statements[location.statement_index].extra_middle.as_ref().map(|e| &e.expands)),
+        ));
+        self.stmt(self.vcx.mk_comment_stmt(
+            vir::vir_format!(self.vcx, "ug actions (middle): {:?}", current_fpcs.statements[location.statement_index].extra_middle.as_ref().map(|e| e.ug.clone().actions(repacker))),
+        ));
+        self.stmt(self.vcx.mk_comment_stmt(
+            vir::vir_format!(self.vcx, "repacks (middle): {:?}", current_fpcs.statements[location.statement_index].repacks_middle),
+        ));
+        self.current_fpcs = Some(current_fpcs);
+
         self.fpcs_repacks_location(location, |loc| &loc.repacks_start);
         // TODO: move this to after getting operands, before assignment
         self.fpcs_repacks_location(location, |loc| &loc.repacks_middle);
@@ -679,14 +711,14 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                             }
                         }
                     }
-                    mir::Rvalue::Ref(reg, kind, place) => {
+                    mir::Rvalue::Ref(_reg, _kind, place) => {
                         let e_rvalue_ty = self.deps.require_ref::<RustTyPredicatesEnc>(rvalue_ty).unwrap();
 
                         let place_ty = place.ty(self.local_decls, self.vcx.tcx());
                         let ty = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
                         let place_expr = self.encode_place(Place::from(*place)).expr;
                         eprintln!("{rvalue_ty:?} {place_ty:?}");
-                          let cast = self
+                        let cast = self
                             .deps
                             .require_local::<RustTyCastersEnc<CastTypePure>>(place_ty.ty)
                             .unwrap();
@@ -711,13 +743,20 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     }
                 };
 
+                // TODO: this is to do FPCS repacks after accessing the rvalue
+                //let e_rvalue_ty = self.deps.require_ref::<RustTyPredicatesEnc>(rvalue_ty).unwrap();
+                //let (rval_var, rval_expr) = self.new_tmp(e_rvalue_ty.snapshot());
+                //self.stmt(self.vcx.mk_pure_assign_stmt(rval_expr, expr));
+
+                self.fpcs_repacks_location(location, |loc| &loc.repacks_middle);
+
                 let dest_ty = dest.ty(self.local_decls, self.vcx.tcx());
                 assert!(dest_ty.variant_index.is_none());
                 let dest_ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(dest_ty.ty).unwrap();
                 let method_assign_app = dest_ty_out.apply_method_assign(
                     self.vcx,
                     proj_ref,
-                    expr
+                    expr, // rval_expr,
                 );
 
                 self.stmt(method_assign_app);

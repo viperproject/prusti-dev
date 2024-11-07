@@ -1,4 +1,4 @@
-use mir_state_analysis::combined_pcs::BodyWithBorrowckFacts;
+use pcs::combined_pcs::BodyWithBorrowckFacts;
 use prusti_rustc_interface::{
     macros::{TyDecodable, TyEncodable},
     middle::{
