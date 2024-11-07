@@ -53,18 +53,22 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
             viper::VerificationResult::JavaException(_e) => false,
             viper::VerificationResult::ConsistencyErrors(_e) => false,
             viper::VerificationResult::Failure(errors) => {
-                errors
-                    .into_iter()
-                    .flat_map(|error| {
-                        prusti_encoder::backtranslate_error(
+                for error in errors {
+                    // TODO: offending_pos_id should always be set!
+                    if let Some(offending_pos_id) = error.offending_pos_id {
+                        if let Some(translated_errors) = prusti_encoder::backtranslate_error(
                             &error.full_id,
-                            error.offending_pos_id.unwrap().parse::<usize>().unwrap(),
+                            offending_pos_id.parse::<usize>().unwrap(),
                             error.reason_pos_id.and_then(|id| id.parse::<usize>().ok()),
-                        )
-                        .expect("verification error could not be backtranslated")
-                        .into_iter()
-                    })
-                    .for_each(|prusti_error| prusti_error.emit(&env.diagnostic));
+                        ) {
+                            for prusti_error in translated_errors {
+                                prusti_error.emit(&env.diagnostic);
+                            }
+                        }
+                    } else {
+                        eprintln!("verifier error without offending_pos_id: {error:?}");
+                    }
+                }
                 false
             }
         };
