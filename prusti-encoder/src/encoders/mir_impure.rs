@@ -1,5 +1,7 @@
 use pcs::{
-    borrows::engine::BorrowsDomain, free_pcs::{CapabilityKind, FreePcsBasicBlock, FreePcsLocation, RepackOp}, utils::{Place, PlaceRepacker}, FpcsOutput, ReborrowBridge
+    free_pcs::{CapabilityKind, FreePcsBasicBlock, FreePcsLocation, RepackOp},
+    utils::{Place, PlaceRepacker},
+    FpcsOutput,
 };
 use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
@@ -107,7 +109,7 @@ where
     pub tmp_ctr: usize,
 
     // for the current basic block
-    pub current_fpcs: Option<FreePcsBasicBlock<'vir, BorrowsDomain<'enc, 'vir>, ReborrowBridge<'vir>>>,
+    pub current_fpcs: Option<FreePcsBasicBlock<'vir>>,
 
     pub current_stmts: Option<Vec<vir::Stmt<'vir>>>,
     pub current_terminator: Option<vir::TerminatorStmt<'vir>>,
@@ -221,7 +223,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn collect_terminator_repacks(
         &mut self,
         idx: usize,
-        repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b, BorrowsDomain<'a, 'b>, ReborrowBridge<'b>>) -> &'a [RepackOp<'b>],
+        repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b>) -> &'a [RepackOp<'b>],
     ) -> Vec<&'vir vir::StmtData<'vir>> {
         let current_stmts = self.current_stmts.take();
         self.current_stmts = Some(Vec::new());
@@ -286,7 +288,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn fpcs_repacks_location(
         &mut self,
         location: mir::Location,
-        repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b, BorrowsDomain<'a, 'b>, ReborrowBridge<'b>>) -> &'a [RepackOp<'b>],
+        repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b>) -> &'a [RepackOp<'b>],
     ) {
         let current_fpcs = self.current_fpcs.take().unwrap();
         let repacks = repacks(&current_fpcs.statements[location.statement_index]);
@@ -297,7 +299,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn fpcs_repacks_terminator(
         &mut self,
         succ_idx: usize,
-        repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b, BorrowsDomain<'a, 'b>, ReborrowBridge<'b>>) -> &'a [RepackOp<'b>],
+        repacks: impl for<'a, 'b> Fn(&'a FreePcsLocation<'b>) -> &'a [RepackOp<'b>],
     ) {
         let current_fpcs = self.current_fpcs.take().unwrap();
         let repacks = repacks(&current_fpcs.terminator.succs[succ_idx]);
@@ -562,17 +564,20 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
             vir::vir_format!(self.vcx, "{statement:?}"),
         ));
 
+        let current_fpcs = self.current_fpcs.take().unwrap();
+        /*
         let body = self.vcx
             .body_mut()
             .get_impure_fn_body_identity(self.def_id.expect_local());
         let repacker = PlaceRepacker::new(&body, self.vcx.tcx());
-
-        let current_fpcs = self.current_fpcs.take().unwrap();
         self.stmt(self.vcx.mk_comment_stmt(
-            vir::vir_format!(self.vcx, "added reborrows (start): {:?}", current_fpcs.statements[location.statement_index].extra_start.added_reborrows),
+            vir::vir_format!(self.vcx, "added reborrows (start): {:?}", current_fpcs.statements[location.statement_index].extra_start.added_borrows),
         ));
         self.stmt(self.vcx.mk_comment_stmt(
             vir::vir_format!(self.vcx, "expands (start): {:?}", current_fpcs.statements[location.statement_index].extra_start.expands),
+        ));
+        self.stmt(self.vcx.mk_comment_stmt(
+            vir::vir_format!(self.vcx, "weakens (start): {:?}", current_fpcs.statements[location.statement_index].extra_start.weakens),
         ));
         self.stmt(self.vcx.mk_comment_stmt(
             vir::vir_format!(self.vcx, "ug actions (start): {:?}", current_fpcs.statements[location.statement_index].extra_start.ug.clone().actions(repacker)),
@@ -581,17 +586,26 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
             vir::vir_format!(self.vcx, "repacks (start): {:?}", current_fpcs.statements[location.statement_index].repacks_start),
         ));
         self.stmt(self.vcx.mk_comment_stmt(
-            vir::vir_format!(self.vcx, "added reborrows (middle): {:?}", current_fpcs.statements[location.statement_index].extra_middle.as_ref().map(|e| &e.added_reborrows)),
+            vir::vir_format!(self.vcx, "added reborrows (middle): {:?}", current_fpcs.statements[location.statement_index].extra_middle.added_borrows),
         ));
         self.stmt(self.vcx.mk_comment_stmt(
-            vir::vir_format!(self.vcx, "expands (middle): {:?}", current_fpcs.statements[location.statement_index].extra_middle.as_ref().map(|e| &e.expands)),
+            vir::vir_format!(self.vcx, "expands (middle): {:?}", current_fpcs.statements[location.statement_index].extra_middle.expands),
         ));
         self.stmt(self.vcx.mk_comment_stmt(
-            vir::vir_format!(self.vcx, "ug actions (middle): {:?}", current_fpcs.statements[location.statement_index].extra_middle.as_ref().map(|e| e.ug.clone().actions(repacker))),
+            vir::vir_format!(self.vcx, "weakens (middle): {:?}", current_fpcs.statements[location.statement_index].extra_middle.weakens),
+        ));
+        self.stmt(self.vcx.mk_comment_stmt(
+            vir::vir_format!(self.vcx, "ug actions (middle): {:?}", current_fpcs.statements[location.statement_index].extra_middle.ug.clone().actions(repacker)),
         ));
         self.stmt(self.vcx.mk_comment_stmt(
             vir::vir_format!(self.vcx, "repacks (middle): {:?}", current_fpcs.statements[location.statement_index].repacks_middle),
         ));
+        */
+
+        // TODO: does this belong here?
+        self.fpcs_repacks(&current_fpcs.statements[location.statement_index].extra_start.weakens.iter().map(|weaken| RepackOp::Weaken(weaken.0, weaken.1, weaken.2)).collect::<Vec<_>>());
+        self.fpcs_repacks(&current_fpcs.statements[location.statement_index].extra_middle.weakens.iter().map(|weaken| RepackOp::Weaken(weaken.0, weaken.1, weaken.2)).collect::<Vec<_>>());
+
         self.current_fpcs = Some(current_fpcs);
 
         self.fpcs_repacks_location(location, |loc| &loc.repacks_start);
