@@ -280,6 +280,11 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                             .mk_exhale_stmt(place_ty_out.ref_to_pred(self.vcx, ref_p, None)),
                     );
                 }
+                r @ RepackOp::RegainLoanedCapability(..) => {
+                    self.stmt(self.vcx.mk_comment_stmt(
+                        vir::vir_format!(self.vcx, "unknown repack op: {r:?}"),
+                    ));
+                }
                 unsupported_op => panic!("unsupported repack op: {unsupported_op:?}"),
             }
         }
@@ -565,7 +570,6 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
         ));
 
         let current_fpcs = self.current_fpcs.take().unwrap();
-        /*
         let body = self.vcx
             .body_mut()
             .get_impure_fn_body_identity(self.def_id.expect_local());
@@ -600,11 +604,10 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
         self.stmt(self.vcx.mk_comment_stmt(
             vir::vir_format!(self.vcx, "repacks (middle): {:?}", current_fpcs.statements[location.statement_index].repacks_middle),
         ));
-        */
 
         // TODO: does this belong here?
-        self.fpcs_repacks(&current_fpcs.statements[location.statement_index].extra_start.weakens.iter().map(|weaken| RepackOp::Weaken(weaken.0, weaken.1, weaken.2)).collect::<Vec<_>>());
-        self.fpcs_repacks(&current_fpcs.statements[location.statement_index].extra_middle.weakens.iter().map(|weaken| RepackOp::Weaken(weaken.0, weaken.1, weaken.2)).collect::<Vec<_>>());
+        //self.fpcs_repacks(&current_fpcs.statements[location.statement_index].extra_start.weakens.iter().map(|weaken| RepackOp::Weaken(weaken.0, weaken.1, weaken.2)).collect::<Vec<_>>());
+        //self.fpcs_repacks(&current_fpcs.statements[location.statement_index].extra_middle.weakens.iter().map(|weaken| RepackOp::Weaken(weaken.0, weaken.1, weaken.2)).collect::<Vec<_>>());
 
         self.current_fpcs = Some(current_fpcs);
 
