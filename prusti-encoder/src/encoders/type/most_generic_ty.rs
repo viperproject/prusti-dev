@@ -23,45 +23,49 @@ impl<'tcx: 'vir, 'vir> MostGenericTy<'tcx> {
     }
 }
 
+pub fn get_vir_base_name_kind<'tcx>(kind: &ty::TyKind<'tcx>, vcx: &vir::VirCtxt<'tcx>) -> String {
+    match kind {
+        TyKind::Bool => String::from("Bool"),
+        TyKind::Char => String::from("Char"),
+        TyKind::Int(kind) => format!("Int_{}", kind.name_str()),
+        TyKind::Uint(kind) => format!("UInt_{}", kind.name_str()),
+        TyKind::Float(kind) => format!("Float_{}", kind.name_str()),
+        TyKind::Str => String::from("String"),
+        TyKind::Adt(adt, _) => vcx.tcx().item_name(adt.did()).to_ident_string(),
+        TyKind::Tuple(params) => format!("{}_Tuple", params.len()),
+        TyKind::Never => String::from("Never"),
+        TyKind::Ref(_, _, m) => {
+            if m.is_mut() {
+                String::from("Ref_mutable")
+            } else {
+                String::from("Ref_immutable")
+            }
+        }
+        TyKind::Param(_) => String::from("Param"),
+        TyKind::Closure(def_id, _) => {
+            let def_key = vcx.tcx().def_key(def_id);
+            match def_key.disambiguated_data.data {
+                // Asking for the item_name of a closure triggers an ICE in
+                // the compiler, so we give it a name based on its parent.
+                hir::definitions::DefPathData::Closure => format!(
+                    "{}_Closure_{}",
+                    vcx.tcx().item_name(DefId {
+                        krate: def_id.krate,
+                        index: def_key.parent.unwrap()
+                    }),
+                    def_key.disambiguated_data.disambiguator,
+                ),
+                _ => vcx.tcx().item_name(*def_id).to_ident_string(),
+            }
+        }
+        TyKind::FnPtr(..) => String::from("FnPtr"),
+        other => unimplemented!("get_vir_base_name for {:?}", other),
+    }
+}
+
 impl<'tcx> MostGenericTy<'tcx> {
     pub fn get_vir_base_name(&self, vcx: &vir::VirCtxt<'tcx>) -> String {
-        match self.kind() {
-            TyKind::Bool => String::from("Bool"),
-            TyKind::Char => String::from("Char"),
-            TyKind::Int(kind) => format!("Int_{}", kind.name_str()),
-            TyKind::Uint(kind) => format!("UInt_{}", kind.name_str()),
-            TyKind::Float(kind) => format!("Float_{}", kind.name_str()),
-            TyKind::Str => String::from("String"),
-            TyKind::Adt(adt, _) => vcx.tcx().item_name(adt.did()).to_ident_string(),
-            TyKind::Tuple(params) => format!("{}_Tuple", params.len()),
-            TyKind::Never => String::from("Never"),
-            TyKind::Ref(_, _, m) => {
-                if m.is_mut() {
-                    String::from("Ref_mutable")
-                } else {
-                    String::from("Ref_immutable")
-                }
-            }
-            TyKind::Param(_) => String::from("Param"),
-            TyKind::Closure(def_id, _) => {
-                let def_key = vcx.tcx().def_key(def_id);
-                match def_key.disambiguated_data.data {
-                    // Asking for the item_name of a closure triggers an ICE in
-                    // the compiler, so we give it a name based on its parent.
-                    hir::definitions::DefPathData::Closure => format!(
-                        "{}_Closure_{}",
-                        vcx.tcx().item_name(DefId {
-                            krate: def_id.krate,
-                            index: def_key.parent.unwrap()
-                        }),
-                        def_key.disambiguated_data.disambiguator,
-                    ),
-                    _ => vcx.tcx().item_name(*def_id).to_ident_string(),
-                }
-            }
-            TyKind::FnPtr(..) => String::from("FnPtr"),
-            other => unimplemented!("get_vir_base_name for {:?}", other),
-        }
+        get_vir_base_name_kind(self.kind(), vcx)
     }
 
     pub fn is_generic(&self) -> bool {
