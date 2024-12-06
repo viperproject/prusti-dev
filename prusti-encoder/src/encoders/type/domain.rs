@@ -9,8 +9,7 @@ use prusti_rustc_interface::{
 };
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{
-    BinaryArity, CallableIdent, DomainParamData, FunctionIdent, NullaryArityAny, ToKnownArity,
-    UnaryArity, UnknownArity,
+    BinaryArity, CallableIdent, DomainAxiomData, DomainFunction, DomainFunctionData, DomainIdent, DomainParamData, FunctionIdent, NullaryArityAny, ToKnownArity, UnaryArity, UnknownArity
 };
 
 /// You probably never want to use this, use `SnapshotEnc` instead.
@@ -142,13 +141,19 @@ impl TaskEncoder for DomainEnc {
     ) -> EncodeFullResult<'vir, Self> {
         vir::with_vcx(|vcx| {
             let base_name = task_key.get_vir_base_name(vcx);
-            match task_key.kind() {
+            let ty_kind = task_key.kind();
+            let mut builder = DomainBuilder::new(vcx);
+            match ty_kind {
                 TyKind::Bool
                 | TyKind::Char
                 | TyKind::Int(_)
                 | TyKind::Uint(_)
                 | TyKind::Float(_) => {
-                    let prim_type = match task_key.kind() {
+                    let specifics = super::kinds::primitive::domain(*task_key, deps, &mut builder)?;
+                    Ok((Some(builder.build()), specifics))
+
+                    /*
+                    let prim_type = match ty_kind {
                         TyKind::Bool => &vir::TypeData::Bool,
                         TyKind::Int(_) => &vir::TypeData::Int,
                         TyKind::Uint(_) => &vir::TypeData::Int,
@@ -160,6 +165,7 @@ impl TaskEncoder for DomainEnc {
                         .emit_output_ref(*task_key, enc.output_ref(base_name))?;
                     let specifics = enc.mk_prim_specifics(task_key.ty(), prim_type);
                     Ok((Some(enc.finalize(task_key)), specifics))
+                    */
                 }
                 TyKind::Closure(_def_id, args) => {
                     let cl_args = args.as_closure();
@@ -308,6 +314,102 @@ impl TaskEncoder for DomainEnc {
                 kind => todo!("{kind:?}"),
             }
         })
+    }
+}
+
+pub(crate) struct DomainBuilder<'vir> {
+    pub(crate) vcx: &'vir vir::VirCtxt<'vir>,
+    name: Option<&'vir str>,
+    domain_ident: Option<vir::DomainIdent<'vir, NullaryArityAny<'vir, DomainParamData<'vir>>>>,
+    self_type: Option<vir::Type<'vir>>,
+    axioms: Vec<vir::DomainAxiom<'vir>>,
+    functions: Vec<vir::DomainFunction<'vir>>,
+}
+
+impl<'vir> DomainBuilder<'vir> {
+    pub(crate) fn new(
+        vcx: &'vir vir::VirCtxt<'vir>,
+    ) -> Self {
+        DomainBuilder {
+            vcx,
+            name: None,
+            domain_ident: None,
+            self_type: None,
+            axioms: Vec::new(),
+            functions: Vec::new(),
+        }
+    }
+    pub(crate) fn emit_output_ref(&mut self) {}
+
+    pub(crate) fn set_name(&mut self, name: &str) {
+        let name = vir::vir_format!(self.vcx, "s_{name}");
+        self.name = Some(name);
+        self.domain_ident = Some(DomainIdent::nullary(vir::ViperIdent::new(name)));
+        self.self_type = Some(self.vcx.alloc(vir::TypeData::Domain(self.name.expect("name should be set"), &[])));
+    }
+
+    pub(crate) fn function(
+        &mut self,
+        name: &str,
+        args: &[&'vir vir::TypeData],
+        ret: &'vir vir::TypeData,
+    ) -> FunctionIdent<'vir, UnknownArity<'vir>> {
+        let name = vir::vir_format!(self.vcx, "{}_{name}", self.name.expect("name should be set"));
+        let args = self.vcx.alloc_slice(args);
+        let ident = FunctionIdent::new(
+            vir::ViperIdent::new(name),
+            UnknownArity::new(args),
+            ret,
+        );
+        self.functions.push(self.vcx.alloc(DomainFunctionData {
+            unique: false,
+            name: ident.name(),
+            args,
+            ret,
+        }));
+        ident
+    }
+    pub(crate) fn axiom(
+        &mut self,
+        name: &str,
+        expr: vir::Expr<'vir>,
+    ) {
+        let name = vir::vir_format!(self.vcx, "{}_ax_{name}", self.name.expect("name should be set"));
+        self.axioms.push(self.vcx.alloc(DomainAxiomData {
+            name,
+            expr,
+        }));
+    }
+
+    pub(crate) fn self_type(&self) -> vir::Type<'vir> {
+        self.self_type.expect("name should be set")
+    }
+    pub(crate) fn type_type(&self) -> vir::Type<'vir> {
+        &vir::TypeData::Domain("Type", &[]) // TODO: refer to something else
+    }
+
+    pub(crate) fn output_ref(&self, base_name: String, typeof_function: FunctionIdent<'vir, UnaryArity<'vir>>) -> DomainEncOutputRef<'vir> {
+        DomainEncOutputRef {
+            base_name,
+            domain: self.domain_ident.expect("name should be set"),
+            typeof_function: typeof_function,
+            ty_param_accessors: &[], /*self.vcx.alloc_slice(
+                &self
+                    .generics
+                    .iter()
+                    .map(|(_, ident)| *ident)
+                    .collect::<Vec<_>>(),
+            ),*/
+        }
+    }
+
+    pub(crate) fn build(self) -> vir::Domain<'vir> {
+        self.vcx.mk_domain(
+            self.domain_ident.expect("name should be set").name(),
+            &[],
+            self.vcx.alloc_slice(&self.axioms),
+            self.vcx.alloc_slice(&self.functions),
+        )
     }
 }
 
