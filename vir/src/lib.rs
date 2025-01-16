@@ -9,7 +9,7 @@ mod debug;
 mod debug_info;
 mod gendata;
 mod genrefs; // TODO: explain gen...
-mod macros;
+pub mod macros;
 mod make;
 mod refs;
 mod reify;
