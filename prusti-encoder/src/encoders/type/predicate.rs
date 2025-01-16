@@ -44,7 +44,7 @@ pub struct PredicateEncDataVariant<'vir> {
 pub struct PredicateEncDataRef<'vir> {
     pub ref_field: vir::Field<'vir>,
     pub perm: Option<vir::Expr<'vir>>,
-    pub snap_data: DomainDataStruct<'vir>,
+    pub snap_data: DomainDataRef<'vir>,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -181,7 +181,7 @@ pub struct PredicateEncOutput<'vir> {
 use crate::encoders::GenericEnc;
 
 use super::{
-    domain::{DiscrBounds, DomainDataEnum, DomainDataPrim, DomainDataStruct},
+    domain::{DiscrBounds, DomainDataEnum, DomainDataPrim, DomainDataRef, DomainDataStruct},
     lifted::{
         generic::LiftedGeneric,
         ty::{EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc},
@@ -368,14 +368,14 @@ impl TaskEncoder for PredicateEnc {
                 ty::AdtKind::Union => todo!(),
             },
             TyKind::Never => {
-                let specifics = enc.mk_enum_ref(snap.specifics.expect_enumlike());
-                assert!(specifics.is_none());
+                let specifics = enc.mk_struct_ref(Some("Never"), snap.specifics.expect_structlike());
+                //assert!(specifics.is_none());
                 deps.emit_output_ref(*task_key, enc.output_ref(PredicateEncData::EnumLike(None)))?;
 
                 Ok((enc.mk_enum(None), ()))
             }
             &TyKind::Ref(_, inner, m) => {
-                let snap_data = snap.specifics.expect_structlike();
+                let snap_data = snap.specifics.expect_ref();
                 let specifics = enc.mk_ref_ref(snap_data, m.is_mut());
                 deps.emit_output_ref(*task_key, enc.output_ref(PredicateEncData::Ref(specifics)))?;
 
@@ -545,7 +545,7 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
     }
     pub fn mk_ref_ref(
         &mut self,
-        snap_data: DomainDataStruct<'vir>,
+        snap_data: DomainDataRef<'vir>,
         mutbl: bool,
     ) -> PredicateEncDataRef<'vir> {
         let name = vir::vir_format_identifier!(self.vcx, "{}_ref", self.ref_to_pred.name());
@@ -716,12 +716,12 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
         let snap = if data.perm.is_none() {
             // `Ref` is only part of snapshots for mutable references.
             data.snap_data
-                .field_snaps_to_snap
-                .apply(self.vcx, &[inner_snap, self_ref])
+                .snap_to_prim
+                .apply(self.vcx, [self_ref]) // &[inner_snap, self_ref])
         } else {
             data.snap_data
-                .field_snaps_to_snap
-                .apply(self.vcx, &[inner_snap])
+                .snap_to_prim
+                .apply(self.vcx, [self_ref]) // &[inner_snap])
         };
         let fn_snap_body = self.vcx.mk_unfolding_expr(self.self_pred_read, snap);
         self.finalize(Some(fn_snap_body))
