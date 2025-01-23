@@ -4,8 +4,7 @@ use prusti_rustc_interface::{
 };
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{
-    add_debug_note, CallableIdent, FunctionIdent, MethodIdent, NullaryArity, PredicateIdent,
-    TypeData, UnaryArity, UnknownArity, VirCtxt,
+    add_debug_note, CallableIdent, FunctionData, FunctionIdent, MethodIdent, NullaryArity, PredicateIdent, TypeData, UnaryArity, UnknownArity, VirCtxt
 };
 
 /// Takes a `MostGenericTy` and returns various Viper predicates and functions for
@@ -26,9 +25,9 @@ pub struct PredicateEncDataStruct<'vir> {
 
 #[derive(Clone, Copy, Debug)]
 pub struct PredicateEncDataEnum<'vir> {
-    pub discr: vir::Field<'vir>,
+    pub discr: FunctionIdent<'vir, UnaryArity<'vir>>,
     pub discr_prim: DomainDataPrim<'vir>,
-    pub discr_bounds: DiscrBounds<'vir>,
+    //pub discr_bounds: DiscrBounds<'vir>,
     // pub snap_to_discr_snap: FunctionIdent<'vir, UnaryArity<'vir>>,
     pub variants: &'vir [PredicateEncDataVariant<'vir>],
 }
@@ -167,6 +166,166 @@ impl<'vir> PredicateEncOutputRef<'vir> {
     }
 }
 
+pub(crate) struct PredicateBuilder<'vir> {
+    pub(crate) vcx: &'vir vir::VirCtxt<'vir>,
+    name: Option<&'vir str>,
+    pub(crate) fields: Vec<vir::Field<'vir>>,
+    pub(crate) predicates: Vec<vir::Predicate<'vir>>,
+    pub(crate) functions: Vec<vir::Function<'vir>>,
+    pub(crate) methods: Vec<vir::Method<'vir>>,
+}
+
+impl<'vir> PredicateBuilder<'vir> {
+    pub(crate) fn new(
+        vcx: &'vir vir::VirCtxt<'vir>,
+    ) -> Self {
+        PredicateBuilder {
+            vcx,
+            name: None,
+            fields: Vec::new(),
+            functions: Vec::new(),
+            methods: Vec::new(),
+            predicates: Vec::new(),
+        }
+    }
+
+    pub(crate) fn set_name(&mut self, name: &str) {
+        let name = vir::vir_format!(self.vcx, "p_{name}");
+        self.name = Some(name);
+    }
+
+    fn ident_str(&self, name: &str) -> &'vir str {
+        let prefix = self.name.expect("name should be set");
+        if name == "" {
+            prefix
+        } else {
+            vir::vir_format!(self.vcx, "{prefix}_{name}")
+        }
+    }
+
+    pub(crate) fn field(
+        &mut self,
+        name: &str,
+        typ: vir::Type<'vir>,
+    ) -> vir::Field<'vir> {
+        let name = self.ident_str(name);
+        let field = self.vcx.mk_field(name, typ);
+        self.fields.push(field);
+        field
+    }
+
+    pub(crate) fn predicate_ident(
+        &mut self,
+        name: &str,
+        args: &[vir::LocalDecl<'vir>],
+    ) -> PredicateIdent<'vir, UnknownArity<'vir>> {
+        let name = self.ident_str(name);
+        let ident = PredicateIdent::new(
+            vir::ViperIdent::new(name),
+            UnknownArity::new(self.vcx.alloc_slice(&args.iter().map(|arg| arg.ty).collect::<Vec<_>>())),
+        );
+        ident
+    }
+    pub(crate) fn predicate(
+        &mut self,
+        name: &str,
+        args: &[vir::LocalDecl<'vir>],
+        expr: Option<vir::Expr<'vir>>,
+    ) -> PredicateIdent<'vir, UnknownArity<'vir>> {
+        let name = self.ident_str(name);
+        let ident = PredicateIdent::new(
+            vir::ViperIdent::new(name),
+            UnknownArity::new(self.vcx.alloc_slice(&args.iter().map(|arg| arg.ty).collect::<Vec<_>>())),
+        );
+        self.predicates.push(self.vcx.mk_predicate(
+            ident,
+            self.vcx.alloc_slice(args),
+            expr,
+        ));
+        ident
+    }
+
+    pub(crate) fn function_ident(
+        &mut self,
+        name: &str,
+        args: &[vir::LocalDecl<'vir>],
+        ret: vir::Type<'vir>,
+    ) -> FunctionIdent<'vir, UnknownArity<'vir>> {
+        let name = self.ident_str(name);
+        let ident = FunctionIdent::new(
+            vir::ViperIdent::new(name),
+            UnknownArity::new(self.vcx.alloc_slice(&args.iter().map(|arg| arg.ty).collect::<Vec<_>>())),
+            ret,
+        );
+        ident
+    }
+    pub(crate) fn function(
+        &mut self,
+        name: &str,
+        args: &[vir::LocalDecl<'vir>],
+        ret: vir::Type<'vir>,
+        pres: &[vir::Expr<'vir>],
+        posts: &[vir::Expr<'vir>],
+        expr: Option<vir::Expr<'vir>>,
+    ) -> FunctionIdent<'vir, UnknownArity<'vir>> {
+        let name = self.ident_str(name);
+        let ident = FunctionIdent::new(
+            vir::ViperIdent::new(name),
+            UnknownArity::new(self.vcx.alloc_slice(&args.iter().map(|arg| arg.ty).collect::<Vec<_>>())),
+            ret,
+        );
+        self.functions.push(self.vcx.mk_function(
+            name,
+            self.vcx.alloc_slice(args),
+            ret,
+            self.vcx.alloc_slice(pres),
+            self.vcx.alloc_slice(posts),
+            expr,
+        ));
+        ident
+    }
+
+    pub(crate) fn method(
+        &mut self,
+        name: &str,
+        args: &[vir::LocalDecl<'vir>],
+        rets: &[vir::LocalDecl<'vir>],
+        pres: &[vir::Expr<'vir>],
+        posts: &[vir::Expr<'vir>],
+    ) -> MethodIdent<'vir, UnknownArity<'vir>> {
+        let name = self.ident_str(name);
+        let ident = MethodIdent::new(
+            vir::ViperIdent::new(name),
+            UnknownArity::new(self.vcx.alloc_slice(&args.iter().map(|arg| arg.ty).collect::<Vec<_>>())),
+            //ret,
+        );
+        self.methods.push(self.vcx.mk_method(
+            ident,
+            self.vcx.alloc_slice(args),
+            self.vcx.alloc_slice(rets),
+            self.vcx.alloc_slice(pres),
+            self.vcx.alloc_slice(posts),
+            None,
+        ));
+        ident
+    }
+
+    pub(crate) fn build(self, unr_idx: usize, snap_idx: usize) -> PredicateEncOutput<'vir> {
+        PredicateEncOutput {
+            fields: self.fields,
+            predicates: self.predicates,
+            unreachable_to_snap: self.functions[unr_idx],
+            function_snap: self.functions[snap_idx],
+            ref_to_field_refs: self.functions.iter()
+                .enumerate()
+                .filter(|(idx, _)| *idx != unr_idx && *idx != snap_idx)
+                .map(|(_, f)| *f)
+                .collect::<Vec<_>>(),
+            method_assign: self.methods[0],
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct PredicateEncOutput<'vir> {
     pub fields: Vec<vir::Field<'vir>>,
@@ -212,10 +371,32 @@ impl TaskEncoder for PredicateEnc {
     ) -> EncodeFullResult<'vir, Self> {
         let snap = deps.require_local::<SnapshotEnc>(*task_key)?;
         let generic_output_ref = deps.require_ref::<GenericEnc>(())?;
+        if let Some(res) = vir::with_vcx(|vcx| {
+            let mut builder = PredicateBuilder::new(vcx);
+            let (unr_idx, snap_idx) = match task_key.kind() {
+                TyKind::Bool
+                | TyKind::Char
+                | TyKind::Int(_)
+                | TyKind::Uint(_)
+                | TyKind::Float(_) => super::kinds::primitive::predicate(*task_key, snap.clone(), deps, &mut builder)?,
+                TyKind::Adt(..) => super::kinds::adt::predicate(*task_key, snap.clone(), deps, &mut builder)?,
+                TyKind::Ref(..) => super::kinds::reference::predicate(*task_key, snap.clone(), deps, &mut builder)?,
+                _ => return Ok(None),
+            };
+            Ok(Some(builder.build(unr_idx, snap_idx)))
+        })? {
+            return Ok((res, ()));
+        }
+
         let mut enc = vir::with_vcx(|vcx| {
             PredicateEncValues::new(vcx, &snap.base_name, snap.snapshot, snap.generics)
         });
+
         match task_key.kind() {
+            TyKind::Bool | TyKind::Char | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Float(_) => unreachable!(),
+            TyKind::Adt(..) => unreachable!(),
+            TyKind::Ref(..) => unreachable!(),
+
             TyKind::Param(_) => {
                 let method_assign = vir::with_vcx(|vcx| {
                     MethodIdent::new(
@@ -262,11 +443,6 @@ impl TaskEncoder for PredicateEnc {
                     ))
                 })
             }
-            TyKind::Bool | TyKind::Char | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Float(_) => {
-                let specifics = PredicateEncData::Primitive(snap.specifics.expect_primitive());
-                deps.emit_output_ref(*task_key, enc.output_ref(specifics))?;
-                Ok((enc.mk_prim(&snap.base_name), ()))
-            }
             TyKind::Closure(_def_id, args) => {
                 let snap_data = snap.specifics.expect_structlike();
                 let specifics = enc.mk_struct_ref(None, snap_data);
@@ -303,89 +479,15 @@ impl TaskEncoder for PredicateEnc {
                     enc.mk_struct_ref_to_snap_body(None, fields, snap_data.field_snaps_to_snap);
                 Ok((enc.mk_struct(fn_snap_body), ()))
             }
-            TyKind::Adt(adt, args) => match adt.adt_kind() {
-                ty::AdtKind::Struct => {
-                    let snap_data = snap.specifics.expect_structlike();
-                    let specifics = enc.mk_struct_ref(None, snap_data);
-                    deps.emit_output_ref(
-                        *task_key,
-                        enc.output_ref(PredicateEncData::StructLike(specifics)),
-                    )?;
-
-                    let fields = if !adt.is_box() {
-                        let variant = adt.non_enum_variant();
-                        variant
-                            .fields
-                            .iter()
-                            .map(|f| {
-                                deps.require_ref::<RustTyPredicatesEnc>(f.ty(enc.tcx(), args))
-                                    .unwrap()
-                            })
-                            .collect()
-                    } else {
-                        // Box special case (this should be replaced by an
-                        // extern spec in the future)
-                        vec![deps
-                            .require_ref::<RustTyPredicatesEnc>(args[0].expect_ty())
-                            .unwrap()]
-                    };
-                    let fields = enc.mk_field_apps(specifics.ref_to_field_refs, fields);
-                    let fn_snap_body =
-                        enc.mk_struct_ref_to_snap_body(None, fields, snap_data.field_snaps_to_snap);
-                    Ok((enc.mk_struct(fn_snap_body), ()))
-                }
-                ty::AdtKind::Enum => {
-                    let specifics = enc.mk_enum_ref(snap.specifics.expect_enumlike());
-                    deps.emit_output_ref(
-                        *task_key,
-                        enc.output_ref(PredicateEncData::EnumLike(specifics)),
-                    )?;
-
-                    let specifics = specifics.map(|specifics| {
-                        let variants: Vec<_> = specifics
-                            .variants
-                            .iter()
-                            .map(|data| {
-                                (
-                                    data.vid,
-                                    adt.variant(data.vid)
-                                        .fields
-                                        .iter()
-                                        .map(|f| {
-                                            deps.require_ref::<RustTyPredicatesEnc>(
-                                                f.ty(enc.tcx(), args),
-                                            )
-                                            .unwrap()
-                                        })
-                                        .collect(),
-                                )
-                            })
-                            .collect();
-                        (specifics, variants)
-                    });
-                    Ok((enc.mk_enum(specifics), ()))
-                }
-                ty::AdtKind::Union => todo!(),
-            },
             TyKind::Never => {
+                todo!()
+                /*
                 let specifics = enc.mk_struct_ref(Some("Never"), snap.specifics.expect_structlike());
                 //assert!(specifics.is_none());
                 deps.emit_output_ref(*task_key, enc.output_ref(PredicateEncData::EnumLike(None)))?;
 
                 Ok((enc.mk_enum(None), ()))
-            }
-            &TyKind::Ref(_, inner, m) => {
-                let snap_data = snap.specifics.expect_ref();
-                let specifics = enc.mk_ref_ref(snap_data, m.is_mut());
-                deps.emit_output_ref(*task_key, enc.output_ref(PredicateEncData::Ref(specifics)))?;
-
-                let lifted_ty = deps
-                    .require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(inner)
-                    .unwrap();
-                let inner = deps
-                    .require_ref::<RustTyPredicatesEnc>(inner)?
-                    .generic_predicate;
-                Ok((enc.mk_ref(inner, lifted_ty, specifics), ()))
+                */
             }
             TyKind::Str => {
                 let specifics = enc.mk_struct_ref(None, snap.specifics.expect_structlike());
@@ -562,6 +664,7 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
             snap_data,
         }
     }
+    /*
     pub fn mk_enum_ref(
         &mut self,
         snap_data: Option<DomainDataEnum<'vir>>,
@@ -604,6 +707,7 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
             }
         })
     }
+    */
 
     pub fn output_ref(&self, specifics: PredicateEncData<'vir>) -> PredicateEncOutputRef<'vir> {
         PredicateEncOutputRef {
@@ -726,6 +830,7 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
         let fn_snap_body = self.vcx.mk_unfolding_expr(self.self_pred_read, snap);
         self.finalize(Some(fn_snap_body))
     }
+    /*
     #[allow(clippy::type_complexity)]
     pub fn mk_enum(
         mut self,
@@ -799,7 +904,7 @@ impl<'vir, 'tcx> PredicateEncValues<'vir, 'tcx> {
         ));
         self.finalize(fn_snap_body)
     }
-
+*/
     fn finalize(self, fn_snap_body: Option<vir::Expr<'vir>>) -> PredicateEncOutput<'vir> {
         let mut ref_to_args = vec![self.self_decl[0]];
         ref_to_args.extend_from_slice(self.generics);
