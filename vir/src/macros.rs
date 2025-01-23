@@ -305,15 +305,28 @@ macro_rules! vir_predicate {
 pub trait ExprApply<'vir, A> {
     fn expr_apply(&self, vcx: &'vir crate::VirCtxt<'vir>, args: &[A]) -> crate::Expr<'vir>;
 }
-pub trait ExprQuote<'vir> {
-    fn expr(&self, vcx: &'vir crate::VirCtxt<'vir>) -> crate::Expr<'vir>;
-}
 
 impl<'vir> ExprApply<'vir, crate::Expr<'vir>> for crate::FunctionIdent<'vir, crate::UnknownArity<'vir>> {
     fn expr_apply(&self, vcx: &'vir crate::VirCtxt<'vir>, args: &[crate::Expr<'vir>]) -> crate::Expr<'vir> {
         self.apply(vcx, args)
     }
 }
+impl<'vir> ExprApply<'vir, crate::Expr<'vir>> for crate::PredicateIdent<'vir, crate::UnknownArity<'vir>> {
+    fn expr_apply(&self, vcx: &'vir crate::VirCtxt<'vir>, args: &[crate::Expr<'vir>]) -> crate::Expr<'vir> {
+        vcx.mk_predicate_app_expr(self.apply(vcx, args, None))
+    }
+}
+impl<'vir> ExprApply<'vir, crate::Expr<'vir>> for crate::Field<'vir> {
+    fn expr_apply(&self, vcx: &'vir crate::VirCtxt<'vir>, args: &[crate::Expr<'vir>]) -> crate::Expr<'vir> {
+        assert_eq!(args.len(), 1);
+        vcx.mk_field_expr(args[0], self)
+    }
+}
+
+pub trait ExprQuote<'vir> {
+    fn expr(&self, vcx: &'vir crate::VirCtxt<'vir>) -> crate::Expr<'vir>;
+}
+
 impl<'vir> ExprQuote<'vir> for crate::Expr<'vir> {
     fn expr(&self, _vcx: &'vir crate::VirCtxt<'vir>) -> crate::Expr<'vir> {
         self
@@ -362,12 +375,41 @@ macro_rules! expr {
     (@expr_done($output:ident); $($tokens:tt)+) => { compile_error!("unexpected VIR expression (missing comma?)") };
     (@expr_done($output:ident);) => {};
 
+    (@expr($output:ident); unfolding_wildcard ( [ $outer:expr ]( $($args:tt)* ) ) in ( $($rhs:tt)+ ) ) => { { $output.push(vcx!().mk_unfolding_expr(
+        $outer.apply(vcx!(),
+            $crate::expr!(@expr_list; $($args)*).as_slice(),
+            Some(vcx!().mk_wildcard()),
+        ),
+        $crate::expr!(@expr_one; $($rhs)*),
+    )); } };
+    (@expr($output:ident); acc( [ $outer:expr ]( $($args:tt)* ) ) ) => { { $output.push(vcx!().mk_predicate_app_expr(
+        $outer.apply(vcx!(),
+            $crate::expr!(@expr_list; $($args)*).as_slice(),
+            None,
+        )
+    )); } };
+    (@expr($output:ident); acc_field( [ $outer:expr ]( $($args:tt)* ) ) ) => { { $output.push(vcx!().mk_acc_field_expr(
+        $crate::expr!(@expr_one; $($args)*),
+        $outer,
+        None,
+    )); } };
+    (@expr($output:ident); acc_wildcard( [ $outer:expr ]( $($args:tt)* ) ) ) => { { $output.push(vcx!().mk_predicate_app_expr(
+        $outer.apply(vcx!(),
+            $crate::expr!(@expr_list; $($args)*).as_slice(),
+            Some(vcx!().mk_wildcard()),
+        )
+    )); } };
     (@expr($output:ident); [ $outer:expr ]( $($args:tt)* ) ) => { { $output.push($outer.expr_apply(
         vcx!(),
         $crate::expr!(@expr_list; $($args)*).as_slice(),
     )); } };
     (@expr($output:ident); [ $outer:expr ] ) => { { $output.push($outer.expr(vcx!())); } };
     (@expr($output:ident); ..[ $outer:expr ] ) => { { $output.extend($outer.iter().map(|e| e.expr(vcx!()))); } };
+    (@expr($output:ident); ( $($lhs:tt)+ ) => ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_bin_op_expr(
+        $crate::BinOpKind::Implies,
+        $crate::expr!(@expr_one; $($lhs)*),
+        $crate::expr!(@expr_one; $($rhs)*),
+    )); } };
     (@expr($output:ident); ( $($lhs:tt)+ ) == ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_eq_expr(
         $crate::expr!(@expr_one; $($lhs)*),
         $crate::expr!(@expr_one; $($rhs)*),
@@ -388,7 +430,7 @@ macro_rules! expr {
         let mut qvars = Vec::new();
         $crate::expr!(@forall_qvars($output, qvars); $($tokens)*)
     } };
-    (@expr($output:ident); $ident:ident $($rest:tt)*) => { { $output.push($ident); $crate::expr!(@expr_done($output); $($rest)*); } };
+    (@expr($output:ident); $ident:ident $($rest:tt)*) => { { $output.push($ident.expr(vcx!())); $crate::expr!(@expr_done($output); $($rest)*); } };
     (@expr($output:ident); $($tokens:tt)+) => { compile_error!("VIR syntax error") };
     (@expr($output:ident);) => { compile_error!("unexpected end of VIR expression") };
 

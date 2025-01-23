@@ -53,7 +53,7 @@ pub struct DomainDataStruct<'vir> {
 pub struct DomainDataEnum<'vir> {
     pub discr_ty: vir::Type<'vir>,
     pub discr_prim: DomainDataPrim<'vir>,
-    pub discr_bounds: DiscrBounds<'vir>,
+    //pub discr_bounds: DiscrBounds<'vir>,
     pub snap_to_discr_snap: FunctionIdent<'vir, UnaryArity<'vir>>,
     pub variants: &'vir [DomainDataVariant<'vir>],
 }
@@ -215,6 +215,7 @@ impl<'vir> DomainBuilder<'vir> {
         }));
         ident
     }
+
     pub(crate) fn axiom(
         &mut self,
         name: &str,
@@ -230,6 +231,7 @@ impl<'vir> DomainBuilder<'vir> {
     pub(crate) fn self_type(&self) -> vir::Type<'vir> {
         self.self_type.expect("name should be set")
     }
+
     pub(crate) fn type_type(&self) -> vir::Type<'vir> {
         &vir::TypeData::Domain("Type", &[]) // TODO: refer to something else
     }
@@ -262,18 +264,21 @@ impl<'vir> DomainBuilder<'vir> {
 // Utility functions
 
 impl<'vir> DomainEncSpecifics<'vir> {
+    #[track_caller]
     pub fn expect_primitive(self) -> DomainDataPrim<'vir> {
         match self {
             Self::Primitive(data) => data,
             _ => panic!("expected primitive"),
         }
     }
+    #[track_caller]
     pub fn expect_ref(self) -> DomainDataRef<'vir> {
         match self {
             Self::Ref(data) => data,
             _ => panic!("expected ref"),
         }
     }
+    #[track_caller]
     pub fn expect_structlike(self) -> DomainDataStruct<'vir> {
         match self {
             Self::StructLike(data) => data,
@@ -286,6 +291,7 @@ impl<'vir> DomainEncSpecifics<'vir> {
             _ => None,
         }
     }
+    #[track_caller]
     pub fn expect_enumlike(self) -> Option<DomainDataEnum<'vir>> {
         match self {
             Self::EnumLike(data) => data,
@@ -351,12 +357,12 @@ struct LiftedRustTyData<'vir> {
 }
 
 impl<'vir> FieldTy<'vir> {
-    pub fn mk_field_tys(
+    pub fn mk_field_tys<T: TaskEncoder>(
         vcx: &'vir vir::VirCtxt<'vir>,
-        deps: &mut TaskEncoderDependencies<'vir, DomainEnc>,
+        deps: &mut TaskEncoderDependencies<'vir, T>,
         variant: &ty::VariantDef,
         params: ty::GenericArgsRef<'vir>,
-    ) -> Result<Vec<Self>, EncodeFullError<'vir, DomainEnc>> {
+    ) -> Result<Vec<Self>, EncodeFullError<'vir, T>> {
         variant
             .fields
             .iter()
@@ -365,11 +371,11 @@ impl<'vir> FieldTy<'vir> {
             .collect::<Result<Vec<_>, _>>()
     }
 
-    pub(super) fn from_ty(
+    pub(super) fn from_ty<T: TaskEncoder>(
         vcx: &'vir vir::VirCtxt<'vir>,
-        deps: &mut TaskEncoderDependencies<'vir, DomainEnc>,
+        deps: &mut TaskEncoderDependencies<'vir, T>,
         ty: ty::Ty<'vir>,
-    ) -> Result<FieldTy<'vir>, EncodeFullError<'vir, DomainEnc>> {
+    ) -> Result<FieldTy<'vir>, EncodeFullError<'vir, T>> {
         let vir_ty = deps
             .require_ref::<RustTySnapshotsEnc>(ty)?
             .generic_snapshot

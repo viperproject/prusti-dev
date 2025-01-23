@@ -668,7 +668,9 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
 
                         match ty.generic_predicate.get_enumlike().filter(|_| place_ty.variant_index.is_none()) {
                             Some(el) => {
-                                let discr_expr = self.vcx.mk_field_expr(place_expr, el.as_ref().unwrap().discr);
+                                let discr_ty = place_ty.ty.discriminant_ty(self.vcx.tcx());
+                                let discr_ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(discr_ty).unwrap();
+                                let discr_expr = discr_ty_out.ref_to_snap(self.vcx, el.as_ref().unwrap().discr.apply(self.vcx, [place_expr]));
                                 self.vcx.mk_unfolding_expr(ty.ref_to_pred_app(self.vcx, place_expr, Some(self.vcx.mk_wildcard())), discr_expr)
                             }
                             None => {
