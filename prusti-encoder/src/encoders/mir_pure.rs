@@ -37,6 +37,13 @@ pub enum MirPureEncError {
     // UnsupportedTerminator,
 }
 
+#[derive(Clone, Debug)]
+pub enum Mode {
+    Old,
+    Rel(usize),
+    BeforeExpiry,
+}
+
 // TODO: does this need to be `&'vir [..]`?
 type ExprInput<'vir> = (DefId, &'vir [vir::Expr<'vir>]);
 type ExprRet<'vir> = vir::ExprGen<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
@@ -198,6 +205,9 @@ struct Enc<'vir: 'enc, 'enc> {
     // visited: IndexVec<mir::BasicBlock, bool>,
     version_ctr: IndexVec<mir::Local, usize>,
     phi_ctr: usize,
+    old_mode: bool,
+    rel0_mode: bool,
+    rel1_mode: bool,
 }
 
 impl<'vir, 'enc> PureFuncAppEnc<'vir, MirPureEnc> for Enc<'vir, 'enc> {
@@ -259,6 +269,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             // visited: IndexVec::from_elem_n(false, body.basic_blocks.len()),
             version_ctr: IndexVec::from_elem_n(0, body.local_decls.len()),
             phi_ctr: 0,
+            old_mode: false,
+            rel0_mode: false,
+            rel1_mode: false,
         }
     }
 
@@ -764,7 +777,24 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         assert!(curr_ver.contains_key(&place.local));
 
         let mut place_ty = mir::tcx::PlaceTy::from_ty(self.body.local_decls[place.local].ty);
-        let mut expr = self.mk_local_ex(place.local, curr_ver[&place.local]);
+
+        let should_wrap = {
+            let is_in_a_mode = self.old_mode || self.rel0_mode || self.rel1_mode;
+            let local_kind = self.body.local_kind(place.local);
+            (local_kind == mir::LocalKind::Arg || local_kind == mir::LocalKind::ReturnPointer)
+                && is_in_a_mode
+        };
+
+        let mut expr = if should_wrap {
+            let local_as_uzize = place.local.as_usize();
+
+            self.vcx.mk_lazy_expr(
+                vir::vir_format!(self.vcx, "wraped in _{}", local_as_uzize),
+                Box::new(move |_vcx, lctx: ExprInput<'vir>| lctx.1[local_as_uzize - 1].kind),
+            )
+        } else {
+            self.mk_local_ex(place.local, curr_ver[&place.local])
+        };
         let mut place_ref = None;
         // TODO: factor this out (duplication with impure encoder)?
         for elem in place.projection {
@@ -773,6 +803,19 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         }
         // Can we ever have the use of a projected place?
         assert!(place_ty.variant_index.is_none());
+
+        if should_wrap {
+            if self.old_mode {
+                expr = self.vcx.mk_old_expr(expr)
+            }
+            if self.rel0_mode {
+                expr = self.vcx.mk_rel_expr(expr, 0)
+            }
+            if self.rel1_mode {
+                expr = self.vcx.mk_rel_expr(expr, 1)
+            }
+        }
+
         (expr, place_ref)
     }
 
@@ -864,6 +907,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         enum PrustiBuiltin {
             Forall,
             SnapshotEquality,
+            ModeStart(Mode),
+            ModeEnd(Mode),
         }
 
         // TODO: this attribute extraction should be done elsewhere?
@@ -879,12 +924,33 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 && item.path.segments[0].ident.as_str() == "prusti"
                 && item.path.segments[1].ident.as_str() == "builtin"
         }) {
+            let param_env = self.vcx.tcx().param_env(self.def_id);
             match &attr.args {
                 ast::AttrArgs::Eq(_, ast::AttrArgsEq::Hir(lit)) => {
                     assert!(builtin.is_none(), "multiple prusti::builtin");
                     builtin = Some(match lit.symbol.as_str() {
                         "forall" => PrustiBuiltin::Forall,
                         "snapshot_equality" => PrustiBuiltin::SnapshotEquality,
+                        "old_start" => PrustiBuiltin::ModeStart(Mode::Old),
+                        "old_end" => PrustiBuiltin::ModeEnd(Mode::Old),
+                        "rel_start" => PrustiBuiltin::ModeStart(Mode::Rel(
+                            arg_tys[0]
+                                .expect_const()
+                                .try_eval_scalar_int(self.vcx.tcx(), param_env)
+                                .unwrap()
+                                .1
+                                .to_bits_unchecked() as usize,
+                        )),
+                        "rel_end" => PrustiBuiltin::ModeEnd(Mode::Rel(
+                            arg_tys[0]
+                                .expect_const()
+                                .try_eval_scalar_int(self.vcx.tcx(), param_env)
+                                .unwrap()
+                                .1
+                                .to_bits_unchecked() as usize,
+                        )),
+                        "before_expiry_start" => PrustiBuiltin::ModeStart(Mode::BeforeExpiry),
+                        "before_expiry_end" => PrustiBuiltin::ModeEnd(Mode::BeforeExpiry),
                         other => panic!("illegal prusti::builtin ({other})"),
                     });
                 }
@@ -1013,6 +1079,46 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         bool.snap_to_prim.apply(self.vcx, [body]),
                     )],
                 )
+            }
+            PrustiBuiltin::ModeStart(mode) => {
+                match mode {
+                    Mode::Old => {
+                        assert!(!self.old_mode);
+                        self.old_mode = true;
+                    }
+                    Mode::Rel(0) => {
+                        assert!(!self.rel0_mode);
+                        assert!(!self.rel1_mode);
+                        self.rel0_mode = true;
+                    }
+                    Mode::Rel(_) => {
+                        assert!(!self.rel1_mode);
+                        assert!(!self.rel0_mode);
+                        self.rel1_mode = true;
+                    }
+                    Mode::BeforeExpiry => todo!(),
+                }
+                self.vcx.mk_bool::<true>().lift() //TODO what value do we return?
+            }
+            PrustiBuiltin::ModeEnd(mode) => {
+                match mode {
+                    Mode::Old => {
+                        assert!(self.old_mode);
+                        self.old_mode = false;
+                    }
+                    Mode::Rel(0) => {
+                        assert!(self.rel0_mode);
+                        assert!(!self.rel1_mode);
+                        self.rel0_mode = false;
+                    }
+                    Mode::Rel(_) => {
+                        assert!(!self.rel0_mode);
+                        assert!(self.rel1_mode);
+                        self.rel1_mode = false;
+                    }
+                    Mode::BeforeExpiry => todo!(),
+                }
+                self.vcx.mk_bool::<true>().lift() //TODO what value do we return?
             }
         }
     }

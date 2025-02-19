@@ -155,6 +155,18 @@ impl PrustiTokenStream {
                     (TokenTree::Ident(ident), _, _, _) if ident == "exists" => {
                         PrustiToken::Quantifier(ident.span(), Quantifier::Exists)
                     }
+                    (TokenTree::Ident(ident), _, _, _) if ident == "old" => {
+                        PrustiToken::ModeMarker(ident.span(), MarkerKind::Old)
+                    }
+                    (TokenTree::Ident(ident), _, _, _) if ident == "rel0" => {
+                        PrustiToken::ModeMarker(ident.span(), MarkerKind::Rel(0))
+                    }
+                    (TokenTree::Ident(ident), _, _, _) if ident == "rel1" => {
+                        PrustiToken::ModeMarker(ident.span(), MarkerKind::Rel(1))
+                    }
+                    (TokenTree::Ident(ident), _, _, _) if ident == "before_expiry" => {
+                        PrustiToken::ModeMarker(ident.span(), MarkerKind::BeforeExpiry)
+                    }
                     (TokenTree::Punct(punct), _, _, _)
                         if punct.as_char() == ',' && punct.spacing() == Alone =>
                     {
@@ -289,6 +301,13 @@ impl PrustiTokenStream {
                     .ok_or_else(|| error(span, "expected parenthesized expression after outer"))?;
                 todo!()
             }
+            Some(PrustiToken::ModeMarker(span, kind)) => {
+                let expr = self.pop_group(Delimiter::Parenthesis).ok_or_else(|| {
+                    error(span, "expected parenthesized expression after mode marker")
+                })?;
+                let expr = expr.parse()?;
+                kind.translate(span, expr)
+            }
             Some(PrustiToken::Quantifier(span, kind)) => {
                 let mut stream = self.pop_group(Delimiter::Parenthesis).ok_or_else(|| {
                     error(span, "expected parenthesized expression after quantifier")
@@ -383,6 +402,17 @@ impl PrustiTokenStream {
                 Some(PrustiToken::Outer(span)) => return err(*span, "unexpected outer"),
                 Some(PrustiToken::Quantifier(span, _)) => {
                     return err(*span, "unexpected quantifier")
+                }
+                Some(PrustiToken::ModeMarker(span, kind)) => {
+                    let span = *span;
+                    let kind = *kind;
+                    self.tokens.pop_front();
+                    let expr = self.pop_group(Delimiter::Parenthesis).ok_or_else(|| {
+                        error(span, "expected parenthesized expression after mode marker")
+                    })?;
+                    let expr = expr.parse()?;
+                    lhs.extend(kind.translate(span, expr).to_token_stream());
+                    continue;
                 }
 
                 None => break,
@@ -665,6 +695,7 @@ enum PrustiToken {
     #[allow(unused)]
     // TODO: the "once" flag is not used since there is no calldesc translation yet
     CallDesc(Span, bool),
+    ModeMarker(Span, MarkerKind),
 }
 
 fn translate_spec_ent(
@@ -740,6 +771,38 @@ fn translate_spec_ent(
             ( #( #[prusti::spec_only] || -> bool { ((#postconds): bool) }, )* ),
         )
     } }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum MarkerKind {
+    Old,
+    Rel(usize),
+    BeforeExpiry,
+}
+
+impl MarkerKind {
+    fn translate(&self, span: Span, expr: TokenStream) -> TokenStream {
+        let (start, end) = match self {
+            MarkerKind::Old => (
+                quote_spanned!(span => ::prusti_contracts::old_start()),
+                quote_spanned!(span => ::prusti_contracts::old_end()),
+            ),
+            MarkerKind::Rel(execution) => (
+                quote_spanned!(span => ::prusti_contracts::rel_start::<#execution>()),
+                quote_spanned!(span => ::prusti_contracts::rel_end::<#execution>()),
+            ),
+            MarkerKind::BeforeExpiry => (
+                quote_spanned!(span => ::prusti_contracts::before_expiry_start()),
+                quote_spanned!(span => ::prusti_contracts::before_expiry_end()),
+            ),
+        };
+        quote_spanned! { span => {
+            #start ;
+            let r = { #expr };
+            #end ;
+            r
+        } }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -818,7 +881,8 @@ impl PrustiToken {
             | Self::Outer(span)
             | Self::Quantifier(span, _)
             | Self::SpecEnt(span, _)
-            | Self::CallDesc(span, _) => *span,
+            | Self::CallDesc(span, _)
+            | Self::ModeMarker(span, _) => *span,
             Self::Token(tree) => tree.span(),
         }
     }

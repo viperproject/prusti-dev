@@ -327,17 +327,34 @@ mod private {
     }
 }
 
-/// This function is used to evaluate an expression in the context just
-/// before the borrows expires.
-pub fn before_expiry<T>(arg: T) -> T {
-    arg
-}
+/// This function is used to mark the beginning of evaluation of expressions
+/// in the "before expiration" context, just before the expiry of the borrow
+/// that the pledge is specifying.
+#[cfg_attr(feature = "prusti", prusti::builtin = "before_expiry_start")]
+pub fn before_expiry_start() {}
 
-/// This function is used to evaluate an expression in the “old”
-/// context, that is at the beginning of the method call.
-pub fn old<T>(arg: T) -> T {
-    arg
-}
+/// End of the context started with `before_expiry_start`.
+#[cfg_attr(feature = "prusti", prusti::builtin = "before_expiry_end")]
+pub fn before_expiry_end() {}
+
+/// This function is used to mark the beginning of evaluation of expressions
+/// in the "old" context, that is at the beginning of the method call.
+#[cfg_attr(feature = "prusti", prusti::builtin = "old_start")]
+pub fn old_start() {}
+
+/// End of the context started with `old_start`.
+#[cfg_attr(feature = "prusti", prusti::builtin = "old_end")]
+pub fn old_end() {}
+
+/// This function is used to mark the beginning of evaluation of expressions
+/// in a given execution, when specifying a hyperproperty concerning multiple
+/// exeuctions.
+#[cfg_attr(feature = "prusti", prusti::builtin = "rel_start")]
+pub fn rel_start<const E: usize>() {}
+
+/// End of the context started with `rel_start`.
+#[cfg_attr(feature = "prusti", prusti::builtin = "rel_end")]
+pub fn rel_end<const E: usize>() {}
 
 /// Universal quantifier.
 ///
