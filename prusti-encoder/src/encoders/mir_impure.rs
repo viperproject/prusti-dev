@@ -701,58 +701,58 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 EncodePlaceResult::new(tmp_exp)
             }
             &mir::Operand::Copy(place) => {
-                comment!(self, "encode copy {place:?}");
+                // When encoding a Copy, we proceed in two phases:
+                // - "impure" heap accesses to walk through predicates which
+                //   should be unfolded by the PCG at this point;
+                // - "pure" snapshot accesses to access values as soon as we
+                //   cross a shared reference.
+                // The crossing point is marked with `crossed_ref` and either
+                // coincides with taking a snapshot of the heap accesses we
+                // have performed thus far, or, if the local variable itself is
+                // a shared reference, it happens immediately.
                 let mut place_ty = mir::tcx::PlaceTy::from_ty(self.local_decls[place.local].ty);
                 let mut encoded_place = mir::Place::from(place.local);
-                let mut result = EncodePlaceResult::new(self.local_defs.locals[place.local].local_ex);
-                //let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
-                //let snap_val = ty_out.ref_to_snap(self.vcx, self.local_defs.locals[place.local].local_ex);
-                //let mut result = EncodePlaceResult::new(snap_val);
-                //let mut crossed_ref = false;
-                // TODO: factor this out (duplication with pure encoder)?
-                // println!("encode pure-in-impure place {place:?}");
+                let (mut crossed_ref, mut result) = if matches!(place_ty.ty.kind(), TyKind::Ref(_, _, ty::Mutability::Not)) {
+                    let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
+                    let snap_val = ty_out.ref_to_snap(self.vcx, self.local_defs.locals[place.local].local_ex);
+                    (true, EncodePlaceResult::new(snap_val))
+                } else {
+                    (false, EncodePlaceResult::new(self.local_defs.locals[place.local].local_ex))
+                };
                 let mut last_apply_cast = None;
                 let mut last_unapply_cast = None;
                 for elem in place.projection {
                     if let Some(overridden) = self.place_overrides.get(&encoded_place) {
-                        result = EncodePlaceResult::new(overridden); // TODO: casts?
+                        result.expr = overridden; // TODO: casts?
                     }
-                    /*
-                    use vir::Reify;
-                    let (expr, _) = crate::encoders::mir_pure::encode_place_element(self.vcx, self.deps, place_ty, elem, result.expr.lift(), None);
-                    result.expr = expr.reify(self.vcx, (self.def_id, &[]));
-                    */
-                    let (expr, apply_cast_stmt, unapply_cast_stmt) = self.encode_place_element(place_ty, elem, result.expr);
-                    result.expr = expr;
-                    comment!(self, " - {elem:?} (cast? {}, uncast? {})", apply_cast_stmt.is_some(), unapply_cast_stmt.is_some());
-                    last_apply_cast = apply_cast_stmt;
-                    last_unapply_cast = unapply_cast_stmt;
-                    //result.apply_casts.extend(apply_cast_stmt);
-                    //result.undo_casts.extend(unapply_cast_stmt);
+                    if crossed_ref {
+                        use vir::Reify;
+                        let (expr, _) = crate::encoders::mir_pure::encode_place_element(self.vcx, self.deps, place_ty, elem, result.expr.lift(), None);
+                        result.expr = expr.reify(self.vcx, (self.def_id, &[]));
+                    } else {
+                        let (expr, apply_cast_stmt, unapply_cast_stmt) = self.encode_place_element(place_ty, elem, result.expr);
+                        result.expr = expr;
+                        last_apply_cast = apply_cast_stmt;
+                        last_unapply_cast = unapply_cast_stmt;
+                    }
                     place_ty = place_ty.projection_ty(self.vcx.tcx(), elem);
                     encoded_place = encoded_place.project_deeper(&[elem], self.vcx.tcx());
+                    if !crossed_ref && matches!(place_ty.ty.kind(), TyKind::Ref(_, _, ty::Mutability::Not)) {
+                        let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
+                        result.expr = ty_out.ref_to_snap(self.vcx, result.expr);
+                        crossed_ref = true;
+                    }
                 }
-                // println!("  output: {:?}", result.expr);
-                //if let Some(overridden) = self.place_overrides.get(&encoded_place) {
-                //    result = EncodePlaceResult::new(overridden); // TODO: casts?
-                //}
-
-                let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
-                result.expr = ty_out.ref_to_snap(self.vcx, result.expr);
+                if let Some(overridden) = self.place_overrides.get(&encoded_place) {
+                    result.expr = overridden; // TODO: casts?
+                }
+                if !crossed_ref {
+                    let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
+                    result.expr = ty_out.ref_to_snap(self.vcx, result.expr);
+                }
                 result.apply_casts.extend(last_apply_cast);
                 result.undo_casts.extend(last_unapply_cast);
-
-                comment!(self, "encode copy place done!");
                 result
-                /*
-                let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap();
-                let result = self.encode_place(Place::from(source));
-                let snap_val = ty_out.ref_to_snap(self.vcx, result.expr);
-                let tmp_exp = self.new_tmp(ty_out.snapshot()).1;
-                self.stmt(self.vcx.mk_pure_assign_stmt(tmp_exp, snap_val));
-                self.undo_impure_casts(result);
-                tmp_exp
-                */
             }
             mir::Operand::Constant(box constant) => EncodePlaceResult::new(self
                 .deps
@@ -768,11 +768,6 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             &mir::Operand::Copy(_source) => {
                 let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap();
                 (self.encode_operand_snap(operand), ty_out)
-                /*
-                let mut result = self.encode_place(Place::from(source));
-                result.map_expr(|e| ty_out.ref_to_snap(self.vcx, e));
-                (result, ty_out)
-                */
             }
             mir::Operand::Constant(box constant) => {
                 let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap();
@@ -794,32 +789,21 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         let mut encoded_place = mir::Place::from(place.local);
         let mut result = EncodePlaceResult::new(self.local_defs.locals[place.local].local_ex);
         // TODO: factor this out (duplication with pure encoder)?
-        // println!("encode place {place:?}");
         let mut last_apply_cast = None;
         let mut last_unapply_cast = None;
         for &elem in place.projection {
             if let Some(overridden) = self.place_overrides.get(&encoded_place) {
-                // println!("  ! applied override: {overridden:?}");
-                result = EncodePlaceResult::new(overridden); // TODO: casts?
+                result.expr = overridden; // TODO: casts?
             }
-            // println!("  . {place_ty:?} // {elem:?} // {:?}", result.expr);
             let (expr, apply_cast_stmt, unapply_cast_stmt) = self.encode_place_element(place_ty, elem, result.expr);
             result.expr = expr;
             last_apply_cast = apply_cast_stmt;
             last_unapply_cast = unapply_cast_stmt;
-            /*
-            if let Some(stmt) = apply_cast_stmt {
-                result.apply_casts.push(stmt);
-            }
-            if let Some(stmt) = unapply_cast_stmt {
-                result.undo_casts.push(stmt);
-            }
-            */
             place_ty = place_ty.projection_ty(self.vcx.tcx(), elem);
             encoded_place = encoded_place.project_deeper(&[elem], self.vcx.tcx());
         }
         if let Some(overridden) = self.place_overrides.get(&encoded_place) {
-            result = EncodePlaceResult::new(overridden); // TODO: casts?
+            result.expr = overridden; // TODO: casts?
         }
         result.apply_casts.extend(last_apply_cast);
         result.undo_casts.extend(last_unapply_cast);

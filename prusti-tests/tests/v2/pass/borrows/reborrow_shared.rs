@@ -6,8 +6,12 @@ struct Point {
 }
 
 #[ensures(*result == pt.x)]
-fn get_mut_x<'a, 'b: 'a>(pt: &'b Point) -> &'a i32 {
+fn get_x<'a, 'b: 'a>(pt: &'b Point) -> &'a i32 {
     &pt.x
 }
 
-fn main() {}
+fn main() {
+    let pt = Point { x: 42, y: 72 };
+    let x = get_x(&pt);
+    assert!(*x == 42);
+}
