@@ -1,4 +1,5 @@
 use prusti_rustc_interface::middle::{mir, ty};
+use prusti_utils::config;
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CallableIdent, FunctionIdent, UnknownArity};
 
@@ -352,9 +353,11 @@ impl MirBuiltinEnc {
         let wrapped_val = vcx.mk_local_ex(wrapped_val_str, e_rvalue_pure_ty.prim_type);
         let wrapped_val_snap = e_rvalue_pure_ty.prim_to_snap.apply(vcx, [wrapped_val]);
         // Overflowed?
-        // TODO: disable overflow checks with config
-        //let overflowed = vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, wrapped_val, val);
-        let overflowed = vcx.mk_bool::<false>();
+        let overflowed = if config::check_overflows() {
+            vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, wrapped_val, val)
+        } else {
+            vcx.mk_bool::<false>()
+        };
         let overflowed_snap = bool_cons.apply(vcx, [overflowed]);
         // `tuple(prim_to_snap(wrapped_val), wrapped_val != val)`
         let ty_caster =

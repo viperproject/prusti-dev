@@ -1575,9 +1575,9 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
             mir::TerminatorKind::Assert {
                 cond,
                 expected,
+                msg,
                 target,
                 unwind,
-                ..
             } => {
                 const REAL_TARGET_SUCC_IDX: usize = 0;
                 // Ensure that the terminator succ that we use for the repacks is the correct one
@@ -1606,7 +1606,23 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 let assert = self
                     .vcx
                     .mk_bin_op_expr(vir::BinOpKind::CmpEq, enc, expected);
-                self.stmt(self.vcx.mk_exhale_stmt(assert));
+                let error_msg = match **msg {
+                    mir::AssertMessage::BoundsCheck { .. } => "bounds check may fail",
+                    mir::AssertMessage::Overflow(..)
+                    | mir::AssertMessage::OverflowNeg(..) => "operation may overflow",
+                    mir::AssertMessage::DivisionByZero(..)
+                    | mir::AssertMessage::RemainderByZero(..) => "division by zero may occur",
+                    mir::AssertMessage::ResumedAfterReturn(..) => "execution may continue after return",
+                    mir::AssertMessage::ResumedAfterPanic(..) => "execution may continue after panic",
+                    mir::AssertMessage::MisalignedPointerDereference { .. } => "misaligned pointer may be dereferenced",
+                    // mir::AssertMessage::NullPointerDereference => "",
+                };
+                self.vcx().with_span(span, |vcx| {
+                    vcx.handle_error("exhale.failed:assertion.false", move |_| {
+                        Some(vec![PrustiError::verification(error_msg, span.into())])
+                    });
+                    self.stmt(self.vcx.mk_exhale_stmt(assert));
+                });
 
                 let target_bb = self
                     .vcx
