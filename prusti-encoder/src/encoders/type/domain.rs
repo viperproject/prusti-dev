@@ -87,6 +87,7 @@ pub enum DiscrBounds<'vir> {
 
 #[derive(Clone, Copy, Debug)]
 pub enum DomainEncSpecifics<'vir> {
+    Opaque,
     Param,
     Never,
     Primitive(DomainDataPrim<'vir>),
@@ -184,7 +185,7 @@ impl TaskEncoder for DomainEnc {
                 TyKind::Ref(_, _, ty::Mutability::Mut) => super::kinds::mutref::domain(*task_key, deps, &mut builder)?,
                 TyKind::Param(_) => super::kinds::param::domain(*task_key, deps, &mut builder)?,
                 TyKind::Str => super::kinds::str::domain(*task_key, deps, &mut builder)?,
-                kind => todo!("{kind:?}"),
+                _kind => super::kinds::opaque::domain(*task_key, deps, &mut builder)?,
             };
             Ok((builder.build(), specifics))
         })
@@ -390,7 +391,7 @@ pub(super) struct FieldTy<'vir> {
 }
 
 #[derive(Clone)]
-struct LiftedRustTyData<'vir> {
+pub(super) struct LiftedRustTyData<'vir> {
     /// The representation of the Rust type of the field
     lifted_ty: LiftedTy<'vir, ParamTy>,
     /// Takes as input the value of the field, and returns its type

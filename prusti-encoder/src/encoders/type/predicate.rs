@@ -519,8 +519,8 @@ impl TaskEncoder for PredicateEnc {
                 | TyKind::Char
                 | TyKind::Int(_)
                 | TyKind::Uint(_)
-                | TyKind::Float(_) => super::kinds::primitive::predicate(*task_key, snap.clone(), deps, /*&generic_decls, &generic_exprs, */&mut builder)?,
-                TyKind::Adt(..) => super::kinds::adt::predicate(*task_key, snap.clone(), deps, /*&generic_decls, &generic_exprs, */&mut builder)?,
+                | TyKind::Float(_) => super::kinds::primitive::predicate(*task_key, snap.clone(), deps, &mut builder)?,
+                TyKind::Adt(..) => super::kinds::adt::predicate(*task_key, snap.clone(), deps, &generic_decls, &generic_exprs, &mut builder)?,
                 TyKind::Ref(_, _, ty::Mutability::Not) => super::kinds::immref::predicate(*task_key, snap.clone(), deps, &generic_decls, &generic_exprs, &mut builder)?,
                 TyKind::Ref(_, _, ty::Mutability::Mut) => super::kinds::mutref::predicate(*task_key, snap.clone(), deps, /*&generic_decls, &generic_exprs, */&mut builder)?,
                 TyKind::Never => (super::kinds::never::predicate(*task_key, snap.clone(), deps, /*&generic_decls, &generic_exprs, */&mut builder)?, None),

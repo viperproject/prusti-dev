@@ -1,7 +1,7 @@
 use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::ToKnownArity;
-use crate::encoders::{domain::{DomainBuilder, DomainDataEnum, DomainDataStruct, DomainDataVariant, DomainEnc, DomainEncOutputRef, DomainEncSpecifics, FieldTy}, predicate::{PredicateBuilder, PredicateEncData, PredicateEncDataEnum, PredicateEncDataStruct, PredicateEncDataVariant}, rust_ty_predicates::RustTyPredicatesEnc, rust_ty_snapshots::RustTySnapshotsEnc, snapshot::SnapshotEncOutput, PredicateEnc};
+use crate::encoders::{domain::{DomainBuilder, DomainDataEnum, DomainDataStruct, DomainDataVariant, DomainEnc, DomainEncOutputRef, DomainEncSpecifics, FieldTy}, lifted::ty::{EncodeGenericsAsParamTy, LiftedTyEnc}, predicate::{PredicateBuilder, PredicateEncData, PredicateEncDataEnum, PredicateEncDataStruct, PredicateEncDataVariant}, rust_ty_predicates::RustTyPredicatesEnc, rust_ty_snapshots::RustTySnapshotsEnc, snapshot::SnapshotEncOutput, GenericEnc, PredicateEnc};
 
 pub(crate) fn domain<'vir>(
     task_key: <DomainEnc as TaskEncoder>::TaskKey<'vir>,
@@ -13,23 +13,37 @@ pub(crate) fn domain<'vir>(
     let ty_kind = ty.kind();
     let ty::TyKind::Adt(adt, params) = ty_kind else { unreachable!(); };
 
+    let generics = params
+        .iter()
+        .flat_map(ty::GenericArg::as_type)
+        .map(|ty| {
+            deps.require_local::<LiftedTyEnc<EncodeGenericsAsParamTy>>(ty)
+                .unwrap()
+                .expect_generic()
+        })
+        .collect::<Vec<_>>();
+
     match adt.adt_kind() {
         ty::AdtKind::Struct if adt.is_box() => {
             /*
-                // Box special case (this should be replaced by an
-                // extern spec in the future)
-                vec![FieldTy {
-                    ty: enc.deps.require_ref::<GenericEnc>(())?.param_snapshot,
-                    rust_ty_data: None,
-                }]
+            let (field_snaps_to_snap, field_access, _) = super::structlike::domain("", &[FieldTy {
+                rust_ty: generics[0].to_ty(builder.vcx.tcx()),
+                ty: deps.require_ref::<GenericEnc>(())?.param_snapshot,
+                rust_ty_data: None,
+            }], task_key, output_ref, &generics, deps, builder)?;
             */
-            todo!()
+            let (field_snaps_to_snap, field_access, _) = super::structlike::domain("", &[FieldTy::from_ty(builder.vcx, deps, generics[0].to_ty(builder.vcx.tcx()))?], task_key, output_ref, &generics, deps, builder)?;
+
+            Ok(DomainEncSpecifics::StructLike(DomainDataStruct {
+                field_snaps_to_snap,
+                field_access,
+            }))
         }
         ty::AdtKind::Struct => {
             let variant = adt.non_enum_variant();
             let fields = FieldTy::mk_field_tys(builder.vcx, deps, variant, params)?;
 
-            let (field_snaps_to_snap, field_access, _) = super::structlike::domain("", &fields, output_ref, &[], deps, builder)?;
+            let (field_snaps_to_snap, field_access, _) = super::structlike::domain("", &fields, task_key, output_ref, &generics, deps, builder)?;
 
             Ok(DomainEncSpecifics::StructLike(DomainDataStruct {
                 field_snaps_to_snap,
@@ -67,7 +81,7 @@ pub(crate) fn domain<'vir>(
 
                     let fields = FieldTy::mk_field_tys(builder.vcx, deps, variant, params)?;
 
-                    let (field_snaps_to_snap, field_access, field_vars) = super::structlike::domain(&format!("{var_idx_num}_"), &fields, output_ref, &[], deps, builder)?;
+                    let (field_snaps_to_snap, field_access, field_vars) = super::structlike::domain(&format!("{var_idx_num}_"), &fields, task_key, output_ref, &generics, deps, builder)?;
 
                     // discriminant of constructor is known
                     builder.axiom(&format!("{var_idx_num}_cons_discr"), vir::expr! {
@@ -137,6 +151,8 @@ pub(crate) fn predicate<'vir>(
     task_key: <PredicateEnc as TaskEncoder>::TaskKey<'vir>,
     snap: SnapshotEncOutput<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, PredicateEnc>,
+    generic_decls: &[vir::LocalDecl<'vir>],
+    generic_exprs: &[vir::Expr<'vir>],
     builder: &mut PredicateBuilder<'vir>,
 ) -> Result<(PredicateEncData<'vir>, Option<vir::ExprGen<'vir, vir::Expr<'vir>, vir::ExprKind<'vir>>>), EncodeFullError<'vir, PredicateEnc>> {
     let ty = task_key.ty();
@@ -155,7 +171,46 @@ pub(crate) fn predicate<'vir>(
 
     match adt.adt_kind() {
         ty::AdtKind::Struct if adt.is_box() => {
-            todo!()
+            let snap_data = snap.specifics.expect_structlike();
+
+            //let fields = variant
+            //    .fields
+            //    .iter()
+            //    .map(|f| deps.require_ref::<RustTyPredicatesEnc>(f.ty(builder.vcx.tcx(), params)).unwrap())
+            //    .collect::<Vec<_>>();
+
+            let (
+                field_accessors,
+                self_pred,
+                snap_expr,
+            ) = super::structlike::predicate(
+                "",
+                &[deps.require_ref::<RustTyPredicatesEnc>(params[0].expect_ty())?],
+                task_key,
+                &snap,
+                snap_data.field_snaps_to_snap,
+                deps,
+                generic_decls,
+                generic_exprs,
+                builder,
+            )?;
+
+            // Ref-to-snap
+            builder.function_snap = Some(builder.mk_function(
+                "snap",
+                &[ref_self_decl].into_iter()
+                    .chain(generic_decls.iter().cloned())
+                    .collect::<Vec<_>>(),
+                snap_type,
+                &[vir::expr! { acc_wildcard([self_pred](ref_self, ..[generic_exprs])) }],
+                &[],
+                Some(snap_expr),
+            ).1);
+
+            Ok((PredicateEncData::StructLike(PredicateEncDataStruct {
+                snap_data,
+                ref_to_field_refs: builder.vcx.alloc_slice(&field_accessors),
+            }), None))
         }
         ty::AdtKind::Struct => {
             let snap_data = snap.specifics.expect_structlike();
@@ -206,15 +261,19 @@ pub(crate) fn predicate<'vir>(
                 &snap,
                 snap_data.field_snaps_to_snap,
                 deps,
+                generic_decls,
+                generic_exprs,
                 builder,
             )?;
 
             // Ref-to-snap
             builder.function_snap = Some(builder.mk_function(
                 "snap",
-                &[ref_self_decl],
+                &[ref_self_decl].into_iter()
+                    .chain(generic_decls.iter().cloned())
+                    .collect::<Vec<_>>(),
                 snap_type,
-                &[vir::expr! { acc_wildcard([self_pred](ref_self)) }],
+                &[vir::expr! { acc_wildcard([self_pred](ref_self, ..[generic_exprs])) }],
                 &[],
                 Some(snap_expr),
             ).1);
@@ -301,12 +360,14 @@ pub(crate) fn predicate<'vir>(
                         &snap,
                         snap_variant.fields.field_snaps_to_snap,
                         deps,
+                        generic_decls,
+                        generic_exprs,
                         builder,
                     )?;
 
                     let variant_pred_expr = vir::expr! {
                         (([discr_ty_out.ref_to_snap(builder.vcx, fdisc_func.apply(builder.vcx, &[ref_self_ex]))])
-                            == ([snap_variant.discr])) => ([variant_pred](ref_self))
+                            == ([snap_variant.discr])) => ([variant_pred](ref_self, ..[generic_exprs]))
                     };
 
                     Ok((
@@ -329,7 +390,9 @@ pub(crate) fn predicate<'vir>(
             let discr_app = discr_ty_out.ref_to_snap(builder.vcx, fdisc_func.apply(builder.vcx, &[ref_self_ex]));
             let self_pred = builder.predicate(
                 "",
-                &[ref_self_decl],
+                &[ref_self_decl].into_iter()
+                    .chain(generic_decls.iter().cloned())
+                    .collect::<Vec<_>>(),
                 Some(vir::expr! {
                     ([discr_ty_out.ref_to_pred(builder.vcx, fdisc_func.apply(builder.vcx, &[ref_self_ex]), None)])
                     && (([builder.vcx.mk_disj(&variants.iter()
@@ -344,12 +407,14 @@ pub(crate) fn predicate<'vir>(
             // Ref-to-snap
             builder.function_snap = Some(builder.mk_function(
                 "snap",
-                &[ref_self_decl],
+                &[ref_self_decl].into_iter()
+                    .chain(generic_decls.iter().cloned())
+                    .collect::<Vec<_>>(),
                 snap_type,
-                &[vir::expr! { acc_wildcard([self_pred](ref_self)) }],
+                &[vir::expr! { acc_wildcard([self_pred](ref_self, ..[generic_exprs])) }],
                 &[],
                 Some(vir::expr! {
-                    unfolding_wildcard ([self_pred](ref_self)) in ([variants.iter()
+                    unfolding_wildcard ([self_pred](ref_self, ..[generic_exprs])) in ([variants.iter()
                         .fold(builder.unreachable_to_snap.unwrap().0.apply(builder.vcx, []), |else_, variant| builder.vcx.mk_ternary_expr(
                             vir::expr! { ([discr_app]) == ([variant.2.discr]) },
                             variant.0,

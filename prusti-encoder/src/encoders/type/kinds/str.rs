@@ -44,7 +44,7 @@ pub(crate) fn predicate<'vir>(
         field_accessors,
         self_pred,
         snap_expr,
-    ) = super::structlike::predicate_new(
+    ) = super::structlike::predicate(
         "",
         &[],
         task_key,

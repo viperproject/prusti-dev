@@ -19,7 +19,7 @@ pub(crate) fn domain<'vir>(
         .map(|ty| FieldTy::from_ty(builder.vcx, deps, ty))
         .collect::<Result<Vec<_>, _>>()?;
 
-    let (field_snaps_to_snap, field_access, _) = super::structlike::domain("", &fields, output_ref, &[], deps, builder)?;
+    let (field_snaps_to_snap, field_access, _) = super::structlike::domain("", &fields, task_key, output_ref, &[], deps, builder)?;
 
     Ok(DomainEncSpecifics::StructLike(DomainDataStruct {
         field_snaps_to_snap,
@@ -85,7 +85,7 @@ pub(crate) fn predicate<'vir>(
         field_accessors,
         self_pred,
         snap_expr,
-    ) = super::structlike::predicate_new(
+    ) = super::structlike::predicate(
         "",
         &fields,
         task_key,

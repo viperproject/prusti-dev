@@ -1266,6 +1266,20 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
         mir::ProjectionElem::Deref => {
             assert!(place_ty.variant_index.is_none());
             match place_ty.ty.kind() {
+                TyKind::Adt(adt, _) if adt.is_box() => {
+                    let e_ty = deps
+                        .require_ref::<RustTyPredicatesEnc>(place_ty.ty)
+                        .unwrap();
+                    let struct_like = e_ty
+                        .generic_predicate
+                        .expect_variant_opt(place_ty.variant_index);
+                    let proj = struct_like.snap_data.field_access[0].read;
+                    let proj_app = proj.apply(vcx, [expr]);
+                    let place_ref = place_ref.map(|pr| {
+                        struct_like.ref_to_field_refs[0].apply(vcx, &[pr])
+                    });
+                    (proj_app, place_ref)
+                }
                 TyKind::Ref(_, inner_ty, ty::Mutability::Not) => {
                     let e_ty = deps
                         .require_local::<RustTySnapshotsEnc>(place_ty.ty)
