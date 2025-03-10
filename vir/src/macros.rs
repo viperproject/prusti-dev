@@ -311,6 +311,12 @@ impl<'vir> ExprApply<'vir, crate::Expr<'vir>> for crate::FunctionIdent<'vir, cra
         self.apply(vcx, args)
     }
 }
+impl<'vir, const N: usize> ExprApply<'vir, crate::Expr<'vir>> for crate::FunctionIdent<'vir, crate::KnownArity<'vir, N>> {
+    fn expr_apply(&self, vcx: &'vir crate::VirCtxt<'vir>, args: &[crate::Expr<'vir>]) -> crate::Expr<'vir> {
+        assert_eq!(args.len(), N);
+        self.apply(vcx, args.try_into().unwrap())
+    }
+}
 impl<'vir> ExprApply<'vir, crate::Expr<'vir>> for crate::PredicateIdent<'vir, crate::UnknownArity<'vir>> {
     fn expr_apply(&self, vcx: &'vir crate::VirCtxt<'vir>, args: &[crate::Expr<'vir>]) -> crate::Expr<'vir> {
         vcx.mk_predicate_app_expr(self.apply(vcx, args, None))

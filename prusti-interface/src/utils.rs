@@ -45,6 +45,8 @@ pub fn expand_one_level<'tcx>(
     let repacker = PlaceRepacker::new(mir, tcx);
     let current_place = Place::from(current_place);
     let res = current_place.expand_one_level(Place::from(guide_place), repacker);
+    unreachable!()
+    /*
     (
         res.0.to_rust_place(repacker),
         res.1
@@ -52,6 +54,7 @@ pub fn expand_one_level<'tcx>(
             .map(|r| r.to_rust_place(repacker))
             .collect(),
     )
+    */
 }
 
 /// Pop the last projection from the place and return the new place with the popped element.

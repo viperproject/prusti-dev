@@ -1,4 +1,5 @@
 pub mod domain;
+pub mod indirect;
 pub mod predicate;
 pub mod snapshot;
 pub mod kinds;
