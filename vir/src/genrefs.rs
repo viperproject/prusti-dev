@@ -20,6 +20,7 @@ pub type MethodBodyGen<'vir, Curr, Next> =
     &'vir crate::gendata::MethodBodyGenData<'vir, Curr, Next>;
 pub type MethodCallGen<'vir, Curr, Next> =
     &'vir crate::gendata::MethodCallGenData<'vir, Curr, Next>;
+pub type OldGen<'vir, Curr, Next> = &'vir crate::gendata::OldGenData<'vir, Curr, Next>;
 pub type PredicateGen<'vir, Curr, Next> = &'vir crate::gendata::PredicateGenData<'vir, Curr, Next>;
 pub type PredicateAppGen<'vir, Curr, Next> =
     &'vir crate::gendata::PredicateAppGenData<'vir, Curr, Next>;
@@ -34,3 +35,4 @@ pub type TernaryGen<'vir, Curr, Next> = &'vir crate::gendata::TernaryGenData<'vi
 pub type TriggerGen<'vir, Curr, Next> = &'vir crate::gendata::TriggerGenData<'vir, Curr, Next>;
 pub type UnOpGen<'vir, Curr, Next> = &'vir crate::gendata::UnOpGenData<'vir, Curr, Next>;
 pub type UnfoldingGen<'vir, Curr, Next> = &'vir crate::gendata::UnfoldingGenData<'vir, Curr, Next>;
+pub type WandGen<'vir, Curr, Next> = &'vir crate::gendata::WandGenData<'vir, Curr, Next>;
