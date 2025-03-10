@@ -907,31 +907,29 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 // println!("    place_ty: {place_ty:?}");
                 match place_ty.ty.kind() {
                     ty::TyKind::Adt(adt, _) if adt.is_box() => {
-
-            let field_access = e_ty
-                .generic_predicate
-                .expect_variant_opt(None)
-                .ref_to_field_refs;
-            let projection_p = field_access[0];
-            let instantiated_ty = self
-                .deps
-                .require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(place_ty.ty)
-                .unwrap();
-            let proj_args = e_ty.generic_predicate.ref_to_args(self.vcx, instantiated_ty, expr);
-            let proj_app = projection_p.apply(self.vcx, proj_args);
-            let mut proj_cast_stmts_apply = None;
-            let mut proj_cast_stmts_unapply = None;
-            if let Some(cast_stmts) = self
-                .deps
-                .require_local::<RustTyCastersEnc<CastTypeImpure>>(place_ty.ty.expect_boxed_ty())
-                .unwrap()
-                .cast_to_concrete_if_possible(self.vcx, proj_app)
-            {
-                proj_cast_stmts_apply = Some(cast_stmts.apply_cast_stmt);
-                proj_cast_stmts_unapply = Some(cast_stmts.unapply_cast_stmt);
-            }
-            (proj_app, proj_cast_stmts_apply, proj_cast_stmts_unapply)
-
+                        let field_access = e_ty
+                            .generic_predicate
+                            .expect_variant_opt(None)
+                            .ref_to_field_refs;
+                        let projection_p = field_access[0];
+                        let instantiated_ty = self
+                            .deps
+                            .require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(place_ty.ty)
+                            .unwrap();
+                        let proj_args = e_ty.generic_predicate.ref_to_args(self.vcx, instantiated_ty, expr);
+                        let proj_app = projection_p.apply(self.vcx, proj_args);
+                        let mut proj_cast_stmts_apply = None;
+                        let mut proj_cast_stmts_unapply = None;
+                        if let Some(cast_stmts) = self
+                            .deps
+                            .require_local::<RustTyCastersEnc<CastTypeImpure>>(place_ty.ty.expect_boxed_ty())
+                            .unwrap()
+                            .cast_to_concrete_if_possible(self.vcx, proj_app)
+                        {
+                            proj_cast_stmts_apply = Some(cast_stmts.apply_cast_stmt);
+                            proj_cast_stmts_unapply = Some(cast_stmts.unapply_cast_stmt);
+                        }
+                        (proj_app, proj_cast_stmts_apply, proj_cast_stmts_unapply)
                     }
                     ty::TyKind::Ref(_, inner_ty, ty::Mutability::Not) => {
                         // TODO: unfold? function? use snapshot?
