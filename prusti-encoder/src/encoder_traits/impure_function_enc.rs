@@ -1,8 +1,10 @@
 use std::collections::{HashMap, HashSet};
 
-use pcs::borrows::unblock_graph::UnblockGraph;
+use pcs::borrow_pcg::unblock_graph::UnblockGraph;
+use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
     middle::{mir, ty::{self, GenericArgs}},
+    span::Span,
 };
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{MethodIdent, UnknownArity, ViperIdent};
@@ -71,6 +73,12 @@ where
             // TODO: type parameters
             let arg_count = local_defs.arg_count + 1;
 
+            macro_rules! wands_println {
+                ($($args:tt)*) => {
+                    // println!($($args)*)
+                };
+            }
+
             let method_name = Self::mk_method_ident(vcx, &task_key);
             let mut args = vec![&vir::TypeData::Ref; arg_count];
             let param_ty_decls = deps
@@ -138,10 +146,10 @@ where
             let mut outlives: HashMap<ty::Region, Vec<ty::Region>> = HashMap::new();
             for (predicate, _span) in tcx.predicates_of(def_id).instantiate_identity(tcx) {
                 let Some(clause_kind) = predicate.kind().no_bound_vars() else {
-                    println!("  predicate not handled due to non-empty binder: {predicate:?}");
+                    wands_println!("  predicate not handled due to non-empty binder: {predicate:?}");
                     continue;
                 };
-                // println!("  clause: {clause_kind:?}");
+                // wands_println!("  clause: {clause_kind:?}");
                 match clause_kind {
                     //ty::ClauseKind::RegionOutlives(ty::OutlivesPredicate(long, short)) => outlives.push((SigLifetime::Early(long), SigLifetime::Early(short))),
                     //ty::ClauseKind::RegionOutlives(ty::OutlivesPredicate(long, short)) => outlives.push((long, short)),
@@ -152,20 +160,21 @@ where
                     _ => (),
                 }
             }
-            println!("  outlives: {:?}", outlives);
+            wands_println!("  outlives: {:?}", outlives);
 
             // TODO: hardcoded...
-            let ret_deref_snap = vcx.mk_local("_0r", &vir::TypeData::Ref);
+            let ret_deref_ref = vcx.mk_local("_0r", &vir::TypeData::Ref);
+            let mut ret_deref_snap = None;
             //visitor.place_overrides.insert(
             //    tcx.mk_place_deref(mir::Place::return_place()),
-            //    vcx.mk_local_ex_local(ret_deref_snap),
+            //    vcx.mk_local_ex_local(ret_deref_ref),
             //);
 
             // - (!) collect resources associated with each lifetime
             // TODO: maybe this should happen in MirLocalDefEnc?
             let sig_identity_liberated = tcx.liberate_late_bound_regions(def_id, sig_identity);
             let mut resources_by_region = HashMap::new();
-            let mut output_expr_in_wand = None;
+            let mut output_in_wand = None;
             for region in &lifetimes {
                 use vir::Reify;
                 // let SigLifetime::Early(region) = region else { continue; };
@@ -192,19 +201,23 @@ where
                     // TODO: don't hardcode
                     let output_ty = sig_identity_liberated.output();
                     let output_ty_enc = deps.require_ref::<RustTyPredicatesEnc>(output_ty).unwrap();
+                    ret_deref_snap = Some(vcx.mk_local("_0s", output_ty_enc.snapshot()));
                     if let ty::TyKind::Ref(ref_region, inner_ty, ty::Mutability::Mut) = output_ty.kind() {
                         let inner_ty_enc = deps.require_ref::<RustTyPredicatesEnc>(*inner_ty).unwrap();
-                        let deref_access = output_ty_enc.generic_predicate.expect_ref().deref_func;
+                        let deref_access = output_ty_enc.generic_predicate.expect_mutref().deref_func;
                         let inner_ty_enc_c = inner_ty_enc.clone();
                         if true { //  ref_region == proj_region {
-                            conjuncts_in_wand.push(inner_ty_enc.ref_to_pred(vcx, vcx.mk_local_ex_local(ret_deref_snap), None));
-                            output_expr_in_wand = Some(deref_access.apply(vcx, [local_defs.locals[0usize.into()].local_ex]));
+                            conjuncts_in_wand.push(inner_ty_enc.ref_to_pred(vcx, vcx.mk_local_ex_local(ret_deref_ref), None));
+                            output_in_wand = Some((
+                                deref_access.apply(vcx, [local_defs.locals[0usize.into()].local_ex]),
+                                output_ty_enc.ref_to_snap(vcx, local_defs.locals[0usize.into()].local_ex),
+                            ));
                         }
                     }
                 }
                 resources_by_region.insert(region, (conjuncts, conjuncts_in_wand, places));
             }
-            println!("  resources: {:?}", resources_by_region);
+            wands_println!("  resources: {:?}", resources_by_region);
 
             // get method contract
             let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false))?;
@@ -219,7 +232,7 @@ where
             for region in &lifetimes {
                 // is there anything to block on the input side?
                 let (blocked_resources, blocked_resources_wand, blocked_places) = resources_by_region.get(&region).unwrap().clone();
-                if blocked_resources.is_empty() {
+                if blocked_resources_wand.is_empty() {
                     continue;
                 }
 
@@ -241,7 +254,7 @@ where
                 regions_blocked.insert(region);
                 wands.push((region, blocking_resources, blocked_resources, blocked_resources_wand, blocked_places));
             }
-            println!("  wands: {:?}", wands);
+            wands_println!("  wands: {:?}", wands);
 
             let unblocked_inputs = lifetimes.iter()
                 .filter(|region| !regions_blocked.contains(region))
@@ -249,35 +262,55 @@ where
                 .flat_map(|res| res.into_iter())
                 .copied()
                 .collect::<Vec<_>>();
-            println!("  unblocked inputs: {:?}", unblocked_inputs);
+            wands_println!("  unblocked inputs: {:?}", unblocked_inputs);
             posts.extend(unblocked_inputs);
 
             // add wands to postcondition
+            struct EncodedWand<'vir> {
+                wand: vir::Wand<'vir>,
+                places: Vec<mir::Place<'vir>>,
+                lhs_specs: Vec<vir::Expr<'vir>>,
+                rhs_specs: Vec<(vir::Expr<'vir>, Span)>,
+            }
             let encoded_wands = wands.into_iter()
                 .map(|(_region, _lhs, rhs, lhs_wand, places)| {
-                    let mut lhs_conjuncts = lhs_wand.clone();
-                    let mut rhs_conjuncts = rhs.clone();
+                    let mut lhs_specs = Vec::new();
+                    let mut rhs_specs = Vec::new();
                     if !spec.pledges.is_empty() {
                         // TODO: find corresponding pledge
-                        for (lhs_expr, rhs_expr) in &spec.pledges {
+                        for (lhs_expr, rhs_expr, rhs_span) in &spec.pledges {
                             if let Some(lhs_expr) = lhs_expr {
-                                lhs_conjuncts.push(lhs_expr);
+                                lhs_specs.push(*lhs_expr);
                             }
-                            rhs_conjuncts.push(rhs_expr);
+                            rhs_specs.push((*rhs_expr, *rhs_span));
                         }
                     }
+                    let lhs_conjuncts = lhs_wand.iter()
+                        .cloned()
+                        .chain(lhs_specs.iter().copied())
+                        .collect::<Vec<_>>();
+                    let rhs_conjuncts = rhs.iter()
+                        .cloned()
+                        .chain(rhs_specs.iter().map(|(e, _)| *e))
+                        .collect::<Vec<_>>();
                     let wand = vcx.mk_wand(
                         vcx.mk_conj(&lhs_conjuncts),
                         vcx.mk_conj(&rhs_conjuncts),
                     );
-                    (wand, places)
+                    EncodedWand {
+                        wand,
+                        places,
+                        lhs_specs,
+                        rhs_specs,
+                    }
                 })
                 .collect::<Vec<_>>();
             posts.extend(encoded_wands.iter()
-                .map(|(wand, _)| {
+                .map(|EncodedWand { wand, .. }| {
                     let mut wand_expr = vcx.mk_wand_expr(wand);
-                    if let Some(output_expr_in_wand) = output_expr_in_wand {
-                        wand_expr = vcx.mk_let_expr("_0r", output_expr_in_wand, wand_expr);
+                    if let Some((expr, snap)) = output_in_wand {
+                        wand_expr = vcx.mk_let_expr("_0r", expr, wand_expr);
+                        wand_expr = vcx.mk_let_expr("_0s", snap, wand_expr);
                     }
                     wand_expr
                 }));
@@ -326,11 +359,14 @@ where
                 let last_block = (block_count - 1).into();
                 let final_borrow_state = fpcs_analysis
                     .get_all_for_bb(last_block)
-                    .statements
-                    .last()
                     .unwrap()
-                    .borrows
-                    .post_main().clone();
+                    .map(|block| block.statements
+                        .last()
+                        .unwrap()
+                        .borrows
+                        .post_main().clone());
+
+                deps.check_cycle()?;
                 let mut visitor = ImpureEncVisitor {
                     monomorphize: MirImpureEnc::monomorphize(),
                     vcx,
@@ -352,51 +388,80 @@ where
                 };
                 visitor.visit_body(&body);
 
-                // package wands
                 let mut wand_packages = Vec::new();
-                if let Some(output_expr_in_wand) = output_expr_in_wand {
-                    wand_packages.push(vcx.mk_local_decl_stmt(
-                        vcx.mk_local_decl_local(ret_deref_snap),
-                        Some(output_expr_in_wand),
-                    ));
-                }
-                for arg_idx in 1..arg_count {
-                    let local = mir::Local::from(arg_idx);
-                    let deref_local = tcx.mk_place_deref(local.into());
-                    let old_place = visitor.encode_place(deref_local.into());
-                    visitor.place_overrides.insert(
-                        deref_local,
-                        vcx.mk_old_expr(old_place.expr),
-                    );
-                    //let name_p = local_defs.locals[arg_idx.into()].local.name;
-                    //args.push(vir::vir_local_decl! { vcx; [name_p] : Ref });
-                    //if arg_idx != 0 {
-                    //    pres.push(local_defs.locals[arg_idx.into()].impure_pred);
-                    //}
+                if let Some(final_borrow_state) = final_borrow_state {
+                    // package wands
+                    if let Some((expr, snap)) = output_in_wand {
+                        wand_packages.push(vcx.mk_local_decl_stmt(
+                            vcx.mk_local_decl_local(ret_deref_ref),
+                            Some(expr),
+                        ));
+                        wand_packages.push(vcx.mk_local_decl_stmt(
+                            vcx.mk_local_decl_local(ret_deref_snap.unwrap()),
+                            Some(snap),
+                        ));
+                    }
+
+                    // TODO: this is a hack! it tries to deref every argument when
+                    //       creating overrides; this should only be done for ref-
+                    //       typed arguments that are actually involved in a wand
+                    //       (or deeper projections)
+                    if !encoded_wands.is_empty() {
+                        for arg_idx in 1..arg_count {
+                            let local = mir::Local::from(arg_idx);
+                            let deref_local = tcx.mk_place_deref(local.into());
+                            let old_place = visitor.encode_place(deref_local.into());
+                            visitor.place_overrides.insert(
+                                deref_local,
+                                vcx.mk_old_expr(old_place.expr),
+                            );
+                            //let name_p = local_defs.locals[arg_idx.into()].local.name;
+                            //args.push(vir::vir_local_decl! { vcx; [name_p] : Ref });
+                            //if arg_idx != 0 {
+                            //    pres.push(local_defs.locals[arg_idx.into()].impure_pred);
+                            //}
+                        }
+                    }
+
+                    for EncodedWand { wand, places, lhs_specs, rhs_specs } in encoded_wands {
+                        //assert_eq!(places.len(), 1); // TODO ...
+                        assert!(places.len() >= 1); // TODO: for now we just pick one ...
+                        let blocked_place = places[0];
+                        let ug = UnblockGraph::for_node(
+                            blocked_place,
+                            &final_borrow_state,
+                            visitor.fpcs_analysis.repacker(),
+                        );
+                        let actions = ug.actions(visitor.fpcs_analysis.repacker()).unwrap();
+                        let mut package_script = visitor.block(|visitor| {
+                            visitor.pcs_unblock_actions(&actions);
+                        });
+
+                        for (spec, span) in rhs_specs {
+                            vcx.with_span(span, |vcx| {
+                                vcx.handle_error("exhale.failed:assertion.false", move |_| {
+                                    Some(vec![PrustiError::verification(
+                                        "pledge postcondition might not hold",
+                                        span.into(),
+                                    )])
+                                });
+                                package_script.push(vcx.mk_exhale_stmt(spec));
+                            });
+                        }
+                        wand_packages.push(vcx.mk_package_stmt(
+                            wand,
+                            &vcx.alloc_slice(&package_script),
+                        ));
+                    }
                 }
 
-                for (wand, places) in encoded_wands {
-                    assert_eq!(places.len(), 1); // TODO ...
-                    let blocked_place = places[0];
-                    let ug = UnblockGraph::for_node(
-                        blocked_place,
-                        &final_borrow_state,
-                        visitor.fpcs_analysis.repacker(),
-                    );
-                    let actions = ug.actions(visitor.fpcs_analysis.repacker());
-                    let package_script = visitor.block(|visitor| {
-                        visitor.pcs_unblock_actions(&actions);
-                    });
-                    wand_packages.push(vcx.mk_package_stmt(
-                        wand,
-                        &vcx.alloc_slice(&package_script),
-                    ));
-                }
                 visitor.encoded_blocks.push(vcx.mk_cfg_block(
                     vcx.alloc(vir::CfgBlockLabelData::End),
                     vcx.alloc_slice(&wand_packages),
                     vcx.alloc(vir::TerminatorStmtData::Exit),
                 ));
+
+                visitor.deps.check_cycle()?;
 
                 Some(visitor.encoded_blocks)
             } else {
@@ -417,23 +482,23 @@ where
 
             /*
             let identity_substs = GenericArgs::identity_for_item(vcx.tcx(), def_id);
-            println!("regions of {def_id:?}:");
+            wands_println!("regions of {def_id:?}:");
             for region in identity_substs {
-                println!("  {region:?}");
+                wands_println!("  {region:?}");
             }
 
-            println!("regions of args?");
+            wands_println!("regions of args?");
             let body = vcx
                 .body_mut()
                 .get_impure_fn_body_with_facts(def_id.as_local().unwrap());
             for l in 0..local_defs.locals.len() {
                 let ty = body.body.local_decls[l.into()].ty;
-                println!("  arg: {ty:?}");
+                wands_println!("  arg: {ty:?}");
             }
 
-            println!("regions in region inference context?");
+            wands_println!("regions in region inference context?");
             for region in body.region_inference_context.regions() {
-                println!("  region: {region:?}");
+                wands_println!("  region: {region:?}");
             }
             */
             args.extend(param_ty_decls.iter());

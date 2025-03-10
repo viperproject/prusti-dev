@@ -18,7 +18,7 @@ impl<'vir, E: TaskEncoder + 'vir + ?Sized> TaskEncoderDependencies<'vir, E> {
         }
     }
 
-    fn check_cycle(&self) -> Result<(), EncodeFullError<'vir, E>> {
+    pub fn check_cycle(&self) -> Result<(), EncodeFullError<'vir, E>> {
         if let Some(task_key) = self.task_key.as_ref() {
             if E::with_cache(move |cache| {
                 matches!(

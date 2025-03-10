@@ -17,8 +17,7 @@ pub struct ConstEnc;
 use crate::encoders::{mir_pure::PureKind, MirPureEnc, MirPureEncTask};
 
 use super::{
-    lifted::{casters::CastTypePure, rust_ty_cast::RustTyCastersEnc},
-    rust_ty_snapshots::RustTySnapshotsEnc,
+    lifted::{casters::CastTypePure, rust_ty_cast::RustTyCastersEnc, ty::{EncodeGenericsAsLifted, LiftedTyEnc}}, rust_ty_predicates::RustTyPredicatesEnc, rust_ty_snapshots::RustTySnapshotsEnc
 };
 
 impl TaskEncoder for ConstEnc {
@@ -77,7 +76,7 @@ impl TaskEncoder for ConstEnc {
                     // we will need to revisit this encoding, but for the moment this allows assertions to avoid
                     // crashing Prusti.
                     ConstValue::Slice { .. } if ty.peel_refs().is_str() => {
-                        let ref_ty = kind.expect_structlike();
+                        let ref_ty = kind.expect_immref();
                         let str_ty = ty.peel_refs();
                         let str_snap = deps
                             .require_local::<RustTySnapshotsEnc>(str_ty)?
@@ -91,7 +90,7 @@ impl TaskEncoder for ConstEnc {
                             // upcast it to a param
                             let snap = cast.cast_to_generic_if_necessary(vcx, snap);
                             // wrap it in a ref
-                            ref_ty.field_snaps_to_snap.apply(vcx, &[snap])
+                            ref_ty.prim_to_snap.apply(vcx, [vcx.mk_null(), snap])
                         })
                     }
                     ConstValue::Slice { .. } => todo!("ConstValue::Slice : {:?}", const_.ty()),

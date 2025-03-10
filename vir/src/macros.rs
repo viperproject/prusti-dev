@@ -405,6 +405,10 @@ macro_rules! expr {
             Some(vcx!().mk_wildcard()),
         )
     )); } };
+    (@expr($output:ident); [ $outer:expr ]( ) ) => { { $output.push($outer.expr_apply(
+        vcx!(),
+        &[],
+    )); } };
     (@expr($output:ident); [ $outer:expr ]( $($args:tt)* ) ) => { { $output.push($outer.expr_apply(
         vcx!(),
         $crate::expr!(@expr_list; $($args)*).as_slice(),
@@ -429,9 +433,20 @@ macro_rules! expr {
         $crate::expr!(@expr_one; $($lhs)*),
         $crate::expr!(@expr_one; $($rhs)*),
     )); } };
+    (@expr($output:ident); ( $($lhs:tt)+ ) < ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_bin_op_expr(
+        $crate::BinOpKind::CmpLt,
+        $crate::expr!(@expr_one; $($lhs)*),
+        $crate::expr!(@expr_one; $($rhs)*),
+    )); } };
+    (@expr($output:ident); ( $($lhs:tt)+ ) + ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_bin_op_expr(
+        $crate::BinOpKind::Add,
+        $crate::expr!(@expr_one; $($lhs)*),
+        $crate::expr!(@expr_one; $($rhs)*),
+    )); } };
     (@expr($output:ident); null) => { { $output.push(vcx!().mk_null()); } };
     (@expr($output:ident); true) => { { $output.push(vcx!().mk_bool::<true>()); } };
     (@expr($output:ident); false) => { { $output.push(vcx!().mk_bool::<false>()); } };
+    (@expr($output:ident); result) => { { $output.push(vcx!().mk_result()); } };
     (@expr($output:ident); forall $($tokens:tt)+) => { {
         let mut qvars = Vec::new();
         $crate::expr!(@forall_qvars($output, qvars); $($tokens)*)
@@ -447,6 +462,7 @@ macro_rules! expr {
         assert_eq!(output.len(), 1, "expected one VIR expression");
         output[0]
     } };
+    (@expr_list;) => { Vec::new() };
     (@expr_list; $($tokens:tt)*) => { {
         #[allow(unused_mut)]
         let mut output: Vec<$crate::Expr> = Vec::new();

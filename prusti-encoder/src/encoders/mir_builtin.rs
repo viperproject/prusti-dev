@@ -352,7 +352,9 @@ impl MirBuiltinEnc {
         let wrapped_val = vcx.mk_local_ex(wrapped_val_str, e_rvalue_pure_ty.prim_type);
         let wrapped_val_snap = e_rvalue_pure_ty.prim_to_snap.apply(vcx, [wrapped_val]);
         // Overflowed?
-        let overflowed = vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, wrapped_val, val);
+        // TODO: disable overflow checks with config
+        //let overflowed = vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, wrapped_val, val);
+        let overflowed = vcx.mk_bool::<false>();
         let overflowed_snap = bool_cons.apply(vcx, [overflowed]);
         // `tuple(prim_to_snap(wrapped_val), wrapped_val != val)`
         let ty_caster =

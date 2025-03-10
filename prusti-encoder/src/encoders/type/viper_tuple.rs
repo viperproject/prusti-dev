@@ -2,24 +2,28 @@ use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 
 use super::{
     domain::{DomainDataStruct, DomainEnc},
-    most_generic_ty::MostGenericTy,
+    most_generic_ty::MostGenericTy, rust_ty_snapshots::RustTySnapshotsEnc,
 };
 
 pub struct ViperTupleEnc;
 
 #[derive(Clone, Debug)]
 pub struct ViperTupleEncOutput<'vir> {
-    tuple: Option<DomainDataStruct<'vir>>,
+    tuple: Option<(vir::Type<'vir>, DomainDataStruct<'vir>)>,
 }
 
 impl<'vir> ViperTupleEncOutput<'vir> {
+    pub fn snapshot(&self) -> Option<vir::Type<'vir>> {
+        self.tuple.map(|t| t.0)
+    }
+
     pub fn mk_cons<'tcx, Curr, Next>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
         elems: &[vir::ExprGen<'vir, Curr, Next>],
     ) -> vir::ExprGen<'vir, Curr, Next> {
         self.tuple
-            .map(|t| t.field_snaps_to_snap.apply(vcx, elems))
+            .map(|t| t.1.field_snaps_to_snap.apply(vcx, elems))
             .unwrap_or_else(|| elems[0])
     }
 
@@ -30,7 +34,7 @@ impl<'vir> ViperTupleEncOutput<'vir> {
         elem: usize,
     ) -> vir::ExprGen<'vir, Curr, Next> {
         self.tuple
-            .map(|t| t.field_access[elem].read.apply(vcx, [tuple]))
+            .map(|t| t.1.field_access[elem].read.apply(vcx, [tuple]))
             .unwrap_or_else(|| tuple)
     }
 }
@@ -55,10 +59,13 @@ impl TaskEncoder for ViperTupleEnc {
         if *task_key == 1 {
             Ok((ViperTupleEncOutput { tuple: None }, ()))
         } else {
-            let ret = deps.require_dep::<DomainEnc>(MostGenericTy::tuple(*task_key))?;
+            let most_generic_ty = MostGenericTy::tuple(*task_key);
+            let ret_ref = deps.require_ref::<RustTySnapshotsEnc>(most_generic_ty.ty())?;
+            let snapshot = ret_ref.generic_snapshot.snapshot;
+            let ret = deps.require_dep::<DomainEnc>(most_generic_ty)?;
             Ok((
                 ViperTupleEncOutput {
-                    tuple: Some(ret.expect_structlike()),
+                    tuple: Some((snapshot, ret.expect_structlike())),
                 },
                 (),
             ))

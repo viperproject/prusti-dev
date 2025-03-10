@@ -1,7 +1,7 @@
 use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
     middle::{mir, ty},
-    span::def_id::DefId,
+    span::{Span, def_id::DefId},
 };
 
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
@@ -14,7 +14,7 @@ pub struct MirSpecEnc;
 pub struct MirSpecEncOutput<'vir> {
     pub pres: Vec<vir::Expr<'vir>>,
     pub posts: Vec<vir::Expr<'vir>>,
-    pub pledges: Vec<(Option<vir::Expr<'vir>>, vir::Expr<'vir>)>, // TODO: associate with a named lifetime
+    pub pledges: Vec<(Option<vir::Expr<'vir>>, vir::Expr<'vir>, Span)>, // TODO: associate with a named lifetime
     pub pre_args: &'vir [vir::Expr<'vir>],
     #[allow(dead_code)]
     pub post_args: &'vir [vir::Expr<'vir>],
@@ -149,6 +149,12 @@ impl TaskEncoder for MirSpecEnc {
                     })
                 })
                 .collect::<Vec<vir::Expr<'_>>>();
+            let pledge_args = vcx.alloc_slice(&pre_args
+                .iter()
+                .map(|arg| vcx.mk_old_expr(arg))
+                // TODO: this looks a bit hardcoded...
+                .chain([vcx.mk_local_ex("_0s", local_defs.locals[mir::RETURN_PLACE].ty.snapshot)])
+                .collect::<Vec<_>>());
             let pledges = specs
                 .pledges
                 .iter()
@@ -182,11 +188,21 @@ impl TaskEncoder for MirSpecEnc {
                         )
                         .unwrap()
                         .expr;
-                    let lhs_expr = lhs_expr.map(|lhs_expr| lhs_expr.reify(vcx, (lhs_def_id.unwrap(), post_args)));
-                    let rhs_expr = rhs_expr.reify(vcx, (*rhs_def_id, post_args));
+                    let lhs_expr = lhs_expr.map(|lhs_expr| lhs_expr.reify(vcx, (lhs_def_id.unwrap(), pledge_args)));
+                    let rhs_expr = rhs_expr.reify(vcx, (*rhs_def_id, pledge_args));
+                    let rhs_span = vcx.tcx().def_span(rhs_def_id);
                     (
                         lhs_expr.map(|lhs_expr| vcx.with_span(vcx.tcx().def_span(lhs_def_id.unwrap()), |vcx| to_bool.apply(vcx, [lhs_expr]))),
-                        vcx.with_span(vcx.tcx().def_span(rhs_def_id), |vcx| to_bool.apply(vcx, [rhs_expr])),
+                        vcx.with_span(rhs_span, |vcx| {
+                            vcx.handle_error("exhale.failed:assertion.false", move |_| {
+                                Some(vec![PrustiError::verification(
+                                    "pledge postcondition might not hold",
+                                    rhs_span.into(),
+                                )])
+                            });
+                            to_bool.apply(vcx, [rhs_expr])
+                        }),
+                        rhs_span,
                     )
                 })
                 .collect::<Vec<_>>();

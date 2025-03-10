@@ -1,10 +1,14 @@
+use prusti_rustc_interface::middle::ty::{ParamTy, TyKind};
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
-use vir::{vir_format, FunctionIdent, PredicateIdent, ToKnownArity, UnaryArity, UnknownArity};
-use crate::encoders::{domain::{DomainBuilder, DomainEnc, FieldFunctions, FieldTy}, predicate::PredicateBuilder, rust_ty_predicates::RustTyPredicatesEncOutputRef, snapshot::SnapshotEncOutput, PredicateEnc};
+use vir::{vir_format, FunctionIdent, PredicateIdent, ToKnownArity, UnknownArity};
+use crate::encoders::{domain::{DomainBuilder, DomainEnc, DomainEncOutputRef, FieldFunctions, FieldTy}, predicate::PredicateBuilder, rust_ty_predicates::RustTyPredicatesEncOutputRef, snapshot::SnapshotEncOutput, GenericEnc, PredicateEnc};
 
 pub fn domain<'vir>(
     prefix: &str,
     fields: &[FieldTy<'vir>],
+    output_ref: &DomainEncOutputRef<'vir>,
+    generics: &[ParamTy],
+    deps: &mut TaskEncoderDependencies<'vir, DomainEnc>,
     builder: &mut DomainBuilder<'vir>,
 ) -> Result<(
     FunctionIdent<'vir, UnknownArity<'vir>>,
@@ -30,6 +34,13 @@ pub fn domain<'vir>(
         .map(|(idx, ty)| builder.function(&format!("{prefix}write_{idx}"), &[builder.self_type(), ty.ty], builder.self_type()))
         .collect::<Vec<_>>();
 
+    // variables for quantifiers
+    let field_vars = fields
+        .iter()
+        .enumerate()
+        .map(|(idx, ty)| builder.vcx.mk_local(&vir_format!(builder.vcx, "f{idx}"), ty.ty))
+        .collect::<Vec<_>>();
+
     // TODO: typeof and read_type axioms
     /*
     // for struct U<T> { x: T, y: i32 }
@@ -46,20 +57,23 @@ pub fn domain<'vir>(
     }
     */
 
-    // variables for quantifiers
-    let field_vars = fields
-        .iter()
-        .enumerate()
-        .map(|(idx, ty)| builder.vcx.mk_local(&vir_format!(builder.vcx, "f{idx}"), ty.ty))
-        .collect::<Vec<_>>();
-
     // field accessor axioms
+    let generic_enc = deps.require_ref::<GenericEnc>(())?;
     for idx in 0..fields.len() {
         builder.axiom(&format!("{prefix}cons_read_{idx}"), vir::expr! {
             forall ..[field_vars] ::
                 {[cons_ident](..[field_vars])}
                 ([field_reads[idx]]([cons_ident](..[field_vars]))) == ([field_vars[idx]])
         });
+        if let TyKind::Param(p) = fields[idx].rust_ty.kind() {
+            // TODO: this only handles top-level generics
+            let param_idx = p.index as usize;
+            builder.axiom(&format!("{prefix}type_read_{idx}"), vir::expr! {
+                forall s: [builder.self_type()] ::
+                    {[field_reads[idx]](s)}
+                    ([generic_enc.param_type_function]([field_reads[idx]](s))) == ([output_ref.ty_param_accessors[param_idx]]([output_ref.typeof_function](s)))
+            });
+        }
     }
     for write_idx in 0..fields.len() {
         for read_idx in 0..fields.len() {

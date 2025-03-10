@@ -2,10 +2,11 @@
 
 pub mod adt;
 pub mod closure;
+pub mod immref;
+pub mod mutref;
 pub mod never;
 pub mod param;
 pub mod primitive;
-pub mod reference;
 pub mod str;
 pub mod tuple;
 mod structlike;

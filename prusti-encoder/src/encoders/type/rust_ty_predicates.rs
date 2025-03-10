@@ -124,6 +124,7 @@ impl TaskEncoder for RustTyPredicatesEnc {
         vir::with_vcx(|vcx| {
             let (generic_ty, args) = extract_type_params(vcx.tcx(), *task_key);
             let generic_predicate = deps.require_ref::<PredicateEnc>(generic_ty)?;
+            /*
             let indirect_predicate = if let ty::TyKind::Ref(_, inner_ty, _) = task_key.kind() {
                 let inner_ty_enc = deps.require_ref::<RustTyPredicatesEnc>(*inner_ty).unwrap();
                 let deref_access = generic_predicate.expect_ref().deref_func;
@@ -143,12 +144,13 @@ impl TaskEncoder for RustTyPredicatesEnc {
             } else {
                 None
             };
+            */
             let ty = deps.require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(*task_key)?;
             deps.emit_output_ref(
                 *task_key,
                 RustTyPredicatesEncOutputRef {
                     generic_predicate,
-                    indirect_predicate,
+                    indirect_predicate: None,
                     ty,
                 },
             )?;
