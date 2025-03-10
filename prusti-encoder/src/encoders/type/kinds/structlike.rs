@@ -1,11 +1,12 @@
 use prusti_rustc_interface::middle::ty::{ParamTy, TyKind};
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{vir_format, FunctionIdent, PredicateIdent, ToKnownArity, UnknownArity};
-use crate::encoders::{domain::{DomainBuilder, DomainEnc, DomainEncOutputRef, FieldFunctions, FieldTy}, predicate::PredicateBuilder, rust_ty_predicates::RustTyPredicatesEncOutputRef, snapshot::SnapshotEncOutput, GenericEnc, PredicateEnc};
+use crate::encoders::{domain::{DomainBuilder, DomainEnc, DomainEncOutputRef, FieldFunctions, FieldTy}, lifted::ty_constructor::TyConstructorEnc, predicate::PredicateBuilder, rust_ty_predicates::RustTyPredicatesEncOutputRef, snapshot::SnapshotEncOutput, GenericEnc, PredicateEnc};
 
 pub fn domain<'vir>(
     prefix: &str,
     fields: &[FieldTy<'vir>],
+    task_key: <DomainEnc as TaskEncoder>::TaskKey<'vir>,
     output_ref: &DomainEncOutputRef<'vir>,
     generics: &[ParamTy],
     deps: &mut TaskEncoderDependencies<'vir, DomainEnc>,
@@ -56,6 +57,22 @@ pub fn domain<'vir>(
         forall self: s_U :: {s_U_typaram_T(typeof_s_U(self))} (typeof_s_U(self)) == (s_U_type(s_U_typaram_T(typeof_s_U(self))))
     }
     */
+
+    if prefix == "" {
+        // TODO: this ensures that we only produce one axiom for enums, but the
+        //   check based on prefix is not very clean
+        let ty_cons = deps.require_ref::<TyConstructorEnc>(task_key)?;
+        builder.axiom("typeof", vir::expr! {
+            forall s: [builder.self_type()] ::
+                {[output_ref.typeof_function](s)}
+                ([output_ref.typeof_function](s)) == ([ty_cons.ty_constructor](..[generics.iter()
+                    .enumerate()
+                    .map(|(param_idx, _)| {
+                        output_ref.ty_param_accessors[param_idx].apply(builder.vcx, [output_ref.typeof_function.apply(builder.vcx, [s])])
+                    })
+                    .collect::<Vec<_>>()]))
+        });
+    }
 
     // field accessor axioms
     let generic_enc = deps.require_ref::<GenericEnc>(())?;
@@ -110,23 +127,6 @@ pub fn domain<'vir>(
 }
 
 pub(crate) fn predicate<'vir>(
-    prefix: &str,
-    fields: &[RustTyPredicatesEncOutputRef<'vir>],
-    task_key: <PredicateEnc as TaskEncoder>::TaskKey<'vir>,
-    snap: &SnapshotEncOutput<'vir>,
-    variant_field_snaps_to_snap: FunctionIdent<'vir, UnknownArity<'vir>>,
-    deps: &mut TaskEncoderDependencies<'vir, PredicateEnc>,
-    builder: &mut PredicateBuilder<'vir>,
-) -> Result<(
-    Vec<FunctionIdent<'vir, UnknownArity<'vir>>>,
-    PredicateIdent<'vir, UnknownArity<'vir>>,
-    vir::Expr<'vir>,
-), EncodeFullError<'vir, PredicateEnc>> {
-    predicate_new(prefix, fields, task_key, snap, variant_field_snaps_to_snap, deps, &[], &[], builder)
-}
-
-
-pub(crate) fn predicate_new<'vir>(
     prefix: &str,
     fields: &[RustTyPredicatesEncOutputRef<'vir>],
     task_key: <PredicateEnc as TaskEncoder>::TaskKey<'vir>,

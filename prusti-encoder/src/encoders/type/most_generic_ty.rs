@@ -36,6 +36,8 @@ pub fn get_vir_base_name_kind<'tcx>(kind: &ty::TyKind<'tcx>, vcx: &vir::VirCtxt<
         TyKind::Never => String::from("Never"),
         TyKind::Ref(_, _, ty::Mutability::Not) => String::from("Ref_immutable"),
         TyKind::Ref(_, _, ty::Mutability::Mut) => String::from("Ref_mutable"),
+        TyKind::RawPtr(_, ty::Mutability::Not) => String::from("RawPtr_immutable"),
+        TyKind::RawPtr(_, ty::Mutability::Mut) => String::from("RawPtr_mutable"),
         TyKind::Param(_) => String::from("Param"),
         TyKind::Closure(def_id, _) => {
             let def_key = vcx.tcx().def_key(def_id);
@@ -98,10 +100,11 @@ impl<'tcx> MostGenericTy<'tcx> {
                 .map(as_param_ty)
                 .collect(),
             TyKind::Tuple(tys) => tys.iter().map(as_param_ty).collect::<Vec<_>>(),
-            TyKind::Array(orig, _) => vec![as_param_ty(*orig)],
-            TyKind::Slice(orig) => vec![as_param_ty(*orig)],
-            TyKind::Ref(_, orig, ty::Mutability::Not) => vec![as_param_ty(*orig)],
+            TyKind::Array(inner, _) => vec![as_param_ty(*inner)],
+            TyKind::Slice(inner) => vec![as_param_ty(*inner)],
+            TyKind::Ref(_, inner, ty::Mutability::Not) => vec![as_param_ty(*inner)],
             TyKind::Ref(_, _, ty::Mutability::Mut) => vec![],
+            TyKind::RawPtr(inner, _) => vec![as_param_ty(*inner)],
             TyKind::Bool
             | TyKind::Char
             | TyKind::Float(_)
@@ -154,25 +157,30 @@ pub fn extract_type_params<'tcx>(
             let ty = tcx.mk_ty_from_kind(TyKind::Tuple(new_tys));
             (MostGenericTy(ty), tys.to_vec())
         }
-        TyKind::Array(orig, val) => {
+        TyKind::Array(inner, val) => {
             let ty = to_placeholder(tcx, None);
             let ty = tcx.mk_ty_from_kind(TyKind::Array(ty, val));
-            (MostGenericTy(ty), vec![orig])
+            (MostGenericTy(ty), vec![inner])
         }
-        TyKind::Slice(orig) => {
+        TyKind::Slice(inner) => {
             let ty = to_placeholder(tcx, None);
             let ty = tcx.mk_ty_from_kind(TyKind::Slice(ty));
-            (MostGenericTy(ty), vec![orig])
+            (MostGenericTy(ty), vec![inner])
         }
-        TyKind::Ref(_, orig, ty::Mutability::Not) => {
+        TyKind::Ref(_, inner, ty::Mutability::Not) => {
             let ty = to_placeholder(tcx, None);
             let ty = tcx.mk_ty_from_kind(TyKind::Ref(tcx.lifetimes.re_erased, ty, ty::Mutability::Not));
-            (MostGenericTy(ty), vec![orig])
+            (MostGenericTy(ty), vec![inner])
         }
         TyKind::Ref(_, _, ty::Mutability::Mut) => {
             let ty = to_placeholder(tcx, None);
             let ty = tcx.mk_ty_from_kind(TyKind::Ref(tcx.lifetimes.re_erased, ty, ty::Mutability::Mut));
-            (MostGenericTy(ty), vec![]) // vec![orig])
+            (MostGenericTy(ty), vec![]) // vec![inner])
+        }
+        TyKind::RawPtr(inner, m) => {
+            let ty = to_placeholder(tcx, None);
+            let ty = tcx.mk_ty_from_kind(TyKind::RawPtr(ty, m));
+            (MostGenericTy(ty), vec![inner])
         }
         TyKind::Param(_) => (MostGenericTy(to_placeholder(tcx, None)), Vec::new()),
         TyKind::Bool
