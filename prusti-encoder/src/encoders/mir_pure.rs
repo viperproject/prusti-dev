@@ -142,6 +142,7 @@ impl TaskEncoder for MirPureEnc {
             // only the type system.
             let expr = vcx.mk_lazy_expr(
                 vir::vir_format!(vcx, "pure body {def_id:?}"),
+                deps.require_ref::<RustTySnapshotsEnc>(body.return_ty())?.generic_snapshot.snapshot,
                 Box::new(move |vcx, lctx: ExprInput<'_>| {
                     // check: are we actually providing arguments for the
                     //   correct `DefId`?
@@ -155,8 +156,8 @@ impl TaskEncoder for MirPureEnc {
                 }),
             );
             add_debug_note!(expr.debug_info, "Inner expr: {}", expr_inner.debug_info);
-            expr
-        });
+            Ok(expr)
+        })?;
         tracing::debug!("finished {def_id:?}");
 
         Ok((MirPureEncOutput { expr }, ()))
@@ -374,6 +375,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         for local in 1..=self.body.arg_count {
             let local_ex = self.vcx.mk_lazy_expr(
                 vir::vir_format!(self.vcx, "pure in _{local}"),
+                self.get_ty_for_local(local.into()),
                 Box::new(move |_vcx, lctx: ExprInput<'vir>| lctx.1[local - 1].kind),
             );
             init.binds
@@ -812,9 +814,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
         let mut expr = if should_wrap {
             let local_as_uzize = place.local.as_usize();
-
             self.vcx.mk_lazy_expr(
                 vir::vir_format!(self.vcx, "wraped in _{}", local_as_uzize),
+                self.get_ty_for_local(place.local),
                 Box::new(move |_vcx, lctx: ExprInput<'vir>| lctx.1[local_as_uzize - 1].kind),
             )
         } else {

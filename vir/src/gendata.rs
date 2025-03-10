@@ -202,7 +202,7 @@ impl<'vir, Curr, Next> ExprKindGenData<'vir, Curr, Next> {
             ExprKindGenData::FuncApp(a) => a.result_ty,
             ExprKindGenData::PredicateApp(_) => &TypeData::Predicate,
             ExprKindGenData::Wand(..) => &TypeData::Predicate,
-            ExprKindGenData::Lazy(_) => panic!("cannot get type of lazy expression"),
+            ExprKindGenData::Lazy(l) => l.ty,
             ExprKindGenData::Todo(msg) => panic!("{msg}"),
         }
     }
@@ -229,6 +229,7 @@ pub struct LazyGenData<'vir, Curr: 'vir, Next: 'vir> {
     pub name: &'vir str,
     #[allow(clippy::type_complexity)]
     pub func: Box<dyn for<'a> Fn(&'vir crate::VirCtxt<'a>, Curr) -> Next + 'vir>,
+    pub ty: Type<'vir>,
 }
 
 impl<'vir, Curr: 'vir, Next: 'vir> std::hash::Hash for LazyGenData<'vir, Curr, Next> {
