@@ -574,7 +574,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             | mir::StatementKind::AscribeUserType(..)
             | mir::StatementKind::PlaceMention(..) => {} // nop
             mir::StatementKind::Assign(box (dest, rvalue)) => {
-                assert!(dest.projection.is_empty());
+                //assert!(dest.projection.is_empty());
                 let expr = self.encode_rvalue(curr_ver, rvalue);
                 self.bump_version(&mut update, dest.local, expr);
             }
@@ -600,8 +600,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .generic_snapshot;
                 let e_rvalue_ty = rvalue_snapshot_encoding
                     .specifics
-                    .expect_structlike()
-                    .field_snaps_to_snap;
+                    .expect_ref()
+                    .prim_to_snap;
                 let (snap, place_ref) = self.encode_place_with_ref(curr_ver, place);
                 let place_ty = place.ty(self.body, self.vcx.tcx()).ty;
                 let cast = self
@@ -610,7 +610,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .unwrap();
                 // The snapshot of the referenced value should be encoded as a generic `Param`
                 let snap = cast.cast_to_generic_if_necessary(self.vcx, snap);
-                if kind.mutability().is_mut() {
+                //if kind.mutability().is_mut() {
                     // We want to distinguish if `place` is a value that lives
                     // in pure code or not. If it lives in impure (the only way
                     // that this can happen is that we have a `&mut` argument)
@@ -621,13 +621,13 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     // a re-borrow of created-in-pure reference then it will be
                     // field projections of `null` which is also `null`.
                     let place_ref = place_ref.unwrap_or_else(|| self.vcx.mk_null());
-                    e_rvalue_ty.apply(self.vcx, &[snap, place_ref])
-                } else {
-                    // For shared borrows we want to use just the snapshot
-                    // without the reference so that snapshot equality compares
-                    // only values.
-                    e_rvalue_ty.apply(self.vcx, &[snap])
-                }
+                    e_rvalue_ty.apply(self.vcx, [place_ref, snap])
+                //} else {
+                //    // For shared borrows we want to use just the snapshot
+                //    // without the reference so that snapshot equality compares
+                //    // only values.
+                //    e_rvalue_ty.apply(self.vcx, &[snap])
+                //}
             }
             // ThreadLocalRef
             // AddressOf
@@ -835,21 +835,26 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .unwrap()
                     .generic_snapshot
                     .specifics
-                    .expect_structlike();
-                let place_ref = e_ty
-                    .field_access
-                    .get(1)
-                    .map(|r| r.read.apply(self.vcx, [expr]));
-                let expr = e_ty.field_access[0].read.apply(self.vcx, [expr]);
+                    .expect_ref();
+                let TyKind::Ref(_, inner_ty, _) = place_ty.ty.kind() else { unreachable!(); };
+                let inner_ty_out = self
+                    .deps
+                    .require_ref::<RustTyPredicatesEnc>(*inner_ty)
+                    .unwrap();
+                //let ref_expr = Some(e_ty.deref_access.apply(self.vcx, [expr]));
+                let ref_expr = e_ty.deref_access.apply(self.vcx, [expr]);
+                let val_expr = e_ty.value_access.apply(self.vcx, [expr]);
                 let place_ty = place_ty.projection_ty(self.vcx.tcx(), elem);
                 // Since the `expr` is the target of a reference, it is encoded as a `Param`.
                 // If it is not a type parameter, we cast it to its concrete Snapshot.
-                let cast = self
-                    .deps
-                    .require_local::<RustTyCastersEnc<CastTypePure>>(place_ty.ty)
-                    .unwrap();
-                let expr = cast.cast_to_concrete_if_possible(self.vcx, expr);
-                (expr, place_ref)
+                //let cast = self
+                //    .deps
+                //    .require_local::<RustTyCastersEnc<CastTypePure>>(place_ty.ty)
+                //    .unwrap();
+                //let val_expr = cast.cast_to_concrete_if_possible(self.vcx, val_expr);
+                //(val_expr, place_ref)
+                let ref_val_expr = inner_ty_out.ref_to_snap(self.vcx, unsafe { std::mem::transmute(ref_expr) }); // TODO: hack...
+                (ref_val_expr.lift(), place_ref)
             }
             mir::ProjectionElem::Field(field_idx, ty) => {
                 let tykind = place_ty.ty.kind();
@@ -886,7 +891,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     proj_app
                 };
                 let place_ref = place_ref.map(|pr| {
-                    struct_like.ref_to_field_refs[field_idx.as_usize()].apply(self.vcx, [pr])
+                    struct_like.ref_to_field_refs[field_idx.as_usize()].apply(self.vcx, &[pr])
                 });
                 (proj_app, place_ref)
             }
@@ -905,6 +910,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     ) -> ExprRet<'vir> {
         #[derive(Debug)]
         enum PrustiBuiltin {
+            BeforeExpiry,
             Forall,
             SnapshotEquality,
             ModeStart(Mode),
@@ -929,6 +935,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 ast::AttrArgs::Eq(_, ast::AttrArgsEq::Hir(lit)) => {
                     assert!(builtin.is_none(), "multiple prusti::builtin");
                     builtin = Some(match lit.symbol.as_str() {
+                        "before_expiry" => PrustiBuiltin::BeforeExpiry,
                         "forall" => PrustiBuiltin::Forall,
                         "snapshot_equality" => PrustiBuiltin::SnapshotEquality,
                         "old_start" => PrustiBuiltin::ModeStart(Mode::Old),
@@ -959,6 +966,12 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         }
 
         match builtin.expect("call to unknown non-pure function in pure code") {
+            PrustiBuiltin::BeforeExpiry => {
+                // TODO: before_expiry should work like a mode switch, just like old in PR #30
+                assert_eq!(args.len(), 1);
+                let expr = self.encode_operand(curr_ver, &args[0].node);
+                expr
+            }
             PrustiBuiltin::SnapshotEquality => {
                 assert_eq!(args.len(), 2);
                 let lhs = self.encode_operand(curr_ver, &args[0].node);

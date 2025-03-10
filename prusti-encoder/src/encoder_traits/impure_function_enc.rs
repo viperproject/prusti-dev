@@ -1,10 +1,14 @@
-use prusti_rustc_interface::middle::mir;
+use std::collections::{HashMap, HashSet};
+
+use pcs::borrows::unblock_graph::UnblockGraph;
+use prusti_rustc_interface::{
+    middle::{mir, ty::{self, GenericArgs}},
+};
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{MethodIdent, UnknownArity, ViperIdent};
 
 use crate::encoders::{
-    lifted::func_def_ty_params::LiftedTyParamsEnc, ImpureEncVisitor, MirImpureEnc, MirLocalDefEnc,
-    MirSpecEnc,
+    indirect::IndirectPredicatesEnc, lifted::func_def_ty_params::LiftedTyParamsEnc, rust_ty_predicates::RustTyPredicatesEnc, ImpureEncVisitor, MirImpureEnc, MirLocalDefEnc, MirSpecEnc
 };
 
 use super::function_enc::FunctionEnc;
@@ -79,6 +83,205 @@ where
             let method_ref = MethodIdent::new(method_name, args);
             deps.emit_output_ref(task_key, ImpureFunctionEncOutputRef { method_ref })?;
 
+            // method contract
+            let mut pres = Vec::new(); // Vec::with_capacity(arg_count - 1);
+            let mut posts = Vec::new(); // Vec::with_capacity(spec_posts.len() + 1);
+
+            // direct resources for inputs and outputs
+            let mut args = Vec::with_capacity(arg_count + substs.len());
+            for arg_idx in 0..arg_count {
+                let name_p = local_defs.locals[arg_idx.into()].local.name;
+                args.push(vir::vir_local_decl! { vcx; [name_p] : Ref });
+                if arg_idx != 0 {
+                    pres.push(local_defs.locals[arg_idx.into()].impure_pred);
+                }
+            }
+            posts.push(local_defs.locals[mir::RETURN_PLACE].impure_pred);
+
+            let tcx = vcx.tcx();
+            // plan:
+            // - (!) collect all lifetimes
+            //   - early-bound regions are substituted with the generics of the
+            //     item, so we can find them in the identity substitution
+            let lifetimes = GenericArgs::identity_for_item(tcx, def_id).regions()
+                .into_iter()
+                .collect::<Vec<_>>();
+            let sig = tcx.fn_sig(def_id);
+            let sig_identity = sig.instantiate_identity();
+            /*
+            #[derive(Debug)]
+            enum SigLifetime<'tcx> {
+                Early(ty::Region<'tcx>),
+                Late(ty::BoundRegionKind),
+            }
+            let mut lifetimes = Vec::new();
+            //   - early-bound regions are substituted with the generics of the
+            //     item, so we can find them in the identity substitution
+            lifetimes.extend(GenericArgs::identity_for_item(tcx, def_id)
+                .regions()
+                .map(SigLifetime::Early));
+            //   - late-bound regions are found in the item's binder
+            let sig = tcx.fn_sig(def_id);
+            let sig_identity = sig.instantiate_identity();
+            lifetimes.extend(tcx.collect_referenced_late_bound_regions(sig_identity)
+                .into_iter()
+                .map(SigLifetime::Late));
+            println!("  lifetimes: {:?}", lifetimes);
+            */
+
+            // - (?) create longer lifetimes for input lifetimes
+            //       (= lifetimes in which the arguments are covariant)
+            // TODO
+
+            // - (!) collect other outlives relations (explicit or inferred)
+            //let mut outlives = Vec::new();
+            let mut outlives: HashMap<ty::Region, Vec<ty::Region>> = HashMap::new();
+            for (predicate, _span) in tcx.predicates_of(def_id).instantiate_identity(tcx) {
+                let Some(clause_kind) = predicate.kind().no_bound_vars() else {
+                    println!("  predicate not handled due to non-empty binder: {predicate:?}");
+                    continue;
+                };
+                // println!("  clause: {clause_kind:?}");
+                match clause_kind {
+                    //ty::ClauseKind::RegionOutlives(ty::OutlivesPredicate(long, short)) => outlives.push((SigLifetime::Early(long), SigLifetime::Early(short))),
+                    //ty::ClauseKind::RegionOutlives(ty::OutlivesPredicate(long, short)) => outlives.push((long, short)),
+                    ty::ClauseKind::RegionOutlives(ty::OutlivesPredicate(long, short)) => outlives.entry(long)
+                        .or_default()
+                        .push(short),
+                    // ty::ClauseKind::TypeOutlives(ty, short)
+                    _ => (),
+                }
+            }
+            println!("  outlives: {:?}", outlives);
+
+            // TODO: hardcoded...
+            let ret_deref_snap = vcx.mk_local("_0r", &vir::TypeData::Ref);
+            //visitor.place_overrides.insert(
+            //    tcx.mk_place_deref(mir::Place::return_place()),
+            //    vcx.mk_local_ex_local(ret_deref_snap),
+            //);
+
+            // - (!) collect resources associated with each lifetime
+            // TODO: maybe this should happen in MirLocalDefEnc?
+            let sig_identity_liberated = tcx.liberate_late_bound_regions(def_id, sig_identity);
+            let mut resources_by_region = HashMap::new();
+            let mut output_expr_in_wand = None;
+            for region in &lifetimes {
+                use vir::Reify;
+                // let SigLifetime::Early(region) = region else { continue; };
+                let mut conjuncts = Vec::new();
+                let mut conjuncts_in_wand = Vec::new();
+                let mut places: Vec<mir::Place<'vir>> = Vec::new();
+                // arguments
+                for (ty, (mir_local, local)) in sig_identity_liberated.inputs().into_iter().zip(local_defs.locals.iter_enumerated().skip(1)) {
+                    let indirect = deps.require_ref::<IndirectPredicatesEnc>((*ty, *region))?;
+                    pres.extend(indirect.expr_pre.into_iter()
+                        .map(|expr| expr.reify(vcx, local.local_ex)));
+                    conjuncts.extend(indirect.expr_post.into_iter()
+                        .map(|expr| expr.reify(vcx, local.local_ex)));
+                    places.push(tcx.mk_place_deref(mir::Place::from(mir_local)));
+                }
+                // output
+                {
+                    let indirect = deps.require_ref::<IndirectPredicatesEnc>((sig_identity_liberated.output(), *region))?;
+                    // here we use "expr_pre" to avoid wrapping in "old",
+                    // because _0 does not exist in that state
+                    conjuncts.extend(indirect.expr_pre.into_iter()
+                        .map(|expr| expr.reify(vcx, local_defs.locals[mir::RETURN_PLACE].local_ex)));
+
+                    // TODO: don't hardcode
+                    let output_ty = sig_identity_liberated.output();
+                    let output_ty_enc = deps.require_ref::<RustTyPredicatesEnc>(output_ty).unwrap();
+                    if let ty::TyKind::Ref(ref_region, inner_ty, ty::Mutability::Mut) = output_ty.kind() {
+                        let inner_ty_enc = deps.require_ref::<RustTyPredicatesEnc>(*inner_ty).unwrap();
+                        let deref_access = output_ty_enc.generic_predicate.expect_ref().deref_func;
+                        let inner_ty_enc_c = inner_ty_enc.clone();
+                        if true { //  ref_region == proj_region {
+                            conjuncts_in_wand.push(inner_ty_enc.ref_to_pred(vcx, vcx.mk_local_ex_local(ret_deref_snap), None));
+                            output_expr_in_wand = Some(deref_access.apply(vcx, [local_defs.locals[0usize.into()].local_ex]));
+                        }
+                    }
+                }
+                resources_by_region.insert(region, (conjuncts, conjuncts_in_wand, places));
+            }
+            println!("  resources: {:?}", resources_by_region);
+
+            // get method contract
+            let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false))?;
+
+            // - (!) construct an outlives graph
+            //       (with an "input side" and "output side")
+            // - (!) unblocked resources are available in the postcondition
+            // - (!) other resource must be reached by following edges,
+            //       result in magic wands in the postcondition
+            let mut regions_blocked = HashSet::new();
+            let mut wands: Vec<(&ty::Region<'_>, Vec<&vir::ExprGenData<'_, !, !>>, Vec<&vir::ExprGenData<'vir, !, !>>, Vec<&vir::ExprGenData<'vir, !, !>>, Vec<_>)> = Vec::new();
+            for region in &lifetimes {
+                // is there anything to block on the input side?
+                let (blocked_resources, blocked_resources_wand, blocked_places) = resources_by_region.get(&region).unwrap().clone();
+                if blocked_resources.is_empty() {
+                    continue;
+                }
+
+                // are there regions outlived by this one?
+                let Some(shorter) = outlives.get(&region) else {
+                    continue;
+                };
+
+                // do these regions have any resources on the output side?
+                let blocking_resources = shorter.iter()
+                    .flat_map(|shorter| resources_by_region.get(&shorter).map(|e| e.0.iter()))
+                    .flat_map(|res| res.into_iter())
+                    .copied()
+                    .collect::<Vec<_>>();
+                if blocking_resources.is_empty() {
+                    continue;
+                }
+
+                regions_blocked.insert(region);
+                wands.push((region, blocking_resources, blocked_resources, blocked_resources_wand, blocked_places));
+            }
+            println!("  wands: {:?}", wands);
+
+            let unblocked_inputs = lifetimes.iter()
+                .filter(|region| !regions_blocked.contains(region))
+                .flat_map(|region| resources_by_region.get(&region).map(|e| e.0.iter()))
+                .flat_map(|res| res.into_iter())
+                .copied()
+                .collect::<Vec<_>>();
+            println!("  unblocked inputs: {:?}", unblocked_inputs);
+            posts.extend(unblocked_inputs);
+
+            // add wands to postcondition
+            let encoded_wands = wands.into_iter()
+                .map(|(_region, _lhs, rhs, lhs_wand, places)| {
+                    let mut lhs_conjuncts = lhs_wand.clone();
+                    let mut rhs_conjuncts = rhs.clone();
+                    if !spec.pledges.is_empty() {
+                        // TODO: find corresponding pledge
+                        for (lhs_expr, rhs_expr) in &spec.pledges {
+                            if let Some(lhs_expr) = lhs_expr {
+                                lhs_conjuncts.push(lhs_expr);
+                            }
+                            rhs_conjuncts.push(rhs_expr);
+                        }
+                    }
+                    let wand = vcx.mk_wand(
+                        vcx.mk_conj(&lhs_conjuncts),
+                        vcx.mk_conj(&rhs_conjuncts),
+                    );
+                    (wand, places)
+                })
+                .collect::<Vec<_>>();
+            posts.extend(encoded_wands.iter()
+                .map(|(wand, _)| {
+                    let mut wand_expr = vcx.mk_wand_expr(wand);
+                    if let Some(output_expr_in_wand) = output_expr_in_wand {
+                        wand_expr = vcx.mk_let_expr("_0r", output_expr_in_wand, wand_expr);
+                    }
+                    wand_expr
+                }));
+
             // Do not encode the method body if it is external, trusted or just
             // a call stub.
             let local_def_id = def_id.as_local().filter(|_| !trusted);
@@ -90,7 +293,7 @@ where
                     .body_mut()
                     .get_impure_fn_body_with_facts(local_def_id);
 
-                let fpcs_analysis = pcs::run_combined_pcs(&body_with_facts, vcx.tcx(), None);
+                let mut fpcs_analysis = pcs::run_combined_pcs(&body_with_facts, vcx.tcx(), None);
 
                 let block_count = body.basic_blocks.len();
 
@@ -120,6 +323,14 @@ where
                     vcx.mk_goto_stmt(vcx.alloc(vir::CfgBlockLabelData::BasicBlock(0))),
                 ));
 
+                let last_block = (block_count - 1).into();
+                let final_borrow_state = fpcs_analysis
+                    .get_all_for_bb(last_block)
+                    .statements
+                    .last()
+                    .unwrap()
+                    .borrows
+                    .post_main().clone();
                 let mut visitor = ImpureEncVisitor {
                     monomorphize: MirImpureEnc::monomorphize(),
                     vcx,
@@ -136,37 +347,106 @@ where
                     current_stmts: None,
                     current_terminator: None,
                     encoded_blocks,
+
+                    place_overrides: HashMap::new(),
                 };
                 visitor.visit_body(&body);
 
+                // package wands
+                let mut wand_packages = Vec::new();
+                if let Some(output_expr_in_wand) = output_expr_in_wand {
+                    wand_packages.push(vcx.mk_local_decl_stmt(
+                        vcx.mk_local_decl_local(ret_deref_snap),
+                        Some(output_expr_in_wand),
+                    ));
+                }
+                for arg_idx in 1..arg_count {
+                    let local = mir::Local::from(arg_idx);
+                    let deref_local = tcx.mk_place_deref(local.into());
+                    let old_place = visitor.encode_place(deref_local.into());
+                    visitor.place_overrides.insert(
+                        deref_local,
+                        vcx.mk_old_expr(old_place.expr),
+                    );
+                    //let name_p = local_defs.locals[arg_idx.into()].local.name;
+                    //args.push(vir::vir_local_decl! { vcx; [name_p] : Ref });
+                    //if arg_idx != 0 {
+                    //    pres.push(local_defs.locals[arg_idx.into()].impure_pred);
+                    //}
+                }
+
+                for (wand, places) in encoded_wands {
+                    assert_eq!(places.len(), 1); // TODO ...
+                    let blocked_place = places[0];
+                    let ug = UnblockGraph::for_node(
+                        blocked_place,
+                        &final_borrow_state,
+                        visitor.fpcs_analysis.repacker(),
+                    );
+                    let actions = ug.actions(visitor.fpcs_analysis.repacker());
+                    let package_script = visitor.block(|visitor| {
+                        visitor.pcs_unblock_actions(&actions);
+                    });
+                    wand_packages.push(vcx.mk_package_stmt(
+                        wand,
+                        &vcx.alloc_slice(&package_script),
+                    ));
+                }
                 visitor.encoded_blocks.push(vcx.mk_cfg_block(
                     vcx.alloc(vir::CfgBlockLabelData::End),
-                    &[],
+                    vcx.alloc_slice(&wand_packages),
                     vcx.alloc(vir::TerminatorStmtData::Exit),
                 ));
-                Some(vcx.alloc_slice(&visitor.encoded_blocks))
+
+                Some(visitor.encoded_blocks)
             } else {
                 None
             };
 
-            let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false))?;
-            let (spec_pres, spec_posts) = (spec.pres, spec.posts);
+            // in the postcondition, we need to provide permissions to:
+            // - the return place
+            // - referenced (aka indirect) resources that are not blocked
+            // - magic wands for resources that are blocked
 
-            let mut pres = Vec::with_capacity(arg_count - 1);
-            let mut args = Vec::with_capacity(arg_count + substs.len());
-            for arg_idx in 0..arg_count {
-                let name_p = local_defs.locals[arg_idx.into()].local.name;
-                args.push(vir::vir_local_decl! { vcx; [name_p] : Ref });
-                if arg_idx != 0 {
-                    pres.push(local_defs.locals[arg_idx.into()].impure_pred);
-                }
+            // which resources are blocked?
+            // - fn foo<'a>(x: &'a mut i32) -> &'a mut i32; // mutref covariant in its lifetime
+            //   *x is blocked
+            // - struct Foo<'a>(&'a mut i32) // Foo is covariant in 'a
+            //   fn foo<'a>(x: Foo<'a>) -> &'a mut i32;
+            //   *x.0 is blocked
+
+            /*
+            let identity_substs = GenericArgs::identity_for_item(vcx.tcx(), def_id);
+            println!("regions of {def_id:?}:");
+            for region in identity_substs {
+                println!("  {region:?}");
             }
-            args.extend(param_ty_decls.iter());
-            pres.extend(spec_pres);
 
-            let mut posts = Vec::with_capacity(spec_posts.len() + 1);
-            posts.push(local_defs.locals[mir::RETURN_PLACE].impure_pred);
-            posts.extend(spec_posts);
+            println!("regions of args?");
+            let body = vcx
+                .body_mut()
+                .get_impure_fn_body_with_facts(def_id.as_local().unwrap());
+            for l in 0..local_defs.locals.len() {
+                let ty = body.body.local_decls[l.into()].ty;
+                println!("  arg: {ty:?}");
+            }
+
+            println!("regions in region inference context?");
+            for region in body.region_inference_context.regions() {
+                println!("  region: {region:?}");
+            }
+            */
+            args.extend(param_ty_decls.iter());
+
+            //for arg_idx in 0..arg_count {
+            //    if let Some((pre, post)) = local_defs.locals[arg_idx.into()].impure_indirect_pred {
+            //        posts.push(post);
+            //    }
+            //}
+
+            // add basic pre- and postconditions
+            pres.extend(spec.pres);
+            posts.extend(spec.posts);
 
             Ok(ImpureFunctionEncOutput {
                 method: vcx.mk_method(
@@ -175,7 +455,7 @@ where
                     &[],
                     vcx.alloc_slice(&pres),
                     vcx.alloc_slice(&posts),
-                    blocks,
+                    blocks.map(|blocks| vcx.alloc_slice(&blocks)),
                 ),
             })
         })

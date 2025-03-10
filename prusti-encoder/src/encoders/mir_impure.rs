@@ -1,7 +1,7 @@
+use std::collections::HashMap;
+
 use pcs::{
-    free_pcs::{CapabilityKind, FreePcsBasicBlock, FreePcsLocation, RepackOp},
-    utils::{Place, PlaceRepacker},
-    FpcsOutput,
+    borrows::{borrow_pcg_action::BorrowPCGAction, borrow_pcg_expansion::{BorrowPCGExpansion, ExpansionOfBorrowed}, unblock_graph::BorrowPCGUnblockAction}, free_pcs::{CapabilityKind, FreePcsBasicBlock, FreePcsLocation, RepackOp}, utils::{HasPlace, Place, PlaceRepacker}, FpcsOutput
 };
 use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
@@ -11,6 +11,7 @@ use prusti_rustc_interface::{
     },
     span::def_id::DefId,
     target::abi,
+    data_structures::fx::FxHashSet,
 };
 //use mir_ssa_analysis::{
 //    SsaAnalysis,
@@ -44,7 +45,7 @@ use super::{
     lifted::{
         cast::{CastArgs, CastToEnc},
         casters::CastTypeImpure,
-        rust_ty_cast::RustTyCastersEnc,
+        rust_ty_cast::RustTyCastersEnc, ty::{EncodeGenericsAsLifted, LiftedTyEnc},
     },
     rust_ty_predicates::RustTyPredicatesEnc,
     ConstEnc, MirMonoImpureEnc, MirPolyImpureEnc,
@@ -115,6 +116,8 @@ where
     pub current_terminator: Option<vir::TerminatorStmt<'vir>>,
 
     pub encoded_blocks: Vec<vir::CfgBlock<'vir>>, // TODO: use IndexVec ?
+
+    pub place_overrides: HashMap<mir::Place<'vir>, vir::Expr<'vir>>,
 }
 
 impl<'vir, E: TaskEncoder> PureFuncAppEnc<'vir, E> for ImpureEncVisitor<'vir, '_, E> {
@@ -147,8 +150,8 @@ impl<'vir, E: TaskEncoder> PureFuncAppEnc<'vir, E> for ImpureEncVisitor<'vir, '_
     }
 }
 
-struct EncodePlaceResult<'vir> {
-    expr: vir::Expr<'vir>,
+pub(crate) struct EncodePlaceResult<'vir> {
+    pub(crate) expr: vir::Expr<'vir>,
 
     /// Statements to undo the impure casts that were made to access the place.
     /// If the place was only accessed to take a snapshot or copy (rather than a
@@ -171,9 +174,19 @@ impl<'vir> EncodePlaceResult<'vir> {
     }
 }
 
+macro_rules! comment {
+    ($self:tt, $($arg:tt)*) => { $self.comment(
+        vir::vir_format!($self.vcx, $($arg)*),
+    ); };
+}
+
 impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn stmt(&mut self, stmt: vir::Stmt<'vir>) {
         self.current_stmts.as_mut().unwrap().push(stmt);
+    }
+
+    fn comment(&mut self, msg: &'vir str) {
+        self.stmt(self.vcx.mk_comment_stmt(msg));
     }
 
     /*
@@ -218,6 +231,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     }
     */
 
+    /*
     /// Do the same as [self.fpcs_repacks_terminator] but instead of adding the statements to [self.current_stmts] return them instead.
     /// TODO: clean this up
     fn collect_terminator_repacks(
@@ -232,8 +246,205 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         self.current_stmts = current_stmts;
         new_stmts
     }
+    */
 
-    fn fpcs_repacks(&mut self, repacks: &[RepackOp<'vir>]) {
+    pub(crate) fn block(&mut self, f: impl FnOnce(&mut Self)) -> Vec<vir::Stmt<'vir>> {
+        let current_stmts = self.current_stmts.take();
+        self.current_stmts = Some(Vec::new());
+        f(self);
+        let new_stmts = self.current_stmts.take().unwrap();
+        self.current_stmts = current_stmts;
+        new_stmts
+    }
+
+    pub(crate) fn pcs_borrow_expansion(
+        &mut self,
+        expansion: BorrowPCGExpansion<'vir>,
+        unfold: bool,
+    ) {
+        // TODO: code duplication with pcs_reborrow_expands
+        let Some(expansion) = expansion.borrow_expansion().cloned() else {
+            return;
+        };
+        let base = expansion.base;
+        let place = base.place().place();
+        let place_ty = (*place).ty(self.local_decls, self.vcx.tcx());
+        let place_ty_out = self
+            .deps
+            .require_ref::<RustTyPredicatesEnc>(place_ty.ty)
+            .unwrap();
+        let ref_to_pred = place_ty_out
+            .generic_predicate
+            .expect_pred_variant_opt(place_ty.variant_index);
+
+        let ref_p = self.encode_place(place).expr;
+        let args = place_ty_out.ref_to_args(self.vcx, ref_p);
+        let predicate = ref_to_pred.apply(self.vcx, args, None);
+        if unfold {
+            self.stmt(self.vcx.mk_unfold_stmt(predicate));
+        } else {
+            self.stmt(self.vcx.mk_fold_stmt(predicate));
+        }
+    }
+
+    pub(crate) fn pcs_unblock_actions(
+        &mut self,
+        actions: &[BorrowPCGUnblockAction<'vir>],
+        // location: Location,
+    ) {
+        use pcs::borrows::borrow_pcg_edge::BorrowPCGEdgeKind;
+        for action in actions {
+            // TODO: conditions (also in other PCS functions)
+            match action.edge().kind() {
+                BorrowPCGEdgeKind::BorrowPCGExpansion(expansion) => {
+                    self.pcs_borrow_expansion(expansion.clone(), false);
+                },
+                // BorrowPCGEdgeKind::Borrow(borrow_edge) => todo!(),
+                // BorrowPCGEdgeKind::Abstraction(abstraction_edge) => todo!(),
+                // BorrowPCGEdgeKind::RegionProjectionMember(region_projection_member) => todo!(),
+                _ => (),
+            }
+        }
+    }
+
+    pub(crate) fn pcs_actions(
+        &mut self,
+        actions: &[BorrowPCGAction<'vir>],
+        // location: Location,
+    ) {
+        use pcs::borrows::borrow_pcg_action::BorrowPCGActionKind;
+        for action in actions {
+            comment!(self, "ignoring BorrowPCGAction: {:?}", action.kind());
+            match action.kind() {
+                //Weaken(Weaken<'tcx>),
+                //Restore(RestoreCapability<'tcx>),
+                //MakePlaceOld(Place<'tcx>),
+                //SetLatest(Place<'tcx>, Location),
+                //RemoveEdge(BorrowPCGEdge<'tcx>),
+                //AddRegionProjectionMember(RegionProjectionMember<'tcx>, PathConditions),
+                BorrowPCGActionKind::InsertBorrowPCGExpansion(expansion, location) => {
+                    self.pcs_borrow_expansion(expansion.clone(), true);
+                }
+                //RenamePlace {
+                //    old: MaybeOldPlace<'tcx>,
+                //    new: MaybeOldPlace<'tcx>,
+                //},
+                _ => (),
+            }
+            /*
+            match action.edge().kind() {
+                BorrowPCGEdgeKind::Borrow(borrow) => {
+                    if borrow.is_mut() {
+                        /*
+                        self.handle_removed_borrow(
+                            borrow.blocked_place,
+                            &borrow.assigned_place,
+                            heap,
+                            location,
+                        );
+                        */
+                    }
+                }
+                BorrowPCGEdgeKind::BorrowPCGExpansion(expansion) => {
+                    // BorrowPCGEdgeKind::DerefExpansion(deref_expansion)
+                    /*
+                    self.collapse_place_from(
+                        deref_expansion.base(),
+                        deref_expansion.expansion(self.repacker())[0],
+                        heap,
+                        location,
+                    );
+                    */
+                }
+                BorrowPCGEdgeKind::Abstraction(abstraction_edge) => match &abstraction_edge
+                    .abstraction_type
+                {
+                    pcs::borrows::domain::AbstractionType::FunctionCall(c) => {
+                        // A snapshot may not exist if the call is specification "ghost" code, e.g. old()
+                        // statements applied to mutable refs in Prusti.
+                        /*
+                        if let Some(snapshot) = function_call_snapshots.get_snapshot(&c.location())
+                        {
+                            for edge in c.edges() {
+                                for input in edge.inputs() {
+                                    for output in edge.outputs() {
+                                        let input = input.as_region_projection().unwrap();
+                                        let idx =
+                                            snapshot.index_of_arg_local(input.local().unwrap());
+                                        let input_place = match input.deref(self.repacker()) {
+                                            Some(place) => place,
+                                            None => {
+                                                // TODO: region projection
+                                                continue;
+                                            }
+                                        };
+                                        let output_place = match output.deref(self.repacker()) {
+                                            Some(place) => place,
+                                            None => {
+                                                // TODO: region projection
+                                                continue;
+                                            }
+                                        };
+                                        let value = self.arena.mk_backwards_fn(BackwardsFn::new(
+                                            self.arena.tcx,
+                                            c.def_id(),
+                                            c.substs(),
+                                            Some(self.def_id.into()),
+                                            snapshot.args(),
+                                            self.arena.mk_ref(
+                                                self.encode_maybe_old_place::<LookupGet, _>(
+                                                    heap.0,
+                                                    &output_place,
+                                                ),
+                                                Mutability::Mut,
+                                            ),
+                                            Local::from_usize(idx + 1),
+                                        ));
+                                        assert!(!snapshot
+                                            .arg(idx)
+                                            .kind
+                                            .ty(self.tcx)
+                                            .rust_ty()
+                                            .is_primitive());
+                                        assert_eq!(
+                                            value.ty(self.tcx),
+                                            snapshot.arg(idx).ty(self.tcx)
+                                        );
+                                        heap.insert_maybe_old_place(
+                                            input_place,
+                                            self.arena.mk_projection(ProjectionElem::Deref, value),
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                           */
+                    }
+                    _ => {
+                        // TODO: loops
+                    }
+                },
+                BorrowPCGEdgeKind::RegionProjectionMember(region_projection_member) => {
+                    /*
+                    for input in region_projection_member.inputs().iter() {
+                        if let Ok(place) = TryInto::<MaybeOldPlace<'tcx>>::try_into(*input) {
+                            heap.insert(
+                                place,
+                                self.mk_fresh_symvar(place.ty(self.repacker()).ty),
+                                location,
+                            );
+                        }
+                    }
+                    */
+                }
+            }
+            */
+        }
+    }
+
+    fn pcs_repacks<'a>(&mut self, repacks: impl Iterator<Item = &'a RepackOp<'vir>>)
+    where 'vir: 'a,
+    {
         for &repack_op in repacks {
             match repack_op {
                 RepackOp::Expand(place, _target, capability_kind)
@@ -260,6 +471,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         repack_op,
                         pcs::free_pcs::RepackOp::Expand(..)
                     ) {
+                        comment!(self, "unfolding because of RepackOp::Expand in pcs_repacks");
                         self.stmt(self.vcx.mk_unfold_stmt(predicate));
                     } else {
                         self.stmt(self.vcx.mk_fold_stmt(predicate));
@@ -280,15 +492,121 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                             .mk_exhale_stmt(place_ty_out.ref_to_pred(self.vcx, ref_p, None)),
                     );
                 }
-                r @ RepackOp::RegainLoanedCapability(..) => {
+                ignored_op @ (
+                    RepackOp::RegainLoanedCapability(..)
+                    | RepackOp::Weaken(_, CapabilityKind::Exclusive, CapabilityKind::Read)
+                ) => {
                     self.stmt(self.vcx.mk_comment_stmt(
-                        vir::vir_format!(self.vcx, "unknown repack op: {r:?}"),
+                        vir::vir_format!(self.vcx, "ignored repack op: {ignored_op:?}"),
                     ));
                 }
-                unsupported_op => panic!("unsupported repack op: {unsupported_op:?}"),
+                unsupported_op => {
+                    self.stmt(self.vcx.mk_comment_stmt(
+                        vir::vir_format!(self.vcx, "unsupported repack op: {unsupported_op:?}"),
+                    ));
+                    self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
+                }
             }
         }
     }
+
+    pub(crate) fn pcs_reborrow_expands(
+        &mut self,
+        expands: Vec<BorrowPCGExpansion<'vir>>,
+        // location: Location,
+    ) {
+        // TODO: Explain why owned expansions don't need to be handled
+        let expands: Vec<ExpansionOfBorrowed<'vir>> = expands
+            .into_iter()
+            .flat_map(|ep| ep.borrow_expansion().cloned())
+            .collect();
+
+        // Expand places with smaller projections first. For example, if f ->
+        // {f.g} and f.g -> {f.g.h}, are expansions, we must expand f before
+        // f.g.
+        // TODO: do this
+        //expands.sort_by_key(|ep| ep.expansion().base().place().projection().len());
+
+        for ep in expands {
+            let base = ep.base;
+            let place = base.place().place();
+            //if matches!(capability_kind, CapabilityKind::Write) {
+            //    // Collapsing an already exhaled place is a no-op
+            //    // TODO: unless it's through a Ref I imagine?
+            //    assert!(matches!(repack_op, RepackOp::Collapse(..)));
+            //    return;
+            //}
+            let place_ty = (*place).ty(self.local_decls, self.vcx.tcx());
+            let place_ty_out = self
+                .deps
+                .require_ref::<RustTyPredicatesEnc>(place_ty.ty)
+                .unwrap();
+            let ref_to_pred = place_ty_out
+                .generic_predicate
+                .expect_pred_variant_opt(place_ty.variant_index);
+
+            let ref_p = self.encode_place(place).expr;
+            let args = place_ty_out.ref_to_args(self.vcx, ref_p);
+            let predicate = ref_to_pred.apply(self.vcx, args, None);
+            comment!(self, "unfolding in pcs_reborrow_expands");
+            self.stmt(self.vcx.mk_unfold_stmt(predicate));
+
+            /*
+            let place = ep.base();
+            let value = self.encode_maybe_old_place::<LookupGet, _>(heap.0, &place);
+
+            self.explode_value(
+                value,
+                ep.expansion(self.fpcs_analysis.repacker()).into_iter(),
+                heap,
+                location,
+            );
+            */
+        }
+    }
+
+    fn pcs_at<'a>(
+        &mut self,
+        pcs: &'a FreePcsLocation<'vir>,
+        start: bool,
+        // location?
+    ) {
+        let bridge = if start {
+            pcs.extra_start.clone()
+        } else {
+            pcs.extra_middle.clone()
+        };
+        //bridge.ug.filter_for_path(&path.path.blocks());
+        //let ug_actions = bridge.ug.actions(self.repacker());
+        let ug_actions = bridge.actions();
+        // let added_borrows = bridge.added_borrows();
+        //let borrows_expands = bridge.expands();
+        self.pcs_actions(
+            ug_actions,
+            // &mut heap,
+            // &path.function_call_snapshots,
+            // location,
+        );
+        let repacks = if start {
+            &pcs.repacks_start
+        } else {
+            &pcs.repacks_middle
+        };
+        self.pcs_repacks(repacks.iter().filter(|op| matches!(op, RepackOp::Collapse(..))));
+        self.pcs_repacks(repacks.iter().filter(|op| matches!(op, RepackOp::Weaken(..))));
+        self.pcs_repacks(repacks.iter().filter(|op| matches!(op, RepackOp::Expand(..))));
+        //self.pcs_reborrow_expands(borrows_expands.into_iter().map(|ep| ep.value).collect());
+        // ?
+        // self.handle_added_borrows(
+        //     &added_borrows
+        //         .into_iter()
+        //         .filter(|r| r.conditions.valid_for_path(&path.path.blocks()))
+        //         .map(|r| r.value)
+        //         .collect::<Vec<_>>(),
+        // );
+    }
+
+    /*
 
     fn fpcs_repacks_location(
         &mut self,
@@ -311,6 +629,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         self.fpcs_repacks(repacks);
         self.current_fpcs = Some(current_fpcs);
     }
+    */
 
     fn undo_impure_casts(&mut self, result: EncodePlaceResult<'vir>) {
         result.undo_casts.iter().for_each(|stmt| self.stmt(stmt));
@@ -373,17 +692,25 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         tmp_exp
     }
 
-    fn encode_place(&mut self, place: Place<'vir>) -> EncodePlaceResult<'vir> {
+    pub(crate) fn encode_place(&mut self, place: Place<'vir>) -> EncodePlaceResult<'vir> {
         let mut place_ty = mir::tcx::PlaceTy::from_ty(self.local_decls[place.local].ty);
+        let mut encoded_place = mir::Place::from(place.local);
         let mut result = EncodePlaceResult::new(self.local_defs.locals[place.local].local_ex);
         // TODO: factor this out (duplication with pure encoder)?
         for &elem in place.projection {
+            if let Some(overridden) = self.place_overrides.get(&encoded_place) {
+                result = EncodePlaceResult::new(overridden); // TODO: casts?
+            }
             let (expr, unapply_cast_stmt) = self.encode_place_element(place_ty, elem, result.expr);
             result.expr = expr;
             if let Some(stmt) = unapply_cast_stmt {
                 result.undo_casts.push(stmt);
             }
             place_ty = place_ty.projection_ty(self.vcx.tcx(), elem);
+            encoded_place = encoded_place.project_deeper(&[elem], self.vcx.tcx());
+        }
+        if let Some(overridden) = self.place_overrides.get(&encoded_place) {
+            result = EncodePlaceResult::new(overridden); // TODO: casts?
         }
         result
     }
@@ -408,7 +735,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     .expect_variant_opt(place_ty.variant_index)
                     .ref_to_field_refs;
                 let projection_p = field_access[field_idx.as_usize()];
-                let proj_app = projection_p.apply(self.vcx, [expr]);
+                let instantiated_ty = self
+                    .deps
+                    .require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(place_ty.ty)
+                    .unwrap();
+                let proj_args = e_ty.generic_predicate.ref_to_args(self.vcx, instantiated_ty, expr);
+                let proj_app = projection_p.apply(self.vcx, proj_args);
                 let mut unapply_cast_stmt = None;
                 match place_ty.ty.kind() {
                     TyKind::Adt(def, _) => {
@@ -459,19 +791,23 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     .deps
                     .require_ref::<RustTyPredicatesEnc>(place_ty.ty)
                     .unwrap();
-                let ref_field = e_ty.generic_predicate.expect_ref().ref_field;
-                let expr = self.vcx.mk_field_expr(expr, ref_field);
+                // TODO: unfold? function? use snapshot?
+                let expr_deref = e_ty.generic_predicate.expect_ref().deref_func.apply(self.vcx, [expr]);
+                // TODO: we are writing directly to the deref; is a cast ever
+                //   needed?
+                /*
                 let inner_ty = place_ty.ty.builtin_deref(true).unwrap();
                 if let Some(cast_stmts) = self
                     .deps
                     .require_local::<RustTyCastersEnc<CastTypeImpure>>(inner_ty)
                     .unwrap()
-                    .cast_to_concrete_if_possible(self.vcx, expr)
+                    .cast_to_concrete_if_possible(self.vcx, expr_deref)
                 {
                     self.stmt(cast_stmts.apply_cast_stmt);
-                    return (expr, Some(cast_stmts.unapply_cast_stmt));
+                    return (expr_deref, Some(cast_stmts.unapply_cast_stmt));
                 }
-                (expr, None)
+                */
+                (expr_deref, None)
             }
             _ => todo!("Unsupported ProjectionElem {:?}", elem),
         }
@@ -570,50 +906,52 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
         ));
 
         let current_fpcs = self.current_fpcs.take().unwrap();
-        let body = self.vcx
-            .body_mut()
-            .get_impure_fn_body_identity(self.def_id.expect_local());
-        let repacker = PlaceRepacker::new(&body, self.vcx.tcx());
-        self.stmt(self.vcx.mk_comment_stmt(
-            vir::vir_format!(self.vcx, "added reborrows (start): {:?}", current_fpcs.statements[location.statement_index].extra_start.added_borrows),
-        ));
-        self.stmt(self.vcx.mk_comment_stmt(
-            vir::vir_format!(self.vcx, "expands (start): {:?}", current_fpcs.statements[location.statement_index].extra_start.expands),
-        ));
-        self.stmt(self.vcx.mk_comment_stmt(
-            vir::vir_format!(self.vcx, "weakens (start): {:?}", current_fpcs.statements[location.statement_index].extra_start.weakens),
-        ));
-        self.stmt(self.vcx.mk_comment_stmt(
-            vir::vir_format!(self.vcx, "ug actions (start): {:?}", current_fpcs.statements[location.statement_index].extra_start.ug.clone().actions(repacker)),
-        ));
-        self.stmt(self.vcx.mk_comment_stmt(
-            vir::vir_format!(self.vcx, "repacks (start): {:?}", current_fpcs.statements[location.statement_index].repacks_start),
-        ));
-        self.stmt(self.vcx.mk_comment_stmt(
-            vir::vir_format!(self.vcx, "added reborrows (middle): {:?}", current_fpcs.statements[location.statement_index].extra_middle.added_borrows),
-        ));
-        self.stmt(self.vcx.mk_comment_stmt(
-            vir::vir_format!(self.vcx, "expands (middle): {:?}", current_fpcs.statements[location.statement_index].extra_middle.expands),
-        ));
-        self.stmt(self.vcx.mk_comment_stmt(
-            vir::vir_format!(self.vcx, "weakens (middle): {:?}", current_fpcs.statements[location.statement_index].extra_middle.weakens),
-        ));
-        self.stmt(self.vcx.mk_comment_stmt(
-            vir::vir_format!(self.vcx, "ug actions (middle): {:?}", current_fpcs.statements[location.statement_index].extra_middle.ug.clone().actions(repacker)),
-        ));
-        self.stmt(self.vcx.mk_comment_stmt(
-            vir::vir_format!(self.vcx, "repacks (middle): {:?}", current_fpcs.statements[location.statement_index].repacks_middle),
-        ));
+        fn maybe_show_set<'vir, 'enc, E: TaskEncoder, T: std::fmt::Debug>(
+            enc: &mut ImpureEncVisitor<'vir, 'enc, E>,
+            desc: &str,
+            value: FxHashSet<T>,
+        ) {
+            if !value.is_empty() {
+                enc.stmt(enc.vcx.mk_comment_stmt(
+                    vir::vir_format!(enc.vcx, "{desc}: {value:?}"),
+                ));
+            }
+        }
+        fn maybe_show_slice<'vir, 'enc, E: TaskEncoder, T: std::fmt::Debug>(
+            enc: &mut ImpureEncVisitor<'vir, 'enc, E>,
+            desc: &str,
+            value: &[T],
+        ) {
+            if !value.is_empty() {
+                enc.stmt(enc.vcx.mk_comment_stmt(
+                    vir::vir_format!(enc.vcx, "{desc}: {value:?}"),
+                ));
+            }
+        }
+
+        maybe_show_slice(self, "unblock actions (start)", &current_fpcs.statements[location.statement_index].extra_start.unblock_actions());
+        maybe_show_set(self, "added region projection members (start)", current_fpcs.statements[location.statement_index].extra_start.added_region_projection_members());
+        maybe_show_slice(self, "repacks (start)", &current_fpcs.statements[location.statement_index].repacks_start);
+        maybe_show_set(self, "expands (start)", current_fpcs.statements[location.statement_index].extra_start.expands());
+        maybe_show_set(self, "weakens (start)", current_fpcs.statements[location.statement_index].extra_start.weakens());
+        maybe_show_slice(self, "actions (start)", &current_fpcs.statements[location.statement_index].extra_start.actions());
+
+        maybe_show_slice(self, "unblock actions (middle)", &current_fpcs.statements[location.statement_index].extra_middle.unblock_actions());
+        maybe_show_set(self, "added region projection members (middle)", current_fpcs.statements[location.statement_index].extra_middle.added_region_projection_members());
+        maybe_show_slice(self, "repacks (middle)", &current_fpcs.statements[location.statement_index].repacks_middle);
+        maybe_show_set(self, "expands (middle)", current_fpcs.statements[location.statement_index].extra_middle.expands());
+        maybe_show_set(self, "weakens (middle)", current_fpcs.statements[location.statement_index].extra_middle.weakens());
+        maybe_show_slice(self, "actions (middle)", &current_fpcs.statements[location.statement_index].extra_middle.actions());
 
         // TODO: does this belong here?
-        //self.fpcs_repacks(&current_fpcs.statements[location.statement_index].extra_start.weakens.iter().map(|weaken| RepackOp::Weaken(weaken.0, weaken.1, weaken.2)).collect::<Vec<_>>());
-        //self.fpcs_repacks(&current_fpcs.statements[location.statement_index].extra_middle.weakens.iter().map(|weaken| RepackOp::Weaken(weaken.0, weaken.1, weaken.2)).collect::<Vec<_>>());
-
+        //self.fpcs_repacks(&current_fpcs.statements[location.statement_index].extra_start.weakens().iter().map(|weaken| RepackOp::Weaken(weaken.place(), weaken.from_cap(), weaken.to_cap())).collect::<Vec<_>>());
+        //self.fpcs_repacks(&current_fpcs.statements[location.statement_index].extra_middle.weakens().iter().map(|weaken| RepackOp::Weaken(weaken.place(), weaken.from_cap(), weaken.to_cap())).collect::<Vec<_>>());
+        self.pcs_at(&current_fpcs.statements[location.statement_index], true);
         self.current_fpcs = Some(current_fpcs);
 
-        self.fpcs_repacks_location(location, |loc| &loc.repacks_start);
+        //self.fpcs_repacks_location(location, |loc| &loc.repacks_start);
         // TODO: move this to after getting operands, before assignment
-        self.fpcs_repacks_location(location, |loc| &loc.repacks_middle);
+        //self.fpcs_repacks_location(location, |loc| &loc.repacks_middle);
         match &statement.kind {
             mir::StatementKind::Assign(box (dest, rvalue)) => {
                 //let ssa_update = self.ssa_analysis.updates.get(&location).cloned().unwrap();
@@ -729,26 +1067,19 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                         }
                     }
                     mir::Rvalue::Ref(_reg, _kind, place) => {
+                        let TyKind::Ref(_, inner_ty, _) = rvalue_ty.kind() else  { unreachable!(); };
+                        let inner_ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(*inner_ty).unwrap();
                         let e_rvalue_ty = self.deps.require_ref::<RustTyPredicatesEnc>(rvalue_ty).unwrap();
-
-                        let place_ty = place.ty(self.local_decls, self.vcx.tcx());
-                        let ty = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
                         let place_expr = self.encode_place(Place::from(*place)).expr;
-                        eprintln!("{rvalue_ty:?} {place_ty:?}");
                         let cast = self
                             .deps
-                            .require_local::<RustTyCastersEnc<CastTypePure>>(place_ty.ty)
+                            .require_local::<RustTyCastersEnc<CastTypePure>>(*inner_ty)
                             .unwrap();
-
+                        let snap = inner_ty_out.generic_predicate.ref_to_snap.apply(self.vcx, &[place_expr]);
+                        // The snapshot of the referenced value should be encoded as a generic `Param`
+                        let snap = cast.cast_to_generic_if_necessary(self.vcx, snap);
                         let inner = e_rvalue_ty.generic_predicate.expect_ref();
-                        let generic = cast.cast_to_generic_if_necessary(self.vcx, ty.ref_to_snap(self.vcx, place_expr));
-
-                        eprintln!("{place_expr:?} -> {generic:?}");
-                        let ref_ = inner.snap_data.field_snaps_to_snap.apply(self.vcx, &[generic]);
-                        eprintln!("{ref_:?}");
-                        // e_rvalue_ty.generic_predicate.expect_ref().snap_data.field_snaps_to_snap.apply(self.vcx, inner_ref_to_args);
-                        // e_rvalue_ty.ref_to_snap(self.vcx, place_expr)
-                        ref_
+                        inner.snap_data.prim_to_snap.apply(self.vcx, [place_expr, snap])
                     }
 
                     //mir::Rvalue::Discriminant(Place<'vir>) => {}
@@ -765,7 +1096,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 //let (rval_var, rval_expr) = self.new_tmp(e_rvalue_ty.snapshot());
                 //self.stmt(self.vcx.mk_pure_assign_stmt(rval_expr, expr));
 
-                self.fpcs_repacks_location(location, |loc| &loc.repacks_middle);
+                //self.fpcs_repacks_location(location, |loc| &loc.repacks_middle);
 
                 let dest_ty = dest.ty(self.local_decls, self.vcx.tcx());
                 assert!(dest_ty.variant_index.is_none());
@@ -803,9 +1134,9 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
         ));
         let span = terminator.source_info.span;
 
-        self.fpcs_repacks_location(location, |loc| &loc.repacks_start);
+        //self.fpcs_repacks_location(location, |loc| &loc.repacks_start);
         // TODO: move this to after getting operands, before assignment
-        self.fpcs_repacks_location(location, |loc| &loc.repacks_middle);
+        //self.fpcs_repacks_location(location, |loc| &loc.repacks_middle);
         let terminator = match &terminator.kind {
             mir::TerminatorKind::Goto { target }
             | mir::TerminatorKind::FalseUnwind {
@@ -824,7 +1155,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                         .block,
                     target
                 );
-                self.fpcs_repacks_terminator(REAL_TARGET_SUCC_IDX, |rep| &rep.repacks_start);
+                //self.fpcs_repacks_terminator(REAL_TARGET_SUCC_IDX, |rep| &rep.repacks_start);
 
                 self.vcx.mk_goto_stmt(
                     self.vcx
@@ -855,7 +1186,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                             );
 
                             let extra_stmts =
-                                self.collect_terminator_repacks(idx, |rep| &rep.repacks_start);
+                                Vec::new();//self.collect_terminator_repacks(idx, |rep| &rep.repacks_start);
                             self.vcx.mk_goto_if_target(
                                 discr_ty.expr_from_bits(discr_ty_rs, value),
                                 self.vcx
@@ -877,7 +1208,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     targets.otherwise()
                 );
                 let otherwise_stmts =
-                    self.collect_terminator_repacks(otherwise_succ_idx, |rep| &rep.repacks_start);
+                    Vec::new();//self.collect_terminator_repacks(otherwise_succ_idx, |rep| &rep.repacks_start);
 
                 let discr_ex = discr_ty
                     .snap_to_prim

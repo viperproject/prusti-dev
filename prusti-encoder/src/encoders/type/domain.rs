@@ -3,13 +3,13 @@
 #![allow(clippy::result_large_err)]
 
 use prusti_rustc_interface::{
-    middle::ty::{self, util::IntTypeExt, IntTy, ParamTy, TyKind, UintTy},
+    middle::ty::{self, IntTy, ParamTy, TyKind, UintTy},
     span::symbol,
     target::abi,
 };
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{
-    BinaryArity, CallableIdent, DomainAxiomData, DomainFunctionData, DomainIdent, DomainParamData, FunctionIdent, NullaryArityAny, UnaryArity, UnknownArity
+    BinaryArity, CallableIdent, DomainAxiomData, DomainFunctionData, DomainIdent, DomainParamData, FunctionIdent, NullaryArityAny, ToKnownArity, UnaryArity, UnknownArity
 };
 
 /// You probably never want to use this, use `SnapshotEnc` instead.
@@ -37,9 +37,11 @@ pub struct DomainDataPrim<'vir> {
 #[derive(Clone, Copy, Debug)]
 pub struct DomainDataRef<'vir> {
     /// Construct domain from a `Ref` value.
-    pub snap_to_prim: FunctionIdent<'vir, UnaryArity<'vir>>,
+    pub prim_to_snap: FunctionIdent<'vir, BinaryArity<'vir>>,
     /// Function to access the referee.
     pub deref_access: FunctionIdent<'vir, UnaryArity<'vir>>,
+    /// Function to access the snapshot value.
+    pub value_access: FunctionIdent<'vir, UnaryArity<'vir>>,
 }
 #[derive(Clone, Copy, Debug)]
 pub struct DomainDataStruct<'vir> {
@@ -77,6 +79,7 @@ pub enum DiscrBounds<'vir> {
 #[derive(Clone, Copy, Debug)]
 pub enum DomainEncSpecifics<'vir> {
     Param,
+    Never,
     Primitive(DomainDataPrim<'vir>),
     Ref(DomainDataRef<'vir>),
     // structs, tuples
@@ -109,8 +112,8 @@ impl<'vir> DomainEncOutputRef<'vir> {
 impl<'vir> task_encoder::OutputRefAny for DomainEncOutputRef<'vir> {}
 
 use super::{
-    lifted::ty::{EncodeGenericsAsParamTy, LiftedTy, LiftedTyEnc},
-    most_generic_ty::{extract_type_params, MostGenericTy},
+    lifted::{ty::{EncodeGenericsAsParamTy, LiftedTy, LiftedTyEnc}, ty_constructor::TyConstructorEnc},
+    most_generic_ty::{extract_type_params, get_vir_base_name_kind, MostGenericTy},
     rust_ty_snapshots::RustTySnapshotsEnc,
 };
 
@@ -144,6 +147,15 @@ impl TaskEncoder for DomainEnc {
     ) -> EncodeFullResult<'vir, Self> {
         vir::with_vcx(|vcx| {
             let mut builder = DomainBuilder::new(vcx);
+
+            if !matches!(task_key.kind(), TyKind::Param(_)) {
+                let base_name = get_vir_base_name_kind(task_key.kind(), builder.vcx);
+                builder.set_name(&base_name);
+                let typeof_ident = builder.function("typeof", &[builder.self_type()], builder.type_type());
+                let ty_param_accessors = deps.require_ref::<TyConstructorEnc>(*task_key)?.ty_param_accessors;
+                deps.emit_output_ref(*task_key, builder.output_ref(base_name, typeof_ident.to_known(), ty_param_accessors))?;
+            }
+
             let specifics = match task_key.kind() {
                 TyKind::Bool
                 | TyKind::Char
@@ -167,6 +179,7 @@ impl TaskEncoder for DomainEnc {
 pub(crate) struct DomainBuilder<'vir> {
     pub(crate) vcx: &'vir vir::VirCtxt<'vir>,
     name: Option<&'vir str>,
+    generics: Option<Vec<vir::LocalDecl<'vir>>>,
     domain_ident: Option<vir::DomainIdent<'vir, NullaryArityAny<'vir, DomainParamData<'vir>>>>,
     self_type: Option<vir::Type<'vir>>,
     axioms: Vec<vir::DomainAxiom<'vir>>,
@@ -180,6 +193,7 @@ impl<'vir> DomainBuilder<'vir> {
         DomainBuilder {
             vcx,
             name: None,
+            generics: None,
             domain_ident: None,
             self_type: None,
             axioms: Vec::new(),
@@ -192,6 +206,10 @@ impl<'vir> DomainBuilder<'vir> {
         self.name = Some(name);
         self.domain_ident = Some(DomainIdent::nullary(vir::ViperIdent::new(name)));
         self.self_type = Some(self.vcx.alloc(vir::TypeData::Domain(self.name.expect("name should be set"), &[])));
+    }
+
+    pub(crate) fn set_generics(&mut self, generics: Vec<vir::LocalDecl<'vir>>) {
+        self.generics = Some(generics);
     }
 
     pub(crate) fn function(
@@ -236,18 +254,17 @@ impl<'vir> DomainBuilder<'vir> {
         &vir::TypeData::Domain("Type", &[]) // TODO: refer to something else
     }
 
-    pub(crate) fn output_ref(&self, base_name: String, typeof_function: FunctionIdent<'vir, UnaryArity<'vir>>) -> DomainEncOutputRef<'vir> {
+    pub(crate) fn output_ref(
+        &self,
+        base_name: String,
+        typeof_function: FunctionIdent<'vir, UnaryArity<'vir>>,
+        ty_param_accessors: &[FunctionIdent<'vir, UnaryArity<'vir>>],
+    ) -> DomainEncOutputRef<'vir> {
         DomainEncOutputRef {
             base_name,
             domain: self.domain_ident.expect("name should be set"),
-            typeof_function: typeof_function,
-            ty_param_accessors: &[], /*self.vcx.alloc_slice(
-                &self
-                    .generics
-                    .iter()
-                    .map(|(_, ident)| *ident)
-                    .collect::<Vec<_>>(),
-            ),*/
+            typeof_function,
+            ty_param_accessors: self.vcx.alloc_slice(&ty_param_accessors),
         }
     }
 

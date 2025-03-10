@@ -14,6 +14,7 @@ pub struct MirSpecEnc;
 pub struct MirSpecEncOutput<'vir> {
     pub pres: Vec<vir::Expr<'vir>>,
     pub posts: Vec<vir::Expr<'vir>>,
+    pub pledges: Vec<(Option<vir::Expr<'vir>>, vir::Expr<'vir>)>, // TODO: associate with a named lifetime
     pub pre_args: &'vir [vir::Expr<'vir>],
     #[allow(dead_code)]
     pub post_args: &'vir [vir::Expr<'vir>],
@@ -148,9 +149,51 @@ impl TaskEncoder for MirSpecEnc {
                     })
                 })
                 .collect::<Vec<vir::Expr<'_>>>();
+            let pledges = specs
+                .pledges
+                .iter()
+                .map(|(lhs_def_id, rhs_def_id)| {
+                    // TODO: report error locations
+                    let lhs_expr = lhs_def_id.map(|lhs_def_id| deps
+                        .require_local::<crate::encoders::MirPureEnc>(
+                            crate::encoders::MirPureEncTask {
+                                encoding_depth: 0,
+                                kind: PureKind::Spec,
+                                parent_def_id: lhs_def_id,
+                                param_env: vcx.tcx().param_env(lhs_def_id),
+                                substs,
+                                // TODO: should this be `def_id` or `caller_def_id`
+                                caller_def_id: Some(def_id),
+                            },
+                        )
+                        .unwrap()
+                        .expr);
+                    let rhs_expr = deps
+                        .require_local::<crate::encoders::MirPureEnc>(
+                            crate::encoders::MirPureEncTask {
+                                encoding_depth: 0,
+                                kind: PureKind::Spec,
+                                parent_def_id: *rhs_def_id,
+                                param_env: vcx.tcx().param_env(rhs_def_id),
+                                substs,
+                                // TODO: should this be `def_id` or `caller_def_id`
+                                caller_def_id: Some(def_id),
+                            },
+                        )
+                        .unwrap()
+                        .expr;
+                    let lhs_expr = lhs_expr.map(|lhs_expr| lhs_expr.reify(vcx, (lhs_def_id.unwrap(), post_args)));
+                    let rhs_expr = rhs_expr.reify(vcx, (*rhs_def_id, post_args));
+                    (
+                        lhs_expr.map(|lhs_expr| vcx.with_span(vcx.tcx().def_span(lhs_def_id.unwrap()), |vcx| to_bool.apply(vcx, [lhs_expr]))),
+                        vcx.with_span(vcx.tcx().def_span(rhs_def_id), |vcx| to_bool.apply(vcx, [rhs_expr])),
+                    )
+                })
+                .collect::<Vec<_>>();
             let data = MirSpecEncOutput {
                 pres,
                 posts,
+                pledges,
                 pre_args,
                 post_args,
             };

@@ -8,3 +8,4 @@ pub mod primitive;
 pub mod reference;
 pub mod str;
 pub mod tuple;
+mod structlike;

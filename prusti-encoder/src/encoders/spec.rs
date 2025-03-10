@@ -14,6 +14,7 @@ pub struct SpecEncOutput<'vir> {
     //pub expr: vir::Expr<'vir>,
     pub pres: &'vir [DefId],
     pub posts: &'vir [DefId],
+    pub pledges: &'vir [(Option<DefId>, DefId)], // TODO: reuse Pledge type?
 }
 
 use std::cell::RefCell;
@@ -92,7 +93,11 @@ impl TaskEncoder for SpecEnc {
                     .and_then(|specs| specs.base_spec.posts.expect_empty_or_inherent())
                     .map(|specs| vcx.alloc_slice(specs))
                     .unwrap_or_default();
-                Ok((SpecEncOutput { pres, posts }, ()))
+                let pledges = specs
+                    .and_then(|specs| specs.base_spec.pledges.expect_empty_or_inherent())
+                    .map(|specs| vcx.alloc_slice(&specs.iter().map(|pledge| (pledge.lhs, pledge.rhs)).collect::<Vec<_>>()))
+                    .unwrap_or_default();
+                Ok((SpecEncOutput { pres, posts, pledges }, ()))
             })
         })
     }
