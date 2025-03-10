@@ -227,10 +227,11 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_lazy_expr<'vir, Curr, Next>(
         &'vir self,
         name: &'vir str,
+        ty: Type<'vir>,
         func: Box<dyn for<'a> Fn(&'vir VirCtxt<'a>, Curr) -> Next + 'vir>,
     ) -> ExprGen<'vir, Curr, Next> {
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Lazy(
-            self.alloc(LazyGenData { name, func }),
+            self.alloc(LazyGenData { name, func, ty }),
         ))))
     }
 
