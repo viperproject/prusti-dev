@@ -63,6 +63,7 @@ impl<'vir, Curr, Next> Debug for BinOpGenData<'vir, Curr, Next> {
                 BinOpKind::Sub => "-",
                 BinOpKind::Mul => "*",
                 BinOpKind::Div => "\\",
+                BinOpKind::DivRational => "/",
                 BinOpKind::Mod => "%",
             }
         )?;
@@ -146,8 +147,9 @@ impl<'vir, Curr, Next> Debug for ExprKindGenData<'vir, Curr, Next> {
             Self::Let(e) => e.fmt(f),
             Self::Lazy(e) => write!(f, "%%/*{}*/", e.name),
             Self::Local(e) => e.fmt(f),
-            Self::Old(e) => write!(f, "old({:?})", e),
+            Self::Old(e) => e.fmt(f),
             Self::PredicateApp(e) => e.fmt(f),
+            Self::Wand(e) => e.fmt(f),
             Self::Ternary(e) => e.fmt(f),
             Self::UnOp(e) => e.fmt(f),
             Self::Unfolding(e) => e.fmt(f),
@@ -273,6 +275,20 @@ impl<'vir, Curr, Next> Debug for MethodGenData<'vir, Curr, Next> {
     }
 }
 
+impl<'vir, Curr, Next> Debug for OldGenData<'vir, Curr, Next> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "old")?;
+        match self.label {
+            OldLabel::None => (),
+            OldLabel::Lhs => write!(f, "[lhs]")?,
+            OldLabel::Block(block) => block.fmt(f)?,
+        }
+        write!(f, "(")?;
+        self.expr.fmt(f)?;
+        write!(f, ")")
+    }
+}
+
 impl<'vir, Curr, Next> Debug for PredicateGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "predicate {}(", self.name)?;
@@ -327,6 +343,13 @@ impl<'vir, Curr, Next> Debug for StmtKindGenData<'vir, Curr, Next> {
             Self::Exhale(data) => write!(f, "exhale {:?}", data),
             Self::Unfold(data) => write!(f, "unfold {:?}", data),
             Self::Fold(data) => write!(f, "fold {:?}", data),
+            Self::Package(wand, stmts) => {
+                write!(f, "package {wand:?} {{\n")?;
+                for stmt in stmts.iter() {
+                    write!(f, "    {stmt:?}\n")?;
+                }
+                write!(f, "}}")
+            }
             Self::MethodCall(data) => {
                 if !data.targets.is_empty() {
                     fmt_comma_sep(f, data.targets)?;
@@ -357,7 +380,7 @@ impl<'vir, Curr, Next> Debug for TerminatorStmtGenData<'vir, Curr, Next> {
                     for target in data.targets {
                         write!(f, "if ({:?} == {:?}) {{", data.value, target.value)?;
                         for extra in target.statements {
-                            write!(f, "{extra:?}")?;
+                            write!(f, "{extra:?}\n")?;
                         }
                         write!(f, " goto {:?} }}\n  else", target.label)?;
                     }
@@ -446,5 +469,11 @@ impl<'vir, Curr, Next> Debug for UnOpGenData<'vir, Curr, Next> {
 impl<'vir, Curr, Next> Debug for UnfoldingGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "unfolding {:?} in ({:?})", self.target, self.expr)
+    }
+}
+
+impl<'vir, Curr, Next> Debug for WandGenData<'vir, Curr, Next> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "({:?}) --* ({:?})", self.lhs, self.rhs)
     }
 }

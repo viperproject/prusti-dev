@@ -329,6 +329,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Expr<'vir> {
             vir::ExprKindData::Local(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Old(v) => ctx.ast.old(v.to_viper_no_pos(ctx)), // TODO: position
             vir::ExprKindData::PredicateApp(v) => v.to_viper_with_span(ctx, self.span),
+            vir::ExprKindData::Wand(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Result(ty) => ctx
                 .ast
                 .result_with_pos(ty.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
@@ -691,6 +692,17 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Stmt<'vir> {
                 ctx.ast.comment(&format!("var {}", decl.name))
             }
             vir::StmtKindGenData::MethodCall(v) => v.to_viper_with_span(ctx, self.span),
+            vir::StmtKindGenData::Package(wand, stmts) => ctx.ast.package(
+                wand.to_viper_no_pos(ctx),
+                ctx.ast.seqn(
+                    &stmts
+                        .iter()
+                        .map(|v| v.to_viper_no_pos(ctx))
+                        .collect::<Vec<_>>(),
+                    &[],
+                ),
+                ctx.span_to_pos(self.span),
+            ),
             vir::StmtKindGenData::PureAssign(v) => v.to_viper_with_span(ctx, self.span),
             vir::StmtKindGenData::Unfold(pred) => ctx
                 .ast
@@ -822,6 +834,18 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Unfolding<'vir> {
         ctx.ast.unfolding_with_pos(
             self.target.to_viper_no_pos(ctx),
             self.expr.to_viper_no_pos(ctx),
+            pos,
+        )
+    }
+}
+
+impl<'vir, 'v> ToViper<'vir, 'v> for vir::Wand<'vir> {
+    type Output = viper::Expr<'v>;
+    // `pos` coming from the parent `Expr` is used
+    fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, pos: Position) -> Self::Output {
+        ctx.ast.magic_wand_with_pos(
+            self.lhs.to_viper_no_pos(ctx),
+            self.rhs.to_viper_no_pos(ctx),
             pos,
         )
     }

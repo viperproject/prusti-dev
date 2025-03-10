@@ -67,6 +67,12 @@ cfg_if! {
                 StmtKindGenData::Unfold(app) | StmtKindGenData::Fold(app) => {
                     check_predicate_app_bindings(m, app);
                 }
+                StmtKindGenData::Package(_wand, stmts) => {
+                    // TODO: check types in wand
+                    for stmt in stmts.iter() {
+                        check_stmt_bindings(m, stmt);
+                    }
+                }
                 StmtKindGenData::MethodCall(MethodCallGenData {
                     args,
                     ..
@@ -111,6 +117,9 @@ cfg_if! {
                         check_expr_bindings(m, *arg);
                     }
                 },
+                ExprKindGenData::Old(OldGenData { expr, .. }) => {
+                    check_expr_bindings(m, *expr);
+                },
                 ExprKindGenData::Const(..) | ExprKindGenData::Lazy(..) => {},
                 ExprKindGenData::PredicateApp(app) => {
                     check_predicate_app_bindings(m, app);
@@ -153,6 +162,10 @@ cfg_if! {
                     for qvar in qvars.iter() {
                         m.remove(qvar.name);
                     }
+                }
+                ExprKindGenData::Wand(WandGenData { lhs, rhs }) => {
+                    check_expr_bindings(m, *lhs);
+                    check_expr_bindings(m, *rhs);
                 }
                 other => todo!("{other:?}")
             }
@@ -246,7 +259,18 @@ impl<'tcx> VirCtxt<'tcx> {
         &'vir self,
         expr: ExprGen<'vir, Curr, Next>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Old(expr))))
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Old(
+            self.alloc(OldGenData { expr, label: OldLabel::None }),
+        ))))
+    }
+
+    pub fn mk_old_lhs_expr<'vir, Curr, Next>(
+        &'vir self,
+        expr: ExprGen<'vir, Curr, Next>,
+    ) -> ExprGen<'vir, Curr, Next> {
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Old(
+            self.alloc(OldGenData { expr, label: OldLabel::Lhs }),
+        ))))
     }
 
     pub fn mk_rel_expr<'vir, Curr, Next>(
@@ -266,6 +290,9 @@ impl<'tcx> VirCtxt<'tcx> {
         triggers: &'vir [TriggerGen<'vir, Curr, Next>],
         body: ExprGen<'vir, Curr, Next>,
     ) -> ExprGen<'vir, Curr, Next> {
+        if qvars.is_empty() {
+            return body;
+        }
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Forall(
             self.alloc(ForallGenData {
                 qvars,
@@ -308,6 +335,21 @@ impl<'tcx> VirCtxt<'tcx> {
         self.alloc(ExprGenData::new(
             self.alloc(ExprKindGenData::PredicateApp(pred_app)),
         ))
+    }
+
+    pub fn mk_wand<'vir, Curr, Next>(
+        &'vir self,
+        lhs: ExprGen<'vir, Curr, Next>,
+        rhs: ExprGen<'vir, Curr, Next>,
+    ) -> WandGen<'vir, Curr, Next> {
+        self.alloc(WandGenData { lhs, rhs })
+    }
+
+    pub fn mk_wand_expr<'vir, Curr, Next>(
+        &'vir self,
+        wand: WandGen<'vir, Curr, Next>,
+    ) -> ExprGen<'vir, Curr, Next> {
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Wand(wand))))
     }
 
     pub fn mk_bin_op_expr<'vir, Curr, Next>(
@@ -537,6 +579,19 @@ impl<'tcx> VirCtxt<'tcx> {
     ) -> StmtGen<'vir, Curr, Next> {
         self.alloc(StmtGenData::new(
             self.alloc(StmtKindGenData::Fold(pred_app)),
+        ))
+    }
+
+    pub fn mk_package_stmt<'vir, Curr, Next>(
+        &'vir self,
+        wand: WandGen<'vir, Curr, Next>,
+        stmts: &'vir [StmtGen<'vir, Curr, Next>],
+    ) -> StmtGen<'vir, Curr, Next> {
+        self.alloc(StmtGenData::new(
+            self.alloc(StmtKindGenData::Package(
+                wand,
+                stmts,
+            )),
         ))
     }
 

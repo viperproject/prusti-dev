@@ -47,7 +47,7 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
             ExprKindGenData::PredicateApp(v) => {
                 vcx.alloc(ExprKindGenData::PredicateApp(v.reify(vcx, lctx)))
             }
-
+            ExprKindGenData::Wand(v) => vcx.alloc(ExprKindGenData::Wand(v.reify(vcx, lctx))),
             ExprKindGenData::Local(v) => vcx.alloc(ExprKindGenData::Local(v)),
             ExprKindGenData::Const(v) => vcx.alloc(ExprKindGenData::Const(v)),
             ExprKindGenData::Result(t) => vcx.alloc(ExprKindGenData::Result(t)),

@@ -784,7 +784,7 @@ impl<'a> AstFactory<'a> {
     pub fn field_access_predicate_with_pos(
         &self,
         loc: Expr,
-        perm: Expr,
+        perm: Option<Expr>,
         pos: Position,
     ) -> Expr<'a> {
         build_ast_node_with_pos!(
@@ -792,19 +792,19 @@ impl<'a> AstFactory<'a> {
             Expr,
             ast::FieldAccessPredicate,
             loc.to_jobject(),
-            perm.to_jobject(),
+            self.jni.new_option(perm.map(|p| p.to_jobject())),
             pos.to_jobject()
         )
     }
 
-    pub fn field_access_predicate(&self, loc: Expr, perm: Expr) -> Expr<'a> {
+    pub fn field_access_predicate(&self, loc: Expr, perm: Option<Expr>) -> Expr<'a> {
         self.field_access_predicate_with_pos(loc, perm, self.no_position())
     }
 
     pub fn predicate_access_predicate_with_pos(
         &self,
         loc: Expr,
-        perm: Expr,
+        perm: Option<Expr>,
         pos: Position,
     ) -> Expr<'a> {
         build_ast_node_with_pos!(
@@ -812,12 +812,12 @@ impl<'a> AstFactory<'a> {
             Expr,
             ast::PredicateAccessPredicate,
             loc.to_jobject(),
-            perm.to_jobject(),
+            self.jni.new_option(perm.map(|p| p.to_jobject())),
             pos.to_jobject()
         )
     }
 
-    pub fn predicate_access_predicate(&self, loc: Expr, perm: Expr) -> Expr<'a> {
+    pub fn predicate_access_predicate(&self, loc: Expr, perm: Option<Expr>) -> Expr<'a> {
         self.predicate_access_predicate_with_pos(loc, perm, self.no_position())
     }
 
@@ -1485,6 +1485,7 @@ impl<'a> AstFactory<'a> {
                 self.jni
                     .unwrap_result(simplifier_object_wrapper.singleton()),
                 expr.to_jobject(),
+                false,
             ),
         );
         Expr::new(obj)
