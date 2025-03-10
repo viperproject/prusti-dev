@@ -36,13 +36,13 @@ impl TaskEncoder for IndirectPredicatesEnc {
     ) -> EncodeFullResult<'vir, Self> {
         vir::with_vcx(|vcx| {
             let (ty, proj_region) = task_key;
-            let self_ty_enc = deps.require_ref::<RustTyPredicatesEnc>(*ty).unwrap();
+            let self_ty_enc = deps.require_ref::<RustTyPredicatesEnc>(*ty)?;
             let mut expr_pre = Vec::new();
             let mut expr_post = Vec::new();
             match ty.kind() {
                 ty::TyKind::Ref(ref_region, inner_ty, ty::Mutability::Mut) => {
-                    let inner_ty_enc = deps.require_ref::<RustTyPredicatesEnc>(*inner_ty).unwrap();
-                    let deref_access = self_ty_enc.generic_predicate.expect_ref().deref_func;
+                    let inner_ty_enc = deps.require_ref::<RustTyPredicatesEnc>(*inner_ty)?;
+                    let deref_access = self_ty_enc.generic_predicate.expect_mutref().deref_func;
                     let inner_ty_enc_c = inner_ty_enc.clone();
                     if ref_region == proj_region {
                         expr_pre.push(vcx.mk_lazy_expr("ref_indirect", Box::new(move |vcx, self_expr| inner_ty_enc.ref_to_pred(
@@ -57,20 +57,19 @@ impl TaskEncoder for IndirectPredicatesEnc {
                         ).kind)));
                     }
                     // TODO: is this correct??? do we always project into the inner type, regardless of region?
-                    let inner_indirect = deps.require_ref::<IndirectPredicatesEnc>((*inner_ty, *proj_region)).unwrap();
+                    let inner_indirect = deps.require_ref::<IndirectPredicatesEnc>((*inner_ty, *proj_region))?;
                     expr_pre.extend(inner_indirect.expr_pre.into_iter()
                         .map(|inner_expr| vcx.mk_lazy_expr("ref_inner_indirect", Box::new(move |vcx, self_expr| inner_expr.reify(vcx, deref_access.apply(vcx, [self_expr])).kind))));
                     expr_post.extend(inner_indirect.expr_post.into_iter()
                         // TODO: where does the old go here?
                         .map(|inner_expr| vcx.mk_lazy_expr("ref_inner_indirect_post", Box::new(move |vcx, self_expr| inner_expr.reify(vcx, deref_access.apply(vcx, [self_expr])).kind))));
                 }
-                ty::TyKind::Ref(_, _, ty::Mutability::Not) => (),
                 ty::TyKind::Tuple(params) => {
                     let field_accessors = self_ty_enc.generic_predicate.expect_structlike().ref_to_field_refs;
                     for (field_ty, accessor) in params.into_iter().zip(field_accessors) {
                         // TODO: tuple generics need to be passed to field accessors
                         // TODO: tuple fields need to be (snapshot) cast
-                        let field_indirect = deps.require_ref::<IndirectPredicatesEnc>((field_ty, *proj_region)).unwrap();
+                        let field_indirect = deps.require_ref::<IndirectPredicatesEnc>((field_ty, *proj_region))?;
                         expr_pre.extend(field_indirect.expr_pre.into_iter()
                             .map(|inner_expr| vcx.mk_lazy_expr("ref_inner_indirect", Box::new(move |vcx, self_expr| inner_expr.reify(vcx, accessor.apply(vcx, &[self_expr])).kind))));
                         expr_post.extend(field_indirect.expr_post.into_iter()

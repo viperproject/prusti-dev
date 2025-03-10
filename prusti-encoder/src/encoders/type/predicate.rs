@@ -4,7 +4,7 @@ use prusti_rustc_interface::{
 };
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{
-    add_debug_note, CallableIdent, FunctionData, FunctionIdent, MethodIdent, NullaryArity, PredicateIdent, TypeData, UnaryArity, UnknownArity, VirCtxt
+    add_debug_note, BinaryArity, CallableIdent, FunctionData, FunctionIdent, MethodIdent, NullaryArity, PredicateIdent, TypeData, UnaryArity, UnknownArity, VirCtxt
 };
 
 /// Takes a `MostGenericTy` and returns various Viper predicates and functions for
@@ -40,10 +40,17 @@ pub struct PredicateEncDataVariant<'vir> {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct PredicateEncDataRef<'vir> {
+pub struct PredicateEncDataImmRef<'vir> {
+    pub deref_func: vir::FunctionIdent<'vir, BinaryArity<'vir>>,
+    pub perm: Option<vir::Expr<'vir>>,
+    pub snap_data: DomainDataImmRef<'vir>,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct PredicateEncDataMutRef<'vir> {
     pub deref_func: vir::FunctionIdent<'vir, UnaryArity<'vir>>,
     pub perm: Option<vir::Expr<'vir>>,
-    pub snap_data: DomainDataRef<'vir>,
+    pub snap_data: DomainDataMutRef<'vir>,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -53,7 +60,8 @@ pub enum PredicateEncData<'vir> {
     // structs, tuples
     StructLike(PredicateEncDataStruct<'vir>),
     EnumLike(Option<PredicateEncDataEnum<'vir>>),
-    Ref(PredicateEncDataRef<'vir>),
+    ImmRef(PredicateEncDataImmRef<'vir>),
+    MutRef(PredicateEncDataMutRef<'vir>),
     Param,
 }
 
@@ -100,16 +108,25 @@ impl<'vir> PredicateEncOutputRef<'vir> {
         vcx.alloc_slice(&args)
     }
 
+    #[track_caller]
     pub fn expect_prim(&self) -> DomainDataPrim<'vir> {
         match self.specifics {
             PredicateEncData::Primitive(prim) => prim,
             _ => panic!("expected primitive type"),
         }
     }
-    pub fn expect_ref(&self) -> PredicateEncDataRef<'vir> {
+    #[track_caller]
+    pub fn expect_immref(&self) -> PredicateEncDataImmRef<'vir> {
         match self.specifics {
-            PredicateEncData::Ref(r) => r,
-            s => panic!("expected ref type ({s:?})"),
+            PredicateEncData::ImmRef(r) => r,
+            s => panic!("expected immref type ({s:?})"),
+        }
+    }
+    #[track_caller]
+    pub fn expect_mutref(&self) -> PredicateEncDataMutRef<'vir> {
+        match self.specifics {
+            PredicateEncData::MutRef(r) => r,
+            s => panic!("expected mutref type ({s:?})"),
         }
     }
     pub fn get_structlike(&self) -> Option<&PredicateEncDataStruct<'vir>> {
@@ -118,6 +135,7 @@ impl<'vir> PredicateEncOutputRef<'vir> {
             _ => None,
         }
     }
+    #[track_caller]
     pub fn expect_structlike(&self) -> &PredicateEncDataStruct<'vir> {
         self.get_structlike().expect("expected structlike type")
     }
@@ -127,6 +145,7 @@ impl<'vir> PredicateEncOutputRef<'vir> {
             _ => None,
         }
     }
+    #[track_caller]
     pub fn expect_enumlike(&self) -> Option<&PredicateEncDataEnum<'vir>> {
         self.get_enumlike()
             .expect("expected enumlike type")
@@ -143,12 +162,14 @@ impl<'vir> PredicateEncOutputRef<'vir> {
         }
     }
 
+    #[track_caller]
     pub fn expect_variant(&self, vid: abi::VariantIdx) -> &PredicateEncDataVariant<'vir> {
         match &self.specifics {
             PredicateEncData::EnumLike(e) => &e.as_ref().unwrap().variants[vid.as_usize()],
             _ => panic!("expected enum type"),
         }
     }
+    #[track_caller]
     pub fn expect_pred_variant_opt(
         &self,
         vid: Option<abi::VariantIdx>,
@@ -156,6 +177,7 @@ impl<'vir> PredicateEncOutputRef<'vir> {
         vid.map(|vid| self.expect_variant(vid).predicate)
             .unwrap_or(self.ref_to_pred)
     }
+    #[track_caller]
     pub fn expect_variant_opt(
         &self,
         vid: Option<abi::VariantIdx>,
@@ -353,7 +375,7 @@ pub struct PredicateEncOutput<'vir> {
 use crate::encoders::GenericEnc;
 
 use super::{
-    domain::{DiscrBounds, DomainDataEnum, DomainDataPrim, DomainDataRef, DomainDataStruct},
+    domain::{DiscrBounds, DomainDataEnum, DomainDataImmRef, DomainDataMutRef, DomainDataPrim, DomainDataStruct},
     lifted::{
         generic::LiftedGeneric,
         ty::{EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc},
@@ -499,9 +521,12 @@ impl TaskEncoder for PredicateEnc {
                 | TyKind::Uint(_)
                 | TyKind::Float(_) => super::kinds::primitive::predicate(*task_key, snap.clone(), deps, /*&generic_decls, &generic_exprs, */&mut builder)?,
                 TyKind::Adt(..) => super::kinds::adt::predicate(*task_key, snap.clone(), deps, /*&generic_decls, &generic_exprs, */&mut builder)?,
-                TyKind::Ref(..) => super::kinds::reference::predicate(*task_key, snap.clone(), deps, /*&generic_decls, &generic_exprs, */&mut builder)?,
+                TyKind::Ref(_, _, ty::Mutability::Not) => super::kinds::immref::predicate(*task_key, snap.clone(), deps, &generic_decls, &generic_exprs, &mut builder)?,
+                TyKind::Ref(_, _, ty::Mutability::Mut) => super::kinds::mutref::predicate(*task_key, snap.clone(), deps, /*&generic_decls, &generic_exprs, */&mut builder)?,
                 TyKind::Never => (super::kinds::never::predicate(*task_key, snap.clone(), deps, /*&generic_decls, &generic_exprs, */&mut builder)?, None),
+                TyKind::Closure(..) => (super::kinds::closure::predicate(*task_key, snap.clone(), deps, &generic_decls, &generic_exprs, &mut builder)?, None),
                 TyKind::Tuple(..) => (super::kinds::tuple::predicate(*task_key, snap.clone(), deps, &generic_decls, &generic_exprs, &mut builder)?, None),
+                TyKind::Str => (super::kinds::str::predicate(*task_key, snap.clone(), deps, &mut builder)?, None),
                 TyKind::Param(_) => unreachable!(),
                 _ => return Ok(None),
             };
@@ -534,30 +559,9 @@ impl TaskEncoder for PredicateEnc {
             TyKind::Adt(..) => unreachable!(),
             TyKind::Ref(..) => unreachable!(),
             TyKind::Param(_) => unreachable!(),
+            TyKind::Closure(..) => unreachable!(),
             TyKind::Never => unreachable!(),
 
-            TyKind::Closure(_def_id, args) => {
-                unreachable!()
-                /*
-                let snap_data = snap.specifics.expect_structlike();
-                let specifics = enc.mk_struct_ref(None, snap_data);
-                deps.emit_output_ref(
-                    *task_key,
-                    enc.output_ref(PredicateEncData::StructLike(specifics)),
-                )?;
-
-                let fields: Vec<_> = args
-                    .as_closure()
-                    .upvar_tys()
-                    .iter()
-                    .map(|ty| deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap())
-                    .collect();
-                let fields = enc.mk_field_apps(specifics.ref_to_field_refs, fields);
-                let fn_snap_body =
-                    enc.mk_struct_ref_to_snap_body(None, fields, snap_data.field_snaps_to_snap);
-                Ok((enc.mk_struct(fn_snap_body), ()))
-                */
-            }
             TyKind::Tuple(tys) => {
                 unreachable!()
                 /*

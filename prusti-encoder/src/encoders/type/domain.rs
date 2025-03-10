@@ -35,7 +35,16 @@ pub struct DomainDataPrim<'vir> {
     pub prim_to_snap: FunctionIdent<'vir, UnaryArity<'vir>>,
 }
 #[derive(Clone, Copy, Debug)]
-pub struct DomainDataRef<'vir> {
+pub struct DomainDataImmRef<'vir> {
+    /// Construct domain from a `Ref` value.
+    pub prim_to_snap: FunctionIdent<'vir, BinaryArity<'vir>>,
+    /// Function to access the referee.
+    pub deref_access: FunctionIdent<'vir, UnaryArity<'vir>>,
+    /// Function to access the snapshot value.
+    pub value_access: FunctionIdent<'vir, UnaryArity<'vir>>,
+}
+#[derive(Clone, Copy, Debug)]
+pub struct DomainDataMutRef<'vir> {
     /// Construct domain from a `Ref` value.
     pub prim_to_snap: FunctionIdent<'vir, BinaryArity<'vir>>,
     /// Function to access the referee.
@@ -81,7 +90,8 @@ pub enum DomainEncSpecifics<'vir> {
     Param,
     Never,
     Primitive(DomainDataPrim<'vir>),
-    Ref(DomainDataRef<'vir>),
+    ImmRef(DomainDataImmRef<'vir>),
+    MutRef(DomainDataMutRef<'vir>),
     // structs, tuples
     StructLike(DomainDataStruct<'vir>),
     EnumLike(Option<DomainDataEnum<'vir>>),
@@ -148,13 +158,17 @@ impl TaskEncoder for DomainEnc {
         vir::with_vcx(|vcx| {
             let mut builder = DomainBuilder::new(vcx);
 
-            if !matches!(task_key.kind(), TyKind::Param(_)) {
-                let base_name = get_vir_base_name_kind(task_key.kind(), builder.vcx);
-                builder.set_name(&base_name);
-                let typeof_ident = builder.function("typeof", &[builder.self_type()], builder.type_type());
-                let ty_param_accessors = deps.require_ref::<TyConstructorEnc>(*task_key)?.ty_param_accessors;
-                deps.emit_output_ref(*task_key, builder.output_ref(base_name, typeof_ident.to_known(), ty_param_accessors))?;
+            if matches!(task_key.kind(), TyKind::Param(_)) {
+                let specifics = super::kinds::param::domain(*task_key, deps, &mut builder)?;
+                return Ok((builder.build(), specifics));
             }
+
+            let base_name = get_vir_base_name_kind(task_key.kind(), builder.vcx);
+            builder.set_name(&base_name);
+            let typeof_ident = builder.function("typeof", &[builder.self_type()], builder.type_type());
+            let ty_param_accessors = deps.require_ref::<TyConstructorEnc>(*task_key)?.ty_param_accessors;
+            let output_ref = builder.output_ref(base_name, typeof_ident.to_known(), ty_param_accessors);
+            deps.emit_output_ref(*task_key, output_ref.clone())?;
 
             let specifics = match task_key.kind() {
                 TyKind::Bool
@@ -162,11 +176,12 @@ impl TaskEncoder for DomainEnc {
                 | TyKind::Int(_)
                 | TyKind::Uint(_)
                 | TyKind::Float(_) => super::kinds::primitive::domain(*task_key, deps, &mut builder)?,
-                TyKind::Closure(..) => super::kinds::closure::domain(*task_key, deps, &mut builder)?,
-                TyKind::Adt(..) => super::kinds::adt::domain(*task_key, deps, &mut builder)?,
-                TyKind::Tuple(..) => super::kinds::tuple::domain(*task_key, deps, &mut builder)?,
+                TyKind::Closure(..) => super::kinds::closure::domain(*task_key, &output_ref, deps, &mut builder)?,
+                TyKind::Adt(..) => super::kinds::adt::domain(*task_key, &output_ref, deps, &mut builder)?,
+                TyKind::Tuple(..) => super::kinds::tuple::domain(*task_key, &output_ref, deps, &mut builder)?,
                 TyKind::Never => super::kinds::never::domain(*task_key, deps, &mut builder)?,
-                TyKind::Ref(..) => super::kinds::reference::domain(*task_key, deps, &mut builder)?,
+                TyKind::Ref(_, _, ty::Mutability::Not) => super::kinds::immref::domain(*task_key, deps, &mut builder)?,
+                TyKind::Ref(_, _, ty::Mutability::Mut) => super::kinds::mutref::domain(*task_key, deps, &mut builder)?,
                 TyKind::Param(_) => super::kinds::param::domain(*task_key, deps, &mut builder)?,
                 TyKind::Str => super::kinds::str::domain(*task_key, deps, &mut builder)?,
                 kind => todo!("{kind:?}"),
@@ -289,10 +304,17 @@ impl<'vir> DomainEncSpecifics<'vir> {
         }
     }
     #[track_caller]
-    pub fn expect_ref(self) -> DomainDataRef<'vir> {
+    pub fn expect_immref(self) -> DomainDataImmRef<'vir> {
         match self {
-            Self::Ref(data) => data,
-            _ => panic!("expected ref"),
+            Self::ImmRef(data) => data,
+            _ => panic!("expected immref"),
+        }
+    }
+    #[track_caller]
+    pub fn expect_mutref(self) -> DomainDataMutRef<'vir> {
+        match self {
+            Self::MutRef(data) => data,
+            _ => panic!("expected mutref"),
         }
     }
     #[track_caller]
@@ -355,6 +377,8 @@ impl<'vir> DomainDataPrim<'vir> {
 /// Data for encoding field access functions and axioms
 #[derive(Clone)]
 pub(super) struct FieldTy<'vir> {
+    pub(super) rust_ty: ty::Ty<'vir>,
+
     /// The type of encoded field
     pub(super) ty: vir::Type<'vir>,
 
@@ -402,6 +426,7 @@ impl<'vir> FieldTy<'vir> {
             .typeof_function;
         let lifted_ty = deps.require_local::<LiftedTyEnc<EncodeGenericsAsParamTy>>(ty)?;
         Ok(FieldTy {
+            rust_ty: ty,
             ty: vir_ty,
             rust_ty_data: Some(LiftedRustTyData {
                 lifted_ty,

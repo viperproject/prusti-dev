@@ -1,10 +1,11 @@
 use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
-use vir::{PredicateIdent, ToKnownArity, UnknownArity};
-use crate::encoders::{domain::{DomainBuilder, DomainDataEnum, DomainDataStruct, DomainDataVariant, DomainEnc, DomainEncSpecifics, FieldTy}, predicate::{PredicateBuilder, PredicateEncData, PredicateEncDataEnum, PredicateEncDataStruct, PredicateEncDataVariant}, rust_ty_predicates::RustTyPredicatesEnc, rust_ty_snapshots::RustTySnapshotsEnc, snapshot::SnapshotEncOutput, PredicateEnc};
+use vir::ToKnownArity;
+use crate::encoders::{domain::{DomainBuilder, DomainDataEnum, DomainDataStruct, DomainDataVariant, DomainEnc, DomainEncOutputRef, DomainEncSpecifics, FieldTy}, predicate::{PredicateBuilder, PredicateEncData, PredicateEncDataEnum, PredicateEncDataStruct, PredicateEncDataVariant}, rust_ty_predicates::RustTyPredicatesEnc, rust_ty_snapshots::RustTySnapshotsEnc, snapshot::SnapshotEncOutput, PredicateEnc};
 
 pub(crate) fn domain<'vir>(
     task_key: <DomainEnc as TaskEncoder>::TaskKey<'vir>,
+    output_ref: &DomainEncOutputRef<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, DomainEnc>,
     builder: &mut DomainBuilder<'vir>,
 ) -> Result<DomainEncSpecifics<'vir>, EncodeFullError<'vir, DomainEnc>> {
@@ -28,7 +29,7 @@ pub(crate) fn domain<'vir>(
             let variant = adt.non_enum_variant();
             let fields = FieldTy::mk_field_tys(builder.vcx, deps, variant, params)?;
 
-            let (field_snaps_to_snap, field_access, _) = super::structlike::domain("", &fields, builder)?;
+            let (field_snaps_to_snap, field_access, _) = super::structlike::domain("", &fields, output_ref, &[], deps, builder)?;
 
             Ok(DomainEncSpecifics::StructLike(DomainDataStruct {
                 field_snaps_to_snap,
@@ -66,7 +67,7 @@ pub(crate) fn domain<'vir>(
 
                     let fields = FieldTy::mk_field_tys(builder.vcx, deps, variant, params)?;
 
-                    let (field_snaps_to_snap, field_access, field_vars) = super::structlike::domain(&format!("{var_idx_num}_"), &fields, builder)?;
+                    let (field_snaps_to_snap, field_access, field_vars) = super::structlike::domain(&format!("{var_idx_num}_"), &fields, output_ref, &[], deps, builder)?;
 
                     // discriminant of constructor is known
                     builder.axiom(&format!("{var_idx_num}_cons_discr"), vir::expr! {
@@ -218,6 +219,7 @@ pub(crate) fn predicate<'vir>(
                 Some(snap_expr),
             ).1);
 
+            /*
             // lifetime projection predicates
             let _lft_predicates = params.iter()
                 .enumerate()
@@ -247,6 +249,7 @@ pub(crate) fn predicate<'vir>(
                             .collect::<Vec<_>>()))
                     ))
                 .collect::<Vec<_>>();
+            */
 
             Ok((PredicateEncData::StructLike(PredicateEncDataStruct {
                 snap_data,

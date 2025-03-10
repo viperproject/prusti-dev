@@ -1,10 +1,11 @@
 use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
-use crate::encoders::{domain::{DomainBuilder, DomainDataStruct, DomainEnc, DomainEncSpecifics, FieldTy}, lifted::ty::{EncodeGenericsAsParamTy, LiftedTyEnc}, predicate::{PredicateBuilder, PredicateEncData, PredicateEncDataStruct}, rust_ty_predicates::RustTyPredicatesEnc, snapshot::SnapshotEncOutput, PredicateEnc};
-use vir::ToKnownArity;
+use crate::encoders::{domain::{DomainBuilder, DomainDataStruct, DomainEnc, DomainEncOutputRef, DomainEncSpecifics, FieldTy}, lifted::ty::{EncodeGenericsAsParamTy, LiftedTyEnc}, predicate::{PredicateBuilder, PredicateEncData, PredicateEncDataStruct}, rust_ty_predicates::RustTyPredicatesEnc, snapshot::SnapshotEncOutput, PredicateEnc};
+use vir::{FunctionIdent, UnaryArity};
 
 pub(crate) fn domain<'vir>(
     task_key: <DomainEnc as TaskEncoder>::TaskKey<'vir>,
+    output_ref: &DomainEncOutputRef<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, DomainEnc>,
     builder: &mut DomainBuilder<'vir>,
 ) -> Result<DomainEncSpecifics<'vir>, EncodeFullError<'vir, DomainEnc>> {
@@ -26,7 +27,7 @@ pub(crate) fn domain<'vir>(
         .map(|ty| FieldTy::from_ty(builder.vcx, deps, ty))
         .collect::<Result<Vec<_>, _>>()?;
 
-    let (field_snaps_to_snap, field_access, _) = super::structlike::domain("", &fields, builder)?;
+    let (field_snaps_to_snap, field_access, _) = super::structlike::domain("", &fields, output_ref, &generics, deps, builder)?;
 
     Ok(DomainEncSpecifics::StructLike(DomainDataStruct {
         field_snaps_to_snap,

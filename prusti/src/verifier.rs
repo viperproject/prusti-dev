@@ -48,7 +48,10 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
         assert_eq!(results.len(), 1); // TODO: eventually verify separate methods as separate programs again?
 
         let result = results.pop().unwrap().1;
-        let _success = match result {
+        if std::env::var("LOCAL_TESTING").is_ok() {
+            println!("raw result: {result:?}");
+        }
+        let success = match result {
             viper::VerificationResult::Success => true,
             viper::VerificationResult::JavaException(_e) => false,
             viper::VerificationResult::ConsistencyErrors(_e) => false,
@@ -72,6 +75,15 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
                 false
             }
         };
+        if !success {
+            user::message("Verification failed");
+            // assert!(
+            //     env.diagnostic.has_errors()
+            //         || config::internal_errors_as_warnings()
+            //         || (config::skip_unsupported_features()
+            //             && config::allow_unreachable_unsupported_code())
+            // );
+        }
 
         //let verification_result =
         //    if verification_task.procedures.is_empty() && verification_task.types.is_empty() {
