@@ -48,7 +48,6 @@ pub struct MirPureEncTask<'tcx> {
     pub parent_def_id: DefId, // ID of the function
     pub param_env: ty::ParamEnv<'tcx>, // param environment at the usage site
     pub substs: ty::GenericArgsRef<'tcx>, // type substitutions at the usage site
-    pub caller_def_id: DefId, // Caller/Use DefID
 }
 
 impl TaskEncoder for MirPureEnc {
@@ -61,7 +60,6 @@ impl TaskEncoder for MirPureEnc {
         PureKind, // encoding a pure function?
         DefId, // ID of the function
         ty::GenericArgsRef<'tcx>, // ? this should be the "signature", after applying the env/substs
-        DefId, // Caller/Use DefID
     );
 
     type OutputFullLocal<'vir> = MirPureEncOutput<'vir>;
@@ -75,7 +73,6 @@ impl TaskEncoder for MirPureEnc {
             task.kind,
             task.parent_def_id,
             task.substs,
-            task.caller_def_id,
         )
     }
 
@@ -91,15 +88,15 @@ impl TaskEncoder for MirPureEnc {
     )> {
         deps.emit_output_ref::<Self>(*task_key, ());
 
-        let (_, kind, def_id, substs, caller_def_id) = *task_key;
+        let (_, kind, def_id, substs) = *task_key;
 
         tracing::debug!("encoding {def_id:?}");
         let expr = vir::with_vcx(move |vcx| {
             //let body = vcx.tcx.mir_promoted(local_def_id).0.borrow();
             let body = match kind {
-                PureKind::Closure => vcx.body.borrow_mut().get_closure_body(def_id, substs, caller_def_id),
-                PureKind::Spec => vcx.body.borrow_mut().get_spec_body(def_id, substs, caller_def_id),
-                PureKind::Pure => vcx.body.borrow_mut().get_pure_fn_body(def_id, substs, caller_def_id),
+                PureKind::Closure => vcx.body.borrow_mut().get_closure_body(def_id, substs, def_id),
+                PureKind::Spec => vcx.body.borrow_mut().get_spec_body(def_id, substs, def_id),
+                PureKind::Pure => vcx.body.borrow_mut().get_pure_fn_body(def_id, substs, def_id),
                 PureKind::Constant(promoted) => vcx.body.borrow_mut().get_promoted_constant_body(def_id, promoted)
             };
 
@@ -210,14 +207,18 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
         local: mir::Local
     ) -> vir::Type<'tcx> {
         let ty = self.body.local_decls[local].ty;
-        if let ty::TyKind::Closure(..) = ty.kind() {
-            // TODO: Support closure types
-            &vir::TypeData::Unsupported(vir::UnsupportedType {
-                name: "closure",
-            })
+        let ty = if let ty::TyKind::Closure(_def_id, args) = ty.kind() {
+            // // TODO: Support closure types
+            // &vir::TypeData::Unsupported(vir::UnsupportedType {
+            //     name: "closure",
+            // })
+
+            args.as_closure().tupled_upvars_ty()
+            // args.as_closure().sig().skip_binder().inputs()[0]
         } else {
-            self.deps.require_ref::<SnapshotEnc>(ty).unwrap().snapshot
-        }
+            ty
+        };
+        self.deps.require_ref::<SnapshotEnc>(ty).unwrap().snapshot
     }
 
     fn mk_local_ex(
@@ -444,7 +445,7 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
                         ).unwrap_or_default();
                         if is_pure {
                             let pure_func = self.deps.require_ref::<MirFunctionEnc>(
-                                (def_id, arg_tys, self.def_id)
+                                (def_id, arg_tys)
                             ).unwrap().function_ref;
                             let encoded_args = args.iter()
                                 .map(|oper| self.encode_operand(&new_curr_ver, oper))
@@ -466,6 +467,17 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
                 let end_update = self.encode_cfg(&new_curr_ver, target.unwrap(), join_point);
 
                 stmt_update.merge(term_update).merge(end_update)
+            }
+            mir::TerminatorKind::Unreachable => {
+                // unreachable block, no need to walk further
+                let mut term_update = Update::new();
+                let ty = self.body.local_decls[mir::RETURN_PLACE].ty;
+                let ty = self.deps
+                    .require_ref::<PredicateEnc>(ty)
+                    .unwrap();
+                let expr = ty.unreachable_to_snap.apply(self.vcx, []);
+                self.bump_version(&mut term_update, mir::RETURN_PLACE, expr);
+                term_update
             }
 
             k => todo!("terminator kind {k:?}"),
@@ -809,7 +821,6 @@ impl<'tcx, 'vir: 'enc, 'enc> Enc<'tcx, 'vir, 'enc>
                         parent_def_id: cl_def_id,
                         param_env: self.vcx.tcx.param_env(cl_def_id),
                         substs: ty::List::identity_for_item(self.vcx.tcx, cl_def_id),
-                        caller_def_id: self.def_id,
                     }
                 ).unwrap().expr
                 // arguments to the closure are
