@@ -43,7 +43,6 @@ impl TaskEncoder for MirImpureEnc {
     type TaskDescription<'tcx> = (
         DefId, // ID of the function
         ty::GenericArgsRef<'tcx>, // ? this should be the "signature", after applying the env/substs
-        Option<DefId>, // ID of the caller function, if any
     );
 
     type OutputRef<'vir> = MirImpureEncOutputRef<'vir>;
@@ -65,7 +64,7 @@ impl TaskEncoder for MirImpureEnc {
         Self::EncodingError,
         Option<Self::OutputFullDependency<'vir>>,
     )> {
-        let (def_id, substs, caller_def_id) = *task_key;
+        let (def_id, substs) = *task_key;
 
         let trusted = crate::encoders::with_proc_spec(def_id, |def_spec|
             def_spec.trusted.extract_inherit().unwrap_or_default()
@@ -90,8 +89,9 @@ impl TaskEncoder for MirImpureEnc {
             let arg_count = local_defs.arg_count + 1;
 
             let extra: String = substs.iter().map(|s| format!("_{s}")).collect();
-            let caller = caller_def_id.map(|id| format!("{}_{}", id.krate, id.index.index())).unwrap_or_default();
-            let method_name = vir::vir_format!(vcx, "m_{}{extra}_CALLER_{caller}", vcx.tcx.item_name(def_id));
+            let method_id = format!("{}_{}", def_id.krate, def_id.index.index());
+            let method_name = vir::vir_format!(vcx, "m_{method_id}_{}{extra}", vcx.tcx.item_name(def_id));
+            // eprintln!("\nencoding {method_name}: {task_key:?}");
             let args = vec![&vir::TypeData::Ref; arg_count];
             let args = UnknownArity::new(vcx.alloc_slice(&args));
             let method_ref = MethodIdent::new(method_name, args);
@@ -101,9 +101,9 @@ impl TaskEncoder for MirImpureEnc {
 
             // Do not encode the method body if it is external, trusted or just
             // a call stub.
-            let local_def_id = def_id.as_local().filter(|_| !trusted && caller_def_id.is_none());
+            let local_def_id = def_id.as_local().filter(|_| !trusted);
             let blocks = if let Some(local_def_id) = local_def_id {
-                let body = vcx.body.borrow_mut().get_impure_fn_body(local_def_id, substs, caller_def_id);
+                let body = vcx.body.borrow_mut().get_impure_fn_body(local_def_id, substs, None);
                 // let body = vcx.tcx.mir_promoted(local_def_id).0.borrow();
 
                 let fpcs_analysis = mir_state_analysis::run_free_pcs(&body, vcx.tcx);
@@ -178,7 +178,7 @@ impl TaskEncoder for MirImpureEnc {
             };
 
             let spec = deps.require_local::<MirSpecEnc>(
-                (def_id, substs, caller_def_id, false)
+                (def_id, substs, false)
             ).unwrap();
             let (spec_pres, spec_posts) = (spec.pres, spec.posts);
 
@@ -782,7 +782,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc
 
                 let dest = self.encode_place(Place::from(*destination));
 
-                let task = (func_def_id, arg_tys, self.def_id);
+                let task = (func_def_id, arg_tys);
                 if is_pure {
                     let pure_func = self.deps.require_ref::<MirFunctionEnc>(
                         task
@@ -798,7 +798,7 @@ impl<'tcx, 'vir, 'enc> mir::visit::Visitor<'tcx> for EncVisitor<'tcx, 'vir, 'enc
                     self.stmt(self.vcx.alloc(method_assign.apply(self.vcx, [dest, pure_func_app])));
                 } else {
                     let func_out = self.deps.require_ref::<MirImpureEnc>(
-                        (task.0, task.1, Some(task.2)),
+                        (task.0, task.1),
                     ).unwrap();
 
                     let method_in = args.iter().map(|op| self.encode_operand(op));

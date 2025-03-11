@@ -31,7 +31,6 @@ impl TaskEncoder for MirLocalDefEnc {
     type TaskDescription<'tcx> = (
         DefId, // ID of the function
         ty::GenericArgsRef<'tcx>, // ? this should be the "signature", after applying the env/substs
-        Option<DefId>, // ID of the caller function, if any
     );
 
     type OutputFullLocal<'vir> = MirLocalDefEncOutput<'vir>;
@@ -55,7 +54,7 @@ impl TaskEncoder for MirLocalDefEnc {
             Option<Self::OutputFullDependency<'vir>>,
         ),
     > {
-        let (def_id, substs, caller_def_id) = *task_key;
+        let (def_id, substs) = *task_key;
         deps.emit_output_ref::<Self>(*task_key, ());
         fn mk_local_def<'vir, 'tcx>(vcx: &'vir vir::VirCtxt<'tcx>, name: &'vir str, ty: PredicateEncOutputRef<'vir>) -> LocalDef<'vir> {
             let local = vcx.mk_local(name, &vir::TypeData::Ref);
@@ -73,7 +72,7 @@ impl TaskEncoder for MirLocalDefEnc {
 
         vir::with_vcx(|vcx| {
             let data = if let Some(local_def_id) = def_id.as_local() {
-                let body = vcx.body.borrow_mut().get_impure_fn_body(local_def_id, substs, caller_def_id);
+                let body = vcx.body.borrow_mut().get_impure_fn_body(local_def_id, substs, None);
                 let locals = IndexVec::from_fn_n(|arg: mir::Local| {
                     let local = vir::vir_format!(vcx, "_{}p", arg.index());
                     let ty = deps.require_ref::<crate::encoders::PredicateEnc>(
@@ -86,7 +85,7 @@ impl TaskEncoder for MirLocalDefEnc {
                     arg_count: body.arg_count,
                 }
             } else {
-                let param_env = vcx.tcx.param_env(caller_def_id.unwrap_or(def_id));
+                let param_env = vcx.tcx.param_env(def_id);
                 let sig = vcx.tcx
                     .subst_and_normalize_erasing_regions(substs, param_env, vcx.tcx.fn_sig(def_id));
                 let sig = sig.skip_binder();

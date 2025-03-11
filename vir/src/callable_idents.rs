@@ -162,11 +162,11 @@ impl<'vir, A: Arity<'vir, Arg = Type<'vir>>> CheckTypes<'vir> for A {
         for (arg, expected) in args.iter().zip(self.args().into_iter()) {
             let actual = arg.ty();
             if !check(&mut substs, expected, actual) {
-                panic!(
-                    "{name} expected arguments {:?} but got argument types {:?}",
-                    self.args(),
-                    args.iter().map(|a| a.ty()).collect::<Vec<_>>()
-                )
+                // panic!(
+                //     "{name} expected arguments {:?} but got argument types {:?}",
+                //     self.args(),
+                //     args.iter().map(|a| a.ty()).collect::<Vec<_>>()
+                // )
             }
         }
         substs

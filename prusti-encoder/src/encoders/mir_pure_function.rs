@@ -32,7 +32,6 @@ impl TaskEncoder for MirFunctionEnc {
     type TaskDescription<'vir> = (
         DefId, // ID of the function
         ty::GenericArgsRef<'vir>, // ? this should be the "signature", after applying the env/substs
-        DefId, // Caller DefID
     );
 
     type OutputRef<'vir> = MirFunctionEncOutputRef<'vir>;
@@ -57,21 +56,21 @@ impl TaskEncoder for MirFunctionEnc {
             Option<Self::OutputFullDependency<'vir>>,
         ),
     > {
-        let (def_id, substs, caller_def_id) = *task_key;
+        let (def_id, substs) = *task_key;
         let trusted = crate::encoders::with_proc_spec(def_id, |def_spec|
             def_spec.trusted.extract_inherit().unwrap_or_default()
         ).unwrap_or_default();
 
         vir::with_vcx(|vcx| {
             let local_defs = deps.require_local::<MirLocalDefEnc>(
-                (def_id, substs, Some(caller_def_id)),
+                (def_id, substs),
             ).unwrap();
 
             tracing::debug!("encoding {def_id:?}");
 
             let extra: String = substs.iter().map(|s| format!("_{s}")).collect();
-            let (krate, index) = (caller_def_id.krate, caller_def_id.index.index());
-            let function_name = vir::vir_format!(vcx, "f_{}{extra}_CALLER_{krate}_{index}", vcx.tcx.item_name(def_id));
+            let function_id = format!("{}_{}", def_id.krate, def_id.index.index());
+            let function_name = vir::vir_format!(vcx, "f_{function_id}_{}{extra}", vcx.tcx.item_name(def_id));
             let args: Vec<_> = (1..=local_defs.arg_count)
                 .map(mir::Local::from)
                 .map(|def_idx| local_defs.locals[def_idx].ty.snapshot)
@@ -82,7 +81,7 @@ impl TaskEncoder for MirFunctionEnc {
             deps.emit_output_ref::<Self>(*task_key, MirFunctionEncOutputRef { function_ref });
 
             let spec = deps.require_local::<MirSpecEnc>(
-                (def_id, substs, Some(caller_def_id), true)
+                (def_id, substs, true)
             ).unwrap();
 
             let func_args: Vec<_> = (1..=local_defs.arg_count).map(mir::Local::from).map(|arg| vcx.alloc(vir::LocalDeclData {
@@ -101,7 +100,6 @@ impl TaskEncoder for MirFunctionEnc {
                         parent_def_id: def_id,
                         param_env: vcx.tcx.param_env(def_id),
                         substs,
-                        caller_def_id,
                     })
                     .unwrap()
                     .expr;

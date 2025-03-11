@@ -45,7 +45,7 @@ pub fn test_entrypoint<'tcx>(
 
                 if !(is_trusted && is_pure) {
                     let substs = ty::GenericArgs::identity_for_item(tcx, def_id);
-                    let res = crate::encoders::MirImpureEnc::encode((def_id, substs, None));
+                    let res = crate::encoders::MirImpureEnc::encode((def_id, substs));
                     assert!(res.is_ok());
                 }
             }

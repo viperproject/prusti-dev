@@ -20,7 +20,6 @@ impl TaskEncoder for MirSpecEnc {
     type TaskDescription<'tcx> = (
         DefId,  // The function annotated with specs
         ty::GenericArgsRef<'tcx>, // ? this should be the "signature", after applying the env/substs
-        Option<DefId>, // ID of the caller function, if any
         bool,   // If to encode as pure or not
     );
 
@@ -45,11 +44,11 @@ impl TaskEncoder for MirSpecEnc {
             Option<Self::OutputFullDependency<'vir>>,
         ),
     > {
-        let (def_id, substs, caller_def_id, pure) = *task_key;
+        let (def_id, substs, pure) = *task_key;
         deps.emit_output_ref::<Self>(*task_key, ());
 
         let local_defs = deps.require_local::<crate::encoders::local_def::MirLocalDefEnc>(
-            (def_id, substs, caller_def_id),
+            (def_id, substs),
         ).unwrap();
         let specs = deps.require_local::<crate::encoders::SpecEnc>(
             crate::encoders::SpecEncTask {
@@ -89,8 +88,6 @@ impl TaskEncoder for MirSpecEnc {
                         parent_def_id: *spec_def_id,
                         param_env: vcx.tcx.param_env(spec_def_id),
                         substs,
-                        // TODO: should this be `def_id` or `caller_def_id`
-                        caller_def_id: def_id,
                     }
                 ).unwrap().expr;
                 let expr = expr.reify(vcx, (*spec_def_id, pre_args));
@@ -115,8 +112,6 @@ impl TaskEncoder for MirSpecEnc {
                         parent_def_id: *spec_def_id,
                         param_env: vcx.tcx.param_env(spec_def_id),
                         substs,
-                        // TODO: should this be `def_id` or `caller_def_id`
-                        caller_def_id: def_id,
                     }
                 ).unwrap().expr;
                 let expr = expr.reify(vcx, (*spec_def_id, post_args));
