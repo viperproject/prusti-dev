@@ -373,10 +373,16 @@ pub enum TerminatorStmtGenData<'vir, Curr, Next> {
 
 #[derive(Debug, VirHash, VirReify, VirSerde)]
 pub struct CfgBlockGenData<'vir, Curr, Next> {
-    #[vir(reify_pass, is_ref)]
-    pub label: CfgBlockLabel<'vir>,
+    pub label: CfgLabelGen<'vir, Curr, Next>,
     pub stmts: &'vir [StmtGen<'vir, Curr, Next>],
     pub terminator: TerminatorStmtGen<'vir, Curr, Next>,
+}
+
+#[derive(VirHash, VirReify, VirSerde)]
+pub struct CfgLabelGenData<'vir, Curr, Next> {
+    #[vir(reify_pass, is_ref)]
+    pub label: CfgBlockLabel<'vir>,
+    pub invariants: &'vir [ExprGen<'vir, Curr, Next>],
 }
 
 #[derive(VirHash, VirReify, VirSerde)]

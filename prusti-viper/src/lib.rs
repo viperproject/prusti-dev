@@ -214,14 +214,16 @@ impl<'vir, 'v> ToViperVec<'vir, 'v> for vir::CfgBlock<'vir> {
     }
 }
 
-impl<'vir, 'v> ToViper<'vir, 'v> for vir::CfgBlockLabel<'vir> {
+impl<'vir, 'v> ToViper<'vir, 'v> for vir::CfgLabel<'vir> {
     type Output = viper::Stmt<'v>;
     // `pos` coming from the parent `Stmt` should be used, but the node
     //   created her cannot be created with a position
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
+        let invs = self.invariants.iter();
+        let invs = invs.map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>();
         ctx.ast.label(
-            &self.name(),
-            &[], // TODO: invariants
+            &self.label.name(),
+            &invs,
         )
     }
 }
@@ -549,7 +551,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Method<'vir> {
                 let mut declarations: Vec<viper::Declaration> =
                     Vec::with_capacity(1 + body.blocks.len());
                 body.blocks.iter().for_each(|b| {
-                    declarations.push(ctx.ast.label(&b.label.name(), &[]).into());
+                    declarations.push(ctx.ast.label(&b.label.label.name(), &[]).into());
                     b.stmts.iter().for_each(|s| {
                         if let vir::StmtKindGenData::LocalDecl(decl, _) = s.kind {
                             declarations.push(decl.to_viper_no_pos(ctx).into());

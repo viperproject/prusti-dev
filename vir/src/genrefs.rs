@@ -1,6 +1,7 @@
 pub type AccFieldGen<'vir, Curr, Next> = &'vir crate::gendata::AccFieldGenData<'vir, Curr, Next>;
 pub type BinOpGen<'vir, Curr, Next> = &'vir crate::gendata::BinOpGenData<'vir, Curr, Next>;
 pub type CfgBlockGen<'vir, Curr, Next> = &'vir crate::gendata::CfgBlockGenData<'vir, Curr, Next>;
+pub type CfgLabelGen<'vir, Curr, Next> = &'vir crate::gendata::CfgLabelGenData<'vir, Curr, Next>;
 pub type DomainAxiomGen<'vir, Curr, Next> =
     &'vir crate::gendata::DomainAxiomGenData<'vir, Curr, Next>;
 pub type DomainGen<'vir, Curr, Next> = &'vir crate::gendata::DomainGenData<'vir, Curr, Next>;

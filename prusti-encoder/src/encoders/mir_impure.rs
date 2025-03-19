@@ -8,6 +8,7 @@ use pcs::{
     combined_pcs::{EvalStmtPhase, PCGNode, PcgSuccessor},
     free_pcs::{CapabilityKind, PcgBasicBlock, PcgLocation, RepackOp},
     utils::{HasPlace, Place},
+    r#loop::LoopAnalysis,
     FpcsOutput,
 };
 use prusti_interface::PrustiError;
@@ -114,6 +115,8 @@ where
     //ssa_analysis: SsaAnalysis,
     pub fpcs_analysis: FpcsOutput<'enc, 'vir>,
     pub local_defs: crate::encoders::MirLocalDefEncOutput<'vir>,
+
+    pub loop_analysis: LoopAnalysis,
 
     pub tmp_ctr: usize,
 
@@ -977,6 +980,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     self.vcx
                         .alloc(vir::CfgBlockLabelData::BasicBlock(block.as_usize())),
                     &[],
+                    &[],
                     self.vcx
                         .mk_dummy_stmt(vir::vir_format!(self.vcx, "cleanup block",)),
                 ),
@@ -989,7 +993,34 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
 
         self.current_block_label = Some(self.vcx
             .alloc(vir::CfgBlockLabelData::BasicBlock(block.as_usize())));
-        self.current_fpcs = Some(self.fpcs_analysis.get_all_for_bb(block).unwrap().unwrap());
+        let cfpcs = self.fpcs_analysis.get_all_for_bb(block).unwrap().unwrap();
+
+        // Calculate invariant at loop head
+        let invariant = self.loop_analysis.loop_head_of(block).map(|_lh| {
+            let mut inv = Vec::new();
+            let start = &cfpcs.statements[0];
+            let state = &**start.states[EvalStmtPhase::PreOperands];
+            let _borrows = &*start.borrows[EvalStmtPhase::PreOperands];
+            for (_local, cap) in state.iter_enumerated() {
+                if cap.is_unallocated() {
+                    continue;
+                }
+                let cap = cap.get_allocated();
+                for (place, cap) in cap.place_capabilities().iter() {
+                    if !cap.is_exclusive() {
+                        continue;
+                    }
+                    let place_res = self.encode_place(*place);
+                    let ty = (**place).ty(self.local_decls, self.vcx.tcx());
+                    let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(ty.ty).unwrap();
+                    let pred = ty_out.ref_to_pred(self.vcx, place_res.expr, None);
+                    inv.push(pred);
+                }
+            }
+            self.vcx.alloc_slice(&inv)
+        }).unwrap_or(&[]);
+
+        self.current_fpcs = Some(cfpcs);
 
         self.current_stmts = Some(Vec::with_capacity(
             data.statements.len(), // TODO: not exact?
@@ -1038,6 +1069,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
         self.encoded_blocks.push(
             self.vcx.mk_cfg_block(
                 self.current_block_label.take().unwrap(),
+                invariant,
                 self.vcx.alloc_slice(&stmts),
                 terminator,
             ),
@@ -1394,6 +1426,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                         std::mem::replace(&mut self.current_block_label, Some(self.vcx
                             .alloc(vir::CfgBlockLabelData::BasicBlockTerminator(current_block))))
                             .unwrap(),
+                        &[],
                         self.vcx.alloc_slice(&std::mem::replace(&mut self.current_stmts, Some(Vec::new())).unwrap()),
                         self
                             .vcx

@@ -208,6 +208,7 @@ pub enum OldLabel {
 pub type AccFieldData<'vir> = crate::gendata::AccFieldGenData<'vir, !, !>;
 pub type BinOpData<'vir> = crate::gendata::BinOpGenData<'vir, !, !>;
 pub type CfgBlockData<'vir> = crate::gendata::CfgBlockGenData<'vir, !, !>;
+pub type CfgLabelData<'vir> = crate::gendata::CfgLabelGenData<'vir, !, !>;
 pub type DomainAxiomData<'vir> = crate::gendata::DomainAxiomGenData<'vir, !, !>;
 pub type DomainData<'vir> = crate::gendata::DomainGenData<'vir, !, !>;
 pub type ExprData<'vir> = crate::gendata::ExprGenData<'vir, !, !>;
