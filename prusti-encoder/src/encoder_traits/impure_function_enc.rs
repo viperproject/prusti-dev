@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use pcs::borrow_pcg::unblock_graph::UnblockGraph;
+use pcs::{borrow_pcg::unblock_graph::UnblockGraph, r#loop::LoopAnalysis};
 use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
     middle::{mir, ty::{self, GenericArgs}},
@@ -146,6 +146,7 @@ where
                     .body_mut()
                     .get_impure_fn_body_with_facts(local_def_id);
 
+                let loop_analysis = LoopAnalysis::find_loops(&body);
                 let mut fpcs_analysis = pcs::run_combined_pcs(&body_with_facts, vcx.tcx(), None);
 
                 let block_count = body.basic_blocks.len();
@@ -172,6 +173,7 @@ where
                 }
                 encoded_blocks.push(vcx.mk_cfg_block(
                     vcx.alloc(vir::CfgBlockLabelData::Start),
+                    &[],
                     vcx.alloc_slice(&start_stmts),
                     vcx.mk_goto_stmt(vcx.alloc(vir::CfgBlockLabelData::BasicBlock(0))),
                 ));
@@ -196,6 +198,8 @@ where
                     fpcs_analysis,
                     local_defs,
 
+                    loop_analysis,
+
                     tmp_ctr: 0,
 
                     current_block_label: None,
@@ -215,6 +219,7 @@ where
 
                 visitor.encoded_blocks.push(vcx.mk_cfg_block(
                     vcx.alloc(vir::CfgBlockLabelData::End),
+                    &[],
                     vcx.alloc_slice(&wand_packages),
                     vcx.alloc(vir::TerminatorStmtData::Exit),
                 ));

@@ -686,9 +686,14 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_cfg_block<'vir, Curr, Next>(
         &'vir self,
         label: CfgBlockLabel<'vir>,
+        invariants: &'vir [ExprGen<'vir, Curr, Next>],
         stmts: &'vir [StmtGen<'vir, Curr, Next>],
         terminator: TerminatorStmtGen<'vir, Curr, Next>,
     ) -> CfgBlockGen<'vir, Curr, Next> {
+        let label = self.alloc(CfgLabelGenData {
+            label,
+            invariants,
+        });
         self.alloc(CfgBlockGenData {
             label,
             stmts,

@@ -1,6 +1,7 @@
 pub type AccField<'vir> = &'vir crate::data::AccFieldData<'vir>;
 pub type BinOp<'vir> = &'vir crate::data::BinOpData<'vir>;
 pub type CfgBlock<'vir> = &'vir crate::data::CfgBlockData<'vir>;
+pub type CfgLabel<'vir> = &'vir crate::data::CfgLabelData<'vir>;
 pub type CfgBlockLabel<'vir> = &'vir crate::data::CfgBlockLabelData;
 pub type Const<'vir> = &'vir crate::data::ConstData;
 pub type Domain<'vir> = &'vir crate::data::DomainData<'vir>;

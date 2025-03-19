@@ -89,6 +89,16 @@ impl Debug for ConstData {
     }
 }
 
+impl<'vir, Curr, Next> Debug for CfgLabelGenData<'vir, Curr, Next> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        writeln!(f, "label {:?}", self.label)?;
+        for inv in self.invariants {
+            writeln!(f, "  invariant {:?}", inv)?;
+        }
+        Ok(())
+    }
+}
+
 impl<'vir, Curr, Next> Debug for DomainGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "domain {}", self.name)?;
@@ -263,7 +273,7 @@ impl<'vir, Curr, Next> Debug for MethodGenData<'vir, Curr, Next> {
         if let Some(body) = self.body.as_ref() {
             writeln!(f, "{{")?;
             for block in body.blocks.iter() {
-                writeln!(f, "label {:?}", block.label)?;
+                write!(f, "{:?}", block.label)?;
                 for stmt in block.stmts {
                     writeln!(f, "  {:?}", stmt)?;
                 }
