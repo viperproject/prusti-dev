@@ -184,6 +184,7 @@ pub enum CfgBlockLabelData {
     Start,
     End,
     BasicBlock(usize),
+    BasicBlockTerminator(usize),
 }
 
 impl CfgBlockLabelData {
@@ -192,6 +193,7 @@ impl CfgBlockLabelData {
             Self::Start => "start".to_string(),
             Self::End => "end".to_string(),
             Self::BasicBlock(idx) => format!("bb_{idx}"),
+            Self::BasicBlockTerminator(idx) => format!("bb_term_{idx}"),
         }
     }
 }
