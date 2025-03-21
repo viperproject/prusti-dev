@@ -10,6 +10,7 @@ mod local_def;
 mod r#type;
 mod r#const;
 mod mono;
+mod wand;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "mono_function_encoding")] {
@@ -35,3 +36,4 @@ pub use snapshot::SnapshotEnc;
 pub(super) use spec::{init_def_spec, with_proc_spec};
 pub use spec::{SpecEnc, SpecEncTask};
 pub use viper_tuple::{ViperTupleEnc, ViperTupleEncOutput};
+pub use wand::{WandEnc, WandEncOutput, WandEncTask, EncodedWand};

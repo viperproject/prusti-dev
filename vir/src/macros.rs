@@ -20,6 +20,8 @@
 //    }};
 //}
 
+//use crate::UnknownArity;
+
 #[macro_export]
 macro_rules! vir_type_list {
     ($vcx:expr; $( $args:tt ),* $(,)? ) => {{

@@ -419,6 +419,11 @@ impl<'tcx> VirCtxt<'tcx> {
         const_expr!(&ExprKindGenData::Const(&ConstData::Bool(VALUE)))
     }
 
+    // TODO: can this simply replace mk_bool?
+    pub const fn mk_bool_gen<'vir, Curr, Next, const VALUE: bool>(&'vir self) -> ExprGen<'vir, Curr, Next> {
+        const_expr!(&ExprKindGenData::Const(&ConstData::Bool(VALUE)))
+    }
+
     pub const fn mk_int<'vir, const VALUE: i128>(&'vir self) -> Expr<'vir> {
         if VALUE < 0 {
             const_expr!(&ExprKindGenData::UnOp(&UnOpData {
@@ -761,14 +766,14 @@ impl<'tcx> VirCtxt<'tcx> {
         })
     }
 
-    pub fn mk_conj<'vir>(&'vir self, elems: &[Expr<'vir>]) -> Expr<'vir> {
+    pub fn mk_conj<'vir, Curr, Next>(&'vir self, elems: &[ExprGen<'vir, Curr, Next>]) -> ExprGen<'vir, Curr, Next> {
         elems
             .split_last()
             .map(|(last, rest)| {
                 rest.iter()
                     .rfold(*last, |acc, e| self.mk_bin_op_expr(BinOpKind::And, *e, acc))
             })
-            .unwrap_or_else(|| self.mk_bool::<true>())
+            .unwrap_or_else(|| self.mk_bool_gen::<Curr, Next, true>())
     }
 
     pub fn mk_disj<'vir>(&'vir self, elems: &[Expr<'vir>]) -> Expr<'vir> {

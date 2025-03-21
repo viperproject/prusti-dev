@@ -1,15 +1,24 @@
 use std::collections::HashMap;
 
-use pcs::{borrow_pcg::{action::BorrowPCGAction, borrow_pcg_expansion::{BorrowPCGExpansion, ExpansionOfBorrowed}, unblock_graph::BorrowPCGUnblockAction}, combined_pcs::PCGNode, free_pcs::{CapabilityKind, PcgBasicBlock, PcgLocation, RepackOp}, utils::{HasPlace, Place}, FpcsOutput};
+use pcs::{
+    borrow_pcg::{
+        action::BorrowPCGAction, borrow_pcg_expansion::BorrowPCGExpansion,
+        edge::kind::BorrowPCGEdgeKind, unblock_graph::BorrowPCGUnblockAction,
+    },
+    combined_pcs::{EvalStmtPhase, PCGNode, PcgSuccessor},
+    free_pcs::{CapabilityKind, PcgBasicBlock, PcgLocation, RepackOp},
+    utils::{HasPlace, Place},
+    FpcsOutput,
+};
 use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
+    data_structures::fx::FxHashSet,
     middle::{
         mir,
         ty::{self, GenericArgs, TyKind},
     },
     span::def_id::DefId,
     target::abi,
-    data_structures::fx::FxHashSet,
 };
 //use mir_ssa_analysis::{
 //    SsaAnalysis,
@@ -43,7 +52,8 @@ use super::{
     lifted::{
         cast::{CastArgs, CastToEnc},
         casters::CastTypeImpure,
-        rust_ty_cast::RustTyCastersEnc, ty::{EncodeGenericsAsLifted, LiftedTyEnc},
+        rust_ty_cast::RustTyCastersEnc,
+        ty::{EncodeGenericsAsLifted, LiftedTyEnc},
     },
     rust_ty_predicates::RustTyPredicatesEnc,
     ConstEnc, MirMonoImpureEnc, MirPolyImpureEnc,
@@ -110,6 +120,7 @@ where
     // for the current basic block
     pub current_fpcs: Option<PcgBasicBlock<'vir>>,
 
+    pub current_block_label: Option<vir::CfgBlockLabel<'vir>>,
     pub current_stmts: Option<Vec<vir::Stmt<'vir>>>,
     pub current_terminator: Option<vir::TerminatorStmt<'vir>>,
 
@@ -270,13 +281,16 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         unfold: bool,
     ) {
         // TODO: code duplication with pcs_reborrow_expands
-        let BorrowPCGExpansion::FromBorrow(expansion) = expansion else {
+        if expansion.base().place().is_owned(self.fpcs_analysis.repacker()) {
             return;
-        };
-        let base = expansion.base;
+        }
+        let base = expansion.base();
         let place = base.place().place();
         let place_ty = (*place).ty(self.local_decls, self.vcx.tcx());
-        if matches!(self.local_decls[place.local].ty.kind(), ty::TyKind::Ref(_, _, ty::Mutability::Not)) {
+        if matches!(
+            self.local_decls[place.local].ty.kind(),
+            ty::TyKind::Ref(_, _, ty::Mutability::Not)
+        ) {
             return; // TODO: does this make sense??? we don't want to unfold because for immut refs we only use snapshot read/writes
         }
         let place_ty_out = self
@@ -309,7 +323,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             match action.edge().kind() {
                 BorrowPCGEdgeKind::BorrowPCGExpansion(expansion) => {
                     self.pcs_borrow_expansion(expansion.clone(), false);
-                },
+                }
                 // BorrowPCGEdgeKind::Borrow(borrow_edge) => todo!(),
                 // BorrowPCGEdgeKind::Abstraction(abstraction_edge) => todo!(),
                 // BorrowPCGEdgeKind::RegionProjectionMember(region_projection_member) => todo!(),
@@ -333,9 +347,15 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 //SetLatest(Place<'tcx>, Location),
                 //RemoveEdge(BorrowPCGEdge<'tcx>),
                 //AddRegionProjectionMember(RegionProjectionMember<'tcx>, PathConditions),
-                BorrowPCGActionKind::InsertBorrowPCGExpansion(expansion, location) => {
-                    self.pcs_borrow_expansion(expansion.clone(), true);
-                }
+                BorrowPCGActionKind::AddEdge {
+                    edge,
+                    for_exclusive: _,
+                } => match edge.kind() {
+                    BorrowPCGEdgeKind::BorrowPCGExpansion(expansion) => {
+                        self.pcs_borrow_expansion(expansion.clone(), true);
+                    }
+                    _ => (),
+                },
                 //RenamePlace {
                 //    old: MaybeOldPlace<'tcx>,
                 //    new: MaybeOldPlace<'tcx>,
@@ -454,7 +474,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     }
 
     fn pcs_repacks<'a>(&mut self, repacks: impl Iterator<Item = &'a RepackOp<'vir>>)
-    where 'vir: 'a,
+    where
+        'vir: 'a,
     {
         for &repack_op in repacks {
             match repack_op {
@@ -478,10 +499,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     let place_enc = self.encode_place(place);
                     let args = place_ty_out.ref_to_args(self.vcx, place_enc.expr);
                     let predicate = ref_to_pred.apply(self.vcx, args, None);
-                    if matches!(
-                        repack_op,
-                        pcs::free_pcs::RepackOp::Expand(..)
-                    ) {
+                    if matches!(repack_op, pcs::free_pcs::RepackOp::Expand(..)) {
                         comment!(self, "unfolding because of RepackOp::Expand in pcs_repacks");
                         /*
                         //let variant =
@@ -500,7 +518,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         //    .unwrap()
                         //    .apply_cast_if_necessary(self.vcx, proj_app));
                         //    / *
-                        if let Some(cast) = 
+                        if let Some(cast) =
                         {
                             proj_cast_stmts_apply = Some(cast);
                             proj_cast_stmts_unapply = self
@@ -528,23 +546,28 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     let place_enc = self.encode_place(place);
                     comment!(self, "exhale due to Weaken(E, W)");
                     self.stmts(place_enc.apply_casts);
-                    self.stmt(
-                        self.vcx
-                            .mk_exhale_stmt(place_ty_out.ref_to_pred(self.vcx, place_enc.expr, None)),
-                    );
+                    self.stmt(self.vcx.mk_exhale_stmt(place_ty_out.ref_to_pred(
+                        self.vcx,
+                        place_enc.expr,
+                        None,
+                    )));
                 }
-                ignored_op @ (
-                    RepackOp::RegainLoanedCapability(..)
-                    | RepackOp::Weaken(_, CapabilityKind::Exclusive, CapabilityKind::Read)
-                ) => {
-                    self.stmt(self.vcx.mk_comment_stmt(
-                        vir::vir_format!(self.vcx, "ignored repack op: {ignored_op:?}"),
-                    ));
+                ignored_op @ (RepackOp::RegainLoanedCapability(..)
+                | RepackOp::Weaken(
+                    _,
+                    CapabilityKind::Exclusive,
+                    CapabilityKind::Read,
+                )) => {
+                    self.stmt(self.vcx.mk_comment_stmt(vir::vir_format!(
+                        self.vcx,
+                        "ignored repack op: {ignored_op:?}"
+                    )));
                 }
                 unsupported_op => {
-                    self.stmt(self.vcx.mk_comment_stmt(
-                        vir::vir_format!(self.vcx, "unsupported repack op: {unsupported_op:?}"),
-                    ));
+                    self.stmt(self.vcx.mk_comment_stmt(vir::vir_format!(
+                        self.vcx,
+                        "unsupported repack op: {unsupported_op:?}"
+                    )));
                     self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
                 }
             }
@@ -557,13 +580,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         // location: Location,
     ) {
         // TODO: Explain why owned expansions don't need to be handled
-        let expands: Vec<ExpansionOfBorrowed<'vir>> = expands
+        let expands = expands
             .into_iter()
-            .flat_map(|ep| match ep {
-                BorrowPCGExpansion::FromBorrow(ep) => Some(ep),
-                _ => None,
-            })
-            .collect();
+            .filter(|expansion| !expansion.base().place().is_owned(self.fpcs_analysis.repacker()))
+            .collect::<Vec<_>>();
 
         // Expand places with smaller projections first. For example, if f ->
         // {f.g} and f.g -> {f.g.h}, are expansions, we must expand f before
@@ -572,8 +592,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         //expands.sort_by_key(|ep| ep.expansion().base().place().projection().len());
 
         for ep in expands {
-            let base = ep.base;
-            let PCGNode::Place(place) = base else { continue; };
+            let base = ep.base();
+            let PCGNode::Place(place) = base else {
+                continue;
+            };
             let place = place.place();
             //if matches!(capability_kind, CapabilityKind::Write) {
             //    // Collapsing an already exhaled place is a no-op
@@ -610,20 +632,53 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         }
     }
 
+    fn pcs_succ<'a>(&mut self, pcs: &'a PcgSuccessor<'vir>) {
+        let ug_actions = pcs.borrow_ops().actions();
+        // let added_borrows = bridge.added_borrows();
+        //let borrows_expands = bridge.expands();
+        self.pcs_actions(
+            ug_actions,
+            // &mut heap,
+            // &path.function_call_snapshots,
+            // location,
+        );
+        let repacks = pcs.owned_ops();
+        comment!(self, "repacks: {repacks:?}");
+        self.pcs_repacks(repacks.iter());
+        // self.pcs_repacks(repacks.iter().filter(|op| matches!(op, RepackOp::Collapse(..))));
+        // self.pcs_repacks(repacks.iter().filter(|op| matches!(op, RepackOp::Weaken(..))));
+        // self.pcs_repacks(repacks.iter().filter(|op| matches!(op, RepackOp::Expand(..))));
+        //self.pcs_reborrow_expands(borrows_expands.into_iter().map(|ep| ep.value).collect());
+        // ?
+        // self.handle_added_borrows(
+        //     &added_borrows
+        //         .into_iter()
+        //         .filter(|r| r.conditions.valid_for_path(&path.path.blocks()))
+        //         .map(|r| r.value)
+        //         .collect::<Vec<_>>(),
+        // );
+    }
+
     fn pcs_at<'a>(
         &mut self,
         pcs: &'a PcgLocation<'vir>,
         start: bool,
         // location?
     ) {
-        let bridge = if start {
-            pcs.extra_start.clone()
-        } else {
-            pcs.extra_middle.clone()
-        };
+        //let bridge = if start {
+        //    pcs.extra_start.clone()
+        //} else {
+        //    pcs.extra_middle.clone()
+        //};
         //bridge.ug.filter_for_path(&path.path.blocks());
         //let ug_actions = bridge.ug.actions(self.repacker());
-        let ug_actions = bridge.actions();
+        let ug_actions = pcs
+            .borrow_pcg_actions(if start {
+                EvalStmtPhase::PreMain
+            } else {
+                EvalStmtPhase::PostMain
+            })
+            .actions();
         // let added_borrows = bridge.added_borrows();
         //let borrows_expands = bridge.expands();
         self.pcs_actions(
@@ -712,13 +767,21 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 // a shared reference, it happens immediately.
                 let mut place_ty = mir::tcx::PlaceTy::from_ty(self.local_decls[place.local].ty);
                 let mut encoded_place = mir::Place::from(place.local);
-                let (mut crossed_ref, mut result) = if matches!(place_ty.ty.kind(), TyKind::Ref(_, _, ty::Mutability::Not)) {
-                    let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
-                    let snap_val = ty_out.ref_to_snap(self.vcx, self.local_defs.locals[place.local].local_ex);
-                    (true, EncodePlaceResult::new(snap_val))
-                } else {
-                    (false, EncodePlaceResult::new(self.local_defs.locals[place.local].local_ex))
-                };
+                let (mut crossed_ref, mut result) =
+                    if matches!(place_ty.ty.kind(), TyKind::Ref(_, _, ty::Mutability::Not)) {
+                        let ty_out = self
+                            .deps
+                            .require_ref::<RustTyPredicatesEnc>(place_ty.ty)
+                            .unwrap();
+                        let snap_val = ty_out
+                            .ref_to_snap(self.vcx, self.local_defs.locals[place.local].local_ex);
+                        (true, EncodePlaceResult::new(snap_val))
+                    } else {
+                        (
+                            false,
+                            EncodePlaceResult::new(self.local_defs.locals[place.local].local_ex),
+                        )
+                    };
                 let mut last_apply_cast = None;
                 let mut last_unapply_cast = None;
                 for elem in place.projection {
@@ -727,18 +790,31 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     }
                     if crossed_ref {
                         use vir::Reify;
-                        let (expr, _) = crate::encoders::mir_pure::encode_place_element(self.vcx, self.deps, place_ty, elem, result.expr.lift(), None);
+                        let (expr, _) = crate::encoders::mir_pure::encode_place_element(
+                            self.vcx,
+                            self.deps,
+                            place_ty,
+                            elem,
+                            result.expr.lift(),
+                            None,
+                        );
                         result.expr = expr.reify(self.vcx, (self.def_id, &[]));
                     } else {
-                        let (expr, apply_cast_stmt, unapply_cast_stmt) = self.encode_place_element(place_ty, elem, result.expr);
+                        let (expr, apply_cast_stmt, unapply_cast_stmt) =
+                            self.encode_place_element(place_ty, elem, result.expr);
                         result.expr = expr;
                         last_apply_cast = apply_cast_stmt;
                         last_unapply_cast = unapply_cast_stmt;
                     }
                     place_ty = place_ty.projection_ty(self.vcx.tcx(), elem);
                     encoded_place = encoded_place.project_deeper(&[elem], self.vcx.tcx());
-                    if !crossed_ref && matches!(place_ty.ty.kind(), TyKind::Ref(_, _, ty::Mutability::Not)) {
-                        let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
+                    if !crossed_ref
+                        && matches!(place_ty.ty.kind(), TyKind::Ref(_, _, ty::Mutability::Not))
+                    {
+                        let ty_out = self
+                            .deps
+                            .require_ref::<RustTyPredicatesEnc>(place_ty.ty)
+                            .unwrap();
                         result.expr = ty_out.ref_to_snap(self.vcx, result.expr);
                         crossed_ref = true;
                     }
@@ -747,17 +823,21 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     result.expr = overridden; // TODO: casts?
                 }
                 if !crossed_ref {
-                    let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(place_ty.ty).unwrap();
+                    let ty_out = self
+                        .deps
+                        .require_ref::<RustTyPredicatesEnc>(place_ty.ty)
+                        .unwrap();
                     result.expr = ty_out.ref_to_snap(self.vcx, result.expr);
                 }
                 result.apply_casts.extend(last_apply_cast);
                 result.undo_casts.extend(last_unapply_cast);
                 result
             }
-            mir::Operand::Constant(box constant) => EncodePlaceResult::new(self
-                .deps
-                .require_local::<ConstEnc>((constant.const_, 0, self.def_id))
-                .unwrap()),
+            mir::Operand::Constant(box constant) => EncodePlaceResult::new(
+                self.deps
+                    .require_local::<ConstEnc>((constant.const_, 0, self.def_id))
+                    .unwrap(),
+            ),
         }
     }
 
@@ -795,7 +875,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             if let Some(overridden) = self.place_overrides.get(&encoded_place) {
                 result.expr = overridden; // TODO: casts?
             }
-            let (expr, apply_cast_stmt, unapply_cast_stmt) = self.encode_place_element(place_ty, elem, result.expr);
+            let (expr, apply_cast_stmt, unapply_cast_stmt) =
+                self.encode_place_element(place_ty, elem, result.expr);
             result.expr = expr;
             last_apply_cast = apply_cast_stmt;
             last_unapply_cast = unapply_cast_stmt;
@@ -818,7 +899,11 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         place_ty: mir::tcx::PlaceTy<'vir>,
         elem: mir::PlaceElem<'vir>,
         expr: vir::Expr<'vir>,
-    ) -> (vir::Expr<'vir>, Option<vir::Stmt<'vir>>, Option<vir::Stmt<'vir>>) {
+    ) -> (
+        vir::Expr<'vir>,
+        Option<vir::Stmt<'vir>>,
+        Option<vir::Stmt<'vir>>,
+    ) {
         match elem {
             mir::ProjectionElem::Field(field_idx, ty) => {
                 let e_ty = self
@@ -834,7 +919,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     .deps
                     .require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(place_ty.ty)
                     .unwrap();
-                let proj_args = e_ty.generic_predicate.ref_to_args(self.vcx, instantiated_ty, expr);
+                let proj_args = e_ty
+                    .generic_predicate
+                    .ref_to_args(self.vcx, instantiated_ty, expr);
                 let proj_app = projection_p.apply(self.vcx, proj_args);
                 let mut proj_cast_stmts_apply = None;
                 let mut proj_cast_stmts_unapply = None;
@@ -900,13 +987,17 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                             .deps
                             .require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(place_ty.ty)
                             .unwrap();
-                        let proj_args = e_ty.generic_predicate.ref_to_args(self.vcx, instantiated_ty, expr);
+                        let proj_args =
+                            e_ty.generic_predicate
+                                .ref_to_args(self.vcx, instantiated_ty, expr);
                         let proj_app = projection_p.apply(self.vcx, proj_args);
                         let mut proj_cast_stmts_apply = None;
                         let mut proj_cast_stmts_unapply = None;
                         if let Some(cast_stmts) = self
                             .deps
-                            .require_local::<RustTyCastersEnc<CastTypeImpure>>(place_ty.ty.expect_boxed_ty())
+                            .require_local::<RustTyCastersEnc<CastTypeImpure>>(
+                                place_ty.ty.expect_boxed_ty(),
+                            )
                             .unwrap()
                             .cast_to_concrete_if_possible(self.vcx, proj_app)
                         {
@@ -921,13 +1012,23 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                             .deps
                             .require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(place_ty.ty)
                             .unwrap();
-                        let deref_args = e_ty.generic_predicate.ref_to_args(self.vcx, instantiated_ty, expr);
-                        let expr_deref = e_ty.generic_predicate.expect_immref().deref_func.apply(self.vcx, deref_args.try_into().unwrap());
+                        let deref_args =
+                            e_ty.generic_predicate
+                                .ref_to_args(self.vcx, instantiated_ty, expr);
+                        let expr_deref = e_ty
+                            .generic_predicate
+                            .expect_immref()
+                            .deref_func
+                            .apply(self.vcx, deref_args.try_into().unwrap());
                         (expr_deref, None, None)
                     }
                     ty::TyKind::Ref(_, _, ty::Mutability::Mut) => {
                         // TODO: unfold? function? use snapshot?
-                        let expr_deref = e_ty.generic_predicate.expect_mutref().deref_func.apply(self.vcx, [expr]);
+                        let expr_deref = e_ty
+                            .generic_predicate
+                            .expect_mutref()
+                            .deref_func
+                            .apply(self.vcx, [expr]);
                         // TODO: we are writing directly to the deref; is a cast ever
                         //   needed?
                         /*
@@ -976,10 +1077,8 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     self.vcx
                         .alloc(vir::CfgBlockLabelData::BasicBlock(block.as_usize())),
                     &[],
-                    self.vcx.mk_dummy_stmt(vir::vir_format!(
-                        self.vcx,
-                        "cleanup block",
-                    )),
+                    self.vcx
+                        .mk_dummy_stmt(vir::vir_format!(self.vcx, "cleanup block",)),
                 ),
             );
             return;
@@ -988,6 +1087,8 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
             return;
         }
 
+        self.current_block_label = Some(self.vcx
+            .alloc(vir::CfgBlockLabelData::BasicBlock(block.as_usize())));
         self.current_fpcs = Some(self.fpcs_analysis.get_all_for_bb(block).unwrap().unwrap());
 
         self.current_stmts = Some(Vec::with_capacity(
@@ -1036,8 +1137,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
         let terminator = self.current_terminator.take().unwrap();
         self.encoded_blocks.push(
             self.vcx.mk_cfg_block(
-                self.vcx
-                    .alloc(vir::CfgBlockLabelData::BasicBlock(block.as_usize())),
+                self.current_block_label.take().unwrap(),
                 self.vcx.alloc_slice(&stmts),
                 terminator,
             ),
@@ -1062,48 +1162,26 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
             }
         }
 
-        self.stmt(self.vcx.mk_comment_stmt(
-            // TODO: also add bb and location for better debugging?
-            vir::vir_format!(self.vcx, "{statement:?}"),
-        ));
+        // TODO: also add bb and location for better debugging?
+        comment!(self, "{statement:?}");
 
         let current_fpcs = self.current_fpcs.take().unwrap();
-        fn maybe_show_set<'vir, 'enc, E: TaskEncoder, T: std::fmt::Debug>(
-            enc: &mut ImpureEncVisitor<'vir, 'enc, E>,
-            desc: &str,
-            value: FxHashSet<T>,
-        ) {
-            if !value.is_empty() {
-                enc.stmt(enc.vcx.mk_comment_stmt(
-                    vir::vir_format!(enc.vcx, "{desc}: {value:?}"),
-                ));
-            }
-        }
-        fn maybe_show_slice<'vir, 'enc, E: TaskEncoder, T: std::fmt::Debug>(
-            enc: &mut ImpureEncVisitor<'vir, 'enc, E>,
-            desc: &str,
-            value: &[T],
-        ) {
-            if !value.is_empty() {
-                enc.stmt(enc.vcx.mk_comment_stmt(
-                    vir::vir_format!(enc.vcx, "{desc}: {value:?}"),
-                ));
-            }
-        }
+        /*
+                maybe_show_slice(self, "unblock actions (start)", &current_fpcs.statements[location.statement_index].extra_start.unblock_actions());
+                maybe_show_set(self, "added region projection members (start)", current_fpcs.statements[location.statement_index].extra_start.added_region_projection_members());
+                maybe_show_slice(self, "repacks (start)", &current_fpcs.statements[location.statement_index].repacks_start);
+                maybe_show_set(self, "expands (start)", current_fpcs.statements[location.statement_index].extra_start.expands());
+                maybe_show_set(self, "weakens (start)", current_fpcs.statements[location.statement_index].extra_start.weakens());
+                maybe_show_slice(self, "actions (start)", &current_fpcs.statements[location.statement_index].extra_start.actions());
 
-        maybe_show_slice(self, "unblock actions (start)", &current_fpcs.statements[location.statement_index].extra_start.unblock_actions());
-        maybe_show_set(self, "added region projection members (start)", current_fpcs.statements[location.statement_index].extra_start.added_region_projection_members());
-        maybe_show_slice(self, "repacks (start)", &current_fpcs.statements[location.statement_index].repacks_start);
-        maybe_show_set(self, "expands (start)", current_fpcs.statements[location.statement_index].extra_start.expands());
-        maybe_show_set(self, "weakens (start)", current_fpcs.statements[location.statement_index].extra_start.weakens());
-        maybe_show_slice(self, "actions (start)", &current_fpcs.statements[location.statement_index].extra_start.actions());
-
-        maybe_show_slice(self, "unblock actions (middle)", &current_fpcs.statements[location.statement_index].extra_middle.unblock_actions());
-        maybe_show_set(self, "added region projection members (middle)", current_fpcs.statements[location.statement_index].extra_middle.added_region_projection_members());
-        maybe_show_slice(self, "repacks (middle)", &current_fpcs.statements[location.statement_index].repacks_middle);
-        maybe_show_set(self, "expands (middle)", current_fpcs.statements[location.statement_index].extra_middle.expands());
-        maybe_show_set(self, "weakens (middle)", current_fpcs.statements[location.statement_index].extra_middle.weakens());
-        maybe_show_slice(self, "actions (middle)", &current_fpcs.statements[location.statement_index].extra_middle.actions());
+                maybe_show_slice(self, "unblock actions (middle)", &current_fpcs.statements[location.statement_index].extra_middle.unblock_actions());
+                maybe_show_set(self, "added region projection members (middle)", current_fpcs.statements[location.statement_index].extra_middle.added_region_projection_members());
+                maybe_show_slice(self, "repacks (middle)", &current_fpcs.statements[location.statement_index].repacks_middle);
+                maybe_show_set(self, "expands (middle)", current_fpcs.statements[location.statement_index].extra_middle.expands());
+                maybe_show_set(self, "weakens (middle)", current_fpcs.statements[location.statement_index].extra_middle.weakens());
+                maybe_show_slice(self, "actions (middle)", &current_fpcs.statements[location.statement_index].extra_middle.actions());
+        */
+        //comment!(self, "borrows: {:?}", current_fpcs.statements[location.statement_index].borrows);
 
         // TODO: does this belong here?
         //self.fpcs_repacks(&current_fpcs.statements[location.statement_index].extra_start.weakens().iter().map(|weaken| RepackOp::Weaken(weaken.place(), weaken.from_cap(), weaken.to_cap())).collect::<Vec<_>>());
@@ -1325,8 +1403,25 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
         ));
         let span = terminator.source_info.span;
 
-
         let current_fpcs = self.current_fpcs.take().unwrap();
+        /*
+                maybe_show_slice(self, "(T) unblock actions (start)", &current_fpcs.statements[location.statement_index].extra_start.unblock_actions());
+                maybe_show_set(self, "(T) added region projection members (start)", current_fpcs.statements[location.statement_index].extra_start.added_region_projection_members());
+                maybe_show_slice(self, "(T) repacks (start)", &current_fpcs.statements[location.statement_index].repacks_start);
+                maybe_show_set(self, "(T) expands (start)", current_fpcs.statements[location.statement_index].extra_start.expands());
+                maybe_show_set(self, "(T) weakens (start)", current_fpcs.statements[location.statement_index].extra_start.weakens());
+                maybe_show_slice(self, "(T) actions (start)", &current_fpcs.statements[location.statement_index].extra_start.actions());
+
+                maybe_show_slice(self, "(T) unblock actions (middle)", &current_fpcs.statements[location.statement_index].extra_middle.unblock_actions());
+                maybe_show_set(self, "(T) added region projection members (middle)", current_fpcs.statements[location.statement_index].extra_middle.added_region_projection_members());
+                maybe_show_slice(self, "(T) repacks (middle)", &current_fpcs.statements[location.statement_index].repacks_middle);
+                maybe_show_set(self, "(T) expands (middle)", current_fpcs.statements[location.statement_index].extra_middle.expands());
+                maybe_show_set(self, "(T) weakens (middle)", current_fpcs.statements[location.statement_index].extra_middle.weakens());
+                maybe_show_slice(self, "(T) actions (middle)", &current_fpcs.statements[location.statement_index].extra_middle.actions());
+        */
+        //comment!(self, "(T) borrows: {:?}", current_fpcs.statements[location.statement_index].borrows);
+        //comment!(self, "(T) borrows post_main: {:?}", current_fpcs.statements[location.statement_index].borrows.post_main());
+
         self.pcs_at(&current_fpcs.statements[location.statement_index], true);
         self.pcs_at(&current_fpcs.statements[location.statement_index], false);
         self.current_fpcs = Some(current_fpcs);
@@ -1348,12 +1443,12 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 // Ensure that the terminator succ that we use for the repacks is the correct one
                 assert_eq!(
                     &self.current_fpcs.as_ref().unwrap().terminator.succs[REAL_TARGET_SUCC_IDX]
-                        .location
-                        .block,
+                        .block(),
                     target
                 );
                 let current_fpcs = self.current_fpcs.take().unwrap();
-                self.pcs_at(&current_fpcs.terminator.succs[REAL_TARGET_SUCC_IDX], true);
+                self.pcs_succ(&current_fpcs.terminator.succs[REAL_TARGET_SUCC_IDX]);
+                //self.pcs_at(&current_fpcs.terminator.succs[REAL_TARGET_SUCC_IDX], true);
                 self.current_fpcs = Some(current_fpcs);
 
                 self.vcx.mk_goto_stmt(
@@ -1378,14 +1473,11 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                         .enumerate()
                         .map(|(idx, (value, target))| {
                             assert_eq!(
-                                self.current_fpcs.as_ref().unwrap().terminator.succs[idx]
-                                    .location
-                                    .block,
+                                self.current_fpcs.as_ref().unwrap().terminator.succs[idx].block(),
                                 target
                             );
 
-                            let extra_stmts =
-                                Vec::new();//self.collect_terminator_repacks(idx, |rep| &rep.repacks_start);
+                            let extra_stmts = Vec::new(); //self.collect_terminator_repacks(idx, |rep| &rep.repacks_start);
                             self.vcx.mk_goto_if_target(
                                 discr_ty.expr_from_bits(discr_ty_rs, value),
                                 self.vcx
@@ -1402,12 +1494,10 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 let otherwise_succ_idx = goto_targets.len();
                 assert_eq!(
                     self.current_fpcs.as_ref().unwrap().terminator.succs[otherwise_succ_idx]
-                        .location
-                        .block,
+                        .block(),
                     targets.otherwise()
                 );
-                let otherwise_stmts =
-                    Vec::new();//self.collect_terminator_repacks(otherwise_succ_idx, |rep| &rep.repacks_start);
+                let otherwise_stmts = Vec::new(); //self.collect_terminator_repacks(otherwise_succ_idx, |rep| &rep.repacks_start);
 
                 let discr_ex = discr_ty
                     .snap_to_prim
@@ -1429,6 +1519,42 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 target,
                 ..
             } => {
+                // emit the current block, create a new label for the terminator
+                // TODO: should we do this for any other terminators?
+                let current_block = match self.current_block_label {
+                    Some(vir::CfgBlockLabelData::BasicBlock(block)) => *block,
+                    _ => unreachable!(),
+                };
+                self.encoded_blocks.push(
+                    self.vcx.mk_cfg_block(
+                        std::mem::replace(&mut self.current_block_label, Some(self.vcx
+                            .alloc(vir::CfgBlockLabelData::BasicBlockTerminator(current_block))))
+                            .unwrap(),
+                        self.vcx.alloc_slice(&std::mem::replace(&mut self.current_stmts, Some(Vec::new())).unwrap()),
+                        self
+                            .vcx
+                            .mk_goto_stmt(self.vcx.alloc(vir::CfgBlockLabelData::BasicBlockTerminator(current_block))),
+                    ),
+                );
+
+                /*
+                let current_fpcs = self.current_fpcs.take().unwrap();
+                maybe_show_slice(self, "(TS) unblock actions (start)", &current_fpcs.terminator.succs[0].extra_start.unblock_actions());
+                maybe_show_set(self, "(TS) added region projection members (start)", current_fpcs.terminator.succs[0].extra_start.added_region_projection_members());
+                maybe_show_slice(self, "(TS) repacks (start)", &current_fpcs.terminator.succs[0].repacks_start);
+                maybe_show_set(self, "(TS) expands (start)", current_fpcs.terminator.succs[0].extra_start.expands());
+                maybe_show_set(self, "(TS) weakens (start)", current_fpcs.terminator.succs[0].extra_start.weakens());
+                maybe_show_slice(self, "(TS) actions (start)", &current_fpcs.terminator.succs[0].extra_start.actions());
+
+                maybe_show_slice(self, "(TS) unblock actions (middle)", &current_fpcs.terminator.succs[0].extra_middle.unblock_actions());
+                maybe_show_set(self, "(TS) added region projection members (middle)", current_fpcs.terminator.succs[0].extra_middle.added_region_projection_members());
+                maybe_show_slice(self, "(TS) repacks (middle)", &current_fpcs.terminator.succs[0].repacks_middle);
+                maybe_show_set(self, "(TS) expands (middle)", current_fpcs.terminator.succs[0].extra_middle.expands());
+                maybe_show_set(self, "(TS) weakens (middle)", current_fpcs.terminator.succs[0].extra_middle.weakens());
+                maybe_show_slice(self, "(TS) actions (middle)", &current_fpcs.terminator.succs[0].extra_middle.actions());
+                self.current_fpcs = Some(current_fpcs);
+                */
+
                 let (func_def_id, caller_substs) = self.get_def_id_and_caller_substs(func);
                 let is_pure = crate::encoders::with_proc_spec(func_def_id, |spec| {
                     spec.kind.is_pure().unwrap_or_default()
@@ -1478,10 +1604,10 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     let Ok(func_out) = self.deps.require_ref::<encoders::MirImpureEnc>(
                         FunctionCallTaskDescription::new(task.0, caller_substs, task.1),
                     ) else {
-                        self.current_terminator = Some(self.vcx.mk_dummy_stmt(vir::vir_format!(
-                            self.vcx,
-                            "recursion",
-                        )));
+                        self.current_terminator = Some(
+                            self.vcx
+                                .mk_dummy_stmt(vir::vir_format!(self.vcx, "recursion",)),
+                        );
                         return;
                     };
 
@@ -1592,13 +1718,11 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 // Ensure that the terminator succ that we use for the repacks is the correct one
                 assert_eq!(
                     &self.current_fpcs.as_ref().unwrap().terminator.succs[REAL_TARGET_SUCC_IDX]
-                        .location
-                        .block,
+                        .block(),
                     target,
                 );
                 let current_fpcs = self.current_fpcs.take().unwrap();
-                self.pcs_at(&current_fpcs.terminator.succs[REAL_TARGET_SUCC_IDX], true);
-                self.pcs_at(&current_fpcs.terminator.succs[REAL_TARGET_SUCC_IDX], false);
+                self.pcs_succ(&current_fpcs.terminator.succs[REAL_TARGET_SUCC_IDX]);
                 self.current_fpcs = Some(current_fpcs);
 
                 let e_bool = self
@@ -1617,13 +1741,20 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     .mk_bin_op_expr(vir::BinOpKind::CmpEq, enc, expected);
                 let error_msg = match **msg {
                     mir::AssertMessage::BoundsCheck { .. } => "bounds check may fail",
-                    mir::AssertMessage::Overflow(..)
-                    | mir::AssertMessage::OverflowNeg(..) => "operation may overflow",
+                    mir::AssertMessage::Overflow(..) | mir::AssertMessage::OverflowNeg(..) => {
+                        "operation may overflow"
+                    }
                     mir::AssertMessage::DivisionByZero(..)
                     | mir::AssertMessage::RemainderByZero(..) => "division by zero may occur",
-                    mir::AssertMessage::ResumedAfterReturn(..) => "execution may continue after return",
-                    mir::AssertMessage::ResumedAfterPanic(..) => "execution may continue after panic",
-                    mir::AssertMessage::MisalignedPointerDereference { .. } => "misaligned pointer may be dereferenced",
+                    mir::AssertMessage::ResumedAfterReturn(..) => {
+                        "execution may continue after return"
+                    }
+                    mir::AssertMessage::ResumedAfterPanic(..) => {
+                        "execution may continue after panic"
+                    }
+                    mir::AssertMessage::MisalignedPointerDereference { .. } => {
+                        "misaligned pointer may be dereferenced"
+                    }
                     // mir::AssertMessage::NullPointerDereference => "",
                 };
                 self.vcx().with_span(span, |vcx| {
@@ -1673,5 +1804,30 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
             )),
         };
         assert!(self.current_terminator.replace(terminator).is_none());
+    }
+}
+
+fn maybe_show_set<'vir, 'enc, E: TaskEncoder, T: std::fmt::Debug>(
+    enc: &mut ImpureEncVisitor<'vir, 'enc, E>,
+    desc: &str,
+    value: FxHashSet<T>,
+) {
+    if !value.is_empty() {
+        enc.stmt(
+            enc.vcx
+                .mk_comment_stmt(vir::vir_format!(enc.vcx, "{desc}: {value:?}")),
+        );
+    }
+}
+fn maybe_show_slice<'vir, 'enc, E: TaskEncoder, T: std::fmt::Debug>(
+    enc: &mut ImpureEncVisitor<'vir, 'enc, E>,
+    desc: &str,
+    value: &[T],
+) {
+    if !value.is_empty() {
+        enc.stmt(
+            enc.vcx
+                .mk_comment_stmt(vir::vir_format!(enc.vcx, "{desc}: {value:?}")),
+        );
     }
 }
