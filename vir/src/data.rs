@@ -60,6 +60,7 @@ pub enum BinOpKind {
     Sub,
     Mul,
     Div,
+    DivRational,
     Mod,
     // ...
 }
@@ -183,6 +184,7 @@ pub enum CfgBlockLabelData {
     Start,
     End,
     BasicBlock(usize),
+    BasicBlockTerminator(usize),
 }
 
 impl CfgBlockLabelData {
@@ -191,13 +193,23 @@ impl CfgBlockLabelData {
             Self::Start => "start".to_string(),
             Self::End => "end".to_string(),
             Self::BasicBlock(idx) => format!("bb_{idx}"),
+            Self::BasicBlockTerminator(idx) => format!("bb_term_{idx}"),
         }
     }
+}
+
+#[derive(PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Hash)]
+pub enum OldLabel<'vir> {
+    None,
+    Lhs,
+    Block(CfgBlockLabelData),
+    Label(#[serde(with = "crate::serde::serde_str")] &'vir str),
 }
 
 pub type AccFieldData<'vir> = crate::gendata::AccFieldGenData<'vir, !, !>;
 pub type BinOpData<'vir> = crate::gendata::BinOpGenData<'vir, !, !>;
 pub type CfgBlockData<'vir> = crate::gendata::CfgBlockGenData<'vir, !, !>;
+pub type CfgLabelData<'vir> = crate::gendata::CfgLabelGenData<'vir, !, !>;
 pub type DomainAxiomData<'vir> = crate::gendata::DomainAxiomGenData<'vir, !, !>;
 pub type DomainData<'vir> = crate::gendata::DomainGenData<'vir, !, !>;
 pub type ExprData<'vir> = crate::gendata::ExprGenData<'vir, !, !>;
@@ -210,6 +222,7 @@ pub type LetData<'vir> = crate::gendata::LetGenData<'vir, !, !>;
 pub type MethodData<'vir> = crate::gendata::MethodGenData<'vir, !, !>;
 pub type MethodBodyData<'vir> = crate::gendata::MethodBodyGenData<'vir, !, !>;
 pub type MethodCallData<'vir> = crate::gendata::MethodCallGenData<'vir, !, !>;
+pub type OldData<'vir> = crate::gendata::OldGenData<'vir, !, !>;
 pub type PredicateAppData<'vir> = crate::gendata::PredicateAppGenData<'vir, !, !>;
 pub type PredicateData<'vir> = crate::gendata::PredicateGenData<'vir, !, !>;
 pub type ProgramData<'vir> = crate::gendata::ProgramGenData<'vir, !, !>;
@@ -221,3 +234,4 @@ pub type TernaryData<'vir> = crate::gendata::TernaryGenData<'vir, !, !>;
 pub type TriggerData<'vir> = crate::gendata::TriggerGenData<'vir, !, !>;
 pub type UnOpData<'vir> = crate::gendata::UnOpGenData<'vir, !, !>;
 pub type UnfoldingData<'vir> = crate::gendata::UnfoldingGenData<'vir, !, !>;
+pub type WandData<'vir> = crate::gendata::WandGenData<'vir, !, !>;

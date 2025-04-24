@@ -32,6 +32,7 @@ impl<'vir, Curr, Next> BinOpGenData<'vir, Curr, Next> {
             BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Div | BinOpKind::Mod => {
                 self.lhs.ty()
             }
+            BinOpKind::DivRational => &TypeData::Perm,
         }
     }
 }
@@ -73,6 +74,13 @@ pub struct FuncAppGenData<'vir, Curr, Next> {
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
+pub struct OldGenData<'vir, Curr, Next> {
+    pub expr: ExprGen<'vir, Curr, Next>,
+    #[vir(reify_pass)]
+    pub label: OldLabel<'vir>,
+}
+
+#[derive(VirHash, VirReify, VirSerde)]
 pub struct PredicateAppGenData<'vir, Curr, Next> {
     pub target: &'vir str, // TODO: identifiers
     pub args: &'vir [ExprGen<'vir, Curr, Next>],
@@ -98,6 +106,12 @@ pub struct LetGenData<'vir, Curr, Next> {
     pub name: &'vir str,
     pub val: ExprGen<'vir, Curr, Next>,
     pub expr: ExprGen<'vir, Curr, Next>,
+}
+
+#[derive(VirHash, VirReify, VirSerde)]
+pub struct WandGenData<'vir, Curr, Next> {
+    pub lhs: ExprGen<'vir, Curr, Next>,
+    pub rhs: ExprGen<'vir, Curr, Next>,
 }
 
 /*
@@ -140,12 +154,10 @@ impl<'vir, Curr: 'vir, Next: 'vir> ExprGenData<'vir, Curr, Next> {
 pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
     Local(Local<'vir>),
     Field(ExprGen<'vir, Curr, Next>, Field<'vir>), // TODO: FieldApp?
-    Old(ExprGen<'vir, Curr, Next>),
-    //LabelledOld(Expr<'vir>, &'vir str),
+    Old(OldGen<'vir, Curr, Next>),
     Const(Const<'vir>),
     /// Result of a pure function
     Result(Type<'vir>),
-    // magic wand
     AccField(AccFieldGen<'vir, Curr, Next>),
     Unfolding(UnfoldingGen<'vir, Curr, Next>),
     UnOp(UnOpGen<'vir, Curr, Next>),
@@ -160,6 +172,7 @@ pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
     Let(LetGen<'vir, Curr, Next>),
     FuncApp(FuncAppGen<'vir, Curr, Next>),
     PredicateApp(PredicateAppGen<'vir, Curr, Next>), // TODO: this should not be used instead of acc?
+    Wand(WandGen<'vir, Curr, Next>),
     // domain func app
     // inhale/exhale
     Lazy(LazyGen<'vir, Curr, Next>),
@@ -175,7 +188,7 @@ impl<'vir, Curr, Next> ExprKindGenData<'vir, Curr, Next> {
         match self {
             ExprKindGenData::Local(l) => l.ty,
             ExprKindGenData::Field(_, f) => f.ty,
-            ExprKindGenData::Old(e) => e.ty(),
+            ExprKindGenData::Old(e) => e.expr.ty(),
             ExprKindGenData::Const(c) => c.ty(),
             ExprKindGenData::Result(ty) => ty,
             ExprKindGenData::AccField(_) => &TypeData::Bool,
@@ -188,7 +201,8 @@ impl<'vir, Curr, Next> ExprKindGenData<'vir, Curr, Next> {
             ExprKindGenData::Let(l) => l.expr.ty(),
             ExprKindGenData::FuncApp(a) => a.result_ty,
             ExprKindGenData::PredicateApp(_) => &TypeData::Predicate,
-            ExprKindGenData::Lazy(_) => panic!("cannot get type of lazy expression"),
+            ExprKindGenData::Wand(..) => &TypeData::Predicate,
+            ExprKindGenData::Lazy(l) => l.ty,
             ExprKindGenData::Todo(msg) => panic!("{msg}"),
         }
     }
@@ -215,6 +229,7 @@ pub struct LazyGenData<'vir, Curr: 'vir, Next: 'vir> {
     pub name: &'vir str,
     #[allow(clippy::type_complexity)]
     pub func: Box<dyn for<'a> Fn(&'vir crate::VirCtxt<'a>, Curr) -> Next + 'vir>,
+    pub ty: Type<'vir>,
 }
 
 impl<'vir, Curr: 'vir, Next: 'vir> std::hash::Hash for LazyGenData<'vir, Curr, Next> {
@@ -324,7 +339,15 @@ pub enum StmtKindGenData<'vir, Curr, Next> {
     Exhale(ExprGen<'vir, Curr, Next>),
     Unfold(PredicateAppGen<'vir, Curr, Next>),
     Fold(PredicateAppGen<'vir, Curr, Next>),
+    Package(WandGen<'vir, Curr, Next>, &'vir [StmtGen<'vir, Curr, Next>]),
+    Apply(WandGen<'vir, Curr, Next>),
     MethodCall(MethodCallGen<'vir, Curr, Next>),
+    If(
+        ExprGen<'vir, Curr, Next>,
+        &'vir [StmtGen<'vir, Curr, Next>],
+        &'vir [StmtGen<'vir, Curr, Next>],
+    ),
+    Label(&'vir str),
     Comment(&'vir str),
     Dummy(&'vir str),
 }
@@ -357,10 +380,16 @@ pub enum TerminatorStmtGenData<'vir, Curr, Next> {
 
 #[derive(Debug, VirHash, VirReify, VirSerde)]
 pub struct CfgBlockGenData<'vir, Curr, Next> {
-    #[vir(reify_pass, is_ref)]
-    pub label: CfgBlockLabel<'vir>,
+    pub label: CfgLabelGen<'vir, Curr, Next>,
     pub stmts: &'vir [StmtGen<'vir, Curr, Next>],
     pub terminator: TerminatorStmtGen<'vir, Curr, Next>,
+}
+
+#[derive(VirHash, VirReify, VirSerde)]
+pub struct CfgLabelGenData<'vir, Curr, Next> {
+    #[vir(reify_pass, is_ref)]
+    pub label: CfgBlockLabel<'vir>,
+    pub invariants: &'vir [ExprGen<'vir, Curr, Next>],
 }
 
 #[derive(VirHash, VirReify, VirSerde)]

@@ -23,45 +23,46 @@ impl<'tcx: 'vir, 'vir> MostGenericTy<'tcx> {
     }
 }
 
+pub fn get_vir_base_name_kind<'tcx>(kind: &ty::TyKind<'tcx>, vcx: &vir::VirCtxt<'tcx>) -> String {
+    match kind {
+        TyKind::Bool => String::from("Bool"),
+        TyKind::Char => String::from("Char"),
+        TyKind::Int(kind) => format!("Int_{}", kind.name_str()),
+        TyKind::Uint(kind) => format!("UInt_{}", kind.name_str()),
+        TyKind::Float(kind) => format!("Float_{}", kind.name_str()),
+        TyKind::Str => String::from("String"),
+        TyKind::Adt(adt, _) => vcx.tcx().item_name(adt.did()).to_ident_string(),
+        TyKind::Tuple(params) => format!("{}_Tuple", params.len()),
+        TyKind::Never => String::from("Never"),
+        TyKind::Ref(_, _, ty::Mutability::Not) => String::from("Ref_immutable"),
+        TyKind::Ref(_, _, ty::Mutability::Mut) => String::from("Ref_mutable"),
+        TyKind::RawPtr(_, ty::Mutability::Not) => String::from("RawPtr_immutable"),
+        TyKind::RawPtr(_, ty::Mutability::Mut) => String::from("RawPtr_mutable"),
+        TyKind::Param(_) => String::from("Param"),
+        TyKind::Closure(def_id, _) => {
+            let def_key = vcx.tcx().def_key(def_id);
+            match def_key.disambiguated_data.data {
+                // Asking for the item_name of a closure triggers an ICE in
+                // the compiler, so we give it a name based on its parent.
+                hir::definitions::DefPathData::Closure => format!(
+                    "{}_Closure_{}",
+                    vcx.tcx().item_name(DefId {
+                        krate: def_id.krate,
+                        index: def_key.parent.unwrap()
+                    }),
+                    def_key.disambiguated_data.disambiguator,
+                ),
+                _ => vcx.tcx().item_name(*def_id).to_ident_string(),
+            }
+        }
+        TyKind::FnPtr(..) => String::from("FnPtr"),
+        other => unimplemented!("get_vir_base_name for {:?}", other),
+    }
+}
+
 impl<'tcx> MostGenericTy<'tcx> {
     pub fn get_vir_base_name(&self, vcx: &vir::VirCtxt<'tcx>) -> String {
-        match self.kind() {
-            TyKind::Bool => String::from("Bool"),
-            TyKind::Char => String::from("Char"),
-            TyKind::Int(kind) => format!("Int_{}", kind.name_str()),
-            TyKind::Uint(kind) => format!("UInt_{}", kind.name_str()),
-            TyKind::Float(kind) => format!("Float_{}", kind.name_str()),
-            TyKind::Str => String::from("String"),
-            TyKind::Adt(adt, _) => vcx.tcx().item_name(adt.did()).to_ident_string(),
-            TyKind::Tuple(params) => format!("{}_Tuple", params.len()),
-            TyKind::Never => String::from("Never"),
-            TyKind::Ref(_, _, m) => {
-                if m.is_mut() {
-                    String::from("Ref_mutable")
-                } else {
-                    String::from("Ref_immutable")
-                }
-            }
-            TyKind::Param(_) => String::from("Param"),
-            TyKind::Closure(def_id, _) => {
-                let def_key = vcx.tcx().def_key(def_id);
-                match def_key.disambiguated_data.data {
-                    // Asking for the item_name of a closure triggers an ICE in
-                    // the compiler, so we give it a name based on its parent.
-                    hir::definitions::DefPathData::Closure => format!(
-                        "{}_Closure_{}",
-                        vcx.tcx().item_name(DefId {
-                            krate: def_id.krate,
-                            index: def_key.parent.unwrap()
-                        }),
-                        def_key.disambiguated_data.disambiguator,
-                    ),
-                    _ => vcx.tcx().item_name(*def_id).to_ident_string(),
-                }
-            }
-            TyKind::FnPtr(..) => String::from("FnPtr"),
-            other => unimplemented!("get_vir_base_name for {:?}", other),
-        }
+        get_vir_base_name_kind(self.kind(), vcx)
     }
 
     pub fn is_generic(&self) -> bool {
@@ -99,9 +100,11 @@ impl<'tcx> MostGenericTy<'tcx> {
                 .map(as_param_ty)
                 .collect(),
             TyKind::Tuple(tys) => tys.iter().map(as_param_ty).collect::<Vec<_>>(),
-            TyKind::Array(orig, _) => vec![as_param_ty(*orig)],
-            TyKind::Slice(orig) => vec![as_param_ty(*orig)],
-            TyKind::Ref(_, orig, _) => vec![as_param_ty(*orig)],
+            TyKind::Array(inner, _) => vec![as_param_ty(*inner)],
+            TyKind::Slice(inner) => vec![as_param_ty(*inner)],
+            TyKind::Ref(_, inner, ty::Mutability::Not) => vec![as_param_ty(*inner)],
+            TyKind::Ref(_, _, ty::Mutability::Mut) => vec![],
+            TyKind::RawPtr(inner, _) => vec![as_param_ty(*inner)],
             TyKind::Bool
             | TyKind::Char
             | TyKind::Float(_)
@@ -154,20 +157,38 @@ pub fn extract_type_params<'tcx>(
             let ty = tcx.mk_ty_from_kind(TyKind::Tuple(new_tys));
             (MostGenericTy(ty), tys.to_vec())
         }
-        TyKind::Array(orig, val) => {
+        TyKind::Array(inner, val) => {
             let ty = to_placeholder(tcx, None);
             let ty = tcx.mk_ty_from_kind(TyKind::Array(ty, val));
-            (MostGenericTy(ty), vec![orig])
+            (MostGenericTy(ty), vec![inner])
         }
-        TyKind::Slice(orig) => {
+        TyKind::Slice(inner) => {
             let ty = to_placeholder(tcx, None);
             let ty = tcx.mk_ty_from_kind(TyKind::Slice(ty));
-            (MostGenericTy(ty), vec![orig])
+            (MostGenericTy(ty), vec![inner])
         }
-        TyKind::Ref(_, orig, m) => {
+        TyKind::Ref(_, inner, ty::Mutability::Not) => {
             let ty = to_placeholder(tcx, None);
-            let ty = tcx.mk_ty_from_kind(TyKind::Ref(tcx.lifetimes.re_erased, ty, m));
-            (MostGenericTy(ty), vec![orig])
+            let ty = tcx.mk_ty_from_kind(TyKind::Ref(
+                tcx.lifetimes.re_erased,
+                ty,
+                ty::Mutability::Not,
+            ));
+            (MostGenericTy(ty), vec![inner])
+        }
+        TyKind::Ref(_, _, ty::Mutability::Mut) => {
+            let ty = to_placeholder(tcx, None);
+            let ty = tcx.mk_ty_from_kind(TyKind::Ref(
+                tcx.lifetimes.re_erased,
+                ty,
+                ty::Mutability::Mut,
+            ));
+            (MostGenericTy(ty), vec![]) // vec![inner])
+        }
+        TyKind::RawPtr(inner, m) => {
+            let ty = to_placeholder(tcx, None);
+            let ty = tcx.mk_ty_from_kind(TyKind::RawPtr(ty, m));
+            (MostGenericTy(ty), vec![inner])
         }
         TyKind::Param(_) => (MostGenericTy(to_placeholder(tcx, None)), Vec::new()),
         TyKind::Bool

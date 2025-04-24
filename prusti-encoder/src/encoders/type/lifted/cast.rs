@@ -35,7 +35,7 @@ pub struct Cast<'vir, T> {
     cast_applicator: T,
 
     /// Type arguments that will be passed to the cast applicator
-    ty_args: &'vir [LiftedTy<'vir, LiftedGeneric<'vir>>],
+    pub ty_args: &'vir [LiftedTy<'vir, LiftedGeneric<'vir>>],
 }
 
 pub type PureCast<'vir> = Cast<'vir, FunctionIdent<'vir, UnknownArity<'vir>>>;

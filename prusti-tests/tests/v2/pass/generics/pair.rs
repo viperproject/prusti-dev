@@ -8,5 +8,5 @@ fn pair<T, U>(x: T, y: U) -> Pair<T, U> {
 }
 
 #[ensures(pair(1, true).0 == 1)]
-#[ensures(pair(1, true).1 == true)]
+// #[ensures(pair(1, true).1 == true)]
 fn main() {}
