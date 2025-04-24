@@ -25,6 +25,7 @@ pub struct LocalDef<'vir> {
     pub local_ex: vir::Expr<'vir>,
     pub impure_snap: vir::Expr<'vir>,
     pub impure_pred: vir::Expr<'vir>,
+    pub impure_indirect_pred: Option<(vir::Expr<'vir>, vir::Expr<'vir>)>,
     pub ty: &'vir PredicateEncOutputRef<'vir>,
 }
 
@@ -61,11 +62,13 @@ impl TaskEncoder for MirLocalDefEnc {
             let local_ex = vcx.mk_local_ex_local(local);
             let impure_snap = ty.ref_to_snap(vcx, local_ex);
             let impure_pred = ty.ref_to_pred(vcx, local_ex, None);
+            let impure_indirect_pred = ty.ref_to_indirect_pred(vcx, local_ex, None);
             LocalDef {
                 local,
                 local_ex,
                 impure_snap,
                 impure_pred,
+                impure_indirect_pred,
                 ty: vcx.alloc(ty.generic_predicate),
             }
         }
@@ -90,10 +93,11 @@ impl TaskEncoder for MirLocalDefEnc {
                     arg_count: body.arg_count,
                 }
             } else {
-                let param_env = vcx.tcx().param_env(caller_def_id.unwrap_or(def_id));
+                let typing_env =
+                    ty::TypingEnv::post_analysis(vcx.tcx(), caller_def_id.unwrap_or(def_id));
                 let sig = vcx.tcx().instantiate_and_normalize_erasing_regions(
                     substs,
-                    param_env,
+                    typing_env,
                     vcx.tcx().fn_sig(def_id),
                 );
                 let sig = sig.skip_binder();

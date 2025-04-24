@@ -1,10 +1,11 @@
+use pcg::r#loop::LoopAnalysis;
 use prusti_rustc_interface::middle::mir;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{MethodIdent, UnknownArity, ViperIdent};
 
 use crate::encoders::{
     lifted::func_def_ty_params::LiftedTyParamsEnc, ImpureEncVisitor, MirImpureEnc, MirLocalDefEnc,
-    MirSpecEnc,
+    MirSpecEnc, WandEnc, WandEncTask,
 };
 
 use super::function_enc::FunctionEnc;
@@ -51,6 +52,7 @@ where
         .unwrap_or_default();
         vir::with_vcx(|vcx| {
             use mir::visit::Visitor;
+
             let substs = Self::get_substs(vcx, &task_key);
             let local_defs =
                 deps.require_local::<MirLocalDefEnc>((def_id, substs, caller_def_id))?;
@@ -64,9 +66,12 @@ where
             // method can return data to the caller without a copy--it directly
             // modifies a place provided by the caller.
             //
-            // TODO: type parameters
+            // TODO: type parameters: for generic methods we will want to pass
+            //   values of type `Type` as well`
             let arg_count = local_defs.arg_count + 1;
 
+            // Create the identifier and use it as an output ref. This is what
+            // is used when other methods call this one.
             let method_name = Self::mk_method_ident(vcx, &task_key);
             let mut args = vec![&vir::TypeData::Ref; arg_count];
             let param_ty_decls = deps
@@ -79,14 +84,44 @@ where
             let method_ref = MethodIdent::new(method_name, args);
             deps.emit_output_ref(task_key, ImpureFunctionEncOutputRef { method_ref })?;
 
-            // Do not encode the method body if it is external, trusted or just
+            // Method contract. We will need to emit pre- and postconditions for
+            // the permissions, the functional spec, and (in the postcondition)
+            // wands in case of a reborrowing function.
+            let mut pres = Vec::new();
+            let mut posts = Vec::new();
+            let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false))?;
+            let wands = deps.require_local::<WandEnc>(WandEncTask { def_id, substs })?;
+
+            // Add direct resources for inputs and outputs to the pre- and
+            // postconditions, respectively. "Direct" here refers to owned
+            // Viper resources that must be passed in/out given the signature,
+            // without going through any dereferences.
+            let mut args = Vec::with_capacity(arg_count + substs.len());
+            for arg_idx in 0..arg_count {
+                let name_p = local_defs.locals[arg_idx.into()].local.name;
+                args.push(vir::vir_local_decl! { vcx; [name_p] : Ref });
+                if arg_idx != 0 {
+                    pres.push(local_defs.locals[arg_idx.into()].impure_pred);
+                }
+            }
+            posts.push(local_defs.locals[mir::RETURN_PLACE].impure_pred);
+
+            // ..
+            pres.extend(wands.indirect_pres(vcx, &local_defs, deps));
+            posts.extend(wands.indirect_posts(vcx, &local_defs, deps));
+            posts.extend(wands.wand_posts(vcx, &local_defs, deps));
+
+            // Do not encode the method body if it is external, trusted, or just
             // a call stub.
             let local_def_id = def_id.as_local().filter(|_| !trusted);
             let blocks = if let Some(local_def_id) = local_def_id {
                 let body = vcx
                     .body_mut()
                     .get_impure_fn_body(local_def_id, substs, caller_def_id);
-                let fpcs_analysis = mir_state_analysis::run_free_pcs(&body, vcx.tcx());
+                let body_with_facts = vcx.body_mut().get_impure_fn_body_with_facts(local_def_id);
+
+                let loop_analysis = LoopAnalysis::find_loops(&body);
+                let fpcs_analysis = pcg::run_pcg(&body_with_facts, vcx.tcx(), None);
 
                 let block_count = body.basic_blocks.len();
 
@@ -110,12 +145,15 @@ where
                         )
                     }));
                 }
+                // This will be overwritten later.
                 encoded_blocks.push(vcx.mk_cfg_block(
-                    vcx.alloc(vir::CfgBlockLabelData::Start),
-                    vcx.alloc_slice(&start_stmts),
-                    vcx.mk_goto_stmt(vcx.alloc(vir::CfgBlockLabelData::BasicBlock(0))),
+                    &vir::CfgBlockLabelData::Start,
+                    &[],
+                    &[],
+                    vcx.mk_goto_stmt(&vir::CfgBlockLabelData::BasicBlock(0)),
                 ));
 
+                deps.check_cycle()?;
                 let mut visitor = ImpureEncVisitor {
                     monomorphize: MirImpureEnc::monomorphize(),
                     vcx,
@@ -124,9 +162,17 @@ where
                     local_decls: &body.local_decls,
                     fpcs_analysis,
                     local_defs,
+                    body: &body,
+
+                    loop_analysis,
+                    wands,
 
                     tmp_ctr: 0,
+                    label_ctr: 0,
+                    call_labels: Default::default(),
+                    from_to_vars: Default::default(),
 
+                    current_block_label: None,
                     current_fpcs: None,
 
                     current_stmts: None,
@@ -134,35 +180,40 @@ where
                     encoded_blocks,
                 };
                 visitor.visit_body(&body);
+                start_stmts.extend(visitor.from_to_vars.iter().flat_map(|(_, v)| v.iter()).map(
+                    |(_, v)| {
+                        vcx.mk_local_decl_stmt(
+                            vir::vir_local_decl! { vcx; [v] : Bool },
+                            Some(vcx.mk_bool::<false>()),
+                        )
+                    },
+                ));
+                visitor.encoded_blocks[0] = vcx.mk_cfg_block(
+                    &vir::CfgBlockLabelData::Start,
+                    &[],
+                    vcx.alloc_slice(&start_stmts),
+                    vcx.mk_goto_stmt(&vir::CfgBlockLabelData::BasicBlock(0)),
+                );
 
                 visitor.encoded_blocks.push(vcx.mk_cfg_block(
                     vcx.alloc(vir::CfgBlockLabelData::End),
                     &[],
+                    &[],
                     vcx.alloc(vir::TerminatorStmtData::Exit),
                 ));
-                Some(vcx.alloc_slice(&visitor.encoded_blocks))
+
+                visitor.deps.check_cycle()?;
+
+                Some(visitor.encoded_blocks)
             } else {
                 None
             };
 
-            let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false))?;
-            let (spec_pres, spec_posts) = (spec.pres, spec.posts);
-
-            let mut pres = Vec::with_capacity(arg_count - 1);
-            let mut args = Vec::with_capacity(arg_count + substs.len());
-            for arg_idx in 0..arg_count {
-                let name_p = local_defs.locals[arg_idx.into()].local.name;
-                args.push(vir::vir_local_decl! { vcx; [name_p] : Ref });
-                if arg_idx != 0 {
-                    pres.push(local_defs.locals[arg_idx.into()].impure_pred);
-                }
-            }
             args.extend(param_ty_decls.iter());
-            pres.extend(spec_pres);
 
-            let mut posts = Vec::with_capacity(spec_posts.len() + 1);
-            posts.push(local_defs.locals[mir::RETURN_PLACE].impure_pred);
-            posts.extend(spec_posts);
+            // Add functional specification as the last pre- and postconditions.
+            pres.extend(spec.pres);
+            posts.extend(spec.posts);
 
             Ok(ImpureFunctionEncOutput {
                 method: vcx.mk_method(
@@ -171,7 +222,7 @@ where
                     &[],
                     vcx.alloc_slice(&pres),
                     vcx.alloc_slice(&posts),
-                    blocks,
+                    blocks.map(|blocks| vcx.alloc_slice(&blocks)),
                 ),
             })
         })
