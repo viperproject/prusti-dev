@@ -17,6 +17,8 @@ mod serde;
 mod spans;
 mod callable_idents;
 mod viper_ident;
+mod fold;
+mod opt;
 
 pub use callable_idents::*;
 pub use context::*;
@@ -27,6 +29,8 @@ pub use refs::*;
 pub use reify::*;
 pub use spans::VirSpan;
 pub use viper_ident::*;
+pub use fold::*;
+pub use opt::*;
 
 // for all arena-allocated types, there are two type definitions: one with
 // a `Data` suffix, containing the actual data; and one without the suffix,

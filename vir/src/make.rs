@@ -103,6 +103,7 @@ cfg_if! {
             e: ExprGen<'vir, Curr, Next>
         ) {
             match e.kind {
+                ExprKindGenData::Result(..) => (),
                 ExprKindGenData::Local(LocalData { name, ty, debug_info }) => {
                     if let Some(bound_ty) = m.get(name) {
                         if !matches!(bound_ty, TypeData::Unsupported(_)) &&
