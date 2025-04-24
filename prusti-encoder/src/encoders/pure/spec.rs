@@ -100,8 +100,7 @@ impl TaskEncoder for MirSpecEnc {
                                 caller_def_id: Some(def_id),
                             },
                         )
-                        .unwrap()
-                        .expr;
+                        .unwrap();
                     let expr = expr.reify(vcx, (*spec_def_id, pre_args));
                     let span = vcx.tcx().def_span(spec_def_id);
                     vcx.with_span(span, |vcx| to_bool.apply(vcx, [expr]))
@@ -142,8 +141,7 @@ impl TaskEncoder for MirSpecEnc {
                                     caller_def_id: Some(def_id),
                                 },
                             )
-                            .unwrap()
-                            .expr;
+                            .unwrap();
                         let expr = expr.reify(vcx, (*spec_def_id, post_args));
                         to_bool.apply(vcx, [expr])
                     })
@@ -177,7 +175,6 @@ impl TaskEncoder for MirSpecEnc {
                             },
                         )
                         .unwrap()
-                        .expr
                     });
                     let rhs_expr = deps
                         .require_local::<crate::encoders::MirPureEnc>(
@@ -191,8 +188,7 @@ impl TaskEncoder for MirSpecEnc {
                                 caller_def_id: Some(def_id),
                             },
                         )
-                        .unwrap()
-                        .expr;
+                        .unwrap();
                     let lhs_expr = lhs_expr
                         .map(|lhs_expr| lhs_expr.reify(vcx, (lhs_def_id.unwrap(), pledge_args)));
                     let rhs_expr = rhs_expr.reify(vcx, (*rhs_def_id, pledge_args));

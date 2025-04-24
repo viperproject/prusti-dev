@@ -53,7 +53,14 @@ type ExprRet<'vir> = vir::ExprGen<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
 pub struct MirPureEncOutput<'vir> {
     // TODO: is this a good place for argument types?
     //pub arg_tys: &'vir [Type<'vir>],
-    pub expr: ExprRet<'vir>,
+    expr: ExprRet<'vir>,
+}
+
+impl<'vir> MirPureEncOutput<'vir> {
+    pub fn reify(self, vcx: &'vir vir::VirCtxt<'vir>, input: ExprInput<'vir>) -> vir::Expr<'vir> {
+        use vir::{Reify, Optimizable};
+        self.expr.reify(vcx, input)//.optimize()
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -1060,7 +1067,6 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         caller_def_id: Some(self.def_id),
                     })
                     .unwrap()
-                    .expr
                     // arguments to the closure are
                     // - the closure itself
                     // - the qvars

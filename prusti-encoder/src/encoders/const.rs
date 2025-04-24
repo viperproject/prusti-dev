@@ -107,8 +107,7 @@ impl TaskEncoder for ConstEnc {
                     kind: PureKind::Constant(uneval.promoted.unwrap()),
                     caller_def_id: Some(def_id),
                 };
-                let expr = deps.require_local::<MirPureEnc>(task)?.expr;
-                use vir::Reify;
+                let expr = deps.require_local::<MirPureEnc>(task)?;
                 Ok(expr.reify(vcx, (uneval.def, &[])))
             })?,
             mir::Const::Ty(_, _) => todo!("ConstantKind::Ty"),

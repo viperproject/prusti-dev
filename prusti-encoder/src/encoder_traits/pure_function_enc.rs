@@ -139,8 +139,7 @@ where
                         param_env: vcx.tcx().param_env(def_id),
                         substs,
                         caller_def_id,
-                    })?
-                    .expr;
+                    })?;
                 let expr = expr.reify(vcx, (def_id, spec.pre_args));
                 assert!(
                     expr.ty() == return_type.snapshot,
