@@ -279,14 +279,15 @@ impl<'tcx> EnvQuery<'tcx> {
         let proc_def_id = proc_def_id.into_param();
         if let Some(trait_id) = self.get_trait_of_item(proc_def_id) {
             debug!("Fetching implementations of method '{:?}' defined in trait '{}' with substs '{:?}'", proc_def_id, self.tcx.def_path_str(trait_id), substs);
-            let infcx = self.tcx.infer_ctxt().build();
+            // TODO(tymap): don't use reveal_all
+            let typing_env = ty::TypingEnv::fully_monomorphized();
+            let infcx = self.tcx.infer_ctxt().build(typing_env.typing_mode);
             let mut sc = SelectionContext::new(&infcx);
             let trait_ref = ty::TraitRef::new(self.tcx, trait_id, substs);
             let obligation = Obligation::new(
                 self.tcx,
                 ObligationCause::dummy(),
-                // TODO(tymap): don't use reveal_all
-                ParamEnv::reveal_all(),
+                typing_env.param_env,
                 TraitPredicate {
                     trait_ref,
                     polarity: PredicatePolarity::Positive,
@@ -332,10 +333,10 @@ impl<'tcx> EnvQuery<'tcx> {
             // trait resolution does not depend on lifetimes, and in fact fails in the presence of uninferred regions
             let clean_substs = self.tcx.erase_regions(call_substs);
 
-            let param_env = self.tcx.param_env(caller_def_id.into_param());
+            let typing_env = ty::TypingEnv::post_analysis(self.tcx, caller_def_id.into_param());
             let instance = self
                 .tcx
-                .resolve_instance_raw(param_env.and((called_def_id, clean_substs)))
+                .resolve_instance_raw(typing_env.as_query_input((called_def_id, clean_substs)))
                 .ok()??;
             let resolved_def_id = instance.def_id();
             let resolved_substs = if resolved_def_id == called_def_id {
@@ -361,13 +362,14 @@ impl<'tcx> EnvQuery<'tcx> {
         param_env: impl IntoParamTcx<'tcx, ParamEnv<'tcx>>,
     ) -> bool {
         let param_env = param_env.into_param(self.tcx);
+        let typing_env = ty::TypingEnv {
+            param_env,
+            typing_mode: ty::TypingMode::PostAnalysis,
+        };
         // Normalize the type to account for associated types
         let ty = self.resolve_assoc_types(ty, param_env).skip_binder();
         let ty = self.tcx.erase_regions_ty(ty);
-        ty.is_copy_modulo_regions(
-            *self.tcx.at(prusti_rustc_interface::span::DUMMY_SP),
-            param_env,
-        )
+        self.tcx.is_copy_raw(typing_env.as_query_input(ty))
     }
 
     /// Checks whether the given type implements the trait with the given DefId.
@@ -395,7 +397,7 @@ impl<'tcx> EnvQuery<'tcx> {
         param_env: impl IntoParamTcx<'tcx, ParamEnv<'tcx>>,
     ) -> bool {
         assert!(self.tcx.is_trait(trait_def_id));
-        let infcx = self.tcx.infer_ctxt().build();
+        let infcx = self.tcx.infer_ctxt().build(ty::TypingMode::PostAnalysis);
         infcx
             .type_implements_trait(
                 trait_def_id,
@@ -436,7 +438,7 @@ impl<'tcx> EnvQuery<'tcx> {
 
         self.tcx
             .infer_ctxt()
-            .build()
+            .build(ty::TypingMode::PostAnalysis)
             .predicate_must_hold_considering_regions(&obligation)
     }
 
@@ -453,9 +455,13 @@ impl<'tcx> EnvQuery<'tcx> {
         param_env: impl IntoParamTcx<'tcx, ParamEnv<'tcx>> + Debug,
     ) -> T {
         let param_env = param_env.into_param(self.tcx);
+        let typing_env = ty::TypingEnv {
+            param_env,
+            typing_mode: ty::TypingMode::PostAnalysis,
+        };
         let norm_res = self
             .tcx
-            .try_normalize_erasing_regions(param_env, normalizable);
+            .try_normalize_erasing_regions(typing_env, normalizable);
 
         match norm_res {
             Ok(normalized) => {

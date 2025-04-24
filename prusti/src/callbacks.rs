@@ -84,11 +84,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         });
     }
     #[tracing::instrument(level = "debug", skip_all)]
-    fn after_expansion<'tcx>(
-        &mut self,
-        compiler: &Compiler,
-        queries: &'tcx Queries<'tcx>,
-    ) -> Compilation {
+    fn after_expansion<'tcx>(&mut self, compiler: &Compiler, tcx: TyCtxt<'tcx>) -> Compilation {
         if compiler.sess.is_rust_2015() {
             compiler
                 .sess
@@ -103,77 +99,69 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         compiler.sess.dcx().abort_if_errors();
         if config::print_desugared_specs() {
             // based on the implementation of rustc_driver::pretty::print_after_parsing
-            queries.global_ctxt().unwrap().enter(|tcx| {
-                let sess = &compiler.sess;
-                let krate = &tcx.resolver_for_lowering().borrow().1;
-                let src_name = sess.io.input.source_name();
-                let src = sess
-                    .source_map()
-                    .get_source_file(&src_name)
-                    .expect("get_source_file")
-                    .src
-                    .as_ref()
-                    .expect("src")
-                    .to_string();
-                print!(
-                    "{}",
-                    prusti_rustc_interface::ast_pretty::pprust::print_crate(
-                        sess.source_map(),
-                        krate,
-                        src_name,
-                        src,
-                        &NoAnn,
-                        false,
-                        sess.edition(),
-                        &sess.psess.attr_id_generator,
-                    )
-                );
-            });
+            let sess = &compiler.sess;
+            let krate = &tcx.resolver_for_lowering().borrow().1;
+            let src_name = sess.io.input.source_name();
+            let src = sess
+                .source_map()
+                .get_source_file(&src_name)
+                .expect("get_source_file")
+                .src
+                .as_ref()
+                .expect("src")
+                .to_string();
+            print!(
+                "{}",
+                prusti_rustc_interface::ast_pretty::pprust::print_crate(
+                    sess.source_map(),
+                    krate,
+                    src_name,
+                    src,
+                    &NoAnn,
+                    false,
+                    sess.edition(),
+                    &sess.psess.attr_id_generator,
+                )
+            );
         }
         Compilation::Continue
     }
 
     #[tracing::instrument(level = "debug", skip_all)]
-    fn after_analysis<'tcx>(
-        &mut self,
-        compiler: &Compiler,
-        queries: &'tcx Queries<'tcx>,
-    ) -> Compilation {
+    fn after_analysis<'tcx>(&mut self, compiler: &Compiler, tcx: TyCtxt<'tcx>) -> Compilation {
         compiler.sess.dcx().abort_if_errors();
-        queries.global_ctxt().unwrap().enter(|tcx| {
-            let mut env = Environment::new(tcx, env!("CARGO_PKG_VERSION"));
-            let spec_checker = specs::checker::SpecChecker::new();
-            spec_checker.check(&env);
-            compiler.sess.dcx().abort_if_errors();
+        let mut env = Environment::new(tcx, env!("CARGO_PKG_VERSION"));
+        let spec_checker = specs::checker::SpecChecker::new();
+        spec_checker.check(&env);
+        compiler.sess.dcx().abort_if_errors();
 
-            let hir = env.query.hir();
-            let mut spec_collector = specs::SpecCollector::new(&mut env);
-            spec_collector.collect_specs(hir);
+        let hir = env.query.hir();
+        let mut spec_collector = specs::SpecCollector::new(&mut env);
+        spec_collector.collect_specs(hir);
 
-            let mut def_spec = spec_collector.build_def_specs();
-            // Do print_typeckd_specs prior to importing cross crate
-            if config::print_typeckd_specs() {
-                for value in def_spec.all_values_debug(config::hide_uuids()) {
-                    println!("{value}");
+        let mut def_spec = spec_collector.build_def_specs();
+        // Do print_typeckd_specs prior to importing cross crate
+        if config::print_typeckd_specs() {
+            for value in def_spec.all_values_debug(config::hide_uuids()) {
+                println!("{value}");
+            }
+        }
+        CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
+        if !config::no_verify() {
+            /*
+            if config::test_free_pcs() {
+                for proc_id in env.get_annotated_procedures_and_types().0.iter() {
+                    let name = env.name.get_unique_item_name(*proc_id);
+                    println!("Calculating FPCS for: {name}");
+
+                    let current_procedure = env.get_procedure(*proc_id);
+                    let mir = current_procedure.get_mir_rc();
+                    test_free_pcs(&mir, tcx);
                 }
-            }
-            CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
-            if !config::no_verify() {
-                /*
-                if config::test_free_pcs() {
-                    for proc_id in env.get_annotated_procedures_and_types().0.iter() {
-                        let name = env.name.get_unique_item_name(*proc_id);
-                        println!("Calculating FPCS for: {name}");
-
-                        let current_procedure = env.get_procedure(*proc_id);
-                        let mir = current_procedure.get_mir_rc();
-                        test_free_pcs(&mir, tcx);
-                    }
-                } else {*/
-                verify(env, def_spec);
-                //}
-            }
-        });
+            } else {*/
+            verify(env, def_spec);
+            //}
+        }
 
         compiler.sess.dcx().abort_if_errors();
         if config::full_compilation() {

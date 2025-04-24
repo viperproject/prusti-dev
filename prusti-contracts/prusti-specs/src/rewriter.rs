@@ -1,5 +1,6 @@
 use crate::{
     common::HasSignature,
+    span_overrider::SpanOverrider,
     specifications::{
         common::{SpecificationId, SpecificationIdGenerator},
         preparser::{parse_prusti, parse_prusti_assert_pledge, parse_prusti_pledge},
@@ -134,6 +135,15 @@ impl AstRewriter {
         };
 
         spec_item.sig.generics = item.sig().generics.clone();
+
+        // Override span of the generics (incl. "where" clauses), so that errors
+        // reported using the spec item's span don't extend to the declarations
+        // of type parameters and "where" clauses.
+        syn::visit_mut::visit_generics_mut(
+            &mut SpanOverrider::new(item_span),
+            &mut spec_item.sig.generics,
+        );
+
         spec_item.sig.inputs = item.sig().inputs.clone();
         match spec_type {
             SpecItemType::Postcondition | SpecItemType::Pledge => {

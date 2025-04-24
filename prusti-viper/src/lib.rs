@@ -164,9 +164,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::AccField<'vir> {
                 self.field.to_viper_no_pos(ctx),
                 pos,
             ),
-            self.perm
-                .map(|v| v.to_viper_no_pos(ctx))
-                .unwrap_or_else(|| ctx.ast.full_perm()),
+            self.perm.map(|v| v.to_viper_no_pos(ctx)),
             pos,
         )
     }
@@ -191,6 +189,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::BinOp<'vir> {
             vir::BinOpKind::Sub => ctx.ast.sub_with_pos(lhs, rhs, pos),
             vir::BinOpKind::Mul => ctx.ast.mul_with_pos(lhs, rhs, pos),
             vir::BinOpKind::Div => ctx.ast.div_with_pos(lhs, rhs, pos),
+            vir::BinOpKind::DivRational => ctx.ast.perm_div(lhs, rhs), // TODO: position
             vir::BinOpKind::Mod => ctx.ast.mod_with_pos(lhs, rhs, pos),
             vir::BinOpKind::Implies => ctx.ast.implies_with_pos(lhs, rhs, pos),
         }
@@ -214,15 +213,14 @@ impl<'vir, 'v> ToViperVec<'vir, 'v> for vir::CfgBlock<'vir> {
     }
 }
 
-impl<'vir, 'v> ToViper<'vir, 'v> for vir::CfgBlockLabel<'vir> {
+impl<'vir, 'v> ToViper<'vir, 'v> for vir::CfgLabel<'vir> {
     type Output = viper::Stmt<'v>;
     // `pos` coming from the parent `Stmt` should be used, but the node
     //   created her cannot be created with a position
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
-        ctx.ast.label(
-            &self.name(),
-            &[], // TODO: invariants
-        )
+        let invs = self.invariants.iter();
+        let invs = invs.map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>();
+        ctx.ast.label(&self.label.name(), &invs)
     }
 }
 
@@ -327,8 +325,9 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Expr<'vir> {
             vir::ExprKindData::FuncApp(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Let(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Local(v) => v.to_viper_with_span(ctx, self.span),
-            vir::ExprKindData::Old(v) => ctx.ast.old(v.to_viper_no_pos(ctx)), // TODO: position
+            vir::ExprKindData::Old(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::PredicateApp(v) => v.to_viper_with_span(ctx, self.span),
+            vir::ExprKindData::Wand(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Result(ty) => ctx
                 .ast
                 .result_with_pos(ty.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
@@ -548,7 +547,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Method<'vir> {
                 let mut declarations: Vec<viper::Declaration> =
                     Vec::with_capacity(1 + body.blocks.len());
                 body.blocks.iter().for_each(|b| {
-                    declarations.push(ctx.ast.label(&b.label.name(), &[]).into());
+                    declarations.push(ctx.ast.label(&b.label.label.name(), &[]).into());
                     b.stmts.iter().for_each(|s| {
                         if let vir::StmtKindGenData::LocalDecl(decl, _) = s.kind {
                             declarations.push(decl.to_viper_no_pos(ctx).into());
@@ -583,6 +582,22 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::MethodCall<'vir> {
     }
 }
 
+impl<'vir, 'v> ToViper<'vir, 'v> for vir::Old<'vir> {
+    type Output = viper::Expr<'v>;
+    // `pos` coming from the parent `Expr` is used
+    fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, pos: Position) -> Self::Output {
+        let label = match self.label {
+            // TODO: position
+            vir::OldLabel::None => return ctx.ast.old(self.expr.to_viper_no_pos(ctx)),
+            vir::OldLabel::Lhs => "lhs".to_string(),
+            vir::OldLabel::Block(block) => block.name(),
+            vir::OldLabel::Label(label) => label.to_string(),
+        };
+        ctx.ast
+            .labelled_old_with_pos(self.expr.to_viper_no_pos(ctx), &label, pos)
+    }
+}
+
 impl<'vir, 'v> ToViper<'vir, 'v> for vir::PredicateApp<'vir> {
     type Output = viper::Expr<'v>;
     // `pos` coming from the parent `Expr` is used
@@ -597,9 +612,8 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::PredicateApp<'vir> {
                 self.target,
                 pos,
             ),
-            self.perm
-                .map(|v| v.to_viper_no_pos(ctx))
-                .unwrap_or_else(|| ctx.ast.full_perm()),
+            self.perm.map(|v| v.to_viper_no_pos(ctx)),
+            //.unwrap_or_else(|| ctx.ast.full_perm()),
             pos,
         )
     }
@@ -691,10 +705,40 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Stmt<'vir> {
                 ctx.ast.comment(&format!("var {}", decl.name))
             }
             vir::StmtKindGenData::MethodCall(v) => v.to_viper_with_span(ctx, self.span),
+            vir::StmtKindGenData::Package(wand, stmts) => ctx.ast.package(
+                wand.to_viper_no_pos(ctx),
+                ctx.ast.seqn(
+                    &stmts
+                        .iter()
+                        .map(|v| v.to_viper_no_pos(ctx))
+                        .collect::<Vec<_>>(),
+                    &[],
+                ),
+                ctx.span_to_pos(self.span),
+            ),
+            vir::StmtKindGenData::Apply(wand) => ctx
+                .ast
+                .apply(wand.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
             vir::StmtKindGenData::PureAssign(v) => v.to_viper_with_span(ctx, self.span),
+            vir::StmtKindGenData::If(e, thn, els) => {
+                let thn = ctx.ast.seqn(
+                    &thn.iter()
+                        .map(|v| v.to_viper_no_pos(ctx))
+                        .collect::<Vec<_>>(),
+                    &[],
+                );
+                let els = ctx.ast.seqn(
+                    &els.iter()
+                        .map(|v| v.to_viper_no_pos(ctx))
+                        .collect::<Vec<_>>(),
+                    &[],
+                );
+                ctx.ast.if_stmt(e.to_viper_no_pos(ctx), thn, els)
+            }
             vir::StmtKindGenData::Unfold(pred) => ctx
                 .ast
                 .unfold_with_pos(pred.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
+            vir::StmtKindGenData::Label(label) => ctx.ast.label(label, &[]),
             //vir::StmtGenData::Dummy(#[reify_copy] &'vir str),
             _ => unimplemented!(),
         }
@@ -822,6 +866,18 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Unfolding<'vir> {
         ctx.ast.unfolding_with_pos(
             self.target.to_viper_no_pos(ctx),
             self.expr.to_viper_no_pos(ctx),
+            pos,
+        )
+    }
+}
+
+impl<'vir, 'v> ToViper<'vir, 'v> for vir::Wand<'vir> {
+    type Output = viper::Expr<'v>;
+    // `pos` coming from the parent `Expr` is used
+    fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, pos: Position) -> Self::Output {
+        ctx.ast.magic_wand_with_pos(
+            self.lhs.to_viper_no_pos(ctx),
+            self.rhs.to_viper_no_pos(ctx),
             pos,
         )
     }

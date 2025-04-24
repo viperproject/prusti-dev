@@ -1,6 +1,8 @@
 pub mod domain;
+pub mod indirect;
 pub mod predicate;
 pub mod snapshot;
+pub mod kinds;
 pub mod lifted;
 pub mod most_generic_ty;
 pub mod rust_ty_predicates;

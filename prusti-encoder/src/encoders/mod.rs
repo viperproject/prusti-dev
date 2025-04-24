@@ -10,6 +10,8 @@ mod local_def;
 mod r#type;
 mod r#const;
 mod mono;
+// TODO: move `mir_impure` to this dir:
+pub mod impure;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "mono_function_encoding")] {
@@ -21,6 +23,7 @@ cfg_if::cfg_if! {
 
 pub use domain::all_outputs as DomainEnc_all_outputs;
 pub use generic::GenericEnc;
+pub use impure::fn_wand::{WandEnc, WandEncOutput, WandEncTask};
 pub use local_def::*;
 pub use mir_builtin::{MirBuiltinEnc, MirBuiltinEncTask};
 pub use mir_impure::{ImpureEncVisitor, MirImpureEnc};

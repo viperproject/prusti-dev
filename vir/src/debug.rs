@@ -11,26 +11,29 @@ fn fmt_comma_sep_display<T: Display>(f: &mut Formatter<'_>, els: &[T]) -> FmtRes
     })
 }
 fn fmt_comma_sep<T: Debug>(f: &mut Formatter<'_>, els: &[T]) -> FmtResult {
+    let indent = f.width().unwrap_or_default();
     els.iter().enumerate().try_for_each(|(idx, el)| {
         if idx > 0 {
             write!(f, ", ")?
         }
-        el.fmt(f)
+        write!(f, "{el:indent$?}")
     })
 }
-fn fmt_comma_sep_lines<T: Debug>(f: &mut Formatter<'_>, els: &[T]) -> FmtResult {
+fn fmt_comma_sep_lines<T: Debug>(f: &mut Formatter<'_>, els: &[T], indent: usize) -> FmtResult {
+    let indent = indent + 2;
     for (idx, el) in els.iter().enumerate() {
-        write!(f, "  {:?}", el)?;
+        write!(f, "  {el:indent$?}")?;
         if idx < els.len() - 1 {
             write!(f, ",")?;
         }
         writeln!(f)?;
+        f.pad("")?;
     }
     Ok(())
 }
-fn indent(s: String) -> String {
-    s.split("\n").intersperse("\n  ").collect::<String>()
-}
+// fn indent(s: String) -> String {
+//     s.split("\n").intersperse("\n  ").collect::<String>()
+// }
 
 impl<'vir, Curr, Next> Debug for AccFieldGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
@@ -63,6 +66,7 @@ impl<'vir, Curr, Next> Debug for BinOpGenData<'vir, Curr, Next> {
                 BinOpKind::Sub => "-",
                 BinOpKind::Mul => "*",
                 BinOpKind::Div => "\\",
+                BinOpKind::DivRational => "/",
                 BinOpKind::Mod => "%",
             }
         )?;
@@ -88,6 +92,16 @@ impl Debug for ConstData {
     }
 }
 
+impl<'vir, Curr, Next> Debug for CfgLabelGenData<'vir, Curr, Next> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        writeln!(f, "label {:?}", self.label)?;
+        for inv in self.invariants {
+            writeln!(f, "  invariant {:?}", inv)?;
+        }
+        Ok(())
+    }
+}
+
 impl<'vir, Curr, Next> Debug for DomainGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "domain {}", self.name)?;
@@ -106,7 +120,7 @@ impl<'vir, Curr, Next> Debug for DomainGenData<'vir, Curr, Next> {
 impl<'vir, Curr, Next> Debug for DomainAxiomGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         writeln!(f, "  axiom {} {{", self.name)?;
-        writeln!(f, "    {:?}", self.expr)?;
+        writeln!(f, "    {:4?}", self.expr)?;
         writeln!(f, "  }}")
     }
 }
@@ -146,8 +160,9 @@ impl<'vir, Curr, Next> Debug for ExprKindGenData<'vir, Curr, Next> {
             Self::Let(e) => e.fmt(f),
             Self::Lazy(e) => write!(f, "%%/*{}*/", e.name),
             Self::Local(e) => e.fmt(f),
-            Self::Old(e) => write!(f, "old({:?})", e),
+            Self::Old(e) => e.fmt(f),
             Self::PredicateApp(e) => e.fmt(f),
+            Self::Wand(e) => e.fmt(f),
             Self::Ternary(e) => e.fmt(f),
             Self::UnOp(e) => e.fmt(f),
             Self::Unfolding(e) => e.fmt(f),
@@ -198,7 +213,7 @@ impl<'vir, Curr, Next> Debug for FuncAppGenData<'vir, Curr, Next> {
 impl<'vir, Curr, Next> Debug for FunctionGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         writeln!(f, "function {}(", self.name)?;
-        fmt_comma_sep_lines(f, self.args)?;
+        fmt_comma_sep_lines(f, self.args, 0)?;
         writeln!(f, "): {:?}", self.ret)?;
         self.pres
             .iter()
@@ -207,9 +222,7 @@ impl<'vir, Curr, Next> Debug for FunctionGenData<'vir, Curr, Next> {
             .iter()
             .try_for_each(|el| writeln!(f, "  ensures {:?}", el))?;
         if let Some(expr) = self.expr {
-            write!(f, "{{\n  ")?;
-            expr.fmt(f)?;
-            writeln!(f, "\n}}")?;
+            writeln!(f, "{{\n  {expr:2?}\n}}")?;
         }
         Ok(())
     }
@@ -222,8 +235,11 @@ impl<'vir, Curr, Next> Debug for LetGenData<'vir, Curr, Next> {
         // slightly nicer spacing for debugging:
         // - indent lines within `val`
         // - start the `expr` on a new line
-        let str_val = indent(format!("{:?}", self.val));
-        write!(f, "(let {} == ({str_val}) in\n{:?})", self.name, self.expr)
+        let indent = f.width().unwrap_or_default();
+        writeln!(f, "(let {} == ({:indent$?}) in", self.name, self.val)?;
+        f.pad("")?;
+        let indent = indent + 2;
+        write!(f, "  {:indent$?})", self.expr)
     }
 }
 
@@ -244,32 +260,47 @@ impl<'vir> Debug for LocalDeclData<'vir> {
 impl<'vir, Curr, Next> Debug for MethodGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         writeln!(f, "method {}(", self.name)?;
-        fmt_comma_sep_lines(f, self.args)?;
+        fmt_comma_sep_lines(f, self.args, 0)?;
         if !self.rets.is_empty() {
             writeln!(f, ") returns (")?;
-            fmt_comma_sep_lines(f, self.rets)?;
+            fmt_comma_sep_lines(f, self.rets, 0)?;
             writeln!(f, ")")?;
         } else {
             writeln!(f, ")")?;
         }
         self.pres
             .iter()
-            .try_for_each(|el| writeln!(f, "  requires {:?}", el))?;
+            .try_for_each(|el| writeln!(f, "  requires {:2?}", el))?;
         self.posts
             .iter()
-            .try_for_each(|el| writeln!(f, "  ensures {:?}", el))?;
+            .try_for_each(|el| writeln!(f, "  ensures {:2?}", el))?;
         if let Some(body) = self.body.as_ref() {
             writeln!(f, "{{")?;
             for block in body.blocks.iter() {
-                writeln!(f, "label {:?}", block.label)?;
+                write!(f, "{:?}", block.label)?;
                 for stmt in block.stmts {
-                    writeln!(f, "  {:?}", stmt)?;
+                    writeln!(f, "  {:2?}", stmt)?;
                 }
-                writeln!(f, "  {:?}", block.terminator)?;
+                writeln!(f, "  {:2?}", block.terminator)?;
             }
             writeln!(f, "}}")?;
         }
         Ok(())
+    }
+}
+
+impl<'vir, Curr, Next> Debug for OldGenData<'vir, Curr, Next> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "old")?;
+        match self.label {
+            OldLabel::None => (),
+            OldLabel::Lhs => write!(f, "[lhs]")?,
+            OldLabel::Block(block) => block.fmt(f)?,
+            OldLabel::Label(l) => write!(f, "[{l}]")?,
+        }
+        write!(f, "(")?;
+        self.expr.fmt(f)?;
+        write!(f, ")")
     }
 }
 
@@ -279,9 +310,7 @@ impl<'vir, Curr, Next> Debug for PredicateGenData<'vir, Curr, Next> {
         fmt_comma_sep(f, self.args)?;
         write!(f, ")")?;
         if let Some(expr) = self.expr {
-            write!(f, " {{\n  ")?;
-            expr.fmt(f)?;
-            writeln!(f, "\n}}")
+            writeln!(f, "{{\n  {expr:2?}\n}}")
         } else {
             writeln!(f)
         }
@@ -314,19 +343,31 @@ impl<'vir, Curr, Next> Debug for StmtGenData<'vir, Curr, Next> {
 
 impl<'vir, Curr, Next> Debug for StmtKindGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        let indent = f.width().unwrap_or_default();
         match self {
             Self::LocalDecl(decl, expr) => {
-                write!(f, "var {:?}", decl)?;
+                write!(f, "var {:indent$?}", decl)?;
                 if let Some(expr) = expr {
-                    write!(f, " := {:?}", expr)?;
+                    write!(f, " := {:indent$?}", expr)?;
                 }
                 Ok(())
             }
-            Self::PureAssign(data) => write!(f, "{:?} := {:?}", data.lhs, data.rhs),
-            Self::Inhale(data) => write!(f, "inhale {:?}", data),
-            Self::Exhale(data) => write!(f, "exhale {:?}", data),
-            Self::Unfold(data) => write!(f, "unfold {:?}", data),
-            Self::Fold(data) => write!(f, "fold {:?}", data),
+            Self::PureAssign(data) => write!(f, "{:indent$?} := {:indent$?}", data.lhs, data.rhs),
+            Self::Inhale(data) => write!(f, "inhale {:indent$?}", data),
+            Self::Exhale(data) => write!(f, "exhale {:indent$?}", data),
+            Self::Unfold(data) => write!(f, "unfold {:indent$?}", data),
+            Self::Fold(data) => write!(f, "fold {:indent$?}", data),
+            Self::Package(wand, stmts) => {
+                writeln!(f, "package {wand:?} {{")?;
+                f.pad("")?;
+                let indent = indent + 2;
+                for stmt in stmts.iter() {
+                    writeln!(f, "  {stmt:indent$?}")?;
+                    f.pad("")?;
+                }
+                write!(f, "}}")
+            }
+            Self::Apply(wand) => write!(f, "apply {:indent$?}", wand),
             Self::MethodCall(data) => {
                 if !data.targets.is_empty() {
                     fmt_comma_sep(f, data.targets)?;
@@ -336,6 +377,22 @@ impl<'vir, Curr, Next> Debug for StmtKindGenData<'vir, Curr, Next> {
                 fmt_comma_sep(f, data.args)?;
                 write!(f, ")")
             }
+            Self::If(e, thn, els) => {
+                writeln!(f, "if ({e:indent$?}) {{")?;
+                f.pad("")?;
+                let indent = indent + 2;
+                for stmt in thn.iter() {
+                    writeln!(f, "  {stmt:indent$?}")?;
+                    f.pad("")?;
+                }
+                writeln!(f, "}} else {{")?;
+                for stmt in els.iter() {
+                    writeln!(f, "  {stmt:indent$?}")?;
+                    f.pad("")?;
+                }
+                write!(f, "}}")
+            }
+            Self::Label(label) => write!(f, "label {label}"),
             Self::Comment(info) => write!(f, "// {}", info),
             Self::Dummy(info) => write!(f, "// {}", info),
         }
@@ -344,28 +401,42 @@ impl<'vir, Curr, Next> Debug for StmtKindGenData<'vir, Curr, Next> {
 
 impl<'vir, Curr, Next> Debug for TerminatorStmtGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        let indent = f.width().unwrap_or_default();
         match self {
             Self::AssumeFalse => write!(f, "assume false"),
             Self::Goto(target) => write!(f, "goto {:?}", target),
             Self::GotoIf(data) => {
                 if data.targets.is_empty() {
                     for extra in data.otherwise_statements {
-                        write!(f, "{extra:?}")?;
+                        write!(f, "{extra:indent$?}")?;
                     }
                     write!(f, "goto {:?}", data.otherwise)
                 } else {
                     for target in data.targets {
-                        write!(f, "if ({:?} == {:?}) {{", data.value, target.value)?;
+                        writeln!(
+                            f,
+                            "if ({:indent$?} == {:indent$?}) {{",
+                            data.value, target.value
+                        )?;
+                        f.pad("")?;
+                        let indent = indent + 2;
                         for extra in target.statements {
-                            write!(f, "{extra:?}")?;
+                            writeln!(f, "  {extra:indent$?}")?;
+                            f.pad("")?;
                         }
-                        write!(f, " goto {:?} }}\n  else", target.label)?;
+                        writeln!(f, "  goto {:?}", target.label)?;
+                        f.pad("")?;
+                        write!(f, "}} else ")?;
                     }
-                    write!(f, " {{ ")?;
+                    writeln!(f, "{{")?;
+                    let indent = indent + 2;
                     for extra in data.otherwise_statements {
-                        write!(f, "{extra:?}")?;
+                        writeln!(f, "  {extra:indent$?}")?;
+                        f.pad("")?;
                     }
-                    write!(f, "goto {:?} }}", data.otherwise)
+                    writeln!(f, "  goto {:?}", data.otherwise)?;
+                    f.pad("")?;
+                    write!(f, "}}")
                 }
             }
             Self::Exit => write!(f, "// return"),
@@ -376,13 +447,13 @@ impl<'vir, Curr, Next> Debug for TerminatorStmtGenData<'vir, Curr, Next> {
 
 impl<'vir, Curr, Next> Debug for TernaryGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        //write!(f, "{:?} ? {:?} : {:?}", self.cond, self.then, self.else_)
-
-        // slightly nicer spacing for debugging:
-        // - split off each case to new, indented line
-        let str_then = indent(format!("{:?}", self.then));
-        let str_else = indent(format!("{:?}", self.else_));
-        write!(f, "{:?}\n? {str_then}\n: {str_else}", self.cond)
+        let indent = f.width().unwrap_or_default();
+        writeln!(f, "{:indent$?}", self.cond)?;
+        f.pad("")?;
+        let indent = indent + 2;
+        writeln!(f, "? {:indent$?}", self.then)?;
+        f.pad("")?;
+        write!(f, ": {:indent$?}", self.else_)
     }
 }
 
@@ -446,5 +517,11 @@ impl<'vir, Curr, Next> Debug for UnOpGenData<'vir, Curr, Next> {
 impl<'vir, Curr, Next> Debug for UnfoldingGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "unfolding {:?} in ({:?})", self.target, self.expr)
+    }
+}
+
+impl<'vir, Curr, Next> Debug for WandGenData<'vir, Curr, Next> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "({:?}) --* ({:?})", self.lhs, self.rhs)
     }
 }

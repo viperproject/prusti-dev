@@ -330,36 +330,29 @@ mod private {
 /// This function is used to mark the beginning of evaluation of expressions
 /// in the "before expiration" context, just before the expiry of the borrow
 /// that the pledge is specifying.
-#[cfg_attr(feature = "prusti", prusti::builtin = "before_expiry_start")]
 pub fn before_expiry_start() {}
 
 /// End of the context started with `before_expiry_start`.
-#[cfg_attr(feature = "prusti", prusti::builtin = "before_expiry_end")]
 pub fn before_expiry_end() {}
 
 /// This function is used to mark the beginning of evaluation of expressions
 /// in the "old" context, that is at the beginning of the method call.
-#[cfg_attr(feature = "prusti", prusti::builtin = "old_start")]
 pub fn old_start() {}
 
 /// End of the context started with `old_start`.
-#[cfg_attr(feature = "prusti", prusti::builtin = "old_end")]
 pub fn old_end() {}
 
 /// This function is used to mark the beginning of evaluation of expressions
 /// in a given execution, when specifying a hyperproperty concerning multiple
 /// exeuctions.
-#[cfg_attr(feature = "prusti", prusti::builtin = "rel_start")]
 pub fn rel_start<const E: usize>() {}
 
 /// End of the context started with `rel_start`.
-#[cfg_attr(feature = "prusti", prusti::builtin = "rel_end")]
 pub fn rel_end<const E: usize>() {}
 
 /// Universal quantifier.
 ///
 /// This is a Prusti-internal representation of the `forall` syntax.
-#[cfg_attr(feature = "prusti", prusti::builtin = "forall")]
 pub fn forall<T, F>(_trigger_set: T, _closure: &F) -> bool {
     true
 }
@@ -367,7 +360,6 @@ pub fn forall<T, F>(_trigger_set: T, _closure: &F) -> bool {
 /// Existential quantifier.
 ///
 /// This is a Prusti-internal representation of the `exists` syntax.
-#[cfg_attr(feature = "prusti", prusti::builtin = "exists")]
 pub fn exists<T, F>(_trigger_set: T, _closure: F) -> bool {
     true
 }
@@ -383,7 +375,6 @@ pub fn snap<T>(_x: &T) -> T {
 /// `PartialEq` nor `Copy` implementation. The in-memory representation is
 /// constructed recursively: references are followed, unsafe pointers and cells
 /// are not. Importantly, addresses are not taken into consideration.
-#[cfg_attr(feature = "prusti", prusti::builtin = "snapshot_equality")]
 pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
     true
 }

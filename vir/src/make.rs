@@ -67,6 +67,15 @@ cfg_if! {
                 StmtKindGenData::Unfold(app) | StmtKindGenData::Fold(app) => {
                     check_predicate_app_bindings(m, app);
                 }
+                StmtKindGenData::Package(_wand, stmts) => {
+                    // TODO: check types in wand
+                    for stmt in stmts.iter() {
+                        check_stmt_bindings(m, stmt);
+                    }
+                }
+                StmtKindGenData::Apply(_wand) => {
+                    // TODO: check types in wand
+                }
                 StmtKindGenData::MethodCall(MethodCallGenData {
                     args,
                     ..
@@ -75,6 +84,16 @@ cfg_if! {
                         check_expr_bindings(m, *arg);
                     }
                 }
+                StmtKindGenData::If(e, thn, els) => {
+                    check_expr_bindings(m, e);
+                    for thn in thn.iter() {
+                        check_stmt_bindings(m, thn);
+                    }
+                    for els in els.iter() {
+                        check_stmt_bindings(m, els);
+                    }
+                }
+                StmtKindGenData::Label(_) => {},
                 StmtKindGenData::Comment(_) => {},
                 StmtKindGenData::Dummy(_) => todo!(),
             }
@@ -110,6 +129,9 @@ cfg_if! {
                     for arg in args.iter() {
                         check_expr_bindings(m, *arg);
                     }
+                },
+                ExprKindGenData::Old(OldGenData { expr, .. }) => {
+                    check_expr_bindings(m, *expr);
                 },
                 ExprKindGenData::Const(..) | ExprKindGenData::Lazy(..) => {},
                 ExprKindGenData::PredicateApp(app) => {
@@ -153,6 +175,10 @@ cfg_if! {
                     for qvar in qvars.iter() {
                         m.remove(qvar.name);
                     }
+                }
+                ExprKindGenData::Wand(WandGenData { lhs, rhs }) => {
+                    check_expr_bindings(m, *lhs);
+                    check_expr_bindings(m, *rhs);
                 }
                 other => todo!("{other:?}")
             }
@@ -214,10 +240,11 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_lazy_expr<'vir, Curr, Next>(
         &'vir self,
         name: &'vir str,
+        ty: Type<'vir>,
         func: Box<dyn for<'a> Fn(&'vir VirCtxt<'a>, Curr) -> Next + 'vir>,
     ) -> ExprGen<'vir, Curr, Next> {
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Lazy(
-            self.alloc(LazyGenData { name, func }),
+            self.alloc(LazyGenData { name, func, ty }),
         ))))
     }
 
@@ -242,11 +269,44 @@ impl<'tcx> VirCtxt<'tcx> {
         ))))
     }
 
+    pub fn mk_old<'vir, Curr, Next>(
+        &'vir self,
+        expr: ExprGen<'vir, Curr, Next>,
+        label: OldLabel<'vir>,
+    ) -> ExprGen<'vir, Curr, Next> {
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Old(
+            self.alloc(OldGenData { expr, label }),
+        ))))
+    }
+
     pub fn mk_old_expr<'vir, Curr, Next>(
         &'vir self,
         expr: ExprGen<'vir, Curr, Next>,
     ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Old(expr))))
+        self.mk_old(expr, OldLabel::None)
+    }
+
+    pub fn mk_old_lhs_expr<'vir, Curr, Next>(
+        &'vir self,
+        expr: ExprGen<'vir, Curr, Next>,
+    ) -> ExprGen<'vir, Curr, Next> {
+        self.mk_old(expr, OldLabel::Lhs)
+    }
+
+    pub fn mk_labelled_old_expr<'vir, Curr, Next>(
+        &'vir self,
+        expr: ExprGen<'vir, Curr, Next>,
+        label: Option<CfgBlockLabelData>,
+    ) -> ExprGen<'vir, Curr, Next> {
+        self.mk_old(expr, label.map(OldLabel::Block).unwrap_or(OldLabel::None))
+    }
+
+    pub fn mk_local_labelled_old_expr<'vir, Curr, Next>(
+        &'vir self,
+        expr: ExprGen<'vir, Curr, Next>,
+        label: &'vir str,
+    ) -> ExprGen<'vir, Curr, Next> {
+        self.mk_old(expr, OldLabel::Label(label))
     }
 
     pub fn mk_rel_expr<'vir, Curr, Next>(
@@ -266,6 +326,9 @@ impl<'tcx> VirCtxt<'tcx> {
         triggers: &'vir [TriggerGen<'vir, Curr, Next>],
         body: ExprGen<'vir, Curr, Next>,
     ) -> ExprGen<'vir, Curr, Next> {
+        if qvars.is_empty() {
+            return body;
+        }
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Forall(
             self.alloc(ForallGenData {
                 qvars,
@@ -308,6 +371,21 @@ impl<'tcx> VirCtxt<'tcx> {
         self.alloc(ExprGenData::new(
             self.alloc(ExprKindGenData::PredicateApp(pred_app)),
         ))
+    }
+
+    pub fn mk_wand<'vir, Curr, Next>(
+        &'vir self,
+        lhs: ExprGen<'vir, Curr, Next>,
+        rhs: ExprGen<'vir, Curr, Next>,
+    ) -> WandGen<'vir, Curr, Next> {
+        self.alloc(WandGenData { lhs, rhs })
+    }
+
+    pub fn mk_wand_expr<'vir, Curr, Next>(
+        &'vir self,
+        wand: WandGen<'vir, Curr, Next>,
+    ) -> ExprGen<'vir, Curr, Next> {
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Wand(wand))))
     }
 
     pub fn mk_bin_op_expr<'vir, Curr, Next>(
@@ -373,6 +451,13 @@ impl<'tcx> VirCtxt<'tcx> {
     }
 
     pub const fn mk_bool<'vir, const VALUE: bool>(&'vir self) -> Expr<'vir> {
+        const_expr!(&ExprKindGenData::Const(&ConstData::Bool(VALUE)))
+    }
+
+    // TODO: can this simply replace mk_bool?
+    pub const fn mk_bool_gen<'vir, Curr, Next, const VALUE: bool>(
+        &'vir self,
+    ) -> ExprGen<'vir, Curr, Next> {
         const_expr!(&ExprKindGenData::Const(&ConstData::Bool(VALUE)))
     }
 
@@ -540,6 +625,23 @@ impl<'tcx> VirCtxt<'tcx> {
         ))
     }
 
+    pub fn mk_package_stmt<'vir, Curr, Next>(
+        &'vir self,
+        wand: WandGen<'vir, Curr, Next>,
+        stmts: &'vir [StmtGen<'vir, Curr, Next>],
+    ) -> StmtGen<'vir, Curr, Next> {
+        self.alloc(StmtGenData::new(
+            self.alloc(StmtKindGenData::Package(wand, stmts)),
+        ))
+    }
+
+    pub fn mk_apply_stmt<'vir, Curr, Next>(
+        &'vir self,
+        wand: WandGen<'vir, Curr, Next>,
+    ) -> StmtGen<'vir, Curr, Next> {
+        self.alloc(StmtGenData::new(self.alloc(StmtKindGenData::Apply(wand))))
+    }
+
     pub fn mk_pure_assign_stmt<'vir, Curr, Next>(
         &'vir self,
         lhs: ExprGen<'vir, Curr, Next>,
@@ -565,6 +667,24 @@ impl<'tcx> VirCtxt<'tcx> {
         self.alloc(StmtGenData::new(
             self.alloc(StmtKindGenData::LocalDecl(local, expr)),
         ))
+    }
+
+    pub fn mk_if_stmt<'vir, Curr, Next>(
+        &'vir self,
+        cond: ExprGen<'vir, Curr, Next>,
+        then_stmts: &'vir [StmtGen<'vir, Curr, Next>],
+        else_stmts: &'vir [StmtGen<'vir, Curr, Next>],
+    ) -> StmtGen<'vir, Curr, Next> {
+        self.alloc(StmtGenData::new(
+            self.alloc(StmtKindGenData::If(cond, then_stmts, else_stmts)),
+        ))
+    }
+
+    pub fn mk_label_stmt<'vir, Curr, Next>(
+        &'vir self,
+        label: &'vir str,
+    ) -> StmtGen<'vir, Curr, Next> {
+        self.alloc(StmtGenData::new(self.alloc(StmtKindGenData::Label(label))))
     }
 
     pub fn mk_assume_false_stmt<'vir, Curr, Next>(
@@ -625,9 +745,11 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_cfg_block<'vir, Curr, Next>(
         &'vir self,
         label: CfgBlockLabel<'vir>,
+        invariants: &'vir [ExprGen<'vir, Curr, Next>],
         stmts: &'vir [StmtGen<'vir, Curr, Next>],
         terminator: TerminatorStmtGen<'vir, Curr, Next>,
     ) -> CfgBlockGen<'vir, Curr, Next> {
+        let label = self.alloc(CfgLabelGenData { label, invariants });
         self.alloc(CfgBlockGenData {
             label,
             stmts,
@@ -705,14 +827,17 @@ impl<'tcx> VirCtxt<'tcx> {
         })
     }
 
-    pub fn mk_conj<'vir>(&'vir self, elems: &[Expr<'vir>]) -> Expr<'vir> {
+    pub fn mk_conj<'vir, Curr, Next>(
+        &'vir self,
+        elems: &[ExprGen<'vir, Curr, Next>],
+    ) -> ExprGen<'vir, Curr, Next> {
         elems
             .split_last()
             .map(|(last, rest)| {
                 rest.iter()
                     .rfold(*last, |acc, e| self.mk_bin_op_expr(BinOpKind::And, *e, acc))
             })
-            .unwrap_or_else(|| self.mk_bool::<true>())
+            .unwrap_or_else(|| self.mk_bool_gen::<Curr, Next, true>())
     }
 
     pub fn mk_disj<'vir>(&'vir self, elems: &[Expr<'vir>]) -> Expr<'vir> {
@@ -733,7 +858,7 @@ impl<'tcx> VirCtxt<'tcx> {
             ty::Int(ty::IntTy::I32) => (32, true),
             ty::Int(ty::IntTy::I64) => (64, true),
             ty::Int(ty::IntTy::I128) => (128, true),
-            ty::Uint(ty::UintTy::Usize) => ((std::mem::size_of::<usize>() * 8) as u32, true),
+            ty::Uint(ty::UintTy::Usize) => ((std::mem::size_of::<usize>() * 8) as u32, false),
             ty::Uint(ty::UintTy::U8) => (8, false),
             ty::Uint(ty::UintTy::U16) => (16, false),
             ty::Uint(ty::UintTy::U32) => (32, false),

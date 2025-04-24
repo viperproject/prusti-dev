@@ -20,6 +20,8 @@
 //    }};
 //}
 
+//use crate::UnknownArity;
+
 #[macro_export]
 macro_rules! vir_type_list {
     ($vcx:expr; $( $args:tt ),* $(,)? ) => {{
@@ -300,4 +302,217 @@ macro_rules! vir_predicate {
             None
         )
     }};
+}
+
+pub trait ExprApply<'vir, A> {
+    fn expr_apply(&self, vcx: &'vir crate::VirCtxt<'vir>, args: &[A]) -> crate::Expr<'vir>;
+}
+
+impl<'vir> ExprApply<'vir, crate::Expr<'vir>>
+    for crate::FunctionIdent<'vir, crate::UnknownArity<'vir>>
+{
+    fn expr_apply(
+        &self,
+        vcx: &'vir crate::VirCtxt<'vir>,
+        args: &[crate::Expr<'vir>],
+    ) -> crate::Expr<'vir> {
+        self.apply(vcx, args)
+    }
+}
+impl<'vir, const N: usize> ExprApply<'vir, crate::Expr<'vir>>
+    for crate::FunctionIdent<'vir, crate::KnownArity<'vir, N>>
+{
+    fn expr_apply(
+        &self,
+        vcx: &'vir crate::VirCtxt<'vir>,
+        args: &[crate::Expr<'vir>],
+    ) -> crate::Expr<'vir> {
+        assert_eq!(args.len(), N);
+        self.apply(vcx, args.try_into().unwrap())
+    }
+}
+impl<'vir> ExprApply<'vir, crate::Expr<'vir>>
+    for crate::PredicateIdent<'vir, crate::UnknownArity<'vir>>
+{
+    fn expr_apply(
+        &self,
+        vcx: &'vir crate::VirCtxt<'vir>,
+        args: &[crate::Expr<'vir>],
+    ) -> crate::Expr<'vir> {
+        vcx.mk_predicate_app_expr(self.apply(vcx, args, None))
+    }
+}
+impl<'vir> ExprApply<'vir, crate::Expr<'vir>> for crate::Field<'vir> {
+    fn expr_apply(
+        &self,
+        vcx: &'vir crate::VirCtxt<'vir>,
+        args: &[crate::Expr<'vir>],
+    ) -> crate::Expr<'vir> {
+        assert_eq!(args.len(), 1);
+        vcx.mk_field_expr(args[0], self)
+    }
+}
+
+pub trait ExprQuote<'vir> {
+    fn expr(&self, vcx: &'vir crate::VirCtxt<'vir>) -> crate::Expr<'vir>;
+}
+
+impl<'vir> ExprQuote<'vir> for crate::Expr<'vir> {
+    fn expr(&self, _vcx: &'vir crate::VirCtxt<'vir>) -> crate::Expr<'vir> {
+        self
+    }
+}
+impl<'vir> ExprQuote<'vir> for crate::Local<'vir> {
+    fn expr(&self, vcx: &'vir crate::VirCtxt<'vir>) -> crate::Expr<'vir> {
+        vcx.mk_local_ex_local(self)
+    }
+}
+
+#[macro_export]
+macro_rules! expr {
+    (@typ; [$outer:expr]) => { $outer };
+    (@typ; Bool) => { &$crate::TypeData::Bool };
+    (@typ; Int) => { &$crate::TypeData::Int };
+    (@typ; Ref) => { &$crate::TypeData::Ref };
+
+    (@forall_qvars($output:ident, $qvars:ident); :: { $($triggers:tt)* } $($tokens:tt)*) => { $output.push(vcx!().mk_forall_expr(
+        vcx!().alloc_slice($qvars.as_slice()),
+        vcx!().alloc_slice($crate::expr!(@expr_list; $($triggers)*).into_iter().map(|e| vcx!().mk_trigger(&[e])).collect::<Vec<_>>().as_slice()),
+        $crate::expr!(@expr_one; $($tokens)*),
+    )) };
+    (@forall_qvars($output:ident, $qvars:ident); :: $($tokens:tt)*) => { $output.push(vcx!().mk_forall_expr(
+        // TODO: warn: no triggers provided?
+        vcx!().alloc_slice($qvars.as_slice()),
+        &[],
+        $crate::expr!(@expr_one; $($tokens)*),
+    )) };
+    (@forall_qvars($output:ident, $qvars:ident); ..[$outer:expr] $($tokens:tt)*) => { {
+        $qvars.extend($outer.iter().map(|local| vcx!().mk_local_decl_local(local)));
+        $crate::expr!(@forall_qvars($output, $qvars); $($tokens)*)
+    } };
+    (@forall_qvars($output:ident, $qvars:ident); $qvar:ident : $qtype:tt $($tokens:tt)* ) => { {
+        let local = vcx!().mk_local(stringify!($qvar), $crate::expr!(@typ; $qtype));
+        $qvars.push(vcx!().mk_local_decl_local(local));
+        let $qvar: $crate::Expr = vcx!().mk_local_ex_local(local);
+        $crate::expr!(@forall_qvars($output, $qvars); $($tokens)*)
+    } };
+    (@forall_qvars($output:ident, $qvars:ident); , $($tokens:tt)* ) => { // TODO: this accepts too many commas
+        $crate::expr!(@forall_qvars($output, $qvars); $($tokens)*)
+    };
+    (@forall_qvars($output:ident, $qvars:ident); ) => { compile_error!("malformed forall") };
+
+    (@expr_done($output:ident); , $($tokens:tt)+) => { $crate::expr!(@expr($output); $($tokens)*) };
+    (@expr_done($output:ident); $($tokens:tt)+) => { compile_error!("unexpected VIR expression (missing comma?)") };
+    (@expr_done($output:ident);) => {};
+
+    (@expr($output:ident); unfolding_wildcard ( [ $outer:expr ]( $($args:tt)* ) ) in ( $($rhs:tt)+ ) ) => { { $output.push(vcx!().mk_unfolding_expr(
+        $outer.apply(vcx!(),
+            $crate::expr!(@expr_list; $($args)*).as_slice(),
+            Some(vcx!().mk_wildcard()),
+        ),
+        $crate::expr!(@expr_one; $($rhs)*),
+    )); } };
+    (@expr($output:ident); acc( [ $outer:expr ]( $($args:tt)* ) ) ) => { { $output.push(vcx!().mk_predicate_app_expr(
+        $outer.apply(vcx!(),
+            $crate::expr!(@expr_list; $($args)*).as_slice(),
+            None,
+        )
+    )); } };
+    (@expr($output:ident); acc_field( [ $outer:expr ]( $($args:tt)* ) ) ) => { { $output.push(vcx!().mk_acc_field_expr(
+        $crate::expr!(@expr_one; $($args)*),
+        $outer,
+        None,
+    )); } };
+    (@expr($output:ident); acc_wildcard( [ $outer:expr ]( $($args:tt)* ) ) ) => { { $output.push(vcx!().mk_predicate_app_expr(
+        $outer.apply(vcx!(),
+            $crate::expr!(@expr_list; $($args)*).as_slice(),
+            Some(vcx!().mk_wildcard()),
+        )
+    )); } };
+    (@expr($output:ident); [ $outer:expr ]( ) ) => { { $output.push($outer.expr_apply(
+        vcx!(),
+        &[],
+    )); } };
+    (@expr($output:ident); [ $outer:expr ]( $($args:tt)* ) ) => { { $output.push($outer.expr_apply(
+        vcx!(),
+        $crate::expr!(@expr_list; $($args)*).as_slice(),
+    )); } };
+    (@expr($output:ident); [ $outer:expr ] ) => { { $output.push($outer.expr(vcx!())); } };
+    (@expr($output:ident); ..[ $outer:expr ] ) => { { $output.extend($outer.iter().map(|e| e.expr(vcx!()))); } };
+    (@expr($output:ident); ( $($lhs:tt)+ ) => ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_bin_op_expr(
+        $crate::BinOpKind::Implies,
+        $crate::expr!(@expr_one; $($lhs)*),
+        $crate::expr!(@expr_one; $($rhs)*),
+    )); } };
+    (@expr($output:ident); ( $($lhs:tt)+ ) == ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_eq_expr(
+        $crate::expr!(@expr_one; $($lhs)*),
+        $crate::expr!(@expr_one; $($rhs)*),
+    )); } };
+    (@expr($output:ident); ( $($lhs:tt)+ ) && ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_conj(&[
+        $crate::expr!(@expr_one; $($lhs)*),
+        $crate::expr!(@expr_one; $($rhs)*),
+    ])); } };
+    (@expr($output:ident); ( $($lhs:tt)+ ) || ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_disj(&[
+        $crate::expr!(@expr_one; $($lhs)*),
+        $crate::expr!(@expr_one; $($rhs)*),
+    ])); } };
+    (@expr($output:ident); ( $($lhs:tt)+ ) ==> ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_bin_op_expr(
+        $crate::BinOpKind::Implies,
+        $crate::expr!(@expr_one; $($lhs)*),
+        $crate::expr!(@expr_one; $($rhs)*),
+    )); } };
+    (@expr($output:ident); ( $($lhs:tt)+ ) <= ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_bin_op_expr(
+        $crate::BinOpKind::CmpLe,
+        $crate::expr!(@expr_one; $($lhs)*),
+        $crate::expr!(@expr_one; $($rhs)*),
+    )); } };
+    (@expr($output:ident); ( $($lhs:tt)+ ) < ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_bin_op_expr(
+        $crate::BinOpKind::CmpLt,
+        $crate::expr!(@expr_one; $($lhs)*),
+        $crate::expr!(@expr_one; $($rhs)*),
+    )); } };
+    (@expr($output:ident); ( $($lhs:tt)+ ) + ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_bin_op_expr(
+        $crate::BinOpKind::Add,
+        $crate::expr!(@expr_one; $($lhs)*),
+        $crate::expr!(@expr_one; $($rhs)*),
+    )); } };
+    (@expr($output:ident); null) => { { $output.push(vcx!().mk_null()); } };
+    (@expr($output:ident); true) => { { $output.push(vcx!().mk_bool::<true>()); } };
+    (@expr($output:ident); false) => { { $output.push(vcx!().mk_bool::<false>()); } };
+    (@expr($output:ident); result) => { { $output.push(vcx!().mk_result()); } };
+    (@expr($output:ident); forall $($tokens:tt)+) => { {
+        let mut qvars = Vec::new();
+        $crate::expr!(@forall_qvars($output, qvars); $($tokens)*)
+    } };
+    (@expr($output:ident); $ident:ident $($rest:tt)*) => { { $output.push($ident.expr(vcx!())); $crate::expr!(@expr_done($output); $($rest)*); } };
+    (@expr($output:ident); $($tokens:tt)+) => { compile_error!("VIR syntax error") };
+    (@expr($output:ident);) => { compile_error!("unexpected end of VIR expression") };
+
+    (@expr_one; $($tokens:tt)*) => { {
+        #[allow(unused_mut)]
+        let mut output: Vec<$crate::Expr> = Vec::with_capacity(1);
+        $crate::expr!(@expr(output); $($tokens)*);
+        assert_eq!(output.len(), 1, "expected one VIR expression");
+        output[0]
+    } };
+    (@expr_list;) => { Vec::new() };
+    (@expr_list; $($tokens:tt)*) => { {
+        #[allow(unused_mut)]
+        let mut output: Vec<$crate::Expr> = Vec::new();
+        $crate::expr!(@expr(output); $($tokens)*);
+        output
+    } };
+
+    ($vcx:expr; $($tokens:tt)+) => { {
+        use $crate::macros::{ExprApply, ExprQuote};
+        let vcx = $vcx; macro_rules! vcx { () => { vcx }; }
+        $crate::expr!(@expr_one; $($tokens)*)
+    } };
+    ($($tokens:tt)+) => { vir::with_vcx(|vcx| {
+        use $crate::macros::{ExprApply, ExprQuote};
+        #[allow(unused)]
+        macro_rules! vcx { () => { vcx }; }
+        $crate::expr!(@expr_one; $($tokens)*)
+    }) };
+    () => { compile_error!("expected VIR expression") };
 }

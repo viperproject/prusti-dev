@@ -11,7 +11,6 @@
 #![warn(clippy::disallowed_types)]
 #![feature(rustc_private)]
 #![feature(box_patterns)]
-#![feature(control_flow_enum)]
 #![feature(min_specialization)]
 // We may want to remove this in the future.
 #![allow(clippy::needless_lifetimes)]

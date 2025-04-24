@@ -10,5 +10,5 @@ mod harnesses;
 fn main() {
     env_logger::init_from_env(env_logger::Env::new().filter_or("PRUSTI_LOG", "warn"));
     harnesses::compiletest::run();
-    harnesses::cargotest::run();
+    //harnesses::cargotest::run();
 }

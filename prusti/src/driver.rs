@@ -132,6 +132,7 @@ fn main() {
         }
     }
 
+    // TODO: is this necessary, after compiler update there will never be an error?
     let exit_code = driver::catch_with_exit_code(move || {
         user::message(format!(
             "{}\n{}\n{}\n",
@@ -188,7 +189,8 @@ fn main() {
 
         let mut callbacks = PrustiCompilerCalls;
 
-        driver::RunCompiler::new(&rustc_args, &mut callbacks).run()
+        driver::RunCompiler::new(&rustc_args, &mut callbacks).run();
+        Ok(())
     });
 
     // Check if verifying a program in our test suite is taking too long

@@ -33,7 +33,10 @@ impl<'vir> RustTyGenericCastEncOutput<'vir, CastFunctionsOutputRef<'vir>> {
     /// Returns the data to facilitate a cast from the concrete representation to
     /// the generic representation, if the input type wasn't already a generic.
     pub fn to_generic_cast(&self) -> Option<Cast<'vir, MakeGenericCastFunction<'vir>>> {
-        self.cast.generic_option().map(|f| Cast::new(f, &[]))
+        //self.cast.generic_option().map(|f| Cast::new(f, &[]))
+        self.cast
+            .generic_option()
+            .map(|f| Cast::new(f, self.ty_args))
     }
 }
 

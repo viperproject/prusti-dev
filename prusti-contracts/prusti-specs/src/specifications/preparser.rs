@@ -782,6 +782,7 @@ enum MarkerKind {
 
 impl MarkerKind {
     fn translate(&self, span: Span, expr: TokenStream) -> TokenStream {
+        let full_span = join_spans(span, expr.span());
         let (start, end) = match self {
             MarkerKind::Old => (
                 quote_spanned!(span => ::prusti_contracts::old_start()),
@@ -796,7 +797,7 @@ impl MarkerKind {
                 quote_spanned!(span => ::prusti_contracts::before_expiry_end()),
             ),
         };
-        quote_spanned! { span => {
+        quote_spanned! { full_span => {
             #start ;
             let r = { #expr };
             #end ;
