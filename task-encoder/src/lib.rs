@@ -29,8 +29,10 @@ pub trait TaskEncoder {
     /// A reference to an encoded item. Should be non-unit for tasks which can
     /// be "referred" to from other parts of a program, as opposed to tasks
     /// where only the full output matters.
-    type OutputRef<'vir>: Clone + OutputRefAny = ()
-        where Self: 'vir;
+    type OutputRef<'vir>: Clone + OutputRefAny
+        = ()
+    where
+        Self: 'vir;
 
     /// Fully encoded output for this task. When encoding items which can be
     /// dependencies (such as methods), this output should only be emitted in
@@ -42,8 +44,10 @@ pub trait TaskEncoder {
     /// Fully encoded output for this task for dependents. When encoding items
     /// which can be dependencies (such as methods), this output should be
     /// emitted in each Viper program that depends on this task.
-    type OutputFullDependency<'vir>: Clone = ()
-        where Self: 'vir;
+    type OutputFullDependency<'vir>: Clone
+        = ()
+    where
+        Self: 'vir;
 
     type EnqueueingError: Clone + std::fmt::Debug = ();
     type EncodingError: Clone + std::fmt::Debug;

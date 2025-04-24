@@ -91,6 +91,11 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
                 target_dir.join(lib_file).to_str().unwrap()
             ));
         }
+
+        // Avoid need for `main` function when running `prusti-rustc` directly
+        if !args.iter().any(|s| s.starts_with("--crate-type=")) {
+            args.push("--crate-type=lib".into());
+        }
     }
     cmd.args(&args);
 
