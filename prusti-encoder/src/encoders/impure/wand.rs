@@ -1,5 +1,3 @@
-use std::collections::BTreeSet;
-
 use pcg::{
     borrow_pcg::{
         borrow_pcg_edge::{BorrowPCGEdgeLike, BorrowPCGEdgeRef},
@@ -9,7 +7,7 @@ use pcg::{
         state::BorrowsState,
         unblock_graph::UnblockGraph,
     },
-    combined_pcs::PCGNode,
+    pcg::PCGNode,
     utils::{maybe_old::MaybeOldPlace, maybe_remote::MaybeRemotePlace},
 };
 use task_encoder::TaskEncoder;
@@ -18,8 +16,8 @@ use crate::encoders::ImpureEncVisitor;
 
 use super::r#loop::WandOldOuter;
 
-type Inputs<'a> = BTreeSet<PCGNode<'a, MaybeRemotePlace<'a>, MaybeRemotePlace<'a>>>;
-type Outputs<'a> = BTreeSet<RegionProjection<'a, MaybeOldPlace<'a>>>;
+type Inputs<'a> = Vec<PCGNode<'a, MaybeRemotePlace<'a>, MaybeRemotePlace<'a>>>;
+type Outputs<'a> = Vec<RegionProjection<'a, MaybeOldPlace<'a>>>;
 
 impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     pub(crate) fn ignore_abstraction_edge(
@@ -94,13 +92,13 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         rhs: impl Into<PCGNode<'vir>>,
         old_outer: &mut WandOldOuter<'vir>,
     ) -> Vec<vir::Stmt<'vir>> {
-        let ug = UnblockGraph::for_node(rhs, borrows_state, self.fpcs_analysis.repacker());
+        let ug = UnblockGraph::for_node(rhs, borrows_state, self.pcg_ctxt());
 
         let WandOldOuter::Label(label) = old_outer else {
             unreachable!()
         };
         let label = *label.get_or_insert_with(|| self.new_label("outer_package"));
-        let actions = ug.actions(self.fpcs_analysis.repacker()).unwrap();
+        let actions = ug.actions(self.pcg_ctxt()).unwrap();
         let package_script = self.block(|visitor| {
             visitor.pcs_unblock_actions(borrows_state, &actions, Some(label));
         });
