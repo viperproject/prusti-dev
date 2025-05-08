@@ -1,4 +1,4 @@
-use pcg::r#loop::LoopAnalysis;
+use pcg::{borrow_pcg::borrow_checker::r#impl::BorrowCheckerImpl, r#loop::LoopAnalysis};
 use prusti_rustc_interface::middle::mir;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{MethodIdent, UnknownArity, ViperIdent};
@@ -121,7 +121,8 @@ where
                 let body_with_facts = vcx.body_mut().get_impure_fn_body_with_facts(local_def_id);
 
                 let loop_analysis = LoopAnalysis::find_loops(&body);
-                let fpcs_analysis = pcg::run_pcg(&body_with_facts, vcx.tcx(), None);
+                let bc = BorrowCheckerImpl::new(vcx.tcx(), &body_with_facts);
+                let fpcs_analysis = pcg::run_pcg(&body_with_facts.body, vcx.tcx(), &bc, None);
 
                 let block_count = body.basic_blocks.len();
 

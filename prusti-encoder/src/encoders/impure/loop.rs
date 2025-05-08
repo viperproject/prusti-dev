@@ -2,8 +2,8 @@ use pcg::{
     borrow_pcg::region_projection::{
         MaybeRemoteRegionProjectionBase, RegionProjection, RegionProjectionBaseLike,
     },
-    combined_pcs::{EvalStmtPhase, PCGNode},
     free_pcs::PcgBasicBlock,
+    pcg::{EvalStmtPhase, PCGNode},
     r#loop::LoopId,
     utils::{maybe_old::MaybeOldPlace, maybe_remote::MaybeRemotePlace, Place, SnapshotLocation},
 };
@@ -32,25 +32,22 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     ) -> &'vir [vir::Expr<'vir>] {
         let mut inv = Vec::new();
         let start = &cfpcs.statements[0];
-        let state = &**start.states[EvalStmtPhase::PreOperands];
-        let borrows = &*start.borrows[EvalStmtPhase::PreOperands];
+        let state = &*start.states[EvalStmtPhase::PreOperands];
+        // let borrows = &*start.borrows[EvalStmtPhase::PreOperands];
         // self.stmt(self.vcx.mk_comment_stmt(
         //     vir::vir_format!(self.vcx, "_borrows: {:#?}", borrows),
         // ));
-        for (_local, cap) in state.iter_enumerated() {
-            if cap.is_unallocated() {
+        for cap_local in state.owned_pcg().locals().iter() {
+            if cap_local.is_unallocated() {
                 continue;
             }
-            let cap = cap.get_allocated();
-            for (place, cap) in cap.place_capabilities().iter() {
-                if !cap.is_exclusive() {
+            let cap = cap_local.get_allocated();
+            for place in cap.leaves(self.pcg_ctxt()).iter() {
+                if !state.capabilities().is_exclusive(*place) {
                     continue;
                 }
-                let MaybeOldPlace::Current { place } = place else {
-                    todo!("{place:?}")
-                };
-                let (place_res, snap, _, _) = self.encode_place_snap(place);
-                let ty = (*place).ty(self.local_decls, self.vcx.tcx());
+                let (place_res, snap, _, _) = self.encode_place_snap(*place);
+                let ty = (*place).ty(self.pcg_ctxt());
                 let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(ty.ty).unwrap();
                 let pred = ty_out.ref_to_pred(self.vcx, place_res.expr, None);
                 inv.push(pred);
@@ -70,7 +67,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 }
             }
         }
-        for (_edge, inputs, outputs) in Self::get_abstraction_edges(borrows.graph()) {
+        for (_edge, inputs, outputs) in Self::get_abstraction_edges(state.borrow_pcg().graph()) {
             let mut let_bind = WandOldOuter::LetBind(Vec::new());
             let mut wand_rhs = Vec::new();
             for i in inputs {

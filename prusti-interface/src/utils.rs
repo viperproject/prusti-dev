@@ -32,31 +32,6 @@ pub fn is_prefix<'tcx>(place: mir::Place<'tcx>, potential_prefix: mir::Place<'tc
     }
 }
 
-/// Expand `current_place` one level down by following the `guide_place`.
-/// Returns the new `current_place` and a vector containing other places that
-/// could have resulted from the expansion.
-pub fn expand_one_level<'tcx>(
-    mir: &mir::Body<'tcx>,
-    tcx: TyCtxt<'tcx>,
-    current_place: mir::Place<'tcx>,
-    guide_place: mir::Place<'tcx>,
-) -> (mir::Place<'tcx>, Vec<mir::Place<'tcx>>) {
-    use pcg::utils::{Place, PlaceRepacker};
-    let repacker = PlaceRepacker::new(mir, tcx);
-    let current_place = Place::from(current_place);
-    let _res = current_place.expand_one_level(Place::from(guide_place), repacker);
-    unreachable!()
-    /*
-    (
-        res.0.to_rust_place(repacker),
-        res.1
-            .into_iter()
-            .map(|r| r.to_rust_place(repacker))
-            .collect(),
-    )
-    */
-}
-
 /// Pop the last projection from the place and return the new place with the popped element.
 pub fn try_pop_one_level<'tcx>(
     tcx: TyCtxt<'tcx>,
@@ -84,67 +59,6 @@ pub fn try_pop_deref<'tcx>(tcx: TyCtxt<'tcx>, place: mir::Place<'tcx>) -> Option
         }
     })
 }
-
-/// Subtract the `subtrahend` place from the `minuend` place. The
-/// subtraction is defined as set minus between `minuend` place replaced
-/// with a set of places that are unrolled up to the same level as
-/// `subtrahend` and the singleton `subtrahend` set. For example,
-/// `subtract(x.f, x.f.g.h)` is performed by unrolling `x.f` into
-/// `{x.g, x.h, x.f.f, x.f.h, x.f.g.f, x.f.g.g, x.f.g.h}` and
-/// subtracting `{x.f.g.h}` from it, which results into `{x.g, x.h,
-/// x.f.f, x.f.h, x.f.g.f, x.f.g.g}`.
-#[tracing::instrument(level = "debug", skip(mir, tcx), ret)]
-pub fn expand<'tcx>(
-    mir: &mir::Body<'tcx>,
-    tcx: TyCtxt<'tcx>,
-    mut minuend: mir::Place<'tcx>,
-    subtrahend: mir::Place<'tcx>,
-) -> Vec<mir::Place<'tcx>> {
-    assert!(
-        is_prefix(subtrahend, minuend),
-        "The minuend must be the prefix of the subtrahend."
-    );
-    let mut place_set = Vec::new();
-    while minuend.projection.len() < subtrahend.projection.len() {
-        let (new_minuend, places) = expand_one_level(mir, tcx, minuend, subtrahend);
-        minuend = new_minuend;
-        place_set.extend(places);
-    }
-    place_set
-}
-
-/// Try to collapse all places in `places` by following the
-/// `guide_place`. This function is basically the reverse of
-/// `expand_struct_place`.
-pub fn collapse<'tcx>(
-    mir: &mir::Body<'tcx>,
-    tcx: TyCtxt<'tcx>,
-    places: &mut FxHashSet<mir::Place<'tcx>>,
-    guide_place: mir::Place<'tcx>,
-) {
-    fn recurse<'tcx>(
-        mir: &mir::Body<'tcx>,
-        tcx: TyCtxt<'tcx>,
-        places: &mut FxHashSet<mir::Place<'tcx>>,
-        current_place: mir::Place<'tcx>,
-        guide_place: mir::Place<'tcx>,
-    ) {
-        if current_place != guide_place {
-            let (new_current_place, mut expansion) =
-                expand_one_level(mir, tcx, current_place, guide_place);
-            recurse(mir, tcx, places, new_current_place, guide_place);
-            expansion.push(new_current_place);
-            if expansion.iter().all(|place| places.contains(place)) {
-                for place in expansion {
-                    places.remove(&place);
-                }
-                places.insert(current_place);
-            }
-        }
-    }
-    recurse(mir, tcx, places, guide_place.local.into(), guide_place);
-}
-
 #[derive(Debug)]
 pub struct VecPlaceComponent<'tcx> {
     place: mir::Place<'tcx>,
@@ -164,27 +78,6 @@ pub struct VecPlace<'tcx> {
 }
 
 impl<'tcx> VecPlace<'tcx> {
-    pub fn new(
-        mir: &mir::Body<'tcx>,
-        tcx: TyCtxt<'tcx>,
-        place: mir::Place<'tcx>,
-    ) -> VecPlace<'tcx> {
-        let mut vec_place = Self {
-            components: Vec::new(),
-        };
-        let mut prefix: mir::Place = place.local.into();
-        vec_place
-            .components
-            .push(VecPlaceComponent { place: prefix });
-        while prefix.projection.len() < place.projection.len() {
-            let (new_prefix, _) = expand_one_level(mir, tcx, prefix, place);
-            prefix = new_prefix;
-            vec_place
-                .components
-                .push(VecPlaceComponent { place: prefix });
-        }
-        vec_place
-    }
     pub fn iter<'a>(&'a self) -> impl DoubleEndedIterator<Item = &'a VecPlaceComponent<'tcx>> {
         self.components.iter()
     }

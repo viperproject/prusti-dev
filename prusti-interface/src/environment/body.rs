@@ -1,4 +1,4 @@
-use pcg::combined_pcs::BodyWithBorrowckFacts;
+use pcg::pcg::BodyWithBorrowckFacts;
 use prusti_rustc_interface::{
     macros::{TyDecodable, TyEncodable},
     middle::{
@@ -131,7 +131,6 @@ impl<'tcx> EnvBody<'tcx> {
 
         BodyWithBorrowckFacts {
             input_facts: body_with_facts.input_facts,
-            output_facts: body_with_facts.output_facts,
             location_table: body_with_facts.location_table.map(Rc::new),
             body: body_with_facts.body,
             promoted: body_with_facts.promoted,

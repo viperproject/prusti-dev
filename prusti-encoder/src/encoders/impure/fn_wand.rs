@@ -184,9 +184,9 @@ impl<'vir> WandEncOutput<'vir> {
                 let ug = UnblockGraph::for_node(
                     mir::Place::from(rhs),
                     final_borrow_state,
-                    visitor.fpcs_analysis.repacker(),
+                    visitor.pcg_ctxt(),
                 );
-                let actions = ug.actions(visitor.fpcs_analysis.repacker()).unwrap();
+                let actions = ug.actions(visitor.pcg_ctxt()).unwrap();
                 let unblock = visitor.block(|visitor| {
                     visitor.pcs_unblock_actions(final_borrow_state, &actions, Some(label));
                 });
