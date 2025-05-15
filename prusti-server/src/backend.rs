@@ -6,7 +6,7 @@ pub enum Backend<'a> {
     Viper(viper::Verifier<'a>, &'a VerificationContext<'a>),
 }
 
-impl<'a> Backend<'a> {
+impl Backend<'_> {
     pub fn verify(&mut self, program: vir::ProgramRef) -> VerificationResult {
         match self {
             Backend::Viper(viper, context) => {

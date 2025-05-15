@@ -204,7 +204,7 @@ mod self_type_rewriter {
         self_type_trait: Option<&'a TypePath>,
     }
 
-    impl<'a> Rewriter<'a> {
+    impl Rewriter<'_> {
         pub fn rewrite_impl_item_method(&mut self, item: &mut ImplItemMethod) {
             syn::visit_mut::visit_impl_item_method_mut(self, item);
         }
@@ -218,7 +218,7 @@ mod self_type_rewriter {
         }
     }
 
-    impl<'a> VisitMut for Rewriter<'a> {
+    impl VisitMut for Rewriter<'_> {
         fn visit_type_mut(&mut self, ty: &mut Type) {
             if let Type::Path(ty_path) = ty {
                 if ty_path.qself.is_none()
@@ -302,7 +302,7 @@ mod receiver_rewriter {
         new_ty: &'a Type,
     }
 
-    impl<'a> Rewriter<'a> {
+    impl Rewriter<'_> {
         fn rewrite_impl_item_method(&mut self, item: &mut ImplItemMethod) {
             syn::visit_mut::visit_impl_item_method_mut(self, item);
         }
@@ -332,7 +332,7 @@ mod receiver_rewriter {
         }
     }
 
-    impl<'a> VisitMut for Rewriter<'a> {
+    impl VisitMut for Rewriter<'_> {
         fn visit_fn_arg_mut(&mut self, fn_arg: &mut FnArg) {
             if let FnArg::Receiver(receiver) = fn_arg {
                 let span = receiver.span();

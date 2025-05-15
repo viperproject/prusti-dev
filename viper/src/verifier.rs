@@ -406,7 +406,7 @@ impl<'a> Verifier<'a> {
     }
 }
 
-impl<'a> Drop for Verifier<'a> {
+impl Drop for Verifier<'_> {
     fn drop(&mut self) {
         // Tell the verifier to stop its threads.
         self.jni

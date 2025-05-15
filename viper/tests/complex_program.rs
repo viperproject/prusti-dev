@@ -109,7 +109,7 @@ fn success_with_complex_program() {
                         ast.local_var("box", ast.ref_type(), ast.no_position()),
                         ast.field("value", ast.int_type()),
                     ),
-                    ast.full_perm(),
+                    Some(ast.full_perm()),
                 ),
                 ast.func_app(
                     "even",
@@ -144,7 +144,7 @@ fn success_with_complex_program() {
                     &[ast.local_var("box", ast.ref_type(), ast.no_position())],
                     "EvenNumBox",
                 ),
-                ast.full_perm(),
+                Some(ast.full_perm()),
             ),
         ],
         Some(ast.seqn(
@@ -176,7 +176,7 @@ fn success_with_complex_program() {
                         &[ast.local_var("box", ast.ref_type(), ast.no_position())],
                         "EvenNumBox",
                     ),
-                    ast.full_perm(),
+                    Some(ast.full_perm()),
                 )),
             ],
             &[],

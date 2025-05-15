@@ -13,7 +13,7 @@ use task_encoder::TaskEncoder;
 use vir::Reify;
 
 use crate::encoders::{
-    indirect::IndirectPredicatesEnc,
+    indirect::{IndirectKey, IndirectPredicatesEnc},
     rust_ty_predicates::{RustTyPredicatesEnc, RustTyPredicatesEncOutputRef},
     ImpureEncVisitor,
 };
@@ -52,7 +52,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 let pred = ty_out.ref_to_pred(self.vcx, place_res.expr, None);
                 inv.push(pred);
 
-                let regions = ty.ty.walk().flat_map(|w| w.as_region());
+                let regions = ty.ty.walk().flat_map(IndirectKey::from_generic_arg);
                 for region in regions {
                     let indirect = self
                         .deps
@@ -60,7 +60,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         .unwrap();
                     inv.extend(
                         indirect
-                            .expr
+                            .covariant
                             .into_iter()
                             .map(|expr| expr.reify(self.vcx, snap)),
                     );
@@ -131,7 +131,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             }
             MaybeRemoteRegionProjectionBase::Const(c) => todo!("{c:?}"),
         };
-        let mut regions = ty.ty.walk().flat_map(|w| w.as_region());
+        let mut regions = ty.ty.walk().flat_map(IndirectKey::from_generic_arg);
         let region = regions.next().unwrap();
         // TODO:
         assert!(
@@ -144,7 +144,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             .require_ref::<IndirectPredicatesEnc>((ty.ty, region))
             .unwrap();
         indirect
-            .expr
+            .covariant
             .into_iter()
             .map(|expr| expr.reify(self.vcx, place_snap))
             .collect::<Vec<_>>()

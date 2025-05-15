@@ -9,7 +9,7 @@ use prusti_rustc_interface::{
     driver::Compilation,
     hir::{def::DefKind, def_id::LocalDefId},
     index::IndexVec,
-    interface::{interface::Compiler, Config, Queries},
+    interface::{interface::Compiler, Config},
     middle::{
         mir, query::queries::mir_borrowck::ProvidedValue as MirBorrowck, ty::TyCtxt,
         util::Providers,

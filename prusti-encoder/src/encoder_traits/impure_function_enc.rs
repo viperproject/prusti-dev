@@ -90,7 +90,7 @@ where
             let mut pres = Vec::new();
             let mut posts = Vec::new();
             let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false))?;
-            let wands = deps.require_local::<WandEnc>(WandEncTask { def_id, substs })?;
+            let wands = deps.require_local::<WandEnc>(WandEncTask { def_id })?;
 
             // Add direct resources for inputs and outputs to the pre- and
             // postconditions, respectively. "Direct" here refers to owned

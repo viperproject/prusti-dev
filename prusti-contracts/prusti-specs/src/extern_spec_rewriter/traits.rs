@@ -118,7 +118,7 @@ struct GeneratedStruct<'a> {
     generated_struct: syn::ItemStruct,
 }
 
-impl<'a> GeneratedStruct<'a> {
+impl GeneratedStruct<'_> {
     fn generate_impl(&self) -> syn::Result<syn::ItemImpl> {
         // Generate impl block
         let struct_ident = &self.generated_struct.ident;

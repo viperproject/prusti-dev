@@ -153,7 +153,7 @@ struct CheckPredicatesVisitor<'tcx> {
     pred_usages: Vec<(Span, Span)>,
 }
 
-impl<'v, 'tcx: 'v> NonSpecExprVisitor<'tcx> for CheckPredicatesVisitor<'tcx> {
+impl<'tcx> NonSpecExprVisitor<'tcx> for CheckPredicatesVisitor<'tcx> {
     fn tcx(&self) -> TyCtxt<'tcx> {
         self.env_query.tcx()
     }

@@ -10,7 +10,7 @@ use std::hash::Hash;
 #[derive(Debug, Copy, Clone)]
 pub struct UnorderedSetEq<'a, T: 'a>(pub &'a [T]);
 
-impl<'a, T> PartialEq for UnorderedSetEq<'a, T>
+impl<T> PartialEq for UnorderedSetEq<'_, T>
 where
     T: Eq + Hash,
 {

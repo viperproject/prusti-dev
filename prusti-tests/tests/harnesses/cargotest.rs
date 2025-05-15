@@ -58,7 +58,7 @@ fn run_cargo_tests(root_dir: &str, cargo_flags: &[&str], cargo_env: &[(&str, &st
     // This setup for testing with `cargo` is loosely based on `ui_test`'s;
     // see https://github.com/oli-obk/ui_test/blob/main/tests/integration.rs
 
-    let mut config = Config::cargo(&root_dir);
+    let mut config = Config::cargo(root_dir);
 
     let args = Args::test().unwrap();
     config.with_args(&args);
