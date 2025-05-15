@@ -48,7 +48,7 @@ pub struct ToViperContext<'vir, 'v> {
     domain_axioms: FxHashMap<&'vir str, (vir::Domain<'vir>, vir::DomainAxiom<'vir>)>,
 }
 
-impl<'vir, 'v> ToViperContext<'vir, 'v> {
+impl<'vir> ToViperContext<'vir, '_> {
     /// If a span is given, convert it to a Viper position. Otherwise, return
     /// a "no position".
     // TODO: This signature is chosen to accommodate optional spans in

@@ -4,19 +4,22 @@ use crate::data::ProcedureDefId;
 use log::debug;
 use prusti_rustc_interface::{
     ast::ast::Attribute,
+    data_structures::fx::FxIndexSet,
     hir::hir_id::HirId,
+    infer::infer::{outlives::env::OutlivesEnvironment, InferCtxt},
     middle::{
         hir::map::Map,
         ty::{self, GenericArgsRef, ParamEnv, PredicatePolarity, TraitPredicate, TyCtxt},
     },
     span::{
-        def_id::{DefId, LocalDefId},
+        def_id::{DefId, LocalDefId, CRATE_DEF_ID},
         source_map::SourceMap,
         Span,
     },
     trait_selection::{
         infer::{InferCtxtExt, TyCtxtInferExt},
         traits::{
+            outlives_bounds::InferCtxtExt as BoundsInferCtxtExt,
             query::evaluate_obligation::InferCtxtExt as QueryInferCtxtExt, ImplSource, Obligation,
             ObligationCause, SelectionContext,
         },
@@ -47,6 +50,10 @@ impl<'tcx> EnvQuery<'tcx> {
     /// Returns the `CodeMap`
     pub fn codemap(self) -> &'tcx SourceMap {
         self.tcx.sess.source_map()
+    }
+
+    pub fn infer_ctxt(self) -> InferCtxt<'tcx> {
+        self.tcx.infer_ctxt().build(ty::TypingMode::PostAnalysis)
     }
 
     // /// Returns the type of a `HirId`
@@ -177,6 +184,39 @@ impl<'tcx> EnvQuery<'tcx> {
         self.resolve_assoc_types(sig, caller_def_id.into_param())
     }
 
+    pub fn get_liberated_fn_sig(
+        self,
+        def_id: impl IntoParam<ProcedureDefId>,
+        substs: GenericArgsRef<'tcx>,
+    ) -> ty::FnSig<'tcx> {
+        let def_id = def_id.into_param();
+        let sig = self.get_fn_sig(def_id, substs);
+        self.tcx.liberate_late_bound_regions(def_id, sig)
+    }
+
+    pub fn assumed_wf_types(
+        self,
+        def_id: impl IntoParam<ProcedureDefId>,
+    ) -> FxIndexSet<ty::Ty<'tcx>> {
+        let def_id = def_id.into_param();
+        let liberated_sig = self.get_liberated_fn_sig(def_id, self.identity_substs(def_id));
+        // TODO: same as `ObligationCtxt::assumed_wf_types` but skips `deeply_normalize` step, is that fine?
+        liberated_sig
+            .inputs_and_output
+            .iter()
+            .collect::<FxIndexSet<_>>()
+    }
+
+    pub fn outlives_env(self, def_id: impl IntoParam<ProcedureDefId>) -> OutlivesEnvironment<'tcx> {
+        let def_id = def_id.into_param();
+        let wf_tys = self.assumed_wf_types(def_id);
+
+        let infcx = self.infer_ctxt();
+        let param_env = self.tcx.param_env(def_id);
+        let ib = infcx.implied_bounds_tys(param_env, CRATE_DEF_ID, &wf_tys);
+        OutlivesEnvironment::with_bounds(param_env, ib)
+    }
+
     /// Returns true iff `def_id` is a closure.
     pub fn is_closure(self, def_id: impl IntoParam<DefId>) -> bool {
         self.tcx.is_closure_like(def_id.into_param())
@@ -281,7 +321,7 @@ impl<'tcx> EnvQuery<'tcx> {
             debug!("Fetching implementations of method '{:?}' defined in trait '{}' with substs '{:?}'", proc_def_id, self.tcx.def_path_str(trait_id), substs);
             // TODO(tymap): don't use reveal_all
             let typing_env = ty::TypingEnv::fully_monomorphized();
-            let infcx = self.tcx.infer_ctxt().build(typing_env.typing_mode);
+            let infcx = self.infer_ctxt();
             let mut sc = SelectionContext::new(&infcx);
             let trait_ref = ty::TraitRef::new(self.tcx, trait_id, substs);
             let obligation = Obligation::new(
@@ -397,7 +437,7 @@ impl<'tcx> EnvQuery<'tcx> {
         param_env: impl IntoParamTcx<'tcx, ParamEnv<'tcx>>,
     ) -> bool {
         assert!(self.tcx.is_trait(trait_def_id));
-        let infcx = self.tcx.infer_ctxt().build(ty::TypingMode::PostAnalysis);
+        let infcx = self.infer_ctxt();
         infcx
             .type_implements_trait(
                 trait_def_id,
@@ -436,9 +476,7 @@ impl<'tcx> EnvQuery<'tcx> {
             predicate,
         );
 
-        self.tcx
-            .infer_ctxt()
-            .build(ty::TypingMode::PostAnalysis)
+        self.infer_ctxt()
             .predicate_must_hold_considering_regions(&obligation)
     }
 

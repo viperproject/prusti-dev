@@ -27,7 +27,7 @@ impl ElidedLifetimeCounter {
     }
 }
 
-impl<'ast> syn::visit::Visit<'ast> for ElidedLifetimeCounter {
+impl syn::visit::Visit<'_> for ElidedLifetimeCounter {
     fn visit_receiver(&mut self, receiver: &syn::Receiver) {
         if let Some((_, None)) = receiver.reference {
             self.num_elided_lifetimes += 1;

@@ -32,7 +32,7 @@ pub enum TryFromStringError {
     UnknownSpecificationType,
 }
 
-impl<'a> TryFrom<&'a str> for SpecType {
+impl TryFrom<&str> for SpecType {
     type Error = TryFromStringError;
 
     fn try_from(typ: &str) -> Result<SpecType, TryFromStringError> {
