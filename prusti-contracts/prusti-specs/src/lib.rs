@@ -22,6 +22,8 @@ pub mod specifications;
 mod type_model;
 mod user_provided_type_params;
 mod print_counterexample;
+mod properties;
+mod spec_translator;
 
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
@@ -190,32 +192,34 @@ fn generate_spec_and_assertions(
 
 /// Generate spec items and attributes to typecheck the and later retrieve "requires" annotations.
 fn generate_for_requires(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
-    let mut rewriter = rewriter::AstRewriter::new();
-    let spec_id = rewriter.generate_spec_id();
-    let spec_id_str = spec_id.to_string();
-    let spec_item =
-        rewriter.process_assertion(rewriter::SpecItemType::Precondition, spec_id, attr, item)?;
-    Ok((
-        vec![spec_item],
-        vec![parse_quote_spanned! {item.span()=>
-            #[prusti::pre_spec_id_ref = #spec_id_str]
-        }],
-    ))
+    generate_for(attr, item, rewriter::SpecItemType::Precondition)
 }
 
 /// Generate spec items and attributes to typecheck the and later retrieve "ensures" annotations.
 fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+    generate_for(attr, item, rewriter::SpecItemType::Postcondition)
+}
+
+fn generate_for(attr: TokenStream, item: &untyped::AnyFnItem, spec_item_type: rewriter::SpecItemType) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
-    let spec_item =
-        rewriter.process_assertion(rewriter::SpecItemType::Postcondition, spec_id, attr, item)?;
-    Ok((
-        vec![spec_item],
-        vec![parse_quote_spanned! {item.span()=>
-            #[prusti::post_spec_id_ref = #spec_id_str]
-        }],
-    ))
+    let spec_id_attribute: syn::Attribute = match spec_item_type {
+        rewriter::SpecItemType::Precondition => {
+            parse_quote_spanned! {item.span()=>
+                #[prusti::pre_spec_id_ref = #spec_id_str]
+            }
+        },
+        rewriter::SpecItemType::Postcondition => {
+            parse_quote_spanned! {item.span()=>
+                #[prusti::post_spec_id_ref = #spec_id_str]
+            }
+        },
+        _ => panic!("Unsupported spec item type for assertion generation"),
+    };
+
+    rewriter.process_translatable_assertion(spec_item_type, spec_id, attr, item)
+        .map(|res| (res.0, [vec![spec_id_attribute], res.1].concat()))
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "after_expiry" annotations.
