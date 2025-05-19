@@ -68,6 +68,7 @@ pub enum PredicateEncData<'vir> {
     Never,
     Primitive(DomainDataPrim<'vir>),
     // structs, tuples
+    Trusted,
     StructLike(PredicateEncDataStruct<'vir>),
     EnumLike(Option<PredicateEncDataEnum<'vir>>),
     ImmRef(PredicateEncDataImmRef<'vir>),
@@ -530,6 +531,33 @@ impl TaskEncoder for PredicateEnc {
                     vir::expr! { ([snap_func_ident](ref_self, ..[generic_exprs])) == (value) },
                 ],
             );
+
+            if crate::encoders::spec::is_type_trusted(task_key.ty()) {
+                let args = &[ref_self_decl]
+                    .into_iter()
+                    .chain(generic_decls.iter().cloned())
+                    .collect::<Vec<_>>();
+                builder.predicate("", &args, None);
+                builder.function_snap = Some(
+                    builder
+                        .mk_function("snap", &args, snap_type, &[], &[], None)
+                        .1,
+                );
+                deps.emit_output_ref(
+                    *task_key,
+                    PredicateEncOutputRef {
+                        ref_to_pred: self_pred_ident,
+                        ref_to_snap: snap_func_ident,
+                        unreachable_to_snap: builder.unreachable_to_snap.unwrap().0,
+                        method_assign,
+                        snapshot: snap_type,
+                        specifics: PredicateEncData::Trusted,
+                        generics: vcx.alloc_slice(&generic_decls),
+                        ref_to_indirect_pred: None,
+                    },
+                )?;
+                return Ok(Some(builder.build()));
+            }
 
             let (specifics, ref_to_indirect_pred) = match task_key.kind() {
                 TyKind::Bool
