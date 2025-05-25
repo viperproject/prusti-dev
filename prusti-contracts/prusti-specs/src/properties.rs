@@ -3,24 +3,28 @@ use rustc_hash::FxHashMap;
 
 #[derive(Debug, Default)]
 pub(crate) struct SpecProperties {
-    properties: FxHashMap<String, String>
+    properties: FxHashMap<String, String>,
 }
 
 pub(crate) enum Property {
     Translator,
-    File
+    File,
 }
 
 impl SpecProperties {
-    pub(crate) fn get(&self, property: &Property) -> Option<&String> {
-        self.properties.get(match property {
-            Property::Translator => "translator",
-            Property::File => "file",
-        })
+    pub(crate) fn get(&self, property: &Property) -> Option<&str> {
+        self.properties
+            .get(match property {
+                Property::Translator => "translator",
+                Property::File => "file",
+            })
+            .map(String::as_str)
     }
 }
 
-pub(crate) fn extract_properties(tokens: TokenStream) -> syn::Result<(SpecProperties, TokenStream)> {
+pub(crate) fn extract_properties(
+    tokens: TokenStream,
+) -> syn::Result<(SpecProperties, TokenStream)> {
     let mut tokens_iter = tokens.into_iter().peekable();
     let mut properties = FxHashMap::default();
 
@@ -40,13 +44,21 @@ pub(crate) fn extract_properties(tokens: TokenStream) -> syn::Result<(SpecProper
 
             let eq_token = tokens_iter.next();
             if !matches!(&eq_token, Some(TokenTree::Punct(p)) if p.as_char() == '=') {
-                return Err(build_error(&eq_token.unwrap_or(prop_name_token), "'=' expected"));
+                return Err(build_error(
+                    &eq_token.unwrap_or(prop_name_token),
+                    "'=' expected",
+                ));
             }
 
             let value_token = tokens_iter.next();
             let prop_value = match value_token {
                 Some(TokenTree::Literal(literal)) => literal.to_string(),
-                _ => return Err(build_error(&value_token.unwrap_or(eq_token.unwrap()), "property value expected")),
+                _ => {
+                    return Err(build_error(
+                        &value_token.unwrap_or(eq_token.unwrap()),
+                        "property value expected",
+                    ))
+                }
             };
 
             if let Some(comma_token) = tokens_iter.next() {
@@ -63,7 +75,10 @@ pub(crate) fn extract_properties(tokens: TokenStream) -> syn::Result<(SpecProper
         tokens_iter.next();
     }
 
-    Ok((SpecProperties {properties}, tokens_iter.collect::<TokenStream>()))
+    Ok((
+        SpecProperties { properties },
+        tokens_iter.collect::<TokenStream>(),
+    ))
 }
 
 fn build_error(token: &TokenTree, msg: &str) -> syn::Error {

@@ -200,7 +200,11 @@ fn generate_for_ensures(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
     generate_for(attr, item, rewriter::SpecItemType::Postcondition)
 }
 
-fn generate_for(attr: TokenStream, item: &untyped::AnyFnItem, spec_item_type: rewriter::SpecItemType) -> GeneratedResult {
+fn generate_for(
+    attr: TokenStream,
+    item: &untyped::AnyFnItem,
+    spec_item_type: rewriter::SpecItemType,
+) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
@@ -209,16 +213,17 @@ fn generate_for(attr: TokenStream, item: &untyped::AnyFnItem, spec_item_type: re
             parse_quote_spanned! {item.span()=>
                 #[prusti::pre_spec_id_ref = #spec_id_str]
             }
-        },
+        }
         rewriter::SpecItemType::Postcondition => {
             parse_quote_spanned! {item.span()=>
                 #[prusti::post_spec_id_ref = #spec_id_str]
             }
-        },
+        }
         _ => panic!("Unsupported spec item type for assertion generation"),
     };
 
-    rewriter.process_translatable_assertion(spec_item_type, spec_id, attr, item)
+    rewriter
+        .process_translatable_assertion(spec_item_type, spec_id, attr, item)
         .map(|res| (res.0, [vec![spec_id_attribute], res.1].concat()))
 }
 
@@ -779,6 +784,10 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     result_to_tokens!({
         let item: syn::Item = syn::parse2(tokens)?;
+
+        let (properties, attr) = properties::extract_properties(attr)?;
+        let file = properties.get(&properties::Property::File);
+
         let mod_path: syn::Path = Some(attr)
             .filter(|attr| !attr.is_empty())
             .map(syn::parse2)
@@ -807,6 +816,7 @@ pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
                 extern_spec_rewriter::foreign_mods::rewrite_extern_spec(
                     &item_foreign_mod,
                     &mod_path,
+                    file,
                 )
             }
             // we're expecting function stubs, so they aren't represented as Item::Fn

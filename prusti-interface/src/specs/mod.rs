@@ -9,16 +9,17 @@ use crate::{
 use log::debug;
 use prusti_common::config;
 use prusti_rustc_interface::{
-    ast::ast,
+    ast::{ast, Attribute},
     data_structures::fx::FxHashMap,
     errors::MultiSpan,
     hir::{
         self,
         def_id::{DefId, LocalDefId},
-        intravisit, FnRetTy,
+        intravisit::{self, FnKind},
+        FnRetTy,
     },
     middle::{hir::map::Map, ty},
-    span::Span,
+    span::{symbol::Ident, Span},
 };
 use std::{convert::TryInto, fmt::Debug};
 
@@ -27,6 +28,7 @@ pub mod cross_crate;
 pub mod decoder;
 pub mod encoder;
 pub mod external;
+pub mod translated;
 pub mod typed;
 
 use typed::SpecIdRef;
@@ -65,6 +67,14 @@ struct TypeSpecRefs {
     countexample_print: Vec<(Option<String>, LocalDefId)>,
 }
 
+type ExternFileRelativePath = String;
+type ExternFunctionName = String;
+type ExternPrecondition = String;
+type ExternPostcondition = String;
+type ExternSpecification = (ExternPrecondition, ExternPostcondition);
+type TranslatedSpecMap =
+    FxHashMap<ExternFileRelativePath, FxHashMap<ExternFunctionName, ExternSpecification>>;
+
 /// Specification collector, intended to be applied as a visitor over the crate
 /// HIR. After the visit, [SpecCollector::build_def_specs] can be used to get back
 /// a mapping of DefIds (which may not be local due to extern specs) to their
@@ -86,6 +96,7 @@ pub struct SpecCollector<'a, 'tcx> {
     prusti_refutations: Vec<LocalDefId>,
     ghost_begin: Vec<LocalDefId>,
     ghost_end: Vec<LocalDefId>,
+    translated_specs: TranslatedSpecMap,
 }
 
 impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
@@ -103,6 +114,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             prusti_refutations: vec![],
             ghost_begin: vec![],
             ghost_end: vec![],
+            translated_specs: FxHashMap::default(),
         }
     }
 
@@ -110,6 +122,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     pub fn collect_specs(&mut self, hir: Map<'tcx>) {
         hir.walk_toplevel_module(self);
         hir.walk_attributes(self);
+        dbg!(&self.translated_specs);
     }
 
     #[tracing::instrument(level = "debug", skip_all)]
@@ -559,6 +572,17 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 let kind = prusti_specs::ExternSpecKind::try_from(attr).unwrap();
                 self.extern_resolver
                     .add_extern_fn(fn_kind, fn_decl, body_id, span, local_id, kind);
+
+                if let FnKind::ItemFn(function_name, _, _) = fn_kind {
+                    if let Some((file, function, specs)) =
+                        translated::get_translated_specs(attrs, &function_name.to_string())
+                    {
+                        self.translated_specs
+                            .entry(file)
+                            .or_default()
+                            .insert(function, specs);
+                    }
+                }
             }
 
             // Collect procedure specifications

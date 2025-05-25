@@ -1,7 +1,25 @@
 #include <stdint.h>
 
-//@ requires true;
-//@ ensures true;
-int32_t add(int32_t a, int32_t b) {
-    return a + b;
+struct Point {
+    int32_t x;
+    int32_t y;
+};
+
+void swap(struct Point *p)
+{
+    int32_t temp = p->x;
+    p->x = p->y;
+    p->y = temp;
+}
+
+int32_t mangle(struct Point *p)
+{
+    int32_t x = p->x, y = p ->y;
+    p->x = y + x;
+    p->y = y - x;
+    return p->x * p->y;
+}
+
+int32_t div_x(struct Point *p1, struct Point *p2) {
+    return p1->x / p2->x;
 }
