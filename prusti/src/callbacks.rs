@@ -1,4 +1,5 @@
 use crate::verifier::verify;
+use crate::external_verifier::verifast;
 use prusti_common::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
@@ -155,9 +156,12 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                     println!("{value}");
                 }
             }
+            let translated_specs = spec_collector.take_translated_specs();
             CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
             if !config::no_verify() {
+                dbg!(&translated_specs);
                 verify(env, def_spec);
+                verifast::verify_external(translated_specs);
             }
         });
 

@@ -9,7 +9,7 @@ use crate::{
 use log::debug;
 use prusti_common::config;
 use prusti_rustc_interface::{
-    ast::{ast, Attribute},
+    ast::ast,
     data_structures::fx::FxHashMap,
     errors::MultiSpan,
     hir::{
@@ -19,7 +19,7 @@ use prusti_rustc_interface::{
         FnRetTy,
     },
     middle::{hir::map::Map, ty},
-    span::{symbol::Ident, Span},
+    span::Span,
 };
 use std::{convert::TryInto, fmt::Debug};
 
@@ -67,12 +67,12 @@ struct TypeSpecRefs {
     countexample_print: Vec<(Option<String>, LocalDefId)>,
 }
 
-type ExternFileRelativePath = String;
-type ExternFunctionName = String;
-type ExternPrecondition = String;
-type ExternPostcondition = String;
-type ExternSpecification = (ExternPrecondition, ExternPostcondition);
-type TranslatedSpecMap =
+pub type ExternFileRelativePath = String;
+pub type ExternFunctionName = String;
+pub type ExternPrecondition = String;
+pub type ExternPostcondition = String;
+pub type ExternSpecification = (ExternPrecondition, ExternPostcondition);
+pub type TranslatedSpecMap =
     FxHashMap<ExternFileRelativePath, FxHashMap<ExternFunctionName, ExternSpecification>>;
 
 /// Specification collector, intended to be applied as a visitor over the crate
@@ -122,7 +122,6 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     pub fn collect_specs(&mut self, hir: Map<'tcx>) {
         hir.walk_toplevel_module(self);
         hir.walk_attributes(self);
-        dbg!(&self.translated_specs);
     }
 
     #[tracing::instrument(level = "debug", skip_all)]
@@ -140,6 +139,10 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         // Load all local spec MIR bodies, for export and later use
         self.ensure_local_mirs_fetched(&def_spec);
         def_spec
+    }
+
+    pub fn take_translated_specs(&mut self) -> TranslatedSpecMap {
+        std::mem::take(&mut self.translated_specs)
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {

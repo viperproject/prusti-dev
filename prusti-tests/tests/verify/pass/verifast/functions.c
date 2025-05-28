@@ -6,6 +6,10 @@ struct Point {
 };
 
 void swap(struct Point *p)
+//@requires p->x |-> ?_pre_p_x &*& p->y |-> ?_pre_p_y
+//@ensures p->x |-> ?_post_p_x &*& p->y |-> ?_post_p_y &*& _post_p_x == _pre_p_y &*& _post_p_y == _pre_p_x
+
+
 {
     int32_t temp = p->x;
     p->x = p->y;
@@ -13,6 +17,10 @@ void swap(struct Point *p)
 }
 
 int32_t mangle(struct Point *p)
+//@requires p->x |-> ?_pre_p_x &*& p->y |-> ?_pre_p_y
+//@ensures p->x |-> ?_post_p_x &*& p->y |-> ?_post_p_y &*& _post_p_x == _pre_p_y + _pre_p_x &*& _post_p_y == _pre_p_y - _pre_p_x &*& result == _post_p_x * _post_p_y
+
+
 {
     int32_t x = p->x, y = p ->y;
     p->x = y + x;
@@ -20,6 +28,9 @@ int32_t mangle(struct Point *p)
     return p->x * p->y;
 }
 
-int32_t div_x(struct Point *p1, struct Point *p2) {
+int32_t div_x(struct Point *p1, struct Point *p2)
+
+
+{
     return p1->x / p2->x;
 }
