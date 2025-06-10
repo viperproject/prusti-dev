@@ -28,6 +28,7 @@ pub mod decoder;
 pub mod encoder;
 pub mod external;
 pub mod typed;
+pub mod specifications;
 
 use typed::SpecIdRef;
 

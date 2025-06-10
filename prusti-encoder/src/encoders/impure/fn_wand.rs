@@ -37,9 +37,13 @@ impl<'vir> WandEncOutput<'vir> {
         g: IndirectKey,
         input: bool,
         mut snap: impl FnMut(mir::Local) -> vir::Expr<'vir>,
-    ) -> vir::Expr<'vir> {
+    ) -> Option<vir::Expr<'vir>> {
         use vir::Reify;
-        let conjs = self.generic_to_param[&g]
+        // There may not be any parameters for this generic, for example, if the
+        // generic is the `Self` type of a trait but the function doesn't take a
+        // `self` parameter.
+        let param = self.generic_to_param.get(&g)?;
+        let conjs = param
             .iter()
             .filter(|i| !(input && i.0 == mir::RETURN_PLACE))
             .flat_map(move |(i, ty)| {
@@ -54,7 +58,7 @@ impl<'vir> WandEncOutput<'vir> {
                     .into_iter()
                     .map(move |e| e.reify(vcx, expr.unwrap()))
             });
-        vcx.mk_conj(vcx.alloc_slice(&conjs.collect::<Vec<_>>()))
+        Some(vcx.mk_conj(vcx.alloc_slice(&conjs.collect::<Vec<_>>())))
     }
 
     pub fn indirect_pres<'a, E: TaskEncoder>(
@@ -63,8 +67,9 @@ impl<'vir> WandEncOutput<'vir> {
         local_defs: &'a MirLocalDefEncOutput<'vir>,
         deps: &'a mut TaskEncoderDependencies<'vir, E>,
     ) -> impl Iterator<Item = vir::Expr<'vir>> + 'a {
-        self.inputs()
-            .map(|g| self.encode_generic(vcx, deps, g, true, &|i| local_defs.locals[i].impure_snap))
+        self.inputs().filter_map(|g| {
+            self.encode_generic(vcx, deps, g, true, &|i| local_defs.locals[i].impure_snap)
+        })
     }
 
     pub fn indirect_posts<'a, E: TaskEncoder>(
@@ -73,8 +78,9 @@ impl<'vir> WandEncOutput<'vir> {
         local_defs: &'a MirLocalDefEncOutput<'vir>,
         deps: &'a mut TaskEncoderDependencies<'vir, E>,
     ) -> impl Iterator<Item = vir::Expr<'vir>> + 'a {
-        self.outputs()
-            .map(|g| self.encode_generic(vcx, deps, g, false, |i| local_defs.locals[i].impure_snap))
+        self.outputs().filter_map(|g| {
+            self.encode_generic(vcx, deps, g, false, |i| local_defs.locals[i].impure_snap)
+        })
     }
 
     pub fn wand_posts<'a, E: TaskEncoder>(
@@ -165,7 +171,11 @@ impl<'vir> WandEncOutput<'vir> {
                 .mk_wand(&lhs, &rhs, &pledge, snap_lhs, snap_rhs, vcx, visitor.deps)
                 .unwrap();
             let mut package_script = Vec::new();
-            for (rhs, _) in rhs.iter().flat_map(|g| &self.generic_to_param[g]) {
+            for (rhs, _) in rhs
+                .iter()
+                .filter(|g| self.generic_to_param.contains_key(g))
+                .flat_map(|g| &self.generic_to_param[g])
+            {
                 if *rhs == mir::RETURN_PLACE {
                     continue;
                 }
@@ -213,7 +223,7 @@ impl<'vir> WandEncOutput<'vir> {
     ) -> Result<vir::Wand<'vir>, vir::Expr<'vir>> {
         let rhs = rhs
             .iter()
-            .map(|g| self.encode_generic(vcx, deps, *g, true, &mut snap_rhs));
+            .filter_map(|g| self.encode_generic(vcx, deps, *g, true, &mut snap_rhs));
         let rhs = rhs.chain(pledge.iter().map(|(_, rhs, _)| *rhs));
         let rhs = vcx.mk_conj(vcx.alloc_slice(&rhs.collect::<Vec<_>>()));
         if lhs.is_empty() {
@@ -221,7 +231,7 @@ impl<'vir> WandEncOutput<'vir> {
         }
         let lhs = lhs
             .iter()
-            .map(|g| self.encode_generic(vcx, deps, *g, false, &mut snap_lhs));
+            .filter_map(|g| self.encode_generic(vcx, deps, *g, false, &mut snap_lhs));
         let lhs = lhs.chain(
             pledge
                 .iter()
@@ -333,9 +343,10 @@ impl TaskEncoder for WandEnc {
             let mut insert_edge = |a, b| {
                 let (v_a, v_b) = (variances[gidx_map[&a]], variances[gidx_map[&b]]);
                 if let (
-                        ty::Variance::Covariant | ty::Variance::Invariant,
-                        ty::Variance::Contravariant | ty::Variance::Invariant,
-                    ) = (v_a, v_b) {
+                    ty::Variance::Covariant | ty::Variance::Invariant,
+                    ty::Variance::Contravariant | ty::Variance::Invariant,
+                ) = (v_a, v_b)
+                {
                     edges.push((a, b));
                 }
             };
@@ -371,10 +382,7 @@ impl TaskEncoder for WandEnc {
                 insert_edge(IndirectKey::Early(a), IndirectKey::Param(b));
             }
 
-            let late_bound = late_bound
-                .into_iter()
-                .map(IndirectKey::Late)
-                .collect();
+            let late_bound = late_bound.into_iter().map(IndirectKey::Late).collect();
 
             let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false))?;
 

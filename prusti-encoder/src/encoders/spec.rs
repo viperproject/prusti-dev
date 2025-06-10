@@ -1,10 +1,15 @@
-use prusti_interface::specs::typed::{DefSpecificationMap, ProcedureSpecification};
+use std::cell::RefCell;
+
+use prusti_interface::specs::{
+    specifications::{SpecQuery, Specifications},
+    typed::{DefSpecificationMap, ProcedureSpecification, SpecificationItem},
+};
 use prusti_rustc_interface::{
-    //middle::{mir, ty},
-    middle::ty,
+    middle::{mir, ty},
     span::def_id::DefId,
 };
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+use vir::VirCtxt;
 
 pub struct SpecEnc;
 
@@ -18,57 +23,50 @@ pub struct SpecEncOutput<'vir> {
     pub pledges: &'vir [(Option<DefId>, DefId)], // TODO: reuse Pledge type?
 }
 
-use std::cell::RefCell;
 thread_local! {
     static DEF_SPEC_MAP: RefCell<Option<DefSpecificationMap>> = RefCell::new(Default::default());
 }
 
-pub fn with_def_spec<F, R>(f: F) -> R
+pub fn with_type_spec<F, R>(f: F) -> R
 where
     F: FnOnce(&DefSpecificationMap) -> R,
 {
-    DEF_SPEC_MAP.with_borrow(|def_spec: &Option<DefSpecificationMap>| {
-        let def_spec = def_spec.as_ref().unwrap();
-        f(def_spec)
-    })
+    vir::with_vcx(|vcx| f(vcx.specs.as_ref().unwrap().borrow().get_type_specs()))
 }
 
-pub fn with_proc_spec<F, R>(def_id: DefId, f: F) -> Option<R>
+pub fn with_proc_spec<'tcx, F, R>(query: SpecQuery<'tcx>, f: F) -> Option<R>
 where
     F: FnOnce(&ProcedureSpecification) -> R,
 {
-    DEF_SPEC_MAP.with_borrow(|def_spec: &Option<DefSpecificationMap>| {
-        let def_spec = def_spec.as_ref().unwrap();
-        // TODO: handle `SpecGraph` better than simply taking the `base_spec`
-        def_spec
-            .get_proc_spec(&def_id)
-            .map(|spec| &spec.base_spec)
+    vir::with_vcx(|vcx| {
+        let specs = vcx.specs.as_ref().unwrap();
+        specs
+            .borrow_mut()
+            .get_and_refine_proc_spec(vcx.tcx(), query)
             .map(f)
     })
 }
 
-pub fn is_function_trusted(def_id: DefId) -> bool {
-    with_proc_spec(def_id, |def_spec: &ProcedureSpecification| {
-        def_spec.trusted.extract_inherit().unwrap_or_default()
-    })
+pub fn is_function_trusted(def_id: DefId, substs: ty::GenericArgsRef<'_>) -> bool {
+    with_proc_spec(
+        SpecQuery::GetProcKind(def_id, substs),
+        |proc_spec: &ProcedureSpecification| {
+            proc_spec.trusted.extract_inherit().unwrap_or_default()
+        },
+    )
     .unwrap_or_default()
 }
 
 pub fn is_type_trusted(ty: ty::Ty) -> bool {
     match ty.kind() {
-        prusti_rustc_interface::middle::ty::TyKind::Adt(adt_def, _) => {
-            with_def_spec(|def_spec| 
-                def_spec.get_type_spec(&adt_def.did())
-                    .map(|type_spec| type_spec.trusted.extract_inherit().unwrap_or_default())
-                    .unwrap_or_default()
-            )
-        }
+        prusti_rustc_interface::middle::ty::TyKind::Adt(adt_def, _) => with_type_spec(|def_spec| {
+            def_spec
+                .get_type_spec(&adt_def.did())
+                .map(|type_spec| type_spec.trusted.extract_inherit().unwrap_or_default())
+                .unwrap_or_default()
+        }),
         _ => false,
     }
-}
-
-pub fn init_def_spec(def_spec: DefSpecificationMap) {
-    DEF_SPEC_MAP.replace(Some(def_spec));
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -103,37 +101,46 @@ impl TaskEncoder for SpecEnc {
     ) -> EncodeFullResult<'vir, Self> {
         deps.emit_output_ref(*task_key, ())?;
         vir::with_vcx(|vcx| {
-            with_def_spec(|def_spec| {
-                let specs = def_spec.get_proc_spec(&task_key.0);
-                // TODO: handle specs other than `empty_or_inherent`
-                let pres = specs
-                    .and_then(|specs| specs.base_spec.pres.expect_empty_or_inherent())
-                    .map(|specs| vcx.alloc_slice(specs))
-                    .unwrap_or_default();
-                let posts = specs
-                    .and_then(|specs| specs.base_spec.posts.expect_empty_or_inherent())
-                    .map(|specs| vcx.alloc_slice(specs))
-                    .unwrap_or_default();
-                let pledges = specs
-                    .and_then(|specs| specs.base_spec.pledges.expect_empty_or_inherent())
-                    .map(|specs| {
-                        vcx.alloc_slice(
-                            &specs
-                                .iter()
-                                .map(|pledge| (pledge.lhs, pledge.rhs))
-                                .collect::<Vec<_>>(),
-                        )
-                    })
-                    .unwrap_or_default();
-                Ok((
-                    SpecEncOutput {
-                        pres,
-                        posts,
-                        pledges,
-                    },
-                    (),
-                ))
-            })
+            let (pres, posts, pledges) = with_proc_spec(
+                SpecQuery::GetProcKind(
+                    task_key.0,
+                    ty::List::identity_for_item(vcx.tcx(), task_key.0),
+                ),
+                |specs| {
+                    // TODO: handle specs other than `empty_or_inherent`
+                    let pres = get_spec_items(vcx, &specs.pres);
+                    let posts = get_spec_items(vcx, &specs.posts);
+                    let pledges = get_spec_items(vcx, &specs.pledges);
+                    (pres, posts, pledges)
+                },
+            )
+            .unwrap_or((&[], &[], &[]));
+            Ok((
+                SpecEncOutput {
+                    pres,
+                    posts,
+                    pledges: vcx.alloc_slice(
+                        &pledges
+                            .iter()
+                            .map(|pledge| (pledge.lhs, pledge.rhs))
+                            .collect::<Vec<_>>(),
+                    ),
+                },
+                (),
+            ))
         })
+    }
+}
+
+fn get_spec_items<'vir, T: Copy>(
+    vcx: &'vir VirCtxt<'_>,
+    spec: &SpecificationItem<Vec<T>>,
+) -> &'vir [T] {
+    match spec {
+        SpecificationItem::Inherent(items) | SpecificationItem::Inherited(items) => {
+            vcx.alloc_slice(items)
+        }
+        SpecificationItem::Empty => &[],
+        _ => todo!(),
     }
 }

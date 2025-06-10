@@ -1,11 +1,15 @@
 use pcg::{borrow_pcg::borrow_checker::r#impl::BorrowCheckerImpl, r#loop::LoopAnalysis};
+use prusti_interface::specs::specifications::SpecQuery;
 use prusti_rustc_interface::middle::mir;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{MethodIdent, UnknownArity, ViperIdent};
 
-use crate::encoders::{
-    lifted::func_def_ty_params::LiftedTyParamsEnc, ImpureEncVisitor, MirImpureEnc, MirLocalDefEnc,
-    MirSpecEnc, WandEnc, WandEncTask,
+use crate::{
+    encoders::{
+        lifted::func_def_ty_params::LiftedTyParamsEnc, ImpureEncVisitor, MirImpureEnc,
+        MirLocalDefEnc, MirSpecEnc, WandEnc, WandEncTask,
+    },
+    trait_support::is_function_with_body,
 };
 
 use super::function_enc::FunctionEnc;
@@ -46,11 +50,12 @@ where
     ) -> Result<ImpureFunctionEncOutput<'vir>, EncodeFullError<'vir, Self>> {
         let def_id = Self::get_def_id(&task_key);
         let caller_def_id = Self::get_caller_def_id(&task_key);
-        let trusted = crate::encoders::is_function_trusted(def_id);
         vir::with_vcx(|vcx| {
             use mir::visit::Visitor;
 
             let substs = Self::get_substs(vcx, &task_key);
+            let trusted = crate::encoders::is_function_trusted(def_id, substs);
+
             let local_defs =
                 deps.require_local::<MirLocalDefEnc>((def_id, substs, caller_def_id))?;
 
@@ -108,9 +113,11 @@ where
             posts.extend(wands.indirect_posts(vcx, &local_defs, deps));
             posts.extend(wands.wand_posts(vcx, &local_defs, deps));
 
-            // Do not encode the method body if it is external, trusted, or just
-            // a call stub.
-            let local_def_id = def_id.as_local().filter(|_| !trusted);
+            // Do not encode the method body if it is external, trusted, just
+            // a call stub, or a trait function without a default implementation
+            let local_def_id = def_id
+                .as_local()
+                .filter(|_| !trusted && is_function_with_body(vcx.tcx(), def_id));
             let blocks = if let Some(local_def_id) = local_def_id {
                 let body = vcx
                     .body_mut()

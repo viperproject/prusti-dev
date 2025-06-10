@@ -1,6 +1,10 @@
-use prusti_rustc_interface::middle::{
-    mir,
-    ty::{self, Ty},
+use prusti_interface::specs::specifications::SpecQuery;
+use prusti_rustc_interface::{
+    middle::{
+        mir,
+        ty::{self, Ty},
+    },
+    span::def_id::DefId,
 };
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{CallableIdent, ExprGen, FunctionIdent, Reify, UnknownArity, ViperIdent};
@@ -89,11 +93,12 @@ where
     ) -> Result<MirFunctionEncOutput<'vir>, EncodeFullError<'vir, Self>> {
         let def_id = Self::get_def_id(&task_key);
         let caller_def_id = Self::get_caller_def_id(&task_key);
-        let trusted = crate::encoders::is_function_trusted(def_id);
         vir::with_vcx(|vcx| {
             let substs = Self::get_substs(vcx, &task_key);
-            let local_defs =
-                deps.require_local::<MirLocalDefEnc>((def_id, substs, caller_def_id))?;
+            let trusted = crate::encoders::is_function_trusted(def_id, substs);
+            let local_defs = deps
+                .require_local::<MirLocalDefEnc>((def_id, substs, caller_def_id))
+                .unwrap();
 
             tracing::debug!("encoding {def_id:?}");
 
