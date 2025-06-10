@@ -14,7 +14,7 @@ use pcg::{
     utils::{maybe_old::MaybeOldPlace, CompilerCtxt, HasPlace, Place},
     PcgOutput,
 };
-use prusti_interface::PrustiError;
+use prusti_interface::{specs::specifications::SpecQuery, PrustiError};
 use prusti_rustc_interface::{
     data_structures::fx::FxHashMap,
     middle::{
@@ -1338,8 +1338,8 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                             let current_fpcs = self.current_fpcs.take().unwrap();
                             let borrows = &current_fpcs.statements.last().unwrap().states
                                 [EvalStmtPhase::PostMain];
-                            let mut extra_stmts = self
-                                .collect_pcs_succ(borrows, &current_fpcs.terminator.succs[idx]);
+                            let mut extra_stmts =
+                                self.collect_pcs_succ(borrows, &current_fpcs.terminator.succs[idx]);
                             self.current_fpcs = Some(current_fpcs);
                             extra_stmts.push(self.set_from_to_flag(location.block, target));
 
@@ -1429,9 +1429,13 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 );
 
                 let (func_def_id, caller_substs) = self.get_def_id_and_caller_substs(func);
-                let is_pure = crate::encoders::with_proc_spec(func_def_id, |spec| {
-                    spec.kind.is_pure().unwrap_or_default()
-                })
+                let is_pure = crate::encoders::with_proc_spec(
+                    SpecQuery::GetProcKind(
+                        func_def_id,
+                        ty::List::identity_for_item(self.vcx().tcx(), func_def_id),
+                    ),
+                    |spec| spec.kind.is_pure().unwrap_or_default(),
+                )
                 .unwrap_or_default();
 
                 let dest = self.encode_place(Place::from(*destination)).expr;
