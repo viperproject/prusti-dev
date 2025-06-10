@@ -1,16 +1,18 @@
 use crate::encoders::{
-    domain::{DomainBuilder, DomainDataImmRef, DomainEnc, DomainEncSpecifics},
+    domain::{DomainBuilder, DomainDataImmRef, DomainEnc, DomainEncSpecifics, DomainEncOutputRef},
     predicate::{PredicateBuilder, PredicateEncData, PredicateEncDataImmRef},
     rust_ty_snapshots::RustTySnapshotsEnc,
     snapshot::SnapshotEncOutput,
     GenericEnc, PredicateEnc,
 };
+use crate::TyConstructorEnc;
 use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::ToKnownArity;
 
 pub(crate) fn domain<'vir>(
     task_key: <DomainEnc as TaskEncoder>::TaskKey<'vir>,
+    output_ref: &DomainEncOutputRef<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, DomainEnc>,
     builder: &mut DomainBuilder<'vir>,
 ) -> Result<DomainEncSpecifics<'vir>, EncodeFullError<'vir, DomainEnc>> {
@@ -29,11 +31,18 @@ pub(crate) fn domain<'vir>(
     let value_ident = builder.function("value", &[builder.self_type()], inner_type);
     let cons_ident = builder.function("cons", &[prim_type, inner_type], builder.self_type());
 
+    let generic_enc = deps.require_ref::<GenericEnc>(())?;
+    let ty_type_func = deps.require_ref::<TyConstructorEnc>(task_key)?;
     builder.axiom("deref", vir::expr! {
         forall r: [prim_type], value: [inner_type] :: {[cons_ident](r, value)} ([deref_ident]([cons_ident](r, value))) == (r)
     });
     builder.axiom("value", vir::expr! {
         forall r: [prim_type], value: [inner_type] :: {[cons_ident](r, value)} ([value_ident]([cons_ident](r, value))) == (value)
+    });
+    builder.axiom("typeof", vir::expr! {
+        forall r: [prim_type], p: [inner_type] ::
+            {[output_ref.typeof_function]([cons_ident](r, p))}
+            ([output_ref.typeof_function]([cons_ident](r, p))) == ([ty_type_func.ty_constructor]([generic_enc.param_type_function](p)))
     });
     // builder.axiom("cons", vir::expr! {
     //     forall s: [builder.self_type()] :: {[deref_ident](s)} ([cons_ident]([deref_ident](s))) == (s)
