@@ -21,6 +21,7 @@ use prusti_rustc_interface::{
     middle::{hir::map::Map, ty},
     span::Span,
 };
+use prusti_rustc_interface::hir::{Ty, TyKind, Mutability};
 use std::{convert::TryInto, fmt::Debug};
 
 pub mod checker;
@@ -576,16 +577,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 self.extern_resolver
                     .add_extern_fn(fn_kind, fn_decl, body_id, span, local_id, kind);
 
-                if let FnKind::ItemFn(function_name, _, _) = fn_kind {
-                    if let Some((file, function, specs)) =
-                        translated::get_translated_specs(attrs, &function_name.to_string())
-                    {
-                        self.translated_specs
-                            .entry(file)
-                            .or_default()
-                            .insert(function, specs);
-                    }
-                }
+                put_translated_specs(&mut self.translated_specs,attrs, fn_kind,fn_decl);
             }
 
             // Collect procedure specifications
@@ -633,6 +625,40 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 }
             }
         }
+    }
+}
+
+fn put_translated_specs(
+    translated_specs: &mut TranslatedSpecMap,
+    attrs: &[ast::Attribute],
+    fn_kind: intravisit::FnKind<'_>,
+    fn_decl: &prusti_rustc_interface::hir::FnDecl,
+) -> Option<()> {
+    if let FnKind::ItemFn(function_name, _, _) = fn_kind {
+        let mutability = get_ref_mutability(fn_decl.inputs)?;
+        let (file, function, specs) = translated::get_translated_specs(attrs, &function_name.to_string(), mutability)?;
+        translated_specs
+            .entry(file)
+            .or_default()
+            .insert(function, specs);
+    }
+    None
+}
+
+fn get_ref_mutability(param_types: &[Ty]) -> Option<Mutability> {
+    let mut mutabilities = param_types.iter().flat_map(|ty: &Ty|
+        if let TyKind::Ref(_, mut_ty) = ty.kind {
+            Some(mut_ty.mutbl)
+        } else {
+            None
+        }
+    );
+
+    let mutability = mutabilities.next().unwrap_or(Mutability::Mut);
+    if mutabilities.all(|m| m == mutability) {
+        Some(mutability)
+    } else {
+        None
     }
 }
 

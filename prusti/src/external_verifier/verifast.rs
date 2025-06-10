@@ -68,7 +68,7 @@ fn insert_specification(c_code: &mut String, function_name: &ExternFunctionName,
     });
     
     c_code.insert_str(function_index + parameter_list_length, &format!(
-        "\n//@requires {}\n//@ensures {}",
+        "\n//@ requires {};\n//@ ensures {};",
         spec.0, spec.1
     ));
 

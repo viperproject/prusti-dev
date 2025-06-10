@@ -9,7 +9,9 @@ mod functions {
         pub y: i32,
     }
 
-    #[extern_spec({file = "prusti-tests/tests/verify/pass/verifast/functions.c"}crate::functions)]
+    #[extern_spec(
+        {file = "prusti-tests/tests/verify/pass/verifast/functions.c",}
+        crate::functions)]
     extern "C" {
         #[ensures({translator = "verifast"}p.x == old(p.y))]
         #[ensures({translator = "verifast"}p.y == old(p.x))]
@@ -18,9 +20,8 @@ mod functions {
         #[ensures({translator = "verifast"}p.x == old(p.y + p.x) && p.y == old(p.y - p.x) && result == p.x * p.y)]
         pub fn mangle(p: &mut Point) -> i32;
 
-        #[requires({translator = "verifast"}p2.x != 0)]
-        #[ensures({translator = "verifast"}result == p1.x / p2.x)]
-        pub fn div_x(p1: &Point, p2: &Point) -> i32;
+        #[ensures({translator = "verifast"}result == p.x * p.x + p.y * p.y)]
+        pub fn squared_magnitude(p: &Point) -> i32;
     }
 
     extern "C" {
@@ -28,13 +29,13 @@ mod functions {
 
         pub fn mangle(p: &mut Point) -> i32;
 
-        pub fn div_x(p1: &Point, p2: &Point) -> i32;
+        pub fn squared_magnitude(p: &Point) -> i32;
     }
 }
 
 fn main() {
     use prusti_contracts::*;
-    let x_val = 10;
+    let x_val = 11;
     let y_val = 5;
 
     let mut p = functions::Point { x: x_val, y: y_val };
@@ -70,14 +71,13 @@ fn main() {
         assert_eq!(p.y, new_y_val);
     }
 
-    let p1 = functions::Point { x: 9, y: 4 };
-    let p2 = functions::Point { x: 2, y: 0 };
+    let p3 = functions::Point { x: 3, y: 4 };
     let r = unsafe {
-        functions::div_x(&p1, &p2)
+        functions::squared_magnitude(&p3)
     };
-    prusti_assert_eq!(r, 4);
+    prusti_assert_eq!(r, 25);
     #[cfg(not(prusti))]
     {
-        assert_eq!(r, 4);
+        assert_eq!(r, 25);
     }
 }

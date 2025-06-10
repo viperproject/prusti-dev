@@ -1,6 +1,6 @@
 use std::collections::{btree_set::IntoIter, BTreeSet};
 
-use prusti_rustc_interface::{ast::Attribute, data_structures::fx::FxHashMap};
+use prusti_rustc_interface::{ast::Attribute, data_structures::fx::FxHashMap, hir::Mutability};
 
 use crate::utils::{read_prusti_attr, read_prusti_attrs};
 
@@ -9,6 +9,7 @@ use super::ExternSpecification;
 pub fn get_translated_specs(
     attrs: &[Attribute],
     function_name: &str,
+    mutability: Mutability,
 ) -> Option<(String, String, (String, String))> {
     let collector = read_prusti_attr("translated_spec_collector", attrs)?;
     let extern_source_file = read_prusti_attr("extern_source_file", attrs)?;
@@ -29,7 +30,7 @@ pub fn get_translated_specs(
     Some((
         extern_source_file,
         function_name.replace("prusti_extern_spec_", ""),
-        collector.collect_translated_specs(attribute_values),
+        collector.collect_translated_specs(attribute_values, mutability),
     ))
 }
 
@@ -39,6 +40,7 @@ pub trait TranslatedSpecCollector {
     fn collect_translated_specs(
         &self,
         values_of_supported_attributes: FxHashMap<String, Vec<String>>,
+        mutability: Mutability,
     ) -> ExternSpecification;
 }
 
@@ -71,8 +73,9 @@ impl TranslatedSpecCollector for VerifastSpecCollector {
     fn collect_translated_specs(
         &self,
         values_of_supported_attributes: FxHashMap<String, Vec<String>>,
+        mutability: Mutability
     ) -> ExternSpecification {
-        let mut separated_conjuncts = values_of_supported_attributes
+        let mut separated_conjuncts: FxHashMap<String, BTreeSet<String>> = values_of_supported_attributes
             .into_iter()
             .map(|(key, values)| {
                 (
@@ -85,6 +88,21 @@ impl TranslatedSpecCollector for VerifastSpecCollector {
                 )
             })
             .collect();
+
+        if matches!(mutability, Mutability::Not) {
+            let precall_bindings  = separated_conjuncts.get(VERIFAST_POSTCALL_FIELD_BINDINGS)
+                .map(|postcall_bindings| postcall_bindings
+                    .iter().map(|binding| binding.replace("_post_", "_pre_")).collect::<BTreeSet<_>>())
+                .unwrap_or_default();
+
+            separated_conjuncts.insert(
+                VERIFAST_PRECALL_FIELD_BINDINGS.to_owned(),
+                precall_bindings,
+            );
+
+            add_fractional_permissions(&mut separated_conjuncts, VERIFAST_PRECALL_FIELD_BINDINGS, true);
+            add_fractional_permissions(&mut separated_conjuncts, VERIFAST_POSTCALL_FIELD_BINDINGS, false);
+        }
 
         (
             merge(
@@ -99,6 +117,18 @@ impl TranslatedSpecCollector for VerifastSpecCollector {
             ),
         )
     }
+}
+
+fn add_fractional_permissions(separated_conjuncts: &mut FxHashMap<String, BTreeSet<String>>, bindings_key: &str, add_q_mark: bool) {
+    separated_conjuncts
+        .entry(bindings_key.to_owned())
+        .and_modify(|values| {
+            *values = values
+                .iter()
+                .enumerate()
+                .map(|(i, b)| format!("[{}_frac_{i}]{b}", if add_q_mark {"?"} else {""}))
+                .collect();
+        });
 }
 
 fn merge(
