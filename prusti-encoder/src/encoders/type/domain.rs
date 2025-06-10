@@ -198,7 +198,7 @@ impl TaskEncoder for DomainEnc {
                 }
                 TyKind::Never => super::kinds::never::domain(*task_key, deps, &mut builder)?,
                 TyKind::Ref(_, _, ty::Mutability::Not) => {
-                    super::kinds::immref::domain(*task_key, deps, &mut builder)?
+                    super::kinds::immref::domain(*task_key, &output_ref, deps, &mut builder)?
                 }
                 TyKind::Ref(_, _, ty::Mutability::Mut) => {
                     super::kinds::mutref::domain(*task_key, deps, &mut builder)?
