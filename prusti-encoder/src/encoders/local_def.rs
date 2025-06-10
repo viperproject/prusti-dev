@@ -6,9 +6,12 @@ use prusti_rustc_interface::{
 
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 
-use crate::encoders::{
-    rust_ty_predicates::{RustTyPredicatesEnc, RustTyPredicatesEncOutputRef},
-    PredicateEncOutputRef,
+use crate::{
+    encoders::{
+        rust_ty_predicates::{RustTyPredicatesEnc, RustTyPredicatesEncOutputRef},
+        PredicateEncOutputRef,
+    },
+    trait_support::is_function_with_body,
 };
 
 pub struct MirLocalDefEnc;
@@ -72,10 +75,13 @@ impl TaskEncoder for MirLocalDefEnc {
                 ty: vcx.alloc(ty.generic_predicate),
             }
         }
-        
-        let trusted = crate::encoders::spec::is_function_trusted(def_id);
+
+        let trusted = crate::encoders::spec::is_function_trusted(def_id, substs);
         vir::with_vcx(|vcx| {
-            let data = if !trusted && let Some(local_def_id) = def_id.as_local() {
+            let data = if !trusted
+                && let Some(local_def_id) = def_id.as_local()
+                && is_function_with_body(vcx.tcx(), def_id)
+            {
                 let body = vcx
                     .body_mut()
                     .get_impure_fn_body(local_def_id, substs, caller_def_id);
