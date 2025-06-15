@@ -281,7 +281,7 @@ mod tests {
 
     #[test]
     fn test_complex_conjunction_with_old() {
-        test_post_with_old(
+        test_post_condition_translation(
             "p.x == old(p.y) && p.y == old(p.x)",
             "p->x |-> ?_pre_p_x &*& p->y |-> ?_pre_p_y",
             "p->x |-> ?_post_p_x &*& p->y |-> ?_post_p_y",
@@ -291,7 +291,7 @@ mod tests {
 
     #[test]
     fn test_complex_old_expression() {
-        test_post_with_old(
+        test_post_condition_translation(
             "p.x == old(p.y + p.x) && p.y == old(p.y - p.x) && result == p.x * p.y",
             "p->x |-> ?_pre_p_x &*& p->y |-> ?_pre_p_y",
             "p->x |-> ?_post_p_x &*& p->y |-> ?_post_p_y",
@@ -300,18 +300,18 @@ mod tests {
     }
 
     fn test_post(prusti: &str, post_call_bindings: &str, postcondition: &str) {
-        test_post_with_old(prusti, "", post_call_bindings, postcondition);
+        test_post_condition_translation(prusti, "", post_call_bindings, postcondition);
     }
 
-    fn test_post_with_old(
-        prusti: &str,
+    fn test_post_condition_translation(
+        prusti_assertion: &str,
         pre_call_bindings: &str,
         post_call_bindings: &str,
         postcondition: &str,
     ) {
         let translator = VeriFastTranslator;
         let token_stream: TokenStream =
-            syn::parse_str(prusti).expect("Failed to parse string into TokenStream");
+            syn::parse_str(prusti_assertion).expect("Failed to parse string into TokenStream");
         let span = Span::call_site();
         let result = translator
             .translate_spec(span, SpecItemType::Postcondition, token_stream)
