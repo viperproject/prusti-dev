@@ -16,12 +16,11 @@ use prusti_rustc_interface::{
         self,
         def_id::{DefId, LocalDefId},
         intravisit::{self, FnKind},
-        FnRetTy,
+        FnRetTy, Mutability, Ty, TyKind,
     },
     middle::{hir::map::Map, ty},
     span::Span,
 };
-use prusti_rustc_interface::hir::{Ty, TyKind, Mutability};
 use std::{convert::TryInto, fmt::Debug};
 
 pub mod checker;
@@ -577,7 +576,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 self.extern_resolver
                     .add_extern_fn(fn_kind, fn_decl, body_id, span, local_id, kind);
 
-                put_translated_specs(&mut self.translated_specs,attrs, fn_kind,fn_decl);
+                put_translated_specs(&mut self.translated_specs, attrs, fn_kind, fn_decl);
             }
 
             // Collect procedure specifications
@@ -636,7 +635,8 @@ fn put_translated_specs(
 ) -> Option<()> {
     if let FnKind::ItemFn(function_name, _, _) = fn_kind {
         let mutability = get_ref_mutability(fn_decl.inputs)?;
-        let (file, function, specs) = translated::get_translated_specs(attrs, &function_name.to_string(), mutability)?;
+        let (file, function, specs) =
+            translated::get_translated_specs(attrs, &function_name.to_string(), mutability)?;
         translated_specs
             .entry(file)
             .or_default()
@@ -646,13 +646,13 @@ fn put_translated_specs(
 }
 
 fn get_ref_mutability(param_types: &[Ty]) -> Option<Mutability> {
-    let mut mutabilities = param_types.iter().flat_map(|ty: &Ty|
+    let mut mutabilities = param_types.iter().flat_map(|ty: &Ty| {
         if let TyKind::Ref(_, mut_ty) = ty.kind {
             Some(mut_ty.mutbl)
         } else {
             None
         }
-    );
+    });
 
     let mutability = mutabilities.next().unwrap_or(Mutability::Mut);
     if mutabilities.all(|m| m == mutability) {

@@ -5,6 +5,13 @@ struct Point {
     int32_t y;
 };
 
+int32_t add(int32_t a, int32_t b)
+//@ requires true;
+//@ ensures result == a + b;
+{
+    return a + b;
+}
+
 void swap(struct Point *p)
 //@ requires p->x |-> ?_pre_p_x &*& p->y |-> ?_pre_p_y;
 //@ ensures p->x |-> ?_post_p_x &*& p->y |-> ?_post_p_y &*& _post_p_x == _pre_p_y &*& _post_p_y == _pre_p_x;

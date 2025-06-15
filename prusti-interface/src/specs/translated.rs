@@ -73,35 +73,47 @@ impl TranslatedSpecCollector for VerifastSpecCollector {
     fn collect_translated_specs(
         &self,
         values_of_supported_attributes: FxHashMap<String, Vec<String>>,
-        mutability: Mutability
+        mutability: Mutability,
     ) -> ExternSpecification {
-        let mut separated_conjuncts: FxHashMap<String, BTreeSet<String>> = values_of_supported_attributes
-            .into_iter()
-            .map(|(key, values)| {
-                (
-                    key,
-                    values
-                        .iter()
-                        .flat_map(|value| value.split(" &*& "))
-                        .map(|value| value.to_owned())
-                        .collect(),
-                )
-            })
-            .collect();
+        let mut separated_conjuncts: FxHashMap<String, BTreeSet<String>> =
+            values_of_supported_attributes
+                .into_iter()
+                .map(|(key, values)| {
+                    (
+                        key,
+                        values
+                            .iter()
+                            .flat_map(|value| value.split(" &*& "))
+                            .map(|value| value.to_owned())
+                            .collect(),
+                    )
+                })
+                .collect();
 
         if matches!(mutability, Mutability::Not) {
-            let precall_bindings  = separated_conjuncts.get(VERIFAST_POSTCALL_FIELD_BINDINGS)
-                .map(|postcall_bindings| postcall_bindings
-                    .iter().map(|binding| binding.replace("_post_", "_pre_")).collect::<BTreeSet<_>>())
+            let precall_bindings = separated_conjuncts
+                .get(VERIFAST_POSTCALL_FIELD_BINDINGS)
+                .map(|postcall_bindings| {
+                    postcall_bindings
+                        .iter()
+                        .map(|binding| binding.replace("_post_", "_pre_"))
+                        .collect::<BTreeSet<_>>()
+                })
                 .unwrap_or_default();
 
-            separated_conjuncts.insert(
-                VERIFAST_PRECALL_FIELD_BINDINGS.to_owned(),
-                precall_bindings,
-            );
+            separated_conjuncts
+                .insert(VERIFAST_PRECALL_FIELD_BINDINGS.to_owned(), precall_bindings);
 
-            add_fractional_permissions(&mut separated_conjuncts, VERIFAST_PRECALL_FIELD_BINDINGS, true);
-            add_fractional_permissions(&mut separated_conjuncts, VERIFAST_POSTCALL_FIELD_BINDINGS, false);
+            add_fractional_permissions(
+                &mut separated_conjuncts,
+                VERIFAST_PRECALL_FIELD_BINDINGS,
+                true,
+            );
+            add_fractional_permissions(
+                &mut separated_conjuncts,
+                VERIFAST_POSTCALL_FIELD_BINDINGS,
+                false,
+            );
         }
 
         (
@@ -119,14 +131,18 @@ impl TranslatedSpecCollector for VerifastSpecCollector {
     }
 }
 
-fn add_fractional_permissions(separated_conjuncts: &mut FxHashMap<String, BTreeSet<String>>, bindings_key: &str, add_q_mark: bool) {
+fn add_fractional_permissions(
+    separated_conjuncts: &mut FxHashMap<String, BTreeSet<String>>,
+    bindings_key: &str,
+    add_q_mark: bool,
+) {
     separated_conjuncts
         .entry(bindings_key.to_owned())
         .and_modify(|values| {
             *values = values
                 .iter()
                 .enumerate()
-                .map(|(i, b)| format!("[{}_frac_{i}]{b}", if add_q_mark {"?"} else {""}))
+                .map(|(i, b)| format!("[{}_frac_{i}]{b}", if add_q_mark { "?" } else { "" }))
                 .collect();
         });
 }
@@ -143,7 +159,7 @@ fn merge(
             acc.push_str(value);
             acc
         })
-        .unwrap_or_default()
+        .unwrap_or("true".to_owned())
 }
 
 fn take(
