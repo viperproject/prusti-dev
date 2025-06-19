@@ -1,5 +1,8 @@
-use crate::{external_verifier::verifast, verifier::verify};
-use prusti_common::config;
+use crate::{
+    external_verifier::verifast::{self, ExternalVerificationError},
+    verifier::verify,
+};
+use prusti_common::{config, report::user};
 use prusti_interface::{
     environment::{mir_storage, Environment},
     specs::{self, cross_crate::CrossCrateSpecs, is_spec_fn},
@@ -159,7 +162,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
             if !config::no_verify() {
                 verify(env, def_spec);
-                verifast::verify_external(translated_specs);
+                report_external_verification_errors(verifast::verify_external(translated_specs));
             }
         });
 
@@ -169,5 +172,25 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         } else {
             Compilation::Stop
         }
+    }
+}
+
+fn report_external_verification_errors(errors: Vec<ExternalVerificationError>) {
+    if !errors.is_empty() {
+        user::message("External verification failed due to the following errors:");
+        errors.iter().for_each(|error| match error {
+            ExternalVerificationError::IoError(e, file) => {
+                user::message(format!("I/O error for file '{}': {}", file, e))
+            }
+            ExternalVerificationError::AmbiguousExternFunctionName(name) => {
+                user::message(format!(
+                    "Ambiguous extern function name: '{}'. Consider renaming the function to avoid ambiguity.",
+                    name
+                ))
+            }
+            ExternalVerificationError::FunctionNotFound(name) => {
+                user::message(format!("Function not found: '{}'", name))
+            }
+        });
     }
 }

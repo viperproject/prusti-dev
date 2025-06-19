@@ -8,7 +8,7 @@ use std::{
 };
 
 pub enum ExternalVerificationError {
-    IoError(std::io::Error),
+    IoError(std::io::Error, String),
     AmbiguousExternFunctionName(ExternFunctionName),
     FunctionNotFound(ExternFunctionName),
 }
@@ -27,7 +27,7 @@ fn verify_external_c_file(
 ) -> Vec<ExternalVerificationError> {
     let mut c_file_content = match read_external_c_file(file) {
         Ok(chars) => chars,
-        Err(e) => return vec![ExternalVerificationError::IoError(e)],
+        Err(e) => return vec![ExternalVerificationError::IoError(e, file.to_owned())],
     };
 
     let errors = process_c_file(&mut c_file_content, &specs);
@@ -37,7 +37,7 @@ fn verify_external_c_file(
 
     match write_external_c_file(file, &c_file_content) {
         Ok(_) => vec![],
-        Err(e) => vec![ExternalVerificationError::IoError(e)],
+        Err(e) => vec![ExternalVerificationError::IoError(e, file.to_owned())],
     }
 }
 
