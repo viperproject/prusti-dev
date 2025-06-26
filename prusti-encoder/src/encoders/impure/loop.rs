@@ -32,7 +32,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     ) -> &'vir [vir::Expr<'vir>] {
         let mut inv = Vec::new();
         let start = &cfpcs.statements[0];
-        let state = &*start.states[EvalStmtPhase::PreOperands];
+        let state = &start.states[EvalStmtPhase::PreOperands];
         // let borrows = &*start.borrows[EvalStmtPhase::PreOperands];
         // self.stmt(self.vcx.mk_comment_stmt(
         //     vir::vir_format!(self.vcx, "_borrows: {:#?}", borrows),
@@ -153,7 +153,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn get_place(place: MaybeRemotePlace<'vir>) -> Place<'vir> {
         match place {
             MaybeRemotePlace::Local(MaybeOldPlace::Current { place }) => place,
-            MaybeRemotePlace::Local(MaybeOldPlace::OldPlace(place)) => place.place,
+            MaybeRemotePlace::Local(MaybeOldPlace::OldPlace(place)) => place.place(),
             MaybeRemotePlace::Remote(r) => r.assigned_local().into(),
         }
     }
@@ -184,7 +184,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 self.mk_wand_outer(expr, old_outer)
             }
             MaybeRemotePlace::Local(MaybeOldPlace::OldPlace(place)) => {
-                let label = Self::get_location_label(self.vcx, place.at);
+                let label = Self::get_location_label(self.vcx, place.at());
                 self.vcx.mk_old(expr, label)
             }
             MaybeRemotePlace::Remote(_) => self.vcx.mk_old_expr(expr),
@@ -200,6 +200,11 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             SnapshotLocation::After(loc) => {
                 let name =
                     vir::vir_format!(vcx, "_after_{}_{}", loc.block.index(), loc.statement_index);
+                vir::OldLabel::Label(name)
+            }
+            SnapshotLocation::Mid(loc) => {
+                let name =
+                    vir::vir_format!(vcx, "_mid_{}_{}", loc.block.index(), loc.statement_index);
                 vir::OldLabel::Label(name)
             }
             SnapshotLocation::Start(bb) => {

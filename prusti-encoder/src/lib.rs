@@ -3,6 +3,7 @@
 #![feature(let_chains)]
 #![feature(box_patterns)]
 #![feature(never_type)]
+#![feature(allocator_api)]
 #![allow(clippy::needless_lifetimes)]
 
 mod encoders;
