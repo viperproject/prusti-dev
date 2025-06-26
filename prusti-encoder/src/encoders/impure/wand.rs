@@ -1,7 +1,7 @@
 use pcg::{
     borrow_pcg::{
-        borrow_pcg_edge::{BorrowPCGEdgeLike, BorrowPCGEdgeRef},
-        edge::{abstraction::AbstractionType, kind::BorrowPCGEdgeKind},
+        borrow_pcg_edge::{BorrowPcgEdgeLike, BorrowPcgEdgeRef},
+        edge::{abstraction::AbstractionType, kind::BorrowPcgEdgeKind},
         graph::BorrowsGraph,
         region_projection::RegionProjection,
         state::BorrowsState,
@@ -36,9 +36,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
     pub(super) fn get_abstraction_edges<'a>(
         g: &'a BorrowsGraph<'vir>,
-    ) -> impl Iterator<Item = (BorrowPCGEdgeRef<'vir, 'a>, Inputs<'vir>, Outputs<'vir>)> + 'a {
+    ) -> impl Iterator<Item = (BorrowPcgEdgeRef<'vir, 'a>, Inputs<'vir>, Outputs<'vir>)> + 'a {
         g.edges().filter_map(|edge| match edge.kind() {
-            BorrowPCGEdgeKind::Abstraction(at) => {
+            BorrowPcgEdgeKind::Abstraction(at) => {
                 Self::ignore_abstraction_edge(at).map(|(inputs, outputs)| (edge, inputs, outputs))
             }
             _ => None,
