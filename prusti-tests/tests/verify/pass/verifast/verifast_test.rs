@@ -9,22 +9,22 @@ pub struct Point {
 use prusti_contracts::*;
 
 #[extern_spec(
-    {file = "prusti-tests/tests/verify/pass/verifast/functions.c",}
+    {file = "prusti-tests/tests/verify/pass/verifast/functions.c",
+     translator = "verifast"}
     crate)]
 extern "C" {
-    #[ensures({translator = "verifast"}result == a + b)]
+    #[ensures(result == a + b)]
     pub fn add(a: i32, b: i32) -> i32;
 
-    #[ensures({translator = "verifast"}p.x == old(p.y))]
-    #[ensures({translator = "verifast"}p.y == old(p.x))]
+    #[ensures(p.x == old(p.y))]
+    #[ensures(p.y == old(p.x))]
     pub fn swap(p: &mut Point);
 
-    #[ensures({translator = "verifast"}
-        p.x == old(p.y + p.x) && p.y == old(p.y - p.x))]
-    #[ensures({translator = "verifast"}result == p.x * p.y)]
+    #[ensures(p.x == old(p.y + p.x) && p.y == old(p.y - p.x))]
+    #[ensures(result == p.x * p.y)]
     pub fn mangle(p: &mut Point) -> i32;
 
-    #[ensures({translator = "verifast"}result == p.x * p.x + p.y * p.y)]
+    #[ensures(result == p.x * p.x + p.y * p.y)]
     pub fn squared_magnitude(p: &Point) -> i32;
 }
 

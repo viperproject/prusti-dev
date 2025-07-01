@@ -786,7 +786,6 @@ pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         let item: syn::Item = syn::parse2(tokens)?;
 
         let (properties, attr) = properties::extract_properties(attr)?;
-        let file = properties.get(&properties::Property::File);
 
         let mod_path: syn::Path = Some(attr)
             .filter(|attr| !attr.is_empty())
@@ -816,7 +815,7 @@ pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
                 extern_spec_rewriter::foreign_mods::rewrite_extern_spec(
                     &item_foreign_mod,
                     &mod_path,
-                    file,
+                    properties,
                 )
             }
             // we're expecting function stubs, so they aren't represented as Item::Fn
