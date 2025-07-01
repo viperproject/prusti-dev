@@ -12,6 +12,7 @@
 mod arg_value;
 mod callbacks;
 mod verifier;
+mod external_verifier;
 
 use arg_value::arg_value;
 use callbacks::PrustiCompilerCalls;

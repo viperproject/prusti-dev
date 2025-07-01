@@ -1,10 +1,12 @@
 use crate::{
     common::HasSignature,
+    properties, spec_translator,
     specifications::{
         common::{SpecificationId, SpecificationIdGenerator},
         preparser::{parse_prusti, parse_prusti_assert_pledge, parse_prusti_pledge},
         untyped,
     },
+    GeneratedResult,
 };
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, quote_spanned};
@@ -133,6 +135,25 @@ impl AstRewriter {
             _ => (),
         }
         Ok(syn::Item::Fn(spec_item))
+    }
+
+    pub fn process_translatable_assertion<T: HasSignature + Spanned>(
+        &mut self,
+        spec_type: SpecItemType,
+        spec_id: SpecificationId,
+        tokens: TokenStream,
+        item: &T,
+    ) -> GeneratedResult {
+        let (props, tokens) = properties::extract_properties(tokens)?;
+        let translated_specs = spec_translator::build_translator(&props)
+            .map(|translator| {
+                translator.translate_spec(item.span(), spec_type.clone(), tokens.clone())
+            })
+            .unwrap_or(Ok(Vec::new()))?;
+        Ok((
+            vec![self.generate_spec_item_fn(spec_type, spec_id, parse_prusti(tokens)?, item)?],
+            translated_specs,
+        ))
     }
 
     /// Parse an assertion into a Rust expression

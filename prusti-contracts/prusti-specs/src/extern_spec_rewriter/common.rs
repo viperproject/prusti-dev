@@ -1,4 +1,5 @@
 use crate::{
+    TokenTree,
     common::{HasAttributes, HasSignature},
     extract_prusti_attributes, generate_spec_and_assertions,
     span_overrider::SpanOverrider,
@@ -6,11 +7,11 @@ use crate::{
     ExternSpecKind, RewritableReceiver, SelfTypeRewriter,
 };
 use itertools::Itertools;
-use proc_macro2::TokenStream;
+use proc_macro2::{TokenStream, Group};
 use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::{
     parse_quote_spanned, punctuated::Punctuated, spanned::Spanned, visit::Visit,
-    visit_mut::VisitMut, Expr, FnArg, GenericArgument, GenericParam, Pat, PatType, Token,
+    visit_mut::VisitMut, Expr, FnArg, GenericArgument, GenericParam, Pat, PatType, Token
 };
 
 /// Counts the number of elided lifetimes in receivers and types.
@@ -191,7 +192,25 @@ pub(crate) fn generate_extern_spec_function_stub<Input: HasSignature + HasAttrib
     fn_path: &syn::ExprPath,
     extern_spec_kind: ExternSpecKind,
     mangle_name: bool,
+    is_unsafe: bool
+) -> TokenStream {
+    generate_extern_spec_function_stub_with_translator(
+        function,
+        fn_path,
+        extern_spec_kind,
+        mangle_name,
+        is_unsafe,
+        None,
+    )
+}
+
+pub(crate) fn generate_extern_spec_function_stub_with_translator<Input: HasSignature + HasAttributes + Spanned>(
+    function: &Input,
+    fn_path: &syn::ExprPath,
+    extern_spec_kind: ExternSpecKind,
+    mangle_name: bool,
     is_unsafe: bool,
+    translator: Option<&str>
 ) -> TokenStream {
     let signature = function.sig();
     let mut signature = with_explicit_lifetimes(signature).unwrap_or_else(|| signature.clone());
@@ -199,7 +218,30 @@ pub(crate) fn generate_extern_spec_function_stub<Input: HasSignature + HasAttrib
         signature.ident = format_ident!("prusti_extern_spec_{}", signature.ident);
     }
     // Make elided lifetimes explicit, if necessary.
-    let attrs = function.attrs().clone();
+    let mut attrs = function.attrs().clone();
+
+    if let Some(translator) = translator {
+        attrs.iter_mut().for_each(|attr| {
+            
+            if attr.path.is_ident("ensures") || attr.path.is_ident("requires") {
+                let translator = translator.to_owned().replace("\"", "");
+                let mut new_tokens = quote_spanned! {attr.tokens.span()=>
+                    {translator = #translator}
+                };
+                dbg!(&new_tokens);
+                let mut tokens = TokenStream::new();
+                std::mem::swap(&mut attr.tokens, &mut tokens);
+                if let Some(TokenTree::Group(group)) = tokens.into_iter().next() {
+                    new_tokens.extend(group.stream());
+                    attr.tokens = TokenStream::from(TokenTree::Group(
+                        Group::new(group.delimiter(), new_tokens),
+                    ));
+                }
+            }
+            
+        })
+    }
+
     let generic_params = &signature.generic_params_as_call_args();
     let args = &signature.params_as_call_args();
     let extern_spec_kind_string: String = extern_spec_kind.into();

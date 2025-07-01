@@ -2,16 +2,21 @@
 //! In practice, these will be combined with a module argument to extern_spec
 //! e.g. `#[extern_spec(core::mem)] fn swap`
 
-use super::common::generate_extern_spec_function_stub;
+use super::common::generate_extern_spec_function_stub_with_translator;
 use crate::ExternSpecKind;
 use proc_macro2::{Group, TokenStream, TokenTree};
 use quote::{quote, ToTokens};
 use syn::{parse_quote_spanned, spanned::Spanned};
 
-pub fn rewrite_stub(
+pub fn rewrite_stub(stub_tokens: &TokenStream, path: &syn::Path, is_unsafe: bool) -> syn::Result<TokenStream> {
+    rewrite_stub_with_translator(stub_tokens, path, is_unsafe, None)
+}
+
+pub fn rewrite_stub_with_translator(
     stub_tokens: &TokenStream,
     path: &syn::Path,
     is_unsafe: bool,
+    translator: Option<&str>
 ) -> syn::Result<TokenStream> {
     // Transforms function stubs (functions with a `;` after the
     // signature instead of the body) into functions, then
@@ -38,18 +43,22 @@ pub fn rewrite_stub(
 
     let mut item = res.unwrap();
     if let syn::Item::Fn(item_fn) = &mut item {
-        Ok(rewrite_fn(item_fn, path, is_unsafe))
+        Ok(rewrite_fn_with_translator(item_fn, path, is_unsafe, translator))
     } else {
         Ok(quote!(#item))
     }
 }
 
+pub fn rewrite_fn(item_fn: &syn::ItemFn, path: &syn::Path, is_unsafe: bool) -> TokenStream {
+    rewrite_fn_with_translator(item_fn, path, is_unsafe, None)
+}
+
 /// Rewrite a specification function to a call to the specified function.
 /// The result of this rewriting is then parsed in `ExternSpecResolver`.
-pub fn rewrite_fn(item_fn: &syn::ItemFn, path: &syn::Path, is_unsafe: bool) -> TokenStream {
+pub fn rewrite_fn_with_translator(item_fn: &syn::ItemFn, path: &syn::Path, is_unsafe: bool, translator: Option<&str>) -> TokenStream {
     let ident = &item_fn.sig.ident;
     let path_span = item_fn.sig.ident.span();
     let path = parse_quote_spanned!(path_span=> #path :: #ident);
 
-    generate_extern_spec_function_stub(item_fn, &path, ExternSpecKind::Method, true, is_unsafe)
+    generate_extern_spec_function_stub_with_translator(item_fn, &path, ExternSpecKind::Method, true, is_unsafe, translator)
 }
