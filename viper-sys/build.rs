@@ -79,6 +79,10 @@ fn main() {
                 method!("get", "(Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;"),
             ]),
             // Scala
+            java_class!("scala.Option", vec![
+                method!("isEmpty"),
+                constructor!(),
+            ]),
             java_class!("scala.Some", vec![
                 method!("get"),
                 constructor!(),
