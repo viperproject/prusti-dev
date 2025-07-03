@@ -8,6 +8,7 @@ use super::{rust_ty_predicates::RustTyPredicatesEnc, rust_ty_snapshots::RustTySn
 pub enum IndirectKey {
     Early(ty::EarlyParamRegion),
     Late(ty::BoundRegionKind),
+    Var(ty::RegionVid),
     Param(ty::ParamTy),
 }
 
@@ -28,11 +29,11 @@ impl IndirectKey {
         match region.kind() {
             RegionKind::ReEarlyParam(e) => Some(IndirectKey::Early(e)),
             RegionKind::ReBound(_, g) => Some(IndirectKey::Late(g.kind)),
+            RegionKind::ReVar(r) => Some(IndirectKey::Var(r)),
             RegionKind::RePlaceholder(..)
             | RegionKind::ReError(..)
             | RegionKind::ReErased
-            | RegionKind::ReVar(..)
-            | RegionKind::ReLateParam(..) => unreachable!(),
+            | RegionKind::ReLateParam(..) => unreachable!("{region:?}"),
             RegionKind::ReStatic => None,
         }
     }
