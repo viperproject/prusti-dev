@@ -355,12 +355,9 @@ impl<'tcx> VirCtxt<'tcx> {
         if qvars.is_empty() {
             return body;
         }
-        let qvars = unsafe {
-            core::mem::transmute::<&'vir [LocalDecl<'vir, T>], &'vir [LocalDeclDyn<'vir>]>(qvars)
-        };
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Forall(
             self.alloc(ForallGenData {
-                qvars,
+                qvars: qvars.as_dyn(),
                 triggers,
                 body,
             }),
@@ -371,13 +368,8 @@ impl<'tcx> VirCtxt<'tcx> {
         &'vir self,
         exprs: &[ExprGen<'vir, Curr, Next, T>],
     ) -> TriggerGen<'vir, Curr, Next> {
-        let exprs = unsafe {
-            core::mem::transmute::<&[ExprGen<'vir, Curr, Next, T>], &[ExprGenDyn<'vir, Curr, Next>]>(
-                exprs,
-            )
-        };
         self.alloc(TriggerGenData {
-            exprs: self.alloc_slice(exprs),
+            exprs: self.alloc_slice(exprs.as_dyn()),
         })
     }
 

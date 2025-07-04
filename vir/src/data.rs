@@ -203,12 +203,6 @@ pub struct DomainFunctionData<'vir> {
     pub ret: TypeDyn<'vir>,
 }
 
-// impl<'vir> DomainFunctionData<'vir> {
-//     pub fn ident(&self) -> FunctionIdn<'vir, UnknownArity<'vir>, crate::TypeDyn<'vir>> {
-//         FunctionIdn::new(self.name, UnknownArity::new(self.args), self.ret.into())
-//     }
-// }
-
 #[derive(PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Hash)]
 pub enum CfgBlockLabelData {
     Start,
