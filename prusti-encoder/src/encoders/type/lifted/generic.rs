@@ -9,19 +9,19 @@ use crate::encoders::GenericEnc;
 /// parameters will always correspond to a method or function parameter in the
 /// Viper encoding.
 #[derive(Clone, Copy, Debug)]
-pub struct LiftedGeneric<'vir>(pub vir::LocalDecl<'vir>);
+pub struct LiftedGeneric<'vir>(pub vir::LocalDeclTyVal<'vir>);
 
 impl<'vir> LiftedGeneric<'vir> {
-    pub fn decl(&self) -> vir::LocalDecl<'vir> {
+    pub fn decl(&self) -> vir::LocalDeclTyVal<'vir> {
         self.0
     }
-    pub fn ty(&self) -> vir::Type<'vir> {
+    pub fn ty(&self) -> vir::TypeTyVal<'vir> {
         self.0.ty
     }
     pub fn expr<Curr: 'vir, Next: 'vir>(
         &self,
         vcx: &'vir vir::VirCtxt<'_>,
-    ) -> vir::ExprGen<'vir, Curr, Next> {
+    ) -> vir::ExprGenTyVal<'vir, Curr, Next> {
         vcx.mk_local_ex(self.0.name, self.0.ty)
     }
 }

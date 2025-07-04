@@ -10,7 +10,7 @@ use prusti_rustc_interface::{
     span::def_id::DefId,
 };
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{Arity, CallableIdent};
+use vir::{CallableIdn, CastType};
 
 pub struct ConstEnc;
 
@@ -29,7 +29,7 @@ impl TaskEncoder for ConstEnc {
         usize, // current encoding depth
         DefId, // DefId of the current function
     );
-    type OutputFullLocal<'vir> = vir::Expr<'vir>;
+    type OutputFullLocal<'vir> = vir::ExprCSnap<'vir>;
     type EncodingError = ();
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
@@ -53,7 +53,7 @@ impl TaskEncoder for ConstEnc {
                         let prim = kind.expect_primitive();
                         let val = int.to_bits(int.size());
                         let val = prim.expr_from_bits(ty, val);
-                        vir::with_vcx(|vcx| prim.prim_to_snap.apply(vcx, [val]))
+                        (prim.prim_to_snap)(val)
                     }
                     ConstValue::Scalar(Scalar::Ptr(ptr, _)) => vir::with_vcx(|vcx| {
                         match vcx.tcx().global_alloc(ptr.provenance.alloc_id()) {
@@ -70,8 +70,8 @@ impl TaskEncoder for ConstEnc {
                     }),
                     ConstValue::ZeroSized => {
                         let s = kind.expect_structlike();
-                        assert_eq!(s.field_snaps_to_snap.arity().args().len(), 0);
-                        vir::with_vcx(|vcx| s.field_snaps_to_snap.apply(vcx, &[]))
+                        assert_eq!(s.field_snaps_to_snap.arity().len(), 0);
+                        (s.field_snaps_to_snap)(&[])
                     }
                     // Encode `&str` constants to an opaque domain. If we ever want to perform string reasoning
                     // we will need to revisit this encoding, but for the moment this allows assertions to avoid
@@ -87,11 +87,11 @@ impl TaskEncoder for ConstEnc {
                         let cast = deps.require_local::<RustTyCastersEnc<CastTypePure>>(str_ty)?;
                         vir::with_vcx(|vcx| {
                             // first, we create a string snapshot
-                            let snap = str_snap.field_snaps_to_snap.apply(vcx, &[]);
+                            let snap = (str_snap.field_snaps_to_snap)(&[]);
                             // upcast it to a param
-                            let snap = cast.cast_to_generic_if_necessary(vcx, snap);
+                            let snap = cast.cast_to_generic_if_necessary(vcx, snap.upcast_ty());
                             // wrap it in a ref
-                            ref_ty.prim_to_snap.apply(vcx, [vcx.mk_null(), snap])
+                            (ref_ty.prim_to_snap)(vcx.mk_null(), snap)
                         })
                     }
                     ConstValue::Slice { .. } => todo!("ConstValue::Slice : {:?}", const_.ty()),
@@ -109,7 +109,7 @@ impl TaskEncoder for ConstEnc {
                 };
                 let expr = deps.require_local::<MirPureEnc>(task)?.expr;
                 use vir::Reify;
-                Ok(expr.reify(vcx, (uneval.def, &[])))
+                Ok(expr.reify(vcx, (uneval.def, &[])).downcast_ty())
             })?,
             mir::Const::Ty(_, _) => todo!("ConstantKind::Ty"),
         };

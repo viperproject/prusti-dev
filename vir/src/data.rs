@@ -3,26 +3,23 @@ use std::{collections::HashMap, fmt::Debug};
 
 use prusti_rustc_interface::middle::mir;
 
-use crate::{
-    debug_info::DebugInfo, refs::*, viper_ident::ViperIdent, CallableIdent, FunctionIdent,
-    UnknownArity,
-};
+use crate::{debug_info::DebugInfo, refs::*, viper_ident::ViperIdent, CastType, CompType};
 
 #[derive(Serialize, Deserialize, Hash)]
-pub struct LocalData<'vir> {
+pub struct LocalData<'vir, T: CompType> {
     #[serde(with = "crate::serde::serde_str")]
     pub name: &'vir str, // TODO: identifiers
     #[serde(with = "crate::serde::serde_ref")]
-    pub ty: Type<'vir>,
+    pub ty: Type<'vir, T>,
     pub debug_info: DebugInfo<'vir>,
 }
 
 #[derive(Eq, PartialEq, Serialize, Deserialize, Hash)]
-pub struct LocalDeclData<'vir> {
+pub struct LocalDeclData<'vir, T: CompType> {
     #[serde(with = "crate::serde::serde_str")]
     pub name: &'vir str, // TODO: identifiers
     #[serde(with = "crate::serde::serde_ref")]
-    pub ty: Type<'vir>,
+    pub ty: Type<'vir, T>,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize, Hash)]
@@ -114,29 +111,62 @@ pub enum ConstData {
 }
 
 impl ConstData {
-    pub fn ty(&self) -> Type<'static> {
+    pub fn ty(&self) -> TypePrim<'static> {
         match self {
-            ConstData::Bool(_) => &TypeData::Bool,
-            ConstData::Int(_) => &TypeData::Int,
-            ConstData::Wildcard => &TypeData::Perm,
-            ConstData::Null => &TypeData::Ref,
+            ConstData::Bool(_) => crate::TYPE_BOOL.upcast_ty(),
+            ConstData::Int(_) => crate::TYPE_INT.upcast_ty(),
+            ConstData::Wildcard => crate::TYPE_PERM.upcast_ty(),
+            ConstData::Null => crate::TYPE_REF.upcast_ty(),
         }
     }
 }
 
 #[derive(PartialEq, Eq, Ord, PartialOrd, Serialize, Deserialize, Hash)]
-pub enum TypeData<'vir> {
+#[serde(bound(deserialize = "'de: 'vir"))]
+pub struct TypeData<'vir, T: CompType> {
+    ty: TypeKind<'vir>,
+    #[serde(skip)]
+    _marker: core::marker::PhantomData<T>,
+}
+
+impl<'vir, T: CompType> TypeData<'vir, T> {
+    pub(crate) const unsafe fn new_unchecked(ty: TypeKind<'vir>) -> Self {
+        Self {
+            ty,
+            _marker: core::marker::PhantomData,
+        }
+    }
+
+    pub fn new(ty: TypeKind<'vir>) -> Self {
+        let self_ = unsafe { Self::new_unchecked(ty) };
+        T::check(&self_);
+        self_
+    }
+
+    pub fn kind(&self) -> &TypeKind<'vir> {
+        &self.ty
+    }
+}
+
+impl<'vir, T: CompType> core::ops::Deref for TypeData<'vir, T> {
+    type Target = TypeKind<'vir>;
+    fn deref(&self) -> &Self::Target {
+        self.kind()
+    }
+}
+
+#[derive(PartialEq, Eq, Ord, PartialOrd, Serialize, Deserialize, Hash)]
+pub enum TypeKind<'vir> {
     Int,
     Bool,
     DomainTypeParam(DomainParamData<'vir>), // TODO: identifiers
     Domain(
         #[serde(with = "crate::serde::serde_str")] &'vir str, // TODO: identifiers
-        #[serde(with = "crate::serde::serde_slice")] &'vir [Type<'vir>],
+        #[serde(with = "crate::serde::serde_slice")] &'vir [TypeDyn<'vir>],
     ),
     // TODO: separate `TyParam` variant? `Domain` used for now
     Ref, // TODO: typed references ?
     Perm,
-    Predicate, // The type of a predicate application
     Unsupported(UnsupportedType<'vir>),
 }
 
@@ -146,7 +176,7 @@ pub struct UnsupportedType<'vir> {
     pub name: &'vir str,
 }
 
-pub type TySubsts<'vir> = HashMap<&'vir str, Type<'vir>>;
+pub type TySubsts<'vir> = HashMap<&'vir str, TypeDyn<'vir>>;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Ord, PartialOrd, Serialize, Deserialize, Hash)]
 pub struct DomainParamData<'vir> {
@@ -154,12 +184,12 @@ pub struct DomainParamData<'vir> {
     pub name: &'vir str, // TODO: identifiers
 }
 
-#[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
-pub struct FieldData<'vir> {
+#[derive(PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
+pub struct FieldData<'vir, T: CompType> {
     #[serde(with = "crate::serde::serde_str")]
     pub name: &'vir str, // TODO: identifiers
     #[serde(with = "crate::serde::serde_ref")]
-    pub ty: Type<'vir>,
+    pub ty: Type<'vir, T>,
 }
 
 #[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
@@ -168,16 +198,16 @@ pub struct DomainFunctionData<'vir> {
     pub unique: bool,
     pub name: ViperIdent<'vir>,
     #[serde(with = "crate::serde::serde_slice")]
-    pub args: &'vir [Type<'vir>],
+    pub args: &'vir [TypeDyn<'vir>],
     #[serde(with = "crate::serde::serde_ref")]
-    pub ret: Type<'vir>,
+    pub ret: TypeDyn<'vir>,
 }
 
-impl<'vir> DomainFunctionData<'vir> {
-    pub fn ident(&self) -> FunctionIdent<'vir, UnknownArity<'vir>> {
-        FunctionIdent::new(self.name, UnknownArity::new(self.args), self.ret)
-    }
-}
+// impl<'vir> DomainFunctionData<'vir> {
+//     pub fn ident(&self) -> FunctionIdn<'vir, UnknownArity<'vir>, crate::TypeDyn<'vir>> {
+//         FunctionIdn::new(self.name, UnknownArity::new(self.args), self.ret.into())
+//     }
+// }
 
 #[derive(PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Hash)]
 pub enum CfgBlockLabelData {
@@ -206,13 +236,57 @@ pub enum OldLabel<'vir> {
     Label(#[serde(with = "crate::serde::serde_str")] &'vir str),
 }
 
+// macro_rules! impl_ty_casts {
+//     ($($name:ident),*) => {
+//         $(
+//             impl<'vir, T: CompType> $name<'vir, T> {
+//                 /// The most general type cast. Always use `upcast_ty` or `downcast_ty` if
+//                 /// possible. The only reason to use this if casting e.g. a generic
+//                 /// `ExprGen<T>` type to a `ExprDyn` type.
+//                 fn cast_ty<U: CompType>(&self) -> &$name<'vir, U> {
+//                     U::check(self.ty.ty());
+//                     // SAFETY: all `ExpType` types have the same layout, the above `new`
+//                     // call checks that the contained type is valid for the new type.
+//                     unsafe { std::mem::transmute(self) }
+//                 }
+
+//                 /// Will panic if casting to an incorrect type.
+//                 pub fn downcast_ty<U: CompType>(&self) -> &$name<'vir, U> where T: TransmuteFrom<U> {
+//                     self.cast_ty::<U>()
+//                 }
+
+//                 /// Cannot panic.
+//                 pub fn upcast_ty<U: CompType>(&self) -> &$name<'vir, U> where U: TransmuteFrom<T> {
+//                     // Should never panic
+//                     self.cast_ty::<U>()
+//                 }
+
+//                 /// Cannot panic.
+//                 pub fn as_dyn(&self) -> &$name<'vir, crate::Dyn> {
+//                     self.cast_ty()
+//                 }
+//             }
+
+//             // impl<'vir, T: CompTypeUpcast<'vir, U>, U: CompType> Deref for $name<'vir, T> {
+//             //     type Target = $name<'vir, U>;
+//             //     fn deref(&self) -> &Self::Target {
+//             //         // The inner type check should never fail
+//             //         self.upcast_ty()
+//             //     }
+//             // }
+//         )*
+//     };
+// }
+
+// impl_ty_casts!(LocalData, LocalDeclData, FieldData);
+
 pub type AccFieldData<'vir> = crate::gendata::AccFieldGenData<'vir, !, !>;
 pub type BinOpData<'vir> = crate::gendata::BinOpGenData<'vir, !, !>;
 pub type CfgBlockData<'vir> = crate::gendata::CfgBlockGenData<'vir, !, !>;
 pub type CfgLabelData<'vir> = crate::gendata::CfgLabelGenData<'vir, !, !>;
 pub type DomainAxiomData<'vir> = crate::gendata::DomainAxiomGenData<'vir, !, !>;
 pub type DomainData<'vir> = crate::gendata::DomainGenData<'vir, !, !>;
-pub type ExprData<'vir> = crate::gendata::ExprGenData<'vir, !, !>;
+pub type ExprData<'vir, T> = crate::gendata::ExprGenData<'vir, !, !, T>;
 pub type ExprKindData<'vir> = crate::gendata::ExprKindGenData<'vir, !, !>;
 pub type ForallData<'vir> = crate::gendata::ForallGenData<'vir, !, !>;
 pub type FuncAppData<'vir> = crate::gendata::FuncAppGenData<'vir, !, !>;
