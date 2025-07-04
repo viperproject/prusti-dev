@@ -1,10 +1,9 @@
 use std::alloc::Global;
 
 use pcg::{borrow_checker::r#impl::BorrowCheckerImpl, r#loop::LoopAnalysis};
-use prusti_interface::specs::specifications::SpecQuery;
 use prusti_rustc_interface::middle::mir;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
-use vir::{MethodIdent, UnknownArity, ViperIdent};
+use vir::{MethodIdn, ViperIdent};
 
 use crate::{
     encoders::{
@@ -21,7 +20,7 @@ pub struct ImpureFunctionEncError;
 
 #[derive(Clone, Debug)]
 pub struct ImpureFunctionEncOutputRef<'vir> {
-    pub method_ref: MethodIdent<'vir, UnknownArity<'vir>>,
+    pub method_ref: MethodIdn<'vir, (vir::ManyRef, vir::ManyTyVal)>,
 }
 impl<'vir> task_encoder::OutputRefAny for ImpureFunctionEncOutputRef<'vir> {}
 
@@ -77,15 +76,19 @@ where
             // Create the identifier and use it as an output ref. This is what
             // is used when other methods call this one.
             let method_name = Self::mk_method_ident(vcx, &task_key);
-            let mut args = vec![&vir::TypeData::Ref; arg_count];
+            let ref_args = vcx.alloc_slice(&vec![vir::TYPE_REF; arg_count]);
             let param_ty_decls = deps
                 .require_local::<LiftedTyParamsEnc>(substs)?
                 .iter()
                 .map(|g| g.decl())
                 .collect::<Vec<_>>();
-            args.extend(param_ty_decls.iter().map(|decl| decl.ty));
-            let args = UnknownArity::new(vcx.alloc_slice(&args));
-            let method_ref = MethodIdent::new(method_name, args);
+            let ty_args = vcx.alloc_slice(
+                &param_ty_decls
+                    .iter()
+                    .map(|decl| decl.ty)
+                    .collect::<Vec<_>>(),
+            );
+            let method_ref = MethodIdn::new(method_name, (ref_args, ty_args));
             deps.emit_output_ref(task_key, ImpureFunctionEncOutputRef { method_ref })?;
 
             // Method contract. We will need to emit pre- and postconditions for
@@ -148,7 +151,7 @@ where
                         let name = vir::vir_format!(vcx, "_reach_bb{block}");
                         vcx.mk_local_decl_stmt(
                             vir::vir_local_decl! { vcx; [name] : Bool },
-                            Some(vcx.mk_todo_expr("false")),
+                            Some(vcx.mk_bool::<false>()),
                         )
                     }));
                 }
@@ -216,8 +219,6 @@ where
                 None
             };
 
-            args.extend(param_ty_decls.iter());
-
             // Add functional specification as the last pre- and postconditions.
             pres.extend(spec.pres);
             posts.extend(spec.posts);
@@ -225,7 +226,7 @@ where
             Ok(ImpureFunctionEncOutput {
                 method: vcx.mk_method(
                     method_ref,
-                    vcx.alloc_slice(&args),
+                    (&args, &param_ty_decls),
                     &[],
                     vcx.alloc_slice(&pres),
                     vcx.alloc_slice(&posts),

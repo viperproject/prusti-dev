@@ -1,11 +1,11 @@
 use std::cell::RefCell;
 
 use prusti_interface::specs::{
-    specifications::{SpecQuery, Specifications},
+    specifications::SpecQuery,
     typed::{DefSpecificationMap, ProcedureSpecification, SpecificationItem},
 };
 use prusti_rustc_interface::{
-    middle::{mir, ty},
+    middle::ty,
     span::def_id::DefId,
 };
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};

@@ -10,7 +10,7 @@ use pcg::{
 use prusti_rustc_interface::middle::mir;
 
 use task_encoder::TaskEncoder;
-use vir::Reify;
+use vir::{CastType, Reify};
 
 use crate::encoders::{
     indirect::{IndirectKey, IndirectPredicatesEnc},
@@ -19,7 +19,7 @@ use crate::encoders::{
 };
 
 pub(super) enum WandOldOuter<'vir> {
-    LetBind(Vec<(&'vir str, vir::Expr<'vir>)>),
+    LetBind(Vec<(&'vir str, vir::ExprSnap<'vir>)>),
     Label(Option<&'vir str>),
 }
 
@@ -29,7 +29,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         &mut self,
         _lh: LoopId,
         cfpcs: &PcgBasicBlock<'vir>,
-    ) -> &'vir [vir::Expr<'vir>] {
+    ) -> &'vir [vir::ExprBool<'vir>] {
         let mut inv = Vec::new();
         let start = &cfpcs.statements[0];
         let state = &start.states[EvalStmtPhase::PreOperands];
@@ -97,7 +97,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     pub(super) fn encode_pcg_node(
         &mut self,
         node: &PCGNode<'vir, MaybeRemotePlace<'vir>, MaybeRemotePlace<'vir>>,
-        wand_rhs: &mut Vec<vir::Expr<'vir>>,
+        wand_rhs: &mut Vec<vir::ExprBool<'vir>>,
         old_outer: &mut WandOldOuter<'vir>,
     ) {
         match node {
@@ -123,7 +123,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         &mut self,
         r: RegionProjection<'vir, T>,
         old_outer: &mut WandOldOuter<'vir>,
-    ) -> Vec<vir::Expr<'vir>> {
+    ) -> Vec<vir::ExprBool<'vir>> {
         let place = r.place().to_maybe_remote_region_projection_base();
         let (place_snap, ty, _) = match place {
             MaybeRemoteRegionProjectionBase::Place(p) => {
@@ -163,7 +163,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         place: MaybeRemotePlace<'vir>,
         old_outer: &mut WandOldOuter<'vir>,
     ) -> (
-        vir::Expr<'vir>,
+        vir::ExprSnap<'vir>,
         mir::tcx::PlaceTy<'vir>,
         RustTyPredicatesEncOutputRef<'vir>,
     ) {
@@ -173,12 +173,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         (place_snap, ty, ty_out)
     }
 
-    fn configure_old(
+    fn configure_old<T: vir::CompType>(
         &mut self,
         place: MaybeRemotePlace,
-        expr: vir::Expr<'vir>,
+        expr: vir::Expr<'vir, T>,
         old_outer: &mut WandOldOuter<'vir>,
-    ) -> vir::Expr<'vir> {
+    ) -> vir::Expr<'vir, T> {
         match place {
             MaybeRemotePlace::Local(MaybeOldPlace::Current { .. }) => {
                 self.mk_wand_outer(expr, old_outer)
@@ -213,15 +213,16 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         }
     }
 
-    fn mk_wand_outer(
+    fn mk_wand_outer<T: vir::CompType>(
         &mut self,
-        expr: vir::Expr<'vir>,
+        expr: vir::Expr<'vir, T>,
         old_outer: &mut WandOldOuter<'vir>,
-    ) -> vir::Expr<'vir> {
+    ) -> vir::Expr<'vir, T> {
         match old_outer {
             WandOldOuter::LetBind(let_bind) => {
                 let ident = vir::vir_format!(self.vcx, "_snap{}", let_bind.len());
-                let_bind.push((ident, expr));
+                // TODO: this is sometimes `Ref` type?
+                let_bind.push((ident, expr.inner_cast_ty()));
                 self.vcx.mk_local_ex(ident, expr.ty())
             }
             WandOldOuter::Label(label) => {

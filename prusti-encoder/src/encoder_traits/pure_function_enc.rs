@@ -1,13 +1,11 @@
-use prusti_interface::specs::specifications::SpecQuery;
 use prusti_rustc_interface::{
     middle::{
         mir,
         ty::{self, Ty},
     },
-    span::def_id::DefId,
 };
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
-use vir::{CallableIdent, ExprGen, FunctionIdent, Reify, UnknownArity, ViperIdent};
+use vir::{CastType, ExprGenBool, ExprGenSnap, FunctionIdn, Reify, ViperIdent};
 
 use crate::encoders::{
     domain::DomainEnc,
@@ -23,7 +21,7 @@ use super::function_enc::FunctionEnc;
 
 #[derive(Clone, Debug)]
 pub struct MirFunctionEncOutputRef<'vir> {
-    pub function_ref: FunctionIdent<'vir, UnknownArity<'vir>>,
+    pub function_ref: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManySnap), vir::Snap>,
 }
 impl<'vir> task_encoder::OutputRefAny for MirFunctionEncOutputRef<'vir> {}
 
@@ -56,9 +54,9 @@ where
     fn mk_type_assertion<'vir, Curr, Next>(
         vcx: &'vir vir::VirCtxt<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
-        arg: ExprGen<'vir, Curr, Next>, // Snapshot encoded argument
+        arg: ExprGenSnap<'vir, Curr, Next>, // Snapshot encoded argument
         ty: Ty<'vir>,
-    ) -> Option<ExprGen<'vir, Curr, Next>> {
+    ) -> Option<ExprGenBool<'vir, Curr, Next>> {
         let lifted_ty = deps
             .require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(ty)
             .unwrap();
@@ -66,7 +64,7 @@ where
             LiftedTy::Generic(generic) => {
                 let generic_enc = deps.require_ref::<GenericEnc>(()).unwrap();
                 Some(vcx.mk_eq_expr(
-                    generic_enc.param_type_function.apply(vcx, [arg]),
+                    generic_enc.param_type_function.gen()(arg.downcast_ty()),
                     generic.expr(vcx),
                 ))
             }
@@ -78,10 +76,7 @@ where
                 let domain_ref = deps
                     .require_ref::<DomainEnc>(extract_type_params(vcx.tcx(), ty).0)
                     .unwrap();
-                Some(vcx.mk_eq_expr(
-                    domain_ref.typeof_function.apply(vcx, [arg]),
-                    lifted_ty.expr(vcx),
-                ))
+                Some(vcx.mk_eq_expr(domain_ref.typeof_function.gen()(arg), lifted_ty.expr(vcx)))
             }
             _ => None,
         }
@@ -104,30 +99,27 @@ where
 
             let function_ident = Self::mk_function_ident(vcx, &task_key);
             let ty_arg_decls = deps.require_local::<LiftedTyParamsEnc>(substs)?;
-            let mut ident_args = ty_arg_decls.iter().map(|arg| arg.ty()).collect::<Vec<_>>();
-            ident_args.extend(
-                (1..=local_defs.arg_count)
-                    .map(mir::Local::from)
-                    .map(|def_idx| local_defs.locals[def_idx].ty.snapshot),
-            );
-            let ident_args = UnknownArity::new(vcx.alloc_slice(&ident_args));
+            let ty_args = ty_arg_decls.iter().map(|arg| arg.ty()).collect::<Vec<_>>();
+            let ty_args = vcx.alloc_slice(&ty_args);
+            let snap_args = (1..=local_defs.arg_count)
+                .map(mir::Local::from)
+                .map(|def_idx| local_defs.locals[def_idx].ty.snapshot);
+            let snap_args = vcx.alloc_slice(&snap_args.collect::<Vec<_>>());
             let return_type = local_defs.locals[mir::RETURN_PLACE].ty;
-            let function_ref = FunctionIdent::new(function_ident, ident_args, return_type.snapshot);
+            let function_ref =
+                FunctionIdn::new(function_ident, (ty_args, snap_args), return_type.snapshot);
             deps.emit_output_ref(task_key, MirFunctionEncOutputRef { function_ref })?;
 
             let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, true))?;
 
-            let mut func_args = ty_arg_decls
+            let func_tyval_args = ty_arg_decls
                 .iter()
                 .map(|arg| arg.decl())
                 .collect::<Vec<_>>();
 
-            func_args.extend((1..=local_defs.arg_count).map(mir::Local::from).map(|arg| {
-                vcx.alloc(vir::LocalDeclData {
-                    name: local_defs.locals[arg].local.name,
-                    ty: local_defs.locals[arg].ty.snapshot,
-                })
-            }));
+            let func_args = (1..=local_defs.arg_count).map(mir::Local::from).map(|arg| {
+                vcx.mk_local_decl_local(local_defs.locals[arg].local_snap)
+            }).collect::<Vec<_>>();
 
             let expr = if trusted {
                 None
@@ -193,9 +185,8 @@ where
 
             Ok(MirFunctionEncOutput {
                 function: vcx.mk_function(
-                    function_ident.to_str(),
-                    vcx.alloc_slice(&func_args),
-                    return_type.snapshot,
+                    function_ref,
+                    (&func_tyval_args, &func_args),
                     vcx.alloc_slice(&pres),
                     vcx.alloc_slice(&posts),
                     expr,

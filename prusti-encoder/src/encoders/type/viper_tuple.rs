@@ -1,4 +1,5 @@
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+use vir::CastType;
 
 use super::{
     domain::{DomainDataStruct, DomainEnc},
@@ -10,32 +11,32 @@ pub struct ViperTupleEnc;
 
 #[derive(Clone, Debug)]
 pub struct ViperTupleEncOutput<'vir> {
-    tuple: Option<(vir::Type<'vir>, DomainDataStruct<'vir>)>,
+    tuple: Option<(vir::TypeSnap<'vir>, DomainDataStruct<'vir>)>,
 }
 
 impl<'vir> ViperTupleEncOutput<'vir> {
-    pub fn snapshot(&self) -> Option<vir::Type<'vir>> {
+    pub fn snapshot(&self) -> Option<vir::TypeSnap<'vir>> {
         self.tuple.map(|t| t.0)
     }
 
     pub fn mk_cons<'tcx, Curr, Next>(
         &self,
-        vcx: &'vir vir::VirCtxt<'tcx>,
-        elems: &[vir::ExprGen<'vir, Curr, Next>],
-    ) -> vir::ExprGen<'vir, Curr, Next> {
+        _vcx: &'vir vir::VirCtxt<'tcx>,
+        elems: &[vir::ExprGenSnap<'vir, Curr, Next>],
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
         self.tuple
-            .map(|t| t.1.field_snaps_to_snap.apply(vcx, elems))
+            .map(|t| (t.1.field_snaps_to_snap.gen())(elems).upcast_ty())
             .unwrap_or_else(|| elems[0])
     }
 
     pub fn mk_elem<'tcx, Curr, Next>(
         &self,
-        vcx: &'vir vir::VirCtxt<'tcx>,
-        tuple: vir::ExprGen<'vir, Curr, Next>,
+        _vcx: &'vir vir::VirCtxt<'tcx>,
+        tuple: vir::ExprGenSnap<'vir, Curr, Next>,
         elem: usize,
-    ) -> vir::ExprGen<'vir, Curr, Next> {
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
         self.tuple
-            .map(|t| t.1.field_access[elem].read.apply(vcx, [tuple]))
+            .map(|t| (t.1.field_access[elem].read.gen())(tuple.downcast_ty()))
             .unwrap_or_else(|| tuple)
     }
 }

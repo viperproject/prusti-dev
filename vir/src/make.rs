@@ -1,24 +1,26 @@
 use crate::{
-    callable_idents::*,
+    callable::*,
     data::*,
     debug_info::{DebugInfo, DEBUGINFO_NONE},
     gendata::*,
     genrefs::*,
     refs::*,
-    typecheck_error, ViperIdent, VirCtxt,
+    typecheck_error, CastType, CompType, HasType, ViperIdent, VirCtxt,
 };
 use cfg_if::cfg_if;
 use prusti_rustc_interface::middle::ty;
 use std::fmt::Debug;
 
 macro_rules! const_expr {
-    ($expr_kind:expr) => {
+    ($expr_kind:expr, $ty:ident => $ety:ident) => {{
+        const TY: $crate::$ety = unsafe { &$crate::TypeData::new_unchecked($crate::TypeKind::$ty) };
         &ExprGenData {
             kind: $expr_kind,
             debug_info: DEBUGINFO_NONE,
             span: None,
+            ty: TY,
         }
-    };
+    }};
 }
 cfg_if! {
     if #[cfg(debug_assertions)] {
@@ -35,26 +37,26 @@ cfg_if! {
 
         use std::collections::HashMap;
         fn check_predicate_app_bindings<'vir, Curr, Next>(
-            m: &mut HashMap<&'vir str, Type<'vir>>,
+            m: &mut HashMap<&'vir str, TypeDyn<'vir>>,
             e: PredicateAppGen<'vir, Curr, Next>
         ) {
             for arg in e.args.iter() {
                 check_expr_bindings(m, *arg);
             }
             if let Some(perm) = e.perm {
-                check_expr_bindings(m, perm);
+                check_expr_bindings(m, perm.as_dyn());
             }
         }
         fn check_stmt_bindings<'vir, Curr, Next>(
-            m: &mut HashMap<&'vir str, Type<'vir>>,
+            m: &mut HashMap<&'vir str, TypeDyn<'vir>>,
             e: StmtGen<'vir, Curr, Next>
         ) {
             match e.kind {
                 StmtKindGenData::LocalDecl(local, e) => {
                     if let Some(e) = e {
-                        check_expr_bindings(m, e);
+                        check_expr_bindings(m, *e);
                     }
-                    m.insert(local.name, local.ty);
+                    m.insert(local.name, local.ty_dyn());
                 }
                 StmtKindGenData::PureAssign(p) => {
                     check_expr_bindings(m, p.lhs);
@@ -62,7 +64,7 @@ cfg_if! {
                 }
                 StmtKindGenData::Inhale(e) |
                 StmtKindGenData::Exhale(e) => {
-                    check_expr_bindings(m, e);
+                    check_expr_bindings(m, e.as_dyn());
                 }
                 StmtKindGenData::Unfold(app) | StmtKindGenData::Fold(app) => {
                     check_predicate_app_bindings(m, app);
@@ -85,7 +87,7 @@ cfg_if! {
                     }
                 }
                 StmtKindGenData::If(e, thn, els) => {
-                    check_expr_bindings(m, e);
+                    check_expr_bindings(m, e.as_dyn());
                     for thn in thn.iter() {
                         check_stmt_bindings(m, thn);
                     }
@@ -99,21 +101,22 @@ cfg_if! {
             }
         }
         fn check_expr_bindings<'vir, Curr, Next>(
-            m: &mut HashMap<&'vir str, Type<'vir>>,
-            e: ExprGen<'vir, Curr, Next>
+            m: &mut HashMap<&'vir str, TypeDyn<'vir>>,
+            e: ExprGenDyn<'vir, Curr, Next>
         ) {
             match e.kind {
                 ExprKindGenData::Local(LocalData { name, ty, debug_info }) => {
                     if let Some(bound_ty) = m.get(name) {
-                        if !matches!(bound_ty, TypeData::Unsupported(_)) &&
-                           !matches!(ty, TypeData::Unsupported(_)) &&
+                        if !matches!(bound_ty.kind(), TypeKind::Unsupported(_)) &&
+                           !matches!(ty.kind(), TypeKind::Unsupported(_)) &&
                            bound_ty != ty
                          {
                             typecheck_error!(
                                 "Type mismatch for local variable {name}. \
                                 Scope assigns {name} to type {bound_ty:?}, but the actual type is {ty:?}.\
                                 Debug info: {debug_info}"
-                            )
+                            );
+                            panic!();
                         }
                     }
                 },
@@ -138,13 +141,13 @@ cfg_if! {
                     check_predicate_app_bindings(m, app);
                 },
                 ExprKindGenData::AccField( AccFieldGenData { recv, perm, .. }) => {
-                    check_expr_bindings(m, *recv);
+                    check_expr_bindings(m, recv.as_dyn());
                     if let Some(perm) = perm {
-                        check_expr_bindings(m, *perm);
+                        check_expr_bindings(m, perm.as_dyn());
                     }
                 },
                 ExprKindGenData::Field(e, _) => {
-                    check_expr_bindings(m, *e);
+                    check_expr_bindings(m, e.as_dyn());
                 },
                 ExprKindGenData::Unfolding(UnfoldingGenData { target, expr }) => {
                     check_predicate_app_bindings(m, target);
@@ -155,30 +158,30 @@ cfg_if! {
                     check_expr_bindings(m, *rhs);
                 },
                 ExprKindGenData::UnOp(UnOpGenData { expr, .. }) => {
-                    check_expr_bindings(m, *expr);
+                    check_expr_bindings(m, expr.as_dyn());
                 },
                 ExprKindGenData::Ternary(TernaryGenData { cond, then, else_}) => {
-                    check_expr_bindings(m, *cond);
+                    check_expr_bindings(m, cond.as_dyn());
                     check_expr_bindings(m, *then);
                     check_expr_bindings(m, *else_);
                 }
                 ExprKindGenData::Forall(ForallGenData { qvars, triggers, body }) => {
                     for qvar in qvars.iter() {
-                        m.insert(qvar.name, qvar.ty);
+                        m.insert(qvar.name, qvar.ty_dyn());
                     }
                     for trigger in triggers.iter() {
                         for expr in trigger.exprs.iter() {
                             check_expr_bindings(m, *expr);
                         }
                     }
-                    check_expr_bindings(m, *body);
+                    check_expr_bindings(m, body.as_dyn());
                     for qvar in qvars.iter() {
                         m.remove(qvar.name);
                     }
                 }
                 ExprKindGenData::Wand(WandGenData { lhs, rhs }) => {
-                    check_expr_bindings(m, *lhs);
-                    check_expr_bindings(m, *rhs);
+                    check_expr_bindings(m, lhs.as_dyn());
+                    check_expr_bindings(m, rhs.as_dyn());
                 }
                 other => todo!("{other:?}")
             }
@@ -187,7 +190,11 @@ cfg_if! {
 }
 
 impl<'tcx> VirCtxt<'tcx> {
-    pub fn mk_local<'vir>(&'vir self, name: &'vir str, ty: Type<'vir>) -> Local<'vir> {
+    pub fn mk_local<'vir, T: CompType>(
+        &'vir self,
+        name: &'vir str,
+        ty: Type<'vir, T>,
+    ) -> Local<'vir, T> {
         self.alloc(LocalData {
             name,
             ty,
@@ -195,140 +202,162 @@ impl<'tcx> VirCtxt<'tcx> {
         })
     }
 
-    pub fn mk_local_decl<'vir>(&'vir self, name: &'vir str, ty: Type<'vir>) -> LocalDecl<'vir> {
+    pub fn mk_local_decl<'vir, T: CompType>(
+        &'vir self,
+        name: &'vir str,
+        ty: Type<'vir, T>,
+    ) -> LocalDecl<'vir, T> {
         self.alloc(LocalDeclData { name, ty })
     }
 
-    pub fn mk_local_decl_local<'vir>(&'vir self, local: Local<'vir>) -> LocalDecl<'vir> {
+    pub fn mk_local_decl_local<'vir, T: CompType>(
+        &'vir self,
+        local: Local<'vir, T>,
+    ) -> LocalDecl<'vir, T> {
         self.alloc(LocalDeclData {
             name: local.name,
             ty: local.ty,
         })
     }
 
-    pub fn mk_local_ex_local<'vir, Curr, Next>(
+    pub fn mk_local_ex_local<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        local: Local<'vir>,
-    ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Local(local))))
+        local: Local<'vir, T>,
+    ) -> ExprGen<'vir, Curr, Next, T> {
+        self.alloc(ExprGenData::new(
+            self.alloc(ExprKindGenData::Local(local.as_dyn())),
+        ))
     }
 
-    pub fn mk_local_ex<'vir, Curr, Next>(
+    pub fn mk_local_ex<'vir, Curr, Next, T: CompType>(
         &'vir self,
         name: &'vir str,
-        ty: Type<'vir>,
-    ) -> ExprGen<'vir, Curr, Next> {
+        ty: Type<'vir, T>,
+    ) -> ExprGen<'vir, Curr, Next, T> {
         self.mk_local_ex_local(self.mk_local(name, ty))
     }
 
-    pub(crate) fn mk_func_app<'vir, Curr, Next>(
+    pub(crate) fn mk_func_app<'vir, Curr, Next, R: CompType>(
         &'vir self,
         target: &'vir str,
-        src_args: &[ExprGen<'vir, Curr, Next>],
-        result_ty: Type<'vir>,
-    ) -> ExprGen<'vir, Curr, Next> {
+        args: &'vir [ExprGenDyn<'vir, Curr, Next>],
+        result_ty: Type<'vir, R>,
+    ) -> ExprGen<'vir, Curr, Next, R> {
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::FuncApp(
             self.arena.alloc(FuncAppGenData {
                 target,
-                args: self.alloc_slice(src_args),
-                result_ty,
+                args,
+                result_ty: result_ty.as_dyn(),
             }),
         ))))
     }
 
     #[allow(clippy::type_complexity)]
-    pub fn mk_lazy_expr<'vir, Curr, Next>(
+    pub fn mk_lazy_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
         name: &'vir str,
-        ty: Type<'vir>,
+        ty: Type<'vir, T>,
         func: Box<dyn for<'a> Fn(&'vir VirCtxt<'a>, Curr) -> Next + 'vir>,
-    ) -> ExprGen<'vir, Curr, Next> {
+    ) -> ExprGen<'vir, Curr, Next, T> {
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Lazy(
-            self.alloc(LazyGenData { name, func, ty }),
+            self.alloc(LazyGenData {
+                name,
+                func,
+                ty: ty.as_dyn(),
+            }),
         ))))
     }
 
-    pub fn mk_ternary_expr<'vir, Curr, Next>(
+    pub fn mk_ternary_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        cond: ExprGen<'vir, Curr, Next>,
-        then: ExprGen<'vir, Curr, Next>,
-        else_: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
+        cond: ExprGenBool<'vir, Curr, Next>,
+        then: ExprGen<'vir, Curr, Next, T>,
+        else_: ExprGen<'vir, Curr, Next, T>,
+    ) -> ExprGen<'vir, Curr, Next, T> {
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Ternary(
-            self.alloc(TernaryGenData { cond, then, else_ }),
+            self.alloc(TernaryGenData {
+                cond,
+                then: then.as_dyn(),
+                else_: else_.as_dyn(),
+            }),
         ))))
     }
 
     pub fn mk_unary_op_expr<'vir, Curr, Next>(
         &'vir self,
         kind: UnOpKind,
-        expr: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
+        expr: ExprGenPrim<'vir, Curr, Next>,
+    ) -> ExprGenPrim<'vir, Curr, Next> {
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::UnOp(
             self.alloc(UnOpGenData { kind, expr }),
         ))))
     }
 
-    pub fn mk_old<'vir, Curr, Next>(
+    pub fn mk_old<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        expr: ExprGen<'vir, Curr, Next>,
+        expr: ExprGen<'vir, Curr, Next, T>,
         label: OldLabel<'vir>,
-    ) -> ExprGen<'vir, Curr, Next> {
+    ) -> ExprGen<'vir, Curr, Next, T> {
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Old(
-            self.alloc(OldGenData { expr, label }),
+            self.alloc(OldGenData {
+                expr: expr.as_dyn(),
+                label,
+            }),
         ))))
     }
 
-    pub fn mk_old_expr<'vir, Curr, Next>(
+    pub fn mk_old_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        expr: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
+        expr: ExprGen<'vir, Curr, Next, T>,
+    ) -> ExprGen<'vir, Curr, Next, T> {
         self.mk_old(expr, OldLabel::None)
     }
 
-    pub fn mk_old_lhs_expr<'vir, Curr, Next>(
+    pub fn mk_old_lhs_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        expr: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
+        expr: ExprGen<'vir, Curr, Next, T>,
+    ) -> ExprGen<'vir, Curr, Next, T> {
         self.mk_old(expr, OldLabel::Lhs)
     }
 
-    pub fn mk_labelled_old_expr<'vir, Curr, Next>(
+    pub fn mk_labelled_old_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        expr: ExprGen<'vir, Curr, Next>,
+        expr: ExprGen<'vir, Curr, Next, T>,
         label: Option<CfgBlockLabelData>,
-    ) -> ExprGen<'vir, Curr, Next> {
+    ) -> ExprGen<'vir, Curr, Next, T> {
         self.mk_old(expr, label.map(OldLabel::Block).unwrap_or(OldLabel::None))
     }
 
-    pub fn mk_local_labelled_old_expr<'vir, Curr, Next>(
+    pub fn mk_local_labelled_old_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        expr: ExprGen<'vir, Curr, Next>,
+        expr: ExprGen<'vir, Curr, Next, T>,
         label: &'vir str,
-    ) -> ExprGen<'vir, Curr, Next> {
+    ) -> ExprGen<'vir, Curr, Next, T> {
         self.mk_old(expr, OldLabel::Label(label))
     }
 
-    pub fn mk_rel_expr<'vir, Curr, Next>(
+    pub fn mk_rel_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        expr: ExprGen<'vir, Curr, Next>,
+        expr: ExprGen<'vir, Curr, Next, T>,
         exec: u32,
-    ) -> ExprGen<'vir, Curr, Next> {
+    ) -> ExprGen<'vir, Curr, Next, T> {
         let v = self.mk_const_expr(ConstData::Int(exec as u128));
-        // TODO: the type here is wrong; we cannot just call .typ() though,
-        // because the arguments may be lazy
-        self.mk_func_app("rel", &[expr, v], &crate::TypeData::Int)
+        let args = [expr.as_dyn(), v.as_dyn()];
+        self.mk_func_app("rel", self.alloc_array(&args), expr.ty)
     }
 
-    pub fn mk_forall_expr<'vir, Curr, Next>(
+    pub fn mk_forall_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        qvars: &'vir [LocalDecl<'vir>],
+        qvars: &'vir [LocalDecl<'vir, T>],
         triggers: &'vir [TriggerGen<'vir, Curr, Next>],
-        body: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
+        body: ExprGenBool<'vir, Curr, Next>,
+    ) -> ExprGenBool<'vir, Curr, Next> {
         if qvars.is_empty() {
             return body;
         }
+        let qvars = unsafe {
+            core::mem::transmute::<&'vir [LocalDecl<'vir, T>], &'vir [LocalDeclDyn<'vir>]>(qvars)
+        };
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Forall(
             self.alloc(ForallGenData {
                 qvars,
@@ -338,27 +367,36 @@ impl<'tcx> VirCtxt<'tcx> {
         ))))
     }
 
-    pub fn mk_trigger<'vir, Curr, Next>(
+    pub fn mk_trigger<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        exprs: &[ExprGen<'vir, Curr, Next>],
+        exprs: &[ExprGen<'vir, Curr, Next, T>],
     ) -> TriggerGen<'vir, Curr, Next> {
+        let exprs = unsafe {
+            core::mem::transmute::<&[ExprGen<'vir, Curr, Next, T>], &[ExprGenDyn<'vir, Curr, Next>]>(
+                exprs,
+            )
+        };
         self.alloc(TriggerGenData {
             exprs: self.alloc_slice(exprs),
         })
     }
 
-    pub fn mk_let_expr<'vir, Curr, Next>(
+    pub fn mk_let_expr<'vir, Curr, Next, V: CompType, T: CompType>(
         &'vir self,
         name: &'vir str,
-        val: ExprGen<'vir, Curr, Next>,
-        expr: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
-        let let_expr = self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Let(
-            self.alloc(LetGenData { name, val, expr }),
-        ))));
+        val: ExprGen<'vir, Curr, Next, V>,
+        expr: ExprGen<'vir, Curr, Next, T>,
+    ) -> ExprGen<'vir, Curr, Next, T> {
+        let let_expr: ExprGen<'vir, Curr, Next, T> = self.alloc(ExprGenData::new(self.alloc(
+            ExprKindGenData::Let(self.alloc(LetGenData {
+                name,
+                val: val.as_dyn(),
+                expr: expr.as_dyn(),
+            })),
+        )));
         cfg_if! {
             if #[cfg(debug_assertions)] {
-                check_expr_bindings(&mut HashMap::new(), let_expr);
+                check_expr_bindings(&mut HashMap::new(), let_expr.as_dyn());
             }
         }
         let_expr
@@ -367,7 +405,7 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_predicate_app_expr<'vir, Curr, Next>(
         &'vir self,
         pred_app: PredicateAppGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
+    ) -> ExprGenBool<'vir, Curr, Next> {
         self.alloc(ExprGenData::new(
             self.alloc(ExprKindGenData::PredicateApp(pred_app)),
         ))
@@ -375,8 +413,8 @@ impl<'tcx> VirCtxt<'tcx> {
 
     pub fn mk_wand<'vir, Curr, Next>(
         &'vir self,
-        lhs: ExprGen<'vir, Curr, Next>,
-        rhs: ExprGen<'vir, Curr, Next>,
+        lhs: ExprGenBool<'vir, Curr, Next>,
+        rhs: ExprGenBool<'vir, Curr, Next>,
     ) -> WandGen<'vir, Curr, Next> {
         self.alloc(WandGenData { lhs, rhs })
     }
@@ -384,118 +422,157 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_wand_expr<'vir, Curr, Next>(
         &'vir self,
         wand: WandGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
+    ) -> ExprGenBool<'vir, Curr, Next> {
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Wand(wand))))
     }
 
-    pub fn mk_bin_op_expr<'vir, Curr, Next>(
+    pub fn mk_bin_op_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
         kind: BinOpKind,
-        lhs: ExprGen<'vir, Curr, Next>,
-        rhs: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::BinOp(
-            self.alloc(BinOpGenData { kind, lhs, rhs }),
-        ))))
-    }
-    pub fn mk_eq_expr<'vir, Curr, Next>(
-        &'vir self,
-        lhs: ExprGen<'vir, Curr, Next>,
-        rhs: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
-        self.mk_bin_op_expr(BinOpKind::CmpEq, lhs, rhs)
+        lhs: ExprGen<'vir, Curr, Next, T>,
+        rhs: ExprGen<'vir, Curr, Next, T>,
+    ) -> ExprGenPrim<'vir, Curr, Next> {
+        assert!(kind != BinOpKind::CmpEq, "Use mk_eq_expr instead");
+        self.mk_bin_op_expr_inner(kind, lhs, rhs)
     }
 
-    pub fn mk_field_expr<'vir, Curr, Next>(
+    pub fn mk_eq_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        recv: ExprGen<'vir, Curr, Next>,
-        field: Field<'vir>,
-    ) -> ExprGen<'vir, Curr, Next> {
+        lhs: ExprGen<'vir, Curr, Next, T>,
+        rhs: ExprGen<'vir, Curr, Next, T>,
+    ) -> ExprGenBool<'vir, Curr, Next> {
+        self.mk_bin_op_expr_inner(BinOpKind::CmpEq, lhs, rhs)
+            .downcast_ty()
+    }
+
+    fn mk_bin_op_expr_inner<'vir, Curr, Next, T: CompType>(
+        &'vir self,
+        kind: BinOpKind,
+        lhs: ExprGen<'vir, Curr, Next, T>,
+        rhs: ExprGen<'vir, Curr, Next, T>,
+    ) -> ExprGenPrim<'vir, Curr, Next> {
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::BinOp(
+            self.alloc(BinOpGenData {
+                kind,
+                lhs: lhs.as_dyn(),
+                rhs: rhs.as_dyn(),
+            }),
+        ))))
+    }
+
+    pub fn mk_field_expr<'vir, Curr, Next, T: CompType>(
+        &'vir self,
+        recv: ExprGenRef<'vir, Curr, Next>,
+        field: Field<'vir, T>,
+    ) -> ExprGen<'vir, Curr, Next, T> {
         self.alloc(ExprGenData::new(
-            self.alloc(ExprKindGenData::Field(recv, field)),
+            self.alloc(ExprKindGenData::Field(recv, field.as_dyn())),
         ))
     }
 
-    pub fn mk_unfolding_expr<'vir, Curr, Next>(
+    pub fn mk_unfolding_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
         target: PredicateAppGen<'vir, Curr, Next>,
-        expr: ExprGen<'vir, Curr, Next>,
-    ) -> ExprGen<'vir, Curr, Next> {
+        expr: ExprGen<'vir, Curr, Next, T>,
+    ) -> ExprGen<'vir, Curr, Next, T> {
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Unfolding(
-            self.alloc(UnfoldingGenData { target, expr }),
+            self.alloc(UnfoldingGenData {
+                target,
+                expr: expr.as_dyn(),
+            }),
         ))))
     }
 
-    pub fn mk_acc_field_expr<'vir, Curr, Next>(
+    pub fn mk_acc_field_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        recv: ExprGen<'vir, Curr, Next>,
-        field: Field<'vir>,
-        perm: Option<ExprGen<'vir, Curr, Next>>,
-    ) -> ExprGen<'vir, Curr, Next> {
+        recv: ExprGenRef<'vir, Curr, Next>,
+        field: Field<'vir, T>,
+        perm: Option<ExprGenPerm<'vir, Curr, Next>>,
+    ) -> ExprGenBool<'vir, Curr, Next> {
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::AccField(
-            self.alloc(AccFieldGenData { recv, field, perm }),
+            self.alloc(AccFieldGenData {
+                recv,
+                field: field.as_dyn(),
+                perm,
+            }),
         ))))
     }
 
     pub fn mk_const_expr<'vir, Curr, Next>(
         &'vir self,
         value: ConstData,
-    ) -> ExprGen<'vir, Curr, Next> {
+    ) -> ExprGenPrim<'vir, Curr, Next> {
         self.alloc(ExprGenData::new(
             self.alloc(ExprKindGenData::Const(self.alloc(value))),
         ))
     }
 
-    pub fn mk_todo_expr<'vir, Curr, Next>(&'vir self, msg: &'vir str) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Todo(msg))))
+    pub fn mk_todo_expr<'vir, Curr, Next, T: CompType>(
+        &'vir self,
+        msg: &'vir str,
+        ty: Type<'vir, T>,
+    ) -> ExprGen<'vir, Curr, Next, T> {
+        self.alloc(ExprGenData::new_with_ty(
+            self.alloc(ExprKindGenData::Todo(msg)),
+            ty,
+        ))
     }
 
-    pub const fn mk_bool<'vir, const VALUE: bool>(&'vir self) -> Expr<'vir> {
-        const_expr!(&ExprKindGenData::Const(&ConstData::Bool(VALUE)))
+    pub const fn mk_bool<'vir, const VALUE: bool>(&'vir self) -> ExprBool<'vir> {
+        self.mk_bool_gen::<!, !, VALUE>()
     }
 
     // TODO: can this simply replace mk_bool?
     pub const fn mk_bool_gen<'vir, Curr, Next, const VALUE: bool>(
         &'vir self,
-    ) -> ExprGen<'vir, Curr, Next> {
-        const_expr!(&ExprKindGenData::Const(&ConstData::Bool(VALUE)))
+    ) -> ExprGenBool<'vir, Curr, Next> {
+        const_expr!(&ExprKindGenData::Const(&ConstData::Bool(VALUE)), Bool => TypeBool)
     }
 
-    pub const fn mk_int<'vir, const VALUE: i128>(&'vir self) -> Expr<'vir> {
+    pub const fn mk_int<'vir, const VALUE: i128>(&'vir self) -> ExprInt<'vir> {
         if VALUE < 0 {
             const_expr!(&ExprKindGenData::UnOp(&UnOpData {
                 kind: UnOpKind::Neg,
-                expr: const_expr!(&ExprKindGenData::Const(&ConstData::Int((-VALUE) as u128))),
-            }))
+                expr: const_expr!(&ExprKindGenData::Const(&ConstData::Int((-VALUE) as u128)), Int => TypePrim),
+            }), Int => TypeInt)
         } else {
-            const_expr!(&ExprKindGenData::Const(&ConstData::Int(VALUE as u128)))
+            const_expr!(&ExprKindGenData::<!, !>::Const(&ConstData::Int(VALUE as u128)), Int => TypeInt)
         }
     }
 
-    pub const fn mk_uint<'vir, const VALUE: u128>(&'vir self) -> Expr<'vir> {
-        const_expr!(&ExprKindGenData::Const(&ConstData::Int(VALUE)))
+    pub const fn mk_uint<'vir, const VALUE: u128>(&'vir self) -> ExprInt<'vir> {
+        const_expr!(&ExprKindGenData::<!, !>::Const(&ConstData::Int(VALUE)), Int => TypeInt)
     }
 
-    pub const fn mk_wildcard<'vir, Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next> {
-        const_expr!(&ExprKindGenData::Const(&ConstData::Wildcard))
+    pub const fn mk_wildcard<'vir, Curr, Next>(&'vir self) -> ExprGenPerm<'vir, Curr, Next> {
+        const_expr!(&ExprKindGenData::<Curr, Next>::Const(&ConstData::Wildcard), Perm => TypePerm)
     }
 
-    pub const fn mk_null<'vir, Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next> {
-        const_expr!(&ExprKindGenData::Const(&ConstData::Null))
+    pub const fn mk_null<'vir, Curr, Next>(&'vir self) -> ExprGenRef<'vir, Curr, Next> {
+        const_expr!(&ExprKindGenData::<Curr, Next>::Const(&ConstData::Null), Ref => TypeRef)
     }
 
-    pub fn mk_result<'vir, Curr, Next>(&'vir self, ty: Type<'vir>) -> ExprGen<'vir, Curr, Next> {
-        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Result(ty))))
+    pub fn mk_result<'vir, Curr, Next, T: CompType>(
+        &'vir self,
+        ty: Type<'vir, T>,
+    ) -> ExprGen<'vir, Curr, Next, T> {
+        self.alloc(ExprGenData::new(
+            self.alloc(ExprKindGenData::Result(ty.as_dyn())),
+        ))
     }
 
-    pub fn mk_field<'vir>(&'vir self, name: &'vir str, ty: Type<'vir>) -> Field<'vir> {
+    pub fn mk_field<'vir, T: CompType>(
+        &'vir self,
+        name: &'vir str,
+        ty: Type<'vir, T>,
+    ) -> Field<'vir, T> {
         self.alloc(FieldData { name, ty })
     }
 
     pub fn mk_domain_axiom<'vir, Curr, Next>(
         &'vir self,
         name: ViperIdent<'vir>,
-        expr: ExprGen<'vir, Curr, Next>,
+        expr: ExprGenBool<'vir, Curr, Next>,
     ) -> DomainAxiomGen<'vir, Curr, Next> {
         self.alloc(DomainAxiomGenData {
             name: name.to_str(),
@@ -503,28 +580,31 @@ impl<'tcx> VirCtxt<'tcx> {
         })
     }
 
-    pub fn mk_domain_function<'vir, A: Arity<'vir, Arg = Type<'vir>>>(
+    pub fn mk_domain_function<'vir, A: Arity>(
         &'vir self,
-        ident: FunctionIdent<'vir, A>,
+        ident: FunctionIdn<'vir, A, impl CompType>,
         unique: bool,
     ) -> DomainFunction<'vir> {
+        let params = A::params(ident.arity());
         self.alloc(DomainFunctionData {
             unique,
             name: ident.name(),
-            args: ident.arity().args(),
-            ret: ident.result_ty(),
+            args: self.alloc_slice(params.as_slice()),
+            ret: ident.result().as_dyn(),
         })
     }
 
-    pub fn mk_function<'vir, Curr, Next>(
+    pub fn mk_function<'vir, Curr, Next, A: Arity, T: CompType>(
         &'vir self,
-        name: &'vir str, // TODO: identifiers
-        args: &'vir [LocalDecl<'vir>],
-        ret: Type<'vir>,
-        pres: &'vir [ExprGen<'vir, Curr, Next>],
-        posts: &'vir [ExprGen<'vir, Curr, Next>],
-        expr: Option<ExprGen<'vir, Curr, Next>>,
+        ident: FunctionIdn<'vir, A, T>,
+        args: A::Locals<'_, 'vir>,
+        pres: &'vir [ExprGenBool<'vir, Curr, Next>],
+        posts: &'vir [ExprGenBool<'vir, Curr, Next>],
+        expr: Option<ExprGen<'vir, Curr, Next, T>>,
     ) -> FunctionGen<'vir, Curr, Next> {
+        let name = ident.name().to_str();
+        let ret = ident.result();
+        let args = A::locals(self, args);
         // TODO: Typecheck pre and post conditions
         if let Some(body) = expr {
             if body.ty() != ret {
@@ -539,48 +619,38 @@ impl<'tcx> VirCtxt<'tcx> {
                 if #[cfg(debug_assertions)] {
                     let mut m = HashMap::new();
                     for arg in args {
-                        m.insert(arg.name, arg.ty);
+                        m.insert(arg.name, arg.ty_dyn());
                     }
-                    check_expr_bindings(&mut m, body);
+                    check_expr_bindings(&mut m, body.as_dyn());
                 }
             }
         }
         self.alloc(FunctionGenData {
             name,
             args,
-            ret,
+            ret: ret.as_dyn(),
             pres,
             posts,
-            expr,
+            expr: expr.map(|e| e.as_dyn()),
         })
     }
 
-    pub fn mk_predicate<'vir, Curr, Next, A: Arity<'vir> + CheckTypes<'vir> + Debug>(
+    pub fn mk_predicate<'vir, Curr, Next, A: Arity + Debug>(
         &'vir self,
-        ident: PredicateIdent<'vir, A>,
-        args: &'vir [LocalDecl<'vir>],
-        expr: Option<ExprGen<'vir, Curr, Next>>,
+        ident: PredicateIdn<'vir, A>,
+        args: A::Locals<'_, 'vir>,
+        expr: Option<ExprGenBool<'vir, Curr, Next>>,
     ) -> PredicateGen<'vir, Curr, Next> {
-        if !ident.arity().types_match(args) {
-            typecheck_error!(
-                "Predicate definition for {} does not match signature.
-                Signature params: {:?}
-                Definition params: {:?}
-                Debug info: {}",
-                ident.name(),
-                ident.arity(),
-                args,
-                ident.debug_info()
-            );
-        }
+        let args = A::locals(self, args);
+        A::types_match(ident.arity(), args, ident.debug_info());
         self.mk_predicate_unchecked(ident.name().to_str(), args, expr)
     }
 
     pub fn mk_predicate_unchecked<'vir, Curr, Next>(
         &'vir self,
         name: &'vir str,
-        args: &'vir [LocalDecl<'vir>],
-        expr: Option<ExprGen<'vir, Curr, Next>>,
+        args: &'vir [LocalDeclDyn<'vir>],
+        expr: Option<ExprGenBool<'vir, Curr, Next>>,
     ) -> PredicateGen<'vir, Curr, Next> {
         self.alloc(PredicateGenData { name, args, expr })
     }
@@ -602,7 +672,7 @@ impl<'tcx> VirCtxt<'tcx> {
 
     pub fn mk_exhale_stmt<'vir, Curr, Next>(
         &'vir self,
-        expr: ExprGen<'vir, Curr, Next>,
+        expr: ExprGenBool<'vir, Curr, Next>,
     ) -> StmtGen<'vir, Curr, Next> {
         self.alloc(StmtGenData::new(self.alloc(StmtKindGenData::Exhale(expr))))
     }
@@ -642,10 +712,10 @@ impl<'tcx> VirCtxt<'tcx> {
         self.alloc(StmtGenData::new(self.alloc(StmtKindGenData::Apply(wand))))
     }
 
-    pub fn mk_pure_assign_stmt<'vir, Curr, Next>(
+    pub fn mk_pure_assign_stmt<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        lhs: ExprGen<'vir, Curr, Next>,
-        rhs: ExprGen<'vir, Curr, Next>,
+        lhs: ExprGen<'vir, Curr, Next, T>,
+        rhs: ExprGen<'vir, Curr, Next, T>,
     ) -> StmtGen<'vir, Curr, Next> {
         if lhs.ty() != rhs.ty() {
             typecheck_error!(
@@ -655,23 +725,27 @@ impl<'tcx> VirCtxt<'tcx> {
             );
         }
         self.alloc(StmtGenData::new(self.alloc(StmtKindGenData::PureAssign(
-            self.alloc(PureAssignGenData { lhs, rhs }),
+            self.alloc(PureAssignGenData {
+                lhs: lhs.as_dyn(),
+                rhs: rhs.as_dyn(),
+            }),
         ))))
     }
 
-    pub fn mk_local_decl_stmt<'vir, Curr, Next>(
+    pub fn mk_local_decl_stmt<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        local: LocalDecl<'vir>,
-        expr: Option<ExprGen<'vir, Curr, Next>>,
+        local: LocalDecl<'vir, T>,
+        expr: Option<ExprGen<'vir, Curr, Next, T>>,
     ) -> StmtGen<'vir, Curr, Next> {
-        self.alloc(StmtGenData::new(
-            self.alloc(StmtKindGenData::LocalDecl(local, expr)),
-        ))
+        self.alloc(StmtGenData::new(self.alloc(StmtKindGenData::LocalDecl(
+            local.as_dyn(),
+            expr.map(|e| e.as_dyn()),
+        ))))
     }
 
     pub fn mk_if_stmt<'vir, Curr, Next>(
         &'vir self,
-        cond: ExprGen<'vir, Curr, Next>,
+        cond: ExprGenBool<'vir, Curr, Next>,
         then_stmts: &'vir [StmtGen<'vir, Curr, Next>],
         else_stmts: &'vir [StmtGen<'vir, Curr, Next>],
     ) -> StmtGen<'vir, Curr, Next> {
@@ -716,7 +790,7 @@ impl<'tcx> VirCtxt<'tcx> {
 
     pub fn mk_goto_if_stmt<'vir, Curr, Next>(
         &'vir self,
-        value: ExprGen<'vir, Curr, Next>,
+        value: ExprGenDyn<'vir, Curr, Next>,
         targets: &'vir [GotoIfTargetGen<'vir, Curr, Next>],
         otherwise: CfgBlockLabel<'vir>,
         otherwise_statements: &'vir [StmtGen<'vir, Curr, Next>],
@@ -731,7 +805,7 @@ impl<'tcx> VirCtxt<'tcx> {
 
     pub fn mk_goto_if_target<'vir, Curr, Next>(
         &'vir self,
-        value: ExprGen<'vir, Curr, Next>,
+        value: ExprGenDyn<'vir, Curr, Next>,
         label: CfgBlockLabel<'vir>,
         statements: &'vir [StmtGen<'vir, Curr, Next>],
     ) -> GotoIfTargetGen<'vir, Curr, Next> {
@@ -745,7 +819,7 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_cfg_block<'vir, Curr, Next>(
         &'vir self,
         label: CfgBlockLabel<'vir>,
-        invariants: &'vir [ExprGen<'vir, Curr, Next>],
+        invariants: &'vir [ExprGenBool<'vir, Curr, Next>],
         stmts: &'vir [StmtGen<'vir, Curr, Next>],
         terminator: TerminatorStmtGen<'vir, Curr, Next>,
     ) -> CfgBlockGen<'vir, Curr, Next> {
@@ -757,32 +831,27 @@ impl<'tcx> VirCtxt<'tcx> {
         })
     }
 
-    pub fn mk_method<'vir, Curr, Next, A: Arity<'vir> + CheckTypes<'vir> + Debug>(
+    pub fn mk_method<'vir, Curr, Next, A: Arity>(
         &'vir self,
-        ident: MethodIdent<'vir, A>,
-        args: &'vir [LocalDecl<'vir>],
-        rets: &'vir [LocalDecl<'vir>],
-        pres: &'vir [ExprGen<'vir, Curr, Next>],
-        posts: &'vir [ExprGen<'vir, Curr, Next>],
+        ident: MethodIdn<'vir, A>,
+        args: A::Locals<'_, 'vir>,
+        rets: &'vir [LocalDeclDyn<'vir>],
+        pres: &'vir [ExprGenBool<'vir, Curr, Next>],
+        posts: &'vir [ExprGenBool<'vir, Curr, Next>],
         blocks: Option<&'vir [CfgBlockGen<'vir, Curr, Next>]>, // first one is the entrypoint
     ) -> MethodGen<'vir, Curr, Next> {
-        if !ident.arity().types_match(args) {
-            typecheck_error!(
-                "Method {} could not be created. Identifier arity: {:?}, Method decls: {args:?}",
-                ident.name_str(),
-                ident.arity()
-            );
-        }
+        let args = A::locals(self, args);
+        A::types_match(ident.arity(), args, ident.debug_info());
         self.mk_method_unchecked(ident.name().to_str(), args, rets, pres, posts, blocks)
     }
 
     pub fn mk_method_unchecked<'vir, Curr, Next>(
         &'vir self,
         name: &'vir str,
-        args: &'vir [LocalDecl<'vir>],
-        rets: &'vir [LocalDecl<'vir>],
-        pres: &'vir [ExprGen<'vir, Curr, Next>],
-        posts: &'vir [ExprGen<'vir, Curr, Next>],
+        args: &'vir [LocalDeclDyn<'vir>],
+        rets: &'vir [LocalDeclDyn<'vir>],
+        pres: &'vir [ExprGenBool<'vir, Curr, Next>],
+        posts: &'vir [ExprGenBool<'vir, Curr, Next>],
         blocks: Option<&'vir [CfgBlockGen<'vir, Curr, Next>]>, // first one is the entrypoint
     ) -> MethodGen<'vir, Curr, Next> {
         cfg_if! {
@@ -790,7 +859,7 @@ impl<'tcx> VirCtxt<'tcx> {
                 if let Some(blocks) = blocks {
                     let mut m = HashMap::new();
                     for arg in args {
-                        m.insert(arg.name, arg.ty);
+                        m.insert(arg.name, arg.ty_dyn());
                     }
                     for block in blocks {
                         for stmt in block.stmts {
@@ -812,7 +881,7 @@ impl<'tcx> VirCtxt<'tcx> {
 
     pub fn mk_program<'vir, Curr, Next>(
         &'vir self,
-        fields: &'vir [Field<'vir>],
+        fields: &'vir [FieldDyn<'vir>],
         domains: &'vir [DomainGen<'vir, Curr, Next>],
         predicates: &'vir [PredicateGen<'vir, Curr, Next>],
         functions: &'vir [FunctionGen<'vir, Curr, Next>],
@@ -829,23 +898,27 @@ impl<'tcx> VirCtxt<'tcx> {
 
     pub fn mk_conj<'vir, Curr, Next>(
         &'vir self,
-        elems: &[ExprGen<'vir, Curr, Next>],
-    ) -> ExprGen<'vir, Curr, Next> {
+        elems: &[ExprGenBool<'vir, Curr, Next>],
+    ) -> ExprGenBool<'vir, Curr, Next> {
         elems
             .split_last()
             .map(|(last, rest)| {
-                rest.iter()
-                    .rfold(*last, |acc, e| self.mk_bin_op_expr(BinOpKind::And, *e, acc))
+                rest.iter().rfold(*last, |acc, e| {
+                    self.mk_bin_op_expr(BinOpKind::And, e.as_dyn(), acc.as_dyn())
+                        .downcast_ty()
+                })
             })
             .unwrap_or_else(|| self.mk_bool_gen::<Curr, Next, true>())
     }
 
-    pub fn mk_disj<'vir>(&'vir self, elems: &[Expr<'vir>]) -> Expr<'vir> {
+    pub fn mk_disj<'vir>(&'vir self, elems: &[ExprBool<'vir>]) -> ExprBool<'vir> {
         elems
             .split_last()
             .map(|(last, rest)| {
-                rest.iter()
-                    .rfold(*last, |acc, e| self.mk_bin_op_expr(BinOpKind::Or, *e, acc))
+                rest.iter().rfold(*last, |acc, e| {
+                    self.mk_bin_op_expr(BinOpKind::Or, e.as_dyn(), acc.as_dyn())
+                        .downcast_ty()
+                })
             })
             .unwrap_or_else(|| self.mk_bool::<false>())
     }
@@ -867,7 +940,7 @@ impl<'tcx> VirCtxt<'tcx> {
             _ => unreachable!(),
         }
     }
-    pub const fn get_min_int<'vir>(&'vir self, rust_ty: &ty::TyKind) -> Expr<'vir> {
+    pub const fn get_min_int<'vir>(&'vir self, rust_ty: &ty::TyKind) -> ExprInt<'vir> {
         match Self::get_int_data(rust_ty) {
             (_, false) => self.mk_uint::<0>(),
             (i8::BITS, true) => self.mk_int::<{ i8::MIN as i128 }>(),
@@ -878,7 +951,7 @@ impl<'tcx> VirCtxt<'tcx> {
             (_, true) => unreachable!(),
         }
     }
-    pub const fn get_max_int<'vir>(&'vir self, rust_ty: &ty::TyKind) -> Expr<'vir> {
+    pub const fn get_max_int<'vir>(&'vir self, rust_ty: &ty::TyKind) -> ExprInt<'vir> {
         match Self::get_int_data(rust_ty) {
             (u8::BITS, false) => self.mk_uint::<{ u8::MAX as u128 }>(),
             (u16::BITS, false) => self.mk_uint::<{ u16::MAX as u128 }>(),
@@ -893,7 +966,7 @@ impl<'tcx> VirCtxt<'tcx> {
             _ => unreachable!(),
         }
     }
-    pub fn get_modulo_int<'vir>(&'vir self, rust_ty: &ty::TyKind) -> Expr<'vir> {
+    pub fn get_modulo_int<'vir>(&'vir self, rust_ty: &ty::TyKind) -> ExprInt<'vir> {
         match Self::get_int_data(rust_ty) {
             (u8::BITS, _) => self.mk_uint::<{ 1_u128 << u8::BITS }>(),
             (u16::BITS, _) => self.mk_uint::<{ 1_u128 << u16::BITS }>(),
@@ -902,12 +975,13 @@ impl<'tcx> VirCtxt<'tcx> {
             (u128::BITS, _) => {
                 // TODO: make this a `const` once `Expr` isn't invariant in `'vir` so that it can be `'const` instead
                 let half = self.mk_uint::<{ 1_u128 << u64::BITS }>();
-                self.mk_bin_op_expr(BinOpKind::Add, half, half)
+                self.mk_bin_op_expr(BinOpKind::Add, half.as_dyn(), half.as_dyn())
+                    .downcast_ty()
             }
             _ => unreachable!(),
         }
     }
-    pub fn get_signed_shift_int<'vir>(&'vir self, rust_ty: &ty::TyKind) -> Option<Expr<'vir>> {
+    pub fn get_signed_shift_int<'vir>(&'vir self, rust_ty: &ty::TyKind) -> Option<ExprInt<'vir>> {
         let int = match Self::get_int_data(rust_ty) {
             (_, false) => return None,
             (u8::BITS, true) => self.mk_uint::<{ 1_u128 << (u8::BITS - 1) }>(),
@@ -919,7 +993,7 @@ impl<'tcx> VirCtxt<'tcx> {
         };
         Some(int)
     }
-    pub fn get_bit_width_int<'vir>(&'vir self, rust_ty: &ty::TyKind) -> Expr<'vir> {
+    pub fn get_bit_width_int<'vir>(&'vir self, rust_ty: &ty::TyKind) -> ExprInt<'vir> {
         match Self::get_int_data(rust_ty) {
             (u8::BITS, _) => self.mk_uint::<{ u8::BITS as u128 }>(),
             (u16::BITS, _) => self.mk_uint::<{ u16::BITS as u128 }>(),

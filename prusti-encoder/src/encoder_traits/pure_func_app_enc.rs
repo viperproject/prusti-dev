@@ -51,7 +51,7 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
         &mut self,
         args: &Self::EncodeOperandArgs,
         operand: &mir::Operand<'vir>,
-    ) -> vir::ExprGen<'vir, Self::Curr, Self::Next>;
+    ) -> vir::ExprGenSnap<'vir, Self::Curr, Self::Next>;
 
     /// Obtains the function's definition ID and the substitutions made at the callsite
     fn get_def_id_and_caller_substs(
@@ -74,7 +74,10 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
         substs: &'vir List<GenericArg<'vir>>,
         args: &[Spanned<mir::Operand<'vir>>],
         encode_operand_args: &Self::EncodeOperandArgs,
-    ) -> Vec<vir::ExprGen<'vir, Self::Curr, Self::Next>> {
+    ) -> (
+        Vec<vir::ExprGenTyVal<'vir, Self::Curr, Self::Next>>,
+        Vec<vir::ExprGenSnap<'vir, Self::Curr, Self::Next>>,
+    ) {
         let mono = self.monomorphize();
         let fn_arg_tys = sig
             .inputs()
@@ -88,12 +91,12 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
             .unwrap();
 
         // Initial arguments are lifted type parameters
-        let mut encoded_args = encoded_ty_args
+        let encoded_ty_args = encoded_ty_args
             .iter()
             .map(|ty| ty.expr(self.vcx()))
             .collect::<Vec<_>>();
 
-        let mut encoded_fn_args = fn_arg_tys
+        let encoded_fn_args = fn_arg_tys
             .into_iter()
             .zip(args.iter())
             .map(|(expected_ty, oper)| {
@@ -110,8 +113,7 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
             })
             .collect::<Vec<_>>();
 
-        encoded_args.append(&mut encoded_fn_args);
-        encoded_args
+        (encoded_ty_args, encoded_fn_args)
     }
 
     /// Encodes the function application. The resulting application is casted
@@ -126,7 +128,7 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
         destination: &mir::Place<'vir>,
         caller_def_id: DefId,
         encode_operand_args: &Self::EncodeOperandArgs,
-    ) -> vir::ExprGen<'vir, Self::Curr, Self::Next> {
+    ) -> vir::ExprGenSnap<'vir, Self::Curr, Self::Next> {
         let vcx = self.vcx();
         let fn_result_ty = sig.output().skip_binder();
         let pure_func = self
@@ -138,8 +140,8 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
             ))
             .unwrap()
             .function_ref;
-        let encoded_args = self.encode_fn_args(sig, substs, args, encode_operand_args);
-        let call = pure_func.apply(vcx, &encoded_args);
+        let (ty_args, snap_args) = self.encode_fn_args(sig, substs, args, encode_operand_args);
+        let call = pure_func.gen()(ty_args.as_slice(), snap_args.as_slice());
         let expected_ty = destination.ty(self.local_decls_src(), vcx.tcx()).ty;
         let result_cast = self
             .deps()

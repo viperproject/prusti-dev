@@ -6,6 +6,7 @@ use crate::encoders::{
 };
 use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
+use vir::{CastType, HasType};
 
 pub(crate) fn domain<'vir>(
     task_key: <DomainEnc as TaskEncoder>::TaskKey<'vir>,
@@ -16,7 +17,7 @@ pub(crate) fn domain<'vir>(
     let ty_kind = ty.kind();
     assert_eq!(*ty_kind, ty::TyKind::Str);
 
-    let dummy_cons_ident = builder.function("cons", &[], builder.self_type());
+    let dummy_cons_ident = builder.function("cons", &[][..], builder.self_type());
 
     Ok(DomainEncSpecifics::StructLike(DomainDataStruct {
         field_snaps_to_snap: dummy_cons_ident,
@@ -34,14 +35,10 @@ pub(crate) fn predicate<'vir>(
     // let ty_kind = ty.kind();
     // let ty::TyKind::Str = ty_kind else { unreachable!(); };
 
-    let snap_type = snap.snapshot;
+    let snap_type = snap.snapshot.downcast_ty::<vir::CSnap>();
     let snap_data = snap.specifics.expect_structlike();
 
-    //let snap_self = builder.vcx.mk_local("self", snap_type);
-    //let snap_self_decl = builder.vcx.mk_local_decl_local(snap_self);
-    //let snap_self_ex: vir::Expr = builder.vcx.mk_local_ex_local(snap_self);
-
-    let ref_self = builder.vcx.mk_local("self", &vir::TypeData::Ref);
+    let ref_self = builder.vcx.mk_local("self", vir::TYPE_REF);
     let ref_self_decl = builder.vcx.mk_local_decl_local(ref_self);
     //let ref_self_ex = builder.vcx.mk_local_ex_local(ref_self);
 
@@ -60,14 +57,15 @@ pub(crate) fn predicate<'vir>(
     // Ref-to-snap
     builder.function_snap = Some(
         builder
-            .mk_function(
+            .mk_function::<vir::Ref, vir::CSnap>(
                 "snap",
-                &[ref_self_decl],
+                ref_self_decl.ty(),
                 //.into_iter()
                 //    .chain(generic_decls.iter().cloned())
                 //    .collect::<Vec<_>>(),
                 snap_type,
-                &[vir::expr! { acc_wildcard([self_pred](ref_self)) }],
+                (ref_self_decl,),
+                &[vir::expr! { acc([self_pred](ref_self, [])) }],
                 &[],
                 Some(snap_expr),
             )
@@ -76,6 +74,6 @@ pub(crate) fn predicate<'vir>(
 
     Ok(PredicateEncData::StructLike(PredicateEncDataStruct {
         snap_data,
-        ref_to_field_refs: builder.vcx.alloc_slice(&field_accessors),
+        ref_to_field_refs: builder.vcx.alloc_slice(field_accessors.as_slice()),
     }))
 }

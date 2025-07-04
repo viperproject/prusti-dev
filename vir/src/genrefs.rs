@@ -1,3 +1,9 @@
+macro_rules! typed_gen {
+    ($($type:ident => $name:ident),+) => {
+        $(pub type $name<'vir, Curr, Next> = &'vir crate::gendata::ExprGenData<'vir, Curr, Next, crate::$type>;)+
+    };
+}
+
 pub type AccFieldGen<'vir, Curr, Next> = &'vir crate::gendata::AccFieldGenData<'vir, Curr, Next>;
 pub type BinOpGen<'vir, Curr, Next> = &'vir crate::gendata::BinOpGenData<'vir, Curr, Next>;
 pub type CfgBlockGen<'vir, Curr, Next> = &'vir crate::gendata::CfgBlockGenData<'vir, Curr, Next>;
@@ -5,7 +11,10 @@ pub type CfgLabelGen<'vir, Curr, Next> = &'vir crate::gendata::CfgLabelGenData<'
 pub type DomainAxiomGen<'vir, Curr, Next> =
     &'vir crate::gendata::DomainAxiomGenData<'vir, Curr, Next>;
 pub type DomainGen<'vir, Curr, Next> = &'vir crate::gendata::DomainGenData<'vir, Curr, Next>;
-pub type ExprGen<'vir, Curr, Next> = &'vir crate::gendata::ExprGenData<'vir, Curr, Next>;
+typed_gen!(Bool => ExprGenBool, Int => ExprGenInt, Perm => ExprGenPerm, Ref => ExprGenRef);
+typed_gen!(CSnap => ExprGenCSnap, PSnap => ExprGenPSnap, TyVal => ExprGenTyVal);
+typed_gen!(Prim => ExprGenPrim, Snap => ExprGenSnap, Dyn => ExprGenDyn);
+pub type ExprGen<'vir, Curr, Next, T> = &'vir crate::gendata::ExprGenData<'vir, Curr, Next, T>;
 pub type ExprKindGen<'vir, Curr, Next> = &'vir crate::gendata::ExprKindGenData<'vir, Curr, Next>;
 pub type ExistsGen<'vir, Curr, Next> = &'vir crate::gendata::ExistsGenData<'vir, Curr, Next>;
 pub type ForallGen<'vir, Curr, Next> = &'vir crate::gendata::ForallGenData<'vir, Curr, Next>;
