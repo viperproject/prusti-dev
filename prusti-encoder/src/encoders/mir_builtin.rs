@@ -1,7 +1,7 @@
 use prusti_rustc_interface::middle::{mir, ty};
 use prusti_utils::config;
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CallableIdent, FunctionIdent, UnknownArity};
+use vir::{CallableIdn, CastType, FunctionIdn};
 
 pub struct MirBuiltinEnc;
 
@@ -18,11 +18,27 @@ pub enum MirBuiltinEncTask<'tcx> {
     CheckedBinOp(ty::Ty<'tcx>, mir::BinOp, ty::Ty<'tcx>, ty::Ty<'tcx>),
 }
 
-#[derive(Clone, Debug)]
-pub struct MirBuiltinEncOutputRef<'vir> {
-    pub function: FunctionIdent<'vir, UnknownArity<'vir>>,
+#[derive(Copy, Clone, Debug)]
+pub enum MirBuiltinEncOutputRef<'vir> {
+    UnOp(FunctionIdn<'vir, vir::CSnap, vir::CSnap>),
+    BinOp(FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::CSnap>),
 }
 impl<'vir> task_encoder::OutputRefAny for MirBuiltinEncOutputRef<'vir> {}
+impl<'vir> MirBuiltinEncOutputRef<'vir> {
+    pub fn un_op(self) -> Option<FunctionIdn<'vir, vir::CSnap, vir::CSnap>> {
+        match self {
+            MirBuiltinEncOutputRef::UnOp(idn) => Some(idn),
+            MirBuiltinEncOutputRef::BinOp(_) => None,
+        }
+    }
+
+    pub fn bin_op(self) -> Option<FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::CSnap>> {
+        match self {
+            MirBuiltinEncOutputRef::UnOp(_) => None,
+            MirBuiltinEncOutputRef::BinOp(idn) => Some(idn),
+        }
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct MirBuiltinEncOutput<'vir> {
@@ -95,17 +111,15 @@ impl MirBuiltinEnc {
             .generic_snapshot;
 
         let name = vir::vir_format_identifier!(vcx, "mir_unop_{op:?}_{}", int_name(ty));
-        let arity = UnknownArity::new(vcx.alloc_slice(&[e_ty.snapshot]));
-        let function = FunctionIdent::new(name, arity, e_ty.snapshot);
-        deps.emit_output_ref(key, MirBuiltinEncOutputRef { function })?;
+        let e_ty_snap = e_ty.snapshot.downcast_ty();
+        let function = FunctionIdn::new(name, e_ty_snap, e_ty_snap);
+        deps.emit_output_ref(key, MirBuiltinEncOutputRef::UnOp(function))?;
 
         let prim_res_ty = e_ty.specifics.expect_primitive();
-        let snap_arg = vcx.mk_local_ex("arg", e_ty.snapshot);
-        let prim_arg = prim_res_ty.snap_to_prim.apply(vcx, [snap_arg]);
-        let mut val = prim_res_ty.prim_to_snap.apply(
-            vcx,
-            [vcx.mk_unary_op_expr(vir::UnOpKind::from(op), prim_arg)],
-        );
+        let snap_arg = vcx.mk_local_ex("arg", e_ty_snap);
+        let prim_arg = (prim_res_ty.snap_to_prim)(snap_arg);
+        let mut val =
+            (prim_res_ty.prim_to_snap)(vcx.mk_unary_op_expr(vir::UnOpKind::from(op), prim_arg));
         // Can overflow when doing `- iN::MIN -> iN::MIN`. There is no
         // `CheckedUnOp`, instead the compiler puts an `TerminatorKind::Assert`
         // before in debug mode. We should still produce the correct result in
@@ -113,16 +127,15 @@ impl MirBuiltinEnc {
         if op == mir::UnOp::Neg && ty.is_signed() {
             let bound = vcx.get_min_int(ty.kind());
             // `snap_to_prim(arg) == -iN::MIN`
-            let cond = vcx.mk_bin_op_expr(vir::BinOpKind::CmpEq, prim_arg, bound);
+            let cond = vcx.mk_eq_expr(prim_arg.downcast_ty(), bound);
             // `snap_to_prim(arg) == -iN::MIN ? arg :
             // prim_to_snap(-snap_to_prim(arg))`
             val = vcx.mk_ternary_expr(cond, snap_arg, val)
         }
 
         Ok(vcx.mk_function(
-            name.to_str(),
-            vcx.alloc_slice(&[vcx.mk_local_decl("arg", e_ty.snapshot)]),
-            e_ty.snapshot,
+            function,
+            (vcx.mk_local_decl("arg", e_ty_snap),),
             &[],
             &[],
             Some(val),
@@ -151,6 +164,9 @@ impl MirBuiltinEnc {
         let prim_l_ty = e_l_ty.specifics.expect_primitive();
         let prim_r_ty = e_r_ty.specifics.expect_primitive();
         let prim_res_ty = e_res_ty.specifics.expect_primitive();
+        let e_l_ty_snap = e_l_ty.snapshot.downcast_ty();
+        let e_r_ty_snap = e_r_ty.snapshot.downcast_ty();
+        let e_res_ty_snap = e_res_ty.snapshot.downcast_ty();
 
         let name = vir::vir_format_identifier!(
             vcx,
@@ -158,36 +174,40 @@ impl MirBuiltinEnc {
             int_name(l_ty),
             int_name(r_ty)
         );
-        let arity = UnknownArity::new(vcx.alloc_slice(&[e_l_ty.snapshot, e_r_ty.snapshot]));
-        let function = FunctionIdent::new(name, arity, e_res_ty.snapshot);
-        deps.emit_output_ref(key, MirBuiltinEncOutputRef { function })?;
-        let lhs = prim_l_ty
-            .snap_to_prim
-            .apply(vcx, [vcx.mk_local_ex("arg1", e_l_ty.snapshot)]);
-        let mut rhs = prim_r_ty
-            .snap_to_prim
-            .apply(vcx, [vcx.mk_local_ex("arg2", e_r_ty.snapshot)]);
+        let function = FunctionIdn::new(name, (e_l_ty_snap, e_r_ty_snap), e_res_ty_snap);
+        deps.emit_output_ref(key, MirBuiltinEncOutputRef::BinOp(function))?;
+        let lhs = (prim_l_ty.snap_to_prim)(vcx.mk_local_ex("arg1", e_l_ty_snap));
+        let mut rhs = (prim_r_ty.snap_to_prim)(vcx.mk_local_ex("arg2", e_r_ty_snap));
         if matches!(op, Shl | Shr) {
             // RHS must be smaller than the bit width of the LHS, this is
             // implicit in the `Shl` and `Shr` operators.
-            rhs = vcx.mk_bin_op_expr(vir::BinOpKind::Mod, rhs, vcx.get_bit_width_int(l_ty.kind()));
+            rhs = vcx.mk_bin_op_expr(
+                vir::BinOpKind::Mod,
+                rhs.downcast_ty(),
+                vcx.get_bit_width_int(l_ty.kind()),
+            );
         }
         let op_kind = vir::BinOpKind::from(op);
         let viper_val = vcx.mk_bin_op_expr(op_kind, lhs, rhs);
         let (pres, val) = match op {
             // Overflow well defined as wrapping (implicit) and for the shifts
             // the RHS will be masked to the bit width.
-            Add | Sub | Mul | Shl | Shr => {
-                (Vec::new(), Self::get_wrapped_val(vcx, viper_val, res_ty))
-            }
+            Add | Sub | Mul | Shl | Shr => (
+                Vec::new(),
+                Self::get_wrapped_val(vcx, viper_val.downcast_ty(), res_ty).upcast_ty(),
+            ),
             // Undefined behavior to overflow (need precondition)
             AddUnchecked | SubUnchecked | MulUnchecked => {
                 let min = vcx.get_min_int(res_ty.kind());
                 // `(arg1 op arg2) >= -iN::MIN`
-                let lower_bound = vcx.mk_bin_op_expr(vir::BinOpKind::CmpGe, viper_val, min);
+                let lower_bound = vcx
+                    .mk_bin_op_expr(vir::BinOpKind::CmpGe, viper_val.downcast_ty(), min)
+                    .downcast_ty::<vir::Bool>();
                 let max = vcx.get_max_int(res_ty.kind());
                 // `(arg1 op arg2) <= iN::MAX`
-                let upper_bound = vcx.mk_bin_op_expr(vir::BinOpKind::CmpLe, viper_val, max);
+                let upper_bound = vcx
+                    .mk_bin_op_expr(vir::BinOpKind::CmpLe, viper_val.downcast_ty(), max)
+                    .downcast_ty::<vir::Bool>();
                 (vec![lower_bound, upper_bound], viper_val)
             }
             // Overflow is well defined as wrapping (implicit), but shifting by
@@ -195,60 +215,95 @@ impl MirBuiltinEnc {
             ShlUnchecked | ShrUnchecked => {
                 let min = vcx.mk_int::<0>();
                 // `arg2 >= 0`
-                let lower_bound = vcx.mk_bin_op_expr(vir::BinOpKind::CmpGe, rhs, min);
+                let lower_bound = vcx
+                    .mk_bin_op_expr(vir::BinOpKind::CmpGe, rhs.downcast_ty(), min)
+                    .downcast_ty::<vir::Bool>();
                 let max = vcx.get_bit_width_int(l_ty.kind());
                 // `arg2 < bit_width(arg1)`
-                let upper_bound = vcx.mk_bin_op_expr(vir::BinOpKind::CmpLt, rhs, max);
+                let upper_bound = vcx
+                    .mk_bin_op_expr(vir::BinOpKind::CmpLt, rhs.downcast_ty(), max)
+                    .downcast_ty::<vir::Bool>();
                 (
                     vec![lower_bound, upper_bound],
-                    Self::get_wrapped_val(vcx, viper_val, res_ty),
+                    Self::get_wrapped_val(vcx, viper_val.downcast_ty(), res_ty).upcast_ty(),
                 )
             }
             // Could divide by zero or overflow if divisor is `-1`
             Div | Rem => {
                 // `0 != arg2 `
-                let pre = vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, vcx.mk_int::<0>(), rhs);
+                let pre = vcx
+                    .mk_bin_op_expr(vir::BinOpKind::CmpNe, vcx.mk_int::<0>(), rhs.downcast_ty())
+                    .downcast_ty::<vir::Bool>();
                 let mut pres = vec![pre];
                 let mut val = viper_val;
                 if res_ty.is_signed() {
                     let min = vcx.get_min_int(res_ty.kind());
                     // `arg1 != -iN::MIN`
-                    let arg1_cond = vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, lhs, min);
+                    let arg1_cond =
+                        vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, lhs.downcast_ty(), min);
                     // `-1 != arg2 `
-                    let arg2_cond =
-                        vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, vcx.mk_int::<-1>(), rhs);
+                    let arg2_cond = vcx.mk_bin_op_expr(
+                        vir::BinOpKind::CmpNe,
+                        vcx.mk_int::<-1>(),
+                        rhs.downcast_ty(),
+                    );
                     // `-1 != arg2 || arg1 != -iN::MIN`
-                    let pre = vcx.mk_bin_op_expr(vir::BinOpKind::Or, arg1_cond, arg2_cond);
+                    let pre = vcx
+                        .mk_bin_op_expr(vir::BinOpKind::Or, arg1_cond, arg2_cond)
+                        .downcast_ty::<vir::Bool>();
                     pres.push(pre);
                     // The Rust and Viper (SMT) semantics for `\` and `%` do not
                     // match up when `arg1 < 0`, encode this difference.
                     if matches!(op, Div) {
                         // `arg1 >= 0 ? arg1 \ arg2 : arg2 >= 0 ? (arg1 - 1) \ arg2 + 1 : (arg1 - 1) \ arg2 - 1`
-                        let lhs_sub =
-                            vcx.mk_bin_op_expr(vir::BinOpKind::Sub, lhs, vcx.mk_int::<1>());
-                        let common_div = vcx.mk_bin_op_expr(op_kind, lhs_sub, rhs);
+                        let lhs_sub = vcx.mk_bin_op_expr(
+                            vir::BinOpKind::Sub,
+                            lhs.downcast_ty(),
+                            vcx.mk_int::<1>(),
+                        );
+                        let common_div = vcx.mk_bin_op_expr(op_kind, lhs_sub, rhs).downcast_ty();
                         let neg_pos =
                             vcx.mk_bin_op_expr(vir::BinOpKind::Add, common_div, vcx.mk_int::<1>());
                         let neg_neg =
                             vcx.mk_bin_op_expr(vir::BinOpKind::Sub, common_div, vcx.mk_int::<1>());
-                        let rhs_pos =
-                            vcx.mk_bin_op_expr(vir::BinOpKind::CmpGe, rhs, vcx.mk_int::<0>());
+                        let rhs_pos = vcx
+                            .mk_bin_op_expr(
+                                vir::BinOpKind::CmpGe,
+                                rhs.downcast_ty(),
+                                vcx.mk_int::<0>(),
+                            )
+                            .downcast_ty();
                         let negative = vcx.mk_ternary_expr(rhs_pos, neg_pos, neg_neg);
-                        let lhs_pos =
-                            vcx.mk_bin_op_expr(vir::BinOpKind::CmpGe, lhs, vcx.mk_int::<0>());
+                        let lhs_pos = vcx
+                            .mk_bin_op_expr(
+                                vir::BinOpKind::CmpGe,
+                                lhs.downcast_ty(),
+                                vcx.mk_int::<0>(),
+                            )
+                            .downcast_ty();
                         val = vcx.mk_ternary_expr(lhs_pos, val, negative);
                     } else {
                         // `arg1 >= 0 ? arg1 % arg2 : (arg1 % arg2) - (arg2 >= 0 ? arg2 : -arg2)`
-                        let rhs_pos =
-                            vcx.mk_bin_op_expr(vir::BinOpKind::CmpGe, rhs, vcx.mk_int::<0>());
+                        let rhs_pos = vcx
+                            .mk_bin_op_expr(
+                                vir::BinOpKind::CmpGe,
+                                rhs.downcast_ty(),
+                                vcx.mk_int::<0>(),
+                            )
+                            .downcast_ty();
                         let rhs_abs = vcx.mk_ternary_expr(
                             rhs_pos,
                             rhs,
                             vcx.mk_unary_op_expr(vir::UnOpKind::Neg, rhs),
                         );
                         let negative = vcx.mk_bin_op_expr(vir::BinOpKind::Sub, viper_val, rhs_abs);
-                        let lhs_pos =
-                            vcx.mk_bin_op_expr(vir::BinOpKind::CmpGe, lhs, vcx.mk_int::<0>());
+                        let lhs_pos = vcx
+                            .mk_bin_op_expr(
+                                vir::BinOpKind::CmpGe,
+                                lhs.downcast_ty(),
+                                vcx.mk_int::<0>(),
+                            )
+                            .downcast_ty();
                         val = vcx.mk_ternary_expr(lhs_pos, val, negative);
                     }
                 }
@@ -261,14 +316,13 @@ impl MirBuiltinEnc {
             Cmp => todo!(),
             _ => unreachable!(),
         };
-        let val = prim_res_ty.prim_to_snap.apply(vcx, [val]);
+        let val = (prim_res_ty.prim_to_snap)(val);
         Ok(vcx.mk_function(
-            name.to_str(),
-            vcx.alloc_slice(&[
-                vcx.mk_local_decl("arg1", e_l_ty.snapshot),
-                vcx.mk_local_decl("arg2", e_r_ty.snapshot),
-            ]),
-            e_res_ty.snapshot,
+            function,
+            (
+                vcx.mk_local_decl("arg1", e_l_ty_snap),
+                vcx.mk_local_decl("arg2", e_r_ty_snap),
+            ),
             vcx.alloc_slice(&pres),
             &[],
             Some(val),
@@ -300,6 +354,8 @@ impl MirBuiltinEnc {
         let e_r_ty = deps
             .require_local::<RustTySnapshotsEnc>(r_ty)?
             .generic_snapshot;
+        let e_l_ty_snap = e_l_ty.snapshot.downcast_ty();
+        let e_r_ty_snap = e_r_ty.snapshot.downcast_ty();
 
         let name = vir::vir_format_identifier!(
             vcx,
@@ -307,13 +363,13 @@ impl MirBuiltinEnc {
             int_name(l_ty),
             int_name(r_ty)
         );
-        let arity = UnknownArity::new(vcx.alloc_slice(&[e_l_ty.snapshot, e_r_ty.snapshot]));
         let e_res_ty = deps
             .require_local::<RustTySnapshotsEnc>(res_ty)
             .unwrap()
             .generic_snapshot;
-        let function = FunctionIdent::new(name, arity, e_res_ty.snapshot);
-        deps.emit_output_ref(key, MirBuiltinEncOutputRef { function })?;
+        let e_res_ty_snap = e_res_ty.snapshot.downcast_ty();
+        let function = FunctionIdn::new(name, (e_l_ty_snap, e_r_ty_snap), e_res_ty_snap);
+        deps.emit_output_ref(key, MirBuiltinEncOutputRef::BinOp(function))?;
 
         let e_res_ty = deps
             .require_local::<RustTySnapshotsEnc>(res_ty)?
@@ -328,63 +384,62 @@ impl MirBuiltinEnc {
             .require_local::<RustTySnapshotsEnc>(rvalue_pure_ty)?
             .generic_snapshot;
         let e_rvalue_pure_ty = e_rvalue_pure_ty.specifics.expect_primitive();
+        assert_eq!(vir::TYPE_INT.upcast_ty(), e_rvalue_pure_ty.prim_type);
+        let prim_type = e_rvalue_pure_ty.prim_type.downcast_ty::<vir::Int>();
         let e_bool = deps
             .require_local::<RustTySnapshotsEnc>(bool_ty)?
             .generic_snapshot;
-        let bool_cons = e_bool.specifics.expect_primitive().prim_to_snap;
+        let bool_cons = e_bool
+            .specifics
+            .expect_primitive()
+            .prim_to_snap
+            .cast_args::<vir::Bool>(vir::TYPE_BOOL);
 
         // Unbounded value
         let val_exp = vcx.mk_bin_op_expr(
             vir::BinOpKind::from(op),
-            e_l_ty
-                .specifics
-                .expect_primitive()
-                .snap_to_prim
-                .apply(vcx, [vcx.mk_local_ex("arg1", e_l_ty.snapshot)]),
-            e_r_ty
-                .specifics
-                .expect_primitive()
-                .snap_to_prim
-                .apply(vcx, [vcx.mk_local_ex("arg2", e_r_ty.snapshot)]),
+            (e_l_ty.specifics.expect_primitive().snap_to_prim)(
+                vcx.mk_local_ex("arg1", e_l_ty_snap),
+            ),
+            (e_r_ty.specifics.expect_primitive().snap_to_prim)(
+                vcx.mk_local_ex("arg2", e_r_ty_snap),
+            ),
         );
         let val_str = "val";
-        let val = vcx.mk_local_ex(val_str, e_rvalue_pure_ty.prim_type);
+        let val = vcx.mk_local_ex(val_str, prim_type);
         // Wrapped value
         let wrapped_val_exp = Self::get_wrapped_val(vcx, val, rvalue_pure_ty);
         let wrapped_val_str = "wrapped_val";
-        let wrapped_val = vcx.mk_local_ex(wrapped_val_str, e_rvalue_pure_ty.prim_type);
-        let wrapped_val_snap = e_rvalue_pure_ty.prim_to_snap.apply(vcx, [wrapped_val]);
+        let wrapped_val = vcx.mk_local_ex(wrapped_val_str, prim_type);
+        let wrapped_val_snap = (e_rvalue_pure_ty.prim_to_snap)(wrapped_val.upcast_ty());
         // Overflowed?
         let overflowed = if config::check_overflows() {
             vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, wrapped_val, val)
+                .downcast_ty()
         } else {
             vcx.mk_bool::<false>()
         };
-        let overflowed_snap = bool_cons.apply(vcx, [overflowed]);
+        let overflowed_snap = bool_cons(overflowed);
         // `tuple(prim_to_snap(wrapped_val), wrapped_val != val)`
         let ty_caster =
             deps.require_local::<AggregateSnapArgsCastEnc>(AggregateSnapArgsCastEncTask {
                 tys: vec![rvalue_pure_ty, bool_ty],
                 aggregate_type: AggregateType::Tuple,
             })?;
-        let tuple = e_res_ty
-            .specifics
-            .expect_structlike()
-            .field_snaps_to_snap
-            .apply(
+        let tuple =
+            (e_res_ty.specifics.expect_structlike().field_snaps_to_snap)(&ty_caster.apply_casts(
                 vcx,
-                &ty_caster.apply_casts(vcx, [wrapped_val_snap, overflowed_snap].into_iter()),
-            );
+                [wrapped_val_snap.upcast_ty(), overflowed_snap.upcast_ty()].into_iter(),
+            ));
         // `let wrapped_val == (val ..) in $tuple`
         let inner_let = vcx.mk_let_expr(wrapped_val_str, wrapped_val_exp, tuple);
 
         Ok(vcx.mk_function(
-            name.to_str(),
-            vcx.alloc_slice(&[
-                vcx.mk_local_decl("arg1", e_l_ty.snapshot),
-                vcx.mk_local_decl("arg2", e_r_ty.snapshot),
-            ]),
-            e_res_ty.snapshot,
+            function,
+            (
+                vcx.mk_local_decl("arg1", e_l_ty_snap),
+                vcx.mk_local_decl("arg2", e_r_ty_snap),
+            ),
             &[],
             &[],
             Some(vcx.mk_let_expr(val_str, val_exp, inner_let)),
@@ -397,17 +452,23 @@ impl MirBuiltinEnc {
     #[allow(clippy::needless_lifetimes)]
     fn get_wrapped_val<'vir, 'tcx>(
         vcx: &'vir vir::VirCtxt<'tcx>,
-        mut exp: &'vir vir::ExprData<'vir>,
+        mut exp: vir::ExprInt<'vir>,
         rust_ty: ty::Ty,
-    ) -> &'vir vir::ExprData<'vir> {
+    ) -> vir::ExprInt<'vir> {
         let shift_amount = vcx.get_signed_shift_int(rust_ty.kind());
         if let Some(half) = shift_amount {
-            exp = vcx.mk_bin_op_expr(vir::BinOpKind::Add, exp, half);
+            exp = vcx
+                .mk_bin_op_expr(vir::BinOpKind::Add, exp, half)
+                .downcast_ty();
         }
         let modulo_val = vcx.get_modulo_int(rust_ty.kind());
-        exp = vcx.mk_bin_op_expr(vir::BinOpKind::Mod, exp, modulo_val);
+        exp = vcx
+            .mk_bin_op_expr(vir::BinOpKind::Mod, exp, modulo_val)
+            .downcast_ty();
         if let Some(half) = shift_amount {
-            exp = vcx.mk_bin_op_expr(vir::BinOpKind::Sub, exp, half);
+            exp = vcx
+                .mk_bin_op_expr(vir::BinOpKind::Sub, exp, half)
+                .downcast_ty();
         }
         exp
     }

@@ -1,3 +1,9 @@
+macro_rules! typed {
+    ($data:ident; $($type:ident => $name:ident),+) => {
+        $(pub type $name<'vir> = &'vir crate::data::$data<'vir, crate::$type>;)+
+    };
+}
+
 pub type AccField<'vir> = &'vir crate::data::AccFieldData<'vir>;
 pub type BinOp<'vir> = &'vir crate::data::BinOpData<'vir>;
 pub type CfgBlock<'vir> = &'vir crate::data::CfgBlockData<'vir>;
@@ -8,16 +14,28 @@ pub type Domain<'vir> = &'vir crate::data::DomainData<'vir>;
 pub type DomainAxiom<'vir> = &'vir crate::data::DomainAxiomData<'vir>;
 pub type DomainFunction<'vir> = &'vir crate::data::DomainFunctionData<'vir>;
 pub type DomainParam<'vir> = &'vir crate::data::DomainParamData<'vir>;
-pub type Expr<'vir> = &'vir crate::data::ExprData<'vir>;
+typed!(ExprData; Bool => ExprBool, Int => ExprInt, Perm => ExprPerm, Ref => ExprRef);
+typed!(ExprData; CSnap => ExprCSnap, PSnap => ExprPSnap, TyVal => ExprTyVal);
+typed!(ExprData; Prim => ExprPrim, Snap => ExprSnap, Dyn => ExprDyn);
+pub type Expr<'vir, T> = &'vir crate::data::ExprData<'vir, T>;
 pub type ExprKind<'vir> = &'vir crate::data::ExprKindData<'vir>;
-pub type Field<'vir> = &'vir crate::data::FieldData<'vir>;
+typed!(FieldData; Bool => FieldBool, Int => FieldInt, Perm => FieldPerm, Ref => FieldRef);
+typed!(FieldData; CSnap => FieldCSnap, PSnap => FieldPSnap, TyVal => FieldTyVal);
+typed!(FieldData; Prim => FieldPrim, Snap => FieldSnap, Dyn => FieldDyn);
+pub type Field<'vir, T> = &'vir crate::data::FieldData<'vir, T>;
 pub type Forall<'vir> = &'vir crate::data::ForallData<'vir>;
 pub type FuncApp<'vir> = &'vir crate::data::FuncAppData<'vir>;
 pub type Function<'vir> = &'vir crate::data::FunctionData<'vir>;
 pub type GotoIf<'vir> = &'vir crate::data::GotoIfData<'vir>;
 pub type Let<'vir> = &'vir crate::data::LetData<'vir>;
-pub type Local<'vir> = &'vir crate::data::LocalData<'vir>;
-pub type LocalDecl<'vir> = &'vir crate::data::LocalDeclData<'vir>;
+typed!(LocalData; Bool => LocalBool, Int => LocalInt, Perm => LocalPerm, Ref => LocalRef);
+typed!(LocalData; CSnap => LocalCSnap, PSnap => LocalPSnap, TyVal => LocalTyVal);
+typed!(LocalData; Prim => LocalPrim, Snap => LocalSnap, Dyn => LocalDyn);
+pub type Local<'vir, T> = &'vir crate::data::LocalData<'vir, T>;
+typed!(LocalDeclData; Bool => LocalDeclBool, Int => LocalDeclInt, Perm => LocalDeclPerm, Ref => LocalDeclRef);
+typed!(LocalDeclData; CSnap => LocalDeclCSnap, PSnap => LocalDeclPSnap, TyVal => LocalDeclTyVal);
+typed!(LocalDeclData; Prim => LocalDeclPrim, Snap => LocalDeclSnap, Dyn => LocalDeclDyn);
+pub type LocalDecl<'vir, T> = &'vir crate::data::LocalDeclData<'vir, T>;
 pub type Method<'vir> = &'vir crate::data::MethodData<'vir>;
 pub type MethodBody<'vir> = &'vir crate::data::MethodBodyData<'vir>;
 pub type MethodCall<'vir> = &'vir crate::data::MethodCallData<'vir>;
@@ -31,7 +49,10 @@ pub type StmtKind<'vir> = &'vir crate::data::StmtKindData<'vir>;
 pub type TerminatorStmt<'vir> = &'vir crate::data::TerminatorStmtData<'vir>;
 pub type Ternary<'vir> = &'vir crate::data::TernaryData<'vir>;
 pub type Trigger<'vir> = &'vir crate::data::TriggerData<'vir>;
-pub type Type<'vir> = &'vir crate::data::TypeData<'vir>;
+typed!(TypeData; Bool => TypeBool, Int => TypeInt, Perm => TypePerm, Ref => TypeRef);
+typed!(TypeData; CSnap => TypeCSnap, PSnap => TypePSnap, TyVal => TypeTyVal);
+typed!(TypeData; Prim => TypePrim, Snap => TypeSnap, Dyn => TypeDyn);
+pub type Type<'vir, T> = &'vir crate::data::TypeData<'vir, T>;
 pub type UnOp<'vir> = &'vir crate::data::UnOpData<'vir>;
 pub type Unfolding<'vir> = &'vir crate::data::UnfoldingData<'vir>;
 pub type Wand<'vir> = &'vir crate::data::WandData<'vir>;

@@ -5,6 +5,7 @@ use syn::{parse_macro_input, spanned::Spanned, DeriveInput};
 pub fn derive_hash(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = input.ident;
+    let (generic_args, generic_params) = crate::params_to_args_and_params(&input.generics);
 
     TokenStream::from(match input.data {
         syn::Data::Struct(syn::DataStruct {
@@ -17,7 +18,7 @@ pub fn derive_hash(input: TokenStream) -> TokenStream {
                 .collect::<Vec<_>>();
 
             quote! {
-                impl<'vir> std::hash::Hash for #name<'vir, !, !> {
+                impl<#(#generic_params),*> std::hash::Hash for #name<#(#generic_args),*> {
                     fn hash<H>(&self, state: &mut H)
                     where
                         H: std::hash::Hasher,
@@ -57,7 +58,7 @@ pub fn derive_hash(input: TokenStream) -> TokenStream {
                 .collect::<Vec<_>>();
 
             quote! {
-                impl<'vir> std::hash::Hash for #name<'vir, !, !> {
+                impl<#(#generic_params),*> std::hash::Hash for #name<#(#generic_args),*> {
                     fn hash<H>(&self, state: &mut H)
                     where
                         H: std::hash::Hasher,

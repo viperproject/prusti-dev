@@ -22,14 +22,16 @@
 
 //use crate::UnknownArity;
 
+use crate::CompType;
+
 #[macro_export]
 macro_rules! vir_type_list {
-    ($vcx:expr; $( $args:tt ),* $(,)? ) => {{
-        #[allow(unused_mut)]
-        let mut v = vec![];
-        $( v.push($crate::vir_type!($vcx; $args)); )*
-        $vcx.alloc_slice(&v)
-    }};
+    ($vcx:expr; $arg:tt $(,)? ) => {
+        $crate::vir_type!($vcx; $arg)
+    };
+    ($vcx:expr; $( $args:tt ),* $(,)? ) => {
+        ($($crate::vir_type!($vcx; $args)),*)
+    };
 }
 
 #[macro_export]
@@ -37,9 +39,16 @@ macro_rules! vir_arg_list {
     ($vcx:expr; $( $name:tt : $ty:tt ),* $(,)? ) => {{
         #[allow(unused_mut)]
         let mut v = vec![];
-        $( v.push($crate::vir_local_decl!($vcx; $name : $ty)); )*
+        $( v.push($crate::CastType::as_dyn($crate::vir_local_decl!($vcx; $name : $ty))); )*
         $vcx.alloc_slice(&v)
     }};
+}
+
+#[macro_export]
+macro_rules! vir_arg_tuple {
+    ($vcx:expr; $( $name:tt : $ty:tt ),* $(,)? ) => {
+        ($( $crate::vir_local_decl!($vcx; $name : $ty), )*)
+    };
 }
 
 /*
@@ -135,30 +144,26 @@ macro_rules! vir_format_identifier {
 #[macro_export]
 macro_rules! vir_type {
     ($vcx:expr; Bool) => {
-        &$crate::TypeData::Bool
+        $crate::TYPE_BOOL
     };
     ($vcx:expr; Ref) => {
-        &$crate::TypeData::Ref
+        $crate::TYPE_REF
     };
-    ($vcx:expr; Uint($bit_width:expr)) => {
-        $vcx.alloc($crate::TypeData::Int {
-            signed: false,
-            bit_width: $bit_width,
-        })
+    ($vcx:expr; Int) => {
+        $crate::TYPE_INT
     };
-    ($vcx:expr; Int($bit_width:expr)) => {
-        $vcx.alloc($crate::TypeData::Int {
-            signed: true,
-            bit_width: $bit_width,
-        })
+    ($vcx:expr; Perm) => {
+        $crate::TYPE_PERM
+    };
+    ($vcx:expr; Type) => {
+        $crate::TYPE_TYVAL
     };
     ($vcx:expr; [ $ty:expr ]) => {
         $ty
     };
     ($vcx:expr; $name:ident) => {
-        $vcx.alloc($crate::TypeData::Domain(
-            $vcx.alloc_str(stringify!($name)),
-            &[],
+        $vcx.alloc($crate::TypeData::<$crate::Dyn>::new(
+            $crate::TypeKind::Domain($vcx.alloc_str(stringify!($name)), &[]),
         ))
     };
 }
@@ -166,10 +171,7 @@ macro_rules! vir_type {
 #[macro_export]
 macro_rules! vir_local_decl {
     ($vcx:expr; $name:tt : $ty:tt) => {
-        $vcx.alloc($crate::LocalDeclData {
-            name: $crate::vir_ident!($vcx; $name),
-            ty: $crate::vir_type!($vcx; $ty),
-        })
+        $vcx.mk_local_decl($crate::vir_ident!($vcx; $name), $crate::vir_type!($vcx; $ty))
     };
 }
 
@@ -189,8 +191,7 @@ macro_rules! vir_domain_axiom {
                     $vcx.mk_local_decl("val", $crate::vir_type!($vcx; $ty)),
                 ]),
                 $vcx.alloc_slice(&[$vcx.alloc_slice(&[inner])]),
-                $vcx.mk_bin_op_expr(
-                    $crate::BinOpKind::CmpEq,
+                $vcx.mk_eq_expr(
                     $a.apply($vcx, [inner]),
                     val_ex,
                 ),
@@ -206,12 +207,17 @@ macro_rules! vir_domain_axiom {
 }
 
 #[macro_export]
+macro_rules! ignore {
+    (($($replace:tt)*) $($args:tt)*) => { $($replace)* };
+}
+
+#[macro_export]
 macro_rules! vir_domain_func {
     ($vcx:expr; unique function $name:tt ( $( $args:tt )* ): $ret:tt ) => {{
         $vcx.mk_domain_function(
-            FunctionIdent::new(
+            $crate::FunctionIdn::<($($crate::ignore!(($crate::Dyn) $args)),*), _>::new(
                 $name.name(),
-                vir::UnknownArity::new($crate::vir_type_list!($vcx; $($args)*)),
+                $crate::vir_type_list!($vcx; $($args)*),
                 $crate::vir_type!($vcx; $ret),
             ),
             true
@@ -219,9 +225,9 @@ macro_rules! vir_domain_func {
     }};
     ($vcx:expr; function $name:tt ( $( $args:tt )* ): $ret:tt ) => {{
         $vcx.mk_domain_function(
-            FunctionIdent::new(
+            $crate::FunctionIdn::<($($crate::ignore!(($crate::Dyn) $args)),*), _>::new(
                 $name.name(),
-                vir::UnknownArity::new($crate::vir_type_list!($vcx; $($args)*)),
+                $crate::vir_type_list!($vcx; $($args)*),
                 $crate::vir_type!($vcx; $ret),
             ),
             false
@@ -304,215 +310,210 @@ macro_rules! vir_predicate {
     }};
 }
 
-pub trait ExprApply<'vir, A> {
-    fn expr_apply(&self, vcx: &'vir crate::VirCtxt<'vir>, args: &[A]) -> crate::Expr<'vir>;
+pub trait ExprApply<'vir, A: core::marker::Tuple, Ty: CompType> {
+    fn expr_apply(self, vcx: &'vir crate::VirCtxt, args: A) -> crate::Expr<'vir, Ty>;
 }
 
-impl<'vir> ExprApply<'vir, crate::Expr<'vir>>
-    for crate::FunctionIdent<'vir, crate::UnknownArity<'vir>>
+impl<'a, 'vir, A: crate::Arity, R: CompType> ExprApply<'vir, A::Exprs<'a, 'vir, !, !>, R>
+    for crate::FunctionIdn<'vir, A, R>
 {
     fn expr_apply(
-        &self,
-        vcx: &'vir crate::VirCtxt<'vir>,
-        args: &[crate::Expr<'vir>],
-    ) -> crate::Expr<'vir> {
-        self.apply(vcx, args)
+        self,
+        _vcx: &'vir crate::VirCtxt,
+        args: A::Exprs<'a, 'vir, !, !>,
+    ) -> crate::Expr<'vir, R> {
+        self.call_once(args)
     }
 }
-impl<'vir, const N: usize> ExprApply<'vir, crate::Expr<'vir>>
-    for crate::FunctionIdent<'vir, crate::KnownArity<'vir, N>>
+impl<'a, 'vir, A: crate::Arity> ExprApply<'vir, A::Exprs<'a, 'vir, !, !>, crate::Bool>
+    for crate::PredicateIdn<'vir, A>
 {
     fn expr_apply(
-        &self,
-        vcx: &'vir crate::VirCtxt<'vir>,
-        args: &[crate::Expr<'vir>],
-    ) -> crate::Expr<'vir> {
-        assert_eq!(args.len(), N);
-        self.apply(vcx, args.try_into().unwrap())
+        self,
+        vcx: &'vir crate::VirCtxt,
+        args: A::Exprs<'a, 'vir, !, !>,
+    ) -> crate::ExprBool<'vir> {
+        vcx.mk_predicate_app_expr(self.call_once(args)(None))
     }
 }
-impl<'vir> ExprApply<'vir, crate::Expr<'vir>>
-    for crate::PredicateIdent<'vir, crate::UnknownArity<'vir>>
-{
+impl<'vir, Ty: CompType> ExprApply<'vir, (crate::ExprRef<'vir>,), Ty> for crate::Field<'vir, Ty> {
     fn expr_apply(
-        &self,
-        vcx: &'vir crate::VirCtxt<'vir>,
-        args: &[crate::Expr<'vir>],
-    ) -> crate::Expr<'vir> {
-        vcx.mk_predicate_app_expr(self.apply(vcx, args, None))
-    }
-}
-impl<'vir> ExprApply<'vir, crate::Expr<'vir>> for crate::Field<'vir> {
-    fn expr_apply(
-        &self,
-        vcx: &'vir crate::VirCtxt<'vir>,
-        args: &[crate::Expr<'vir>],
-    ) -> crate::Expr<'vir> {
-        assert_eq!(args.len(), 1);
-        vcx.mk_field_expr(args[0], self)
+        self,
+        _vcx: &'vir crate::VirCtxt,
+        args: (crate::ExprRef<'vir>,),
+    ) -> crate::Expr<'vir, Ty> {
+        self.call_once(args)
     }
 }
 
-pub trait ExprQuote<'vir> {
-    fn expr(&self, vcx: &'vir crate::VirCtxt<'vir>) -> crate::Expr<'vir>;
+pub trait ExprQuote<'vir, Ty: CompType> {
+    fn expr(&self, vcx: &'vir crate::VirCtxt) -> crate::Expr<'vir, Ty>;
 }
 
-impl<'vir> ExprQuote<'vir> for crate::Expr<'vir> {
-    fn expr(&self, _vcx: &'vir crate::VirCtxt<'vir>) -> crate::Expr<'vir> {
+impl<'vir, Ty: CompType> ExprQuote<'vir, Ty> for crate::Expr<'vir, Ty> {
+    fn expr(&self, _vcx: &'vir crate::VirCtxt) -> crate::Expr<'vir, Ty> {
         self
     }
 }
-impl<'vir> ExprQuote<'vir> for crate::Local<'vir> {
-    fn expr(&self, vcx: &'vir crate::VirCtxt<'vir>) -> crate::Expr<'vir> {
+impl<'vir, Ty: CompType> ExprQuote<'vir, Ty> for crate::Local<'vir, Ty> {
+    fn expr(&self, vcx: &'vir crate::VirCtxt) -> crate::Expr<'vir, Ty> {
         vcx.mk_local_ex_local(self)
     }
 }
 
 #[macro_export]
 macro_rules! expr {
-    (@typ; [$outer:expr]) => { $outer };
-    (@typ; Bool) => { &$crate::TypeData::Bool };
-    (@typ; Int) => { &$crate::TypeData::Int };
-    (@typ; Ref) => { &$crate::TypeData::Ref };
+    ($vcx:tt; $($tokens:tt)*) => { {
+        use $crate::macros::{ExprApply, ExprQuote};
+        let vcx = $vcx; #[allow(unused)] macro_rules! vcx { () => { vcx }; }
+        $crate::expr_inner!(@expr_one; $($tokens)*)
+    } };
+    ($($tokens:tt)+) => { vir::with_vcx(|vcx| $crate::expr!(vcx; $($tokens)*)) };
+    () => { compile_error!(concat!("VIR malformed empty")) };
+}
 
-    (@forall_qvars($output:ident, $qvars:ident); :: { $($triggers:tt)* } $($tokens:tt)*) => { $output.push(vcx!().mk_forall_expr(
-        vcx!().alloc_slice($qvars.as_slice()),
-        vcx!().alloc_slice($crate::expr!(@expr_list; $($triggers)*).into_iter().map(|e| vcx!().mk_trigger(&[e])).collect::<Vec<_>>().as_slice()),
-        $crate::expr!(@expr_one; $($tokens)*),
-    )) };
-    (@forall_qvars($output:ident, $qvars:ident); :: $($tokens:tt)*) => { $output.push(vcx!().mk_forall_expr(
-        // TODO: warn: no triggers provided?
-        vcx!().alloc_slice($qvars.as_slice()),
-        &[],
-        $crate::expr!(@expr_one; $($tokens)*),
-    )) };
-    (@forall_qvars($output:ident, $qvars:ident); ..[$outer:expr] $($tokens:tt)*) => { {
-        $qvars.extend($outer.iter().map(|local| vcx!().mk_local_decl_local(local)));
-        $crate::expr!(@forall_qvars($output, $qvars); $($tokens)*)
-    } };
-    (@forall_qvars($output:ident, $qvars:ident); $qvar:ident : $qtype:tt $($tokens:tt)* ) => { {
-        let local = vcx!().mk_local(stringify!($qvar), $crate::expr!(@typ; $qtype));
-        $qvars.push(vcx!().mk_local_decl_local(local));
-        let $qvar: $crate::Expr = vcx!().mk_local_ex_local(local);
-        $crate::expr!(@forall_qvars($output, $qvars); $($tokens)*)
-    } };
-    (@forall_qvars($output:ident, $qvars:ident); , $($tokens:tt)* ) => { // TODO: this accepts too many commas
-        $crate::expr!(@forall_qvars($output, $qvars); $($tokens)*)
+#[macro_export]
+macro_rules! expr_inner {
+    (@expr_one; ($($e:tt)+) as $ty:ident) => {
+        $crate::CastType::inner_cast_ty::<$crate::$ty>($crate::expr_inner!(@expr_one; $($e)*))
     };
-    (@forall_qvars($output:ident, $qvars:ident); ) => { compile_error!("malformed forall") };
-
-    (@expr_done($output:ident); , $($tokens:tt)+) => { $crate::expr!(@expr($output); $($tokens)*) };
-    (@expr_done($output:ident); $($tokens:tt)+) => { compile_error!("unexpected VIR expression (missing comma?)") };
-    (@expr_done($output:ident);) => {};
-
-    (@expr($output:ident); unfolding_wildcard ( [ $outer:expr ]( $($args:tt)* ) ) in ( $($rhs:tt)+ ) ) => { { $output.push(vcx!().mk_unfolding_expr(
-        $outer.apply(vcx!(),
-            $crate::expr!(@expr_list; $($args)*).as_slice(),
-            Some(vcx!().mk_wildcard()),
-        ),
-        $crate::expr!(@expr_one; $($rhs)*),
-    )); } };
-    (@expr($output:ident); acc( [ $outer:expr ]( $($args:tt)* ) ) ) => { { $output.push(vcx!().mk_predicate_app_expr(
-        $outer.apply(vcx!(),
-            $crate::expr!(@expr_list; $($args)*).as_slice(),
-            None,
+    (@expr_one; unfolding ( [ $outer:expr ] ( $($args:tt)* ) ) in ( $($rhs:tt)+ ) ) => { vcx!().mk_unfolding_expr(
+        $outer.call($crate::expr_inner!(@expr_args; $($args)*))(None),
+        $crate::expr_inner!(@expr_one; $($rhs)*),
+    ) };
+    (@expr_one; acc( [ $outer:expr ] ( $($args:tt)* ) ) ) => { {
+        let pred: $crate::PredicateIdn<_> = $outer;
+        pred.expr_apply(
+            vcx!(),
+            $crate::expr_inner!(@expr_args; $($args)*),
         )
-    )); } };
-    (@expr($output:ident); acc_field( [ $outer:expr ]( $($args:tt)* ) ) ) => { { $output.push(vcx!().mk_acc_field_expr(
-        $crate::expr!(@expr_one; $($args)*),
+    } };
+    (@expr_one; acc( ( $($args:tt)+ ).[ $outer:expr ] ) ) => { vcx!().mk_acc_field_expr(
+        $crate::expr_inner!(@expr_one; $($args)*),
         $outer,
         None,
-    )); } };
-    (@expr($output:ident); acc_wildcard( [ $outer:expr ]( $($args:tt)* ) ) ) => { { $output.push(vcx!().mk_predicate_app_expr(
-        $outer.apply(vcx!(),
-            $crate::expr!(@expr_list; $($args)*).as_slice(),
-            Some(vcx!().mk_wildcard()),
-        )
-    )); } };
-    (@expr($output:ident); [ $outer:expr ]( ) ) => { { $output.push($outer.expr_apply(
+    ) };
+    (@expr_one; [ $outer:expr ] ( $($args:tt)* ) ) => { $outer.expr_apply(
         vcx!(),
-        &[],
-    )); } };
-    (@expr($output:ident); [ $outer:expr ]( $($args:tt)* ) ) => { { $output.push($outer.expr_apply(
-        vcx!(),
-        $crate::expr!(@expr_list; $($args)*).as_slice(),
-    )); } };
-    (@expr($output:ident); [ $outer:expr ] ) => { { $output.push($outer.expr(vcx!())); } };
-    (@expr($output:ident); ..[ $outer:expr ] ) => { { $output.extend($outer.iter().map(|e| e.expr(vcx!()))); } };
-    (@expr($output:ident); ( $($lhs:tt)+ ) => ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_bin_op_expr(
+        $crate::expr_inner!(@expr_args; $($args)*),
+    ) };
+    (@expr_one; [ $outer:expr ] ) => { $outer.expr(vcx!()) };
+    (@expr_one; ( $($lhs:tt)+ ) == ( $($rhs:tt)+ )) => { vcx!().mk_eq_expr(
+        $crate::expr_inner!(@expr_one; $($lhs)*),
+        $crate::expr_inner!(@expr_one; $($rhs)*),
+    ) };
+    (@expr_one; ( $($lhs:tt)+ ) && ( $($rhs:tt)+ )) => { vcx!().mk_conj(&[
+        $crate::expr_inner!(@expr_one; $($lhs)*),
+        $crate::expr_inner!(@expr_one; $($rhs)*),
+    ]) };
+    (@expr_one; ( $($lhs:tt)+ ) || ( $($rhs:tt)+ )) => { vcx!().mk_disj(&[
+        $crate::expr_inner!(@expr_one; $($lhs)*),
+        $crate::expr_inner!(@expr_one; $($rhs)*),
+    ]) };
+    (@expr_one; ( $($lhs:tt)+ ) == > ( $($rhs:tt)+ )) => { $crate::CastType::downcast_ty::<$crate::Bool>(vcx!().mk_bin_op_expr(
         $crate::BinOpKind::Implies,
-        $crate::expr!(@expr_one; $($lhs)*),
-        $crate::expr!(@expr_one; $($rhs)*),
-    )); } };
-    (@expr($output:ident); ( $($lhs:tt)+ ) == ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_eq_expr(
-        $crate::expr!(@expr_one; $($lhs)*),
-        $crate::expr!(@expr_one; $($rhs)*),
-    )); } };
-    (@expr($output:ident); ( $($lhs:tt)+ ) && ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_conj(&[
-        $crate::expr!(@expr_one; $($lhs)*),
-        $crate::expr!(@expr_one; $($rhs)*),
-    ])); } };
-    (@expr($output:ident); ( $($lhs:tt)+ ) || ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_disj(&[
-        $crate::expr!(@expr_one; $($lhs)*),
-        $crate::expr!(@expr_one; $($rhs)*),
-    ])); } };
-    (@expr($output:ident); ( $($lhs:tt)+ ) ==> ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_bin_op_expr(
-        $crate::BinOpKind::Implies,
-        $crate::expr!(@expr_one; $($lhs)*),
-        $crate::expr!(@expr_one; $($rhs)*),
-    )); } };
-    (@expr($output:ident); ( $($lhs:tt)+ ) <= ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_bin_op_expr(
+        $crate::expr_inner!(@expr_one; $($lhs)*),
+        $crate::expr_inner!(@expr_one; $($rhs)*),
+    )) };
+    (@expr_one; ( $($lhs:tt)+ ) <= ( $($rhs:tt)+ )) => { $crate::CastType::downcast_ty::<$crate::Bool>(vcx!().mk_bin_op_expr(
         $crate::BinOpKind::CmpLe,
-        $crate::expr!(@expr_one; $($lhs)*),
-        $crate::expr!(@expr_one; $($rhs)*),
-    )); } };
-    (@expr($output:ident); ( $($lhs:tt)+ ) < ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_bin_op_expr(
+        $crate::expr_inner!(@expr_one; $($lhs)*),
+        $crate::expr_inner!(@expr_one; $($rhs)*),
+    )) };
+    (@expr_one; ( $($lhs:tt)+ ) < ( $($rhs:tt)+ )) => { $crate::CastType::downcast_ty::<$crate::Bool>(vcx!().mk_bin_op_expr(
         $crate::BinOpKind::CmpLt,
-        $crate::expr!(@expr_one; $($lhs)*),
-        $crate::expr!(@expr_one; $($rhs)*),
-    )); } };
-    (@expr($output:ident); ( $($lhs:tt)+ ) + ( $($rhs:tt)+ )) => { { $output.push(vcx!().mk_bin_op_expr(
+        $crate::expr_inner!(@expr_one; $($lhs)*),
+        $crate::expr_inner!(@expr_one; $($rhs)*),
+    )) };
+    (@expr_one; ( $($lhs:tt)+ ) + ( $($rhs:tt)+ )) => { vcx!().mk_bin_op_expr(
         $crate::BinOpKind::Add,
-        $crate::expr!(@expr_one; $($lhs)*),
-        $crate::expr!(@expr_one; $($rhs)*),
-    )); } };
-    (@expr($output:ident); null) => { { $output.push(vcx!().mk_null()); } };
-    (@expr($output:ident); true) => { { $output.push(vcx!().mk_bool::<true>()); } };
-    (@expr($output:ident); false) => { { $output.push(vcx!().mk_bool::<false>()); } };
-    (@expr($output:ident); result) => { { $output.push(vcx!().mk_result()); } };
-    (@expr($output:ident); forall $($tokens:tt)+) => { {
-        let mut qvars = Vec::new();
-        $crate::expr!(@forall_qvars($output, qvars); $($tokens)*)
+        $crate::expr_inner!(@expr_one; $($lhs)*),
+        $crate::expr_inner!(@expr_one; $($rhs)*),
+    ) };
+    (@expr_one; null) => { vcx!().mk_null() };
+    (@expr_one; true) => { vcx!().mk_bool::<true>() };
+    (@expr_one; false) => { vcx!().mk_bool::<false>() };
+    (@expr_one; result: $t:tt) => { vcx!().mk_result($crate::vir_type!(vcx!(); $t)) };
+    (@expr_one; forall $($tokens:tt)+) => { {
+        let mut qvars = Vec::<$crate::LocalDeclDyn>::new();
+        $crate::expr_inner!(@forall_qvars(qvars); , $($tokens)*)
     } };
-    (@expr($output:ident); $ident:ident $($rest:tt)*) => { { $output.push($ident.expr(vcx!())); $crate::expr!(@expr_done($output); $($rest)*); } };
-    (@expr($output:ident); $($tokens:tt)+) => { compile_error!("VIR syntax error") };
-    (@expr($output:ident);) => { compile_error!("unexpected end of VIR expression") };
+    (@expr_one; $ident:ident) => { $ident.expr(vcx!()) };
+    (@expr_one; $($tokens:tt)*) => { compile_error!(concat!("VIR malformed expression: `" , stringify!($($tokens)*), "`")) };
 
-    (@expr_one; $($tokens:tt)*) => { {
-        #[allow(unused_mut)]
-        let mut output: Vec<$crate::Expr> = Vec::with_capacity(1);
-        $crate::expr!(@expr(output); $($tokens)*);
-        assert_eq!(output.len(), 1, "expected one VIR expression");
-        output[0]
-    } };
-    (@expr_list;) => { Vec::new() };
-    (@expr_list; $($tokens:tt)*) => { {
-        #[allow(unused_mut)]
-        let mut output: Vec<$crate::Expr> = Vec::new();
-        $crate::expr!(@expr(output); $($tokens)*);
-        output
-    } };
+    (@expr_tuple; ( $($inner:tt)+ )) => { $crate::expr_inner!(@expr_one; $($inner)*) };
+    (@expr_tuple; [ $($inner:tt)* ]) => { &$crate::expr_inner!(@expr_list; $($inner)*) };
+    // This case lets us use `[fn](..[&args_vec])` instead of `[fn]([..[&args_vec]])`
+    (@expr_tuple; ..[ $args:expr ]) => {
+        $args
+    };
+    (@expr_tuple; $($other:tt)+ ) => { $crate::expr_inner!(@expr_one; $($other)*) };
 
-    ($vcx:expr; $($tokens:tt)+) => { {
-        use $crate::macros::{ExprApply, ExprQuote};
-        let vcx = $vcx; macro_rules! vcx { () => { vcx }; }
-        $crate::expr!(@expr_one; $($tokens)*)
+    (@expr_args; $one:tt , $two:tt , $three:tt , $four:tt , $five:tt, $six:tt, $seven:tt, $eight:tt , $($tail:tt)+ ) => {
+        compile_error!(concat!("VIR malformed arg, only up to 8 args supported: `", stringify!($one, $two, $three, $four, $five, $six, $seven, $eight), "`, but have tail: `", stringify!($($tail)*), "`"))
+    };
+    (@expr_args; $one:tt , $two:tt , $three:tt , $four:tt , $five:tt, $six:tt, $seven:tt, $($tail:tt)+ ) => {
+        ($crate::expr_inner!(@expr_tuple; $one), $crate::expr_inner!(@expr_tuple; $two), $crate::expr_inner!(@expr_tuple; $three), $crate::expr_inner!(@expr_tuple; $four), $crate::expr_inner!(@expr_tuple; $five), $crate::expr_inner!(@expr_tuple; $six), $crate::expr_inner!(@expr_tuple; $seven), $crate::expr_inner!(@expr_tuple; $($tail)*),)
+    };
+    (@expr_args; $one:tt , $two:tt , $three:tt , $four:tt , $five:tt, $six:tt, $($tail:tt)+ ) => {
+        ($crate::expr_inner!(@expr_tuple; $one), $crate::expr_inner!(@expr_tuple; $two), $crate::expr_inner!(@expr_tuple; $three), $crate::expr_inner!(@expr_tuple; $four), $crate::expr_inner!(@expr_tuple; $five), $crate::expr_inner!(@expr_tuple; $six), $crate::expr_inner!(@expr_tuple; $($tail)*),)
+    };
+    (@expr_args; $one:tt , $two:tt , $three:tt , $four:tt , $five:tt, $($tail:tt)+ ) => {
+        ($crate::expr_inner!(@expr_tuple; $one), $crate::expr_inner!(@expr_tuple; $two), $crate::expr_inner!(@expr_tuple; $three), $crate::expr_inner!(@expr_tuple; $four), $crate::expr_inner!(@expr_tuple; $five), $crate::expr_inner!(@expr_tuple; $($tail)*),)
+    };
+    (@expr_args; $one:tt , $two:tt , $three:tt , $four:tt , $($tail:tt)+ ) => {
+        ($crate::expr_inner!(@expr_tuple; $one), $crate::expr_inner!(@expr_tuple; $two), $crate::expr_inner!(@expr_tuple; $three), $crate::expr_inner!(@expr_tuple; $four), $crate::expr_inner!(@expr_tuple; $($tail)*),)
+    };
+    (@expr_args; $one:tt , $two:tt , $three:tt , $($tail:tt)+ ) => {
+        ($crate::expr_inner!(@expr_tuple; $one), $crate::expr_inner!(@expr_tuple; $two), $crate::expr_inner!(@expr_tuple; $three), $crate::expr_inner!(@expr_tuple; $($tail)*),)
+    };
+    (@expr_args; $one:tt , $two:tt , $($tail:tt)+ ) => {
+        ($crate::expr_inner!(@expr_tuple; $one), $crate::expr_inner!(@expr_tuple; $two), $crate::expr_inner!(@expr_tuple; $($tail)*),)
+    };
+    (@expr_args; $one:tt , $($tail:tt)+ ) => {
+        ($crate::expr_inner!(@expr_tuple; $one), $crate::expr_inner!(@expr_tuple; $($tail)*),)
+    };
+    (@expr_args; $($tail:tt)+ ) => {
+        ($crate::expr_inner!(@expr_tuple; $($tail)*),)
+    };
+    (@expr_args; ) => { () };
+    (@expr_args; $tokens:tt*) => {
+        compile_error!(concat!("VIR malformed arg: `" , stringify!($($tokens)*), "`. Expected `ident/(...)` for single arg or `[...]` for many args"))
+    };
+
+    (@expr_list; ) => { Vec::<$crate::Expr<_>>::new() };
+    (@expr_list; $($args:tt)+ ) => {
+        $crate::expr_inner!(@expr_iter; , $($args)*).collect::<Vec<$crate::Expr<_>>>()
+    };
+
+    (@expr_iter; ) => { [].into_iter() };
+    (@expr_iter; , ( $($first:tt)+ ) $($rest:tt)*) => { [$crate::expr_inner!(@expr_one; $($first)*)].into_iter().chain($crate::expr_inner!(@expr_iter; $($rest)*)) };
+    (@expr_iter; ,   $ident:ident    $($rest:tt)*) => { [$crate::expr_inner!(@expr_one; $ident)].into_iter().chain($crate::expr_inner!(@expr_iter; $($rest)*)) };
+    (@expr_iter; , ..[ $outer:expr ] ) => { $outer.iter().map(|e| e.expr(vcx!())) };
+    (@expr_iter; , $($last:tt)+) => { [$crate::expr_inner!(@expr_one; $($last)*)].into_iter() };
+    (@expr_iter; $($tokens:tt)+) => { compile_error!(concat!("VIR malformed expression list: `" , stringify!($($tokens)*), "`")) };
+
+    (@forall_qvars($qvars:ident); :: $({ $($triggers:tt)+ })+ $($tokens:tt)+) => { vcx!().mk_forall_expr(
+        vcx!().alloc_slice($qvars.as_slice()),
+        vcx!().alloc_slice(
+            [$($crate::expr_inner!(@expr_list; $($triggers)*)),*].into_iter()
+                .map(|e: Vec<$crate::Expr<_>>| vcx!().mk_trigger(&e))
+                .collect::<Vec<_>>().as_slice()
+        ),
+        $crate::expr_inner!(@expr_one; $($tokens)*),
+    ) };
+    (@forall_qvars($qvars:ident); :: $($tokens:tt)*) => { compile_error!(concat!("VIR missing triggers or body: `" , stringify!($($tokens)*), "`")) };
+
+    (@forall_qvars($qvars:ident); , ..[$outer:ident] $($tokens:tt)*) => { {
+        $qvars.extend($outer.iter().map(|local| $crate::CastType::as_dyn(vcx!().mk_local_decl_local(local))));
+        let $outer: Vec<$crate::ExprGen<_, _, _>> = $outer.iter().map(|local| vcx!().mk_local_ex_local(local)).collect();
+        $crate::expr_inner!(@forall_qvars($qvars); $($tokens)*)
     } };
-    ($($tokens:tt)+) => { vir::with_vcx(|vcx| {
-        use $crate::macros::{ExprApply, ExprQuote};
-        #[allow(unused)]
-        macro_rules! vcx { () => { vcx }; }
-        $crate::expr!(@expr_one; $($tokens)*)
-    }) };
-    () => { compile_error!("expected VIR expression") };
+    (@forall_qvars($qvars:ident); , $qvar:ident : $qtype:tt $($tokens:tt)* ) => { {
+        let local = vcx!().mk_local(stringify!($qvar), $crate::vir_type!(vcx!(); $qtype));
+        $qvars.push($crate::CastType::as_dyn(vcx!().mk_local_decl_local(local)));
+        let $qvar: $crate::Expr<_> = vcx!().mk_local_ex_local(local);
+        $crate::expr_inner!(@forall_qvars($qvars); $($tokens)*)
+    } };
+    (@forall_qvars($qvars:ident); $($tokens:tt)*) => { compile_error!(concat!("VIR malformed quantifier: `" , stringify!($($tokens)*), "`")) };
 }

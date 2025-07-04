@@ -17,7 +17,11 @@ pub struct WandEnc;
 
 pub type WandEncError = ();
 
-type Pledges<'vir> = Vec<(Option<(vir::Expr<'vir>, Span)>, vir::Expr<'vir>, Span)>;
+type Pledges<'vir> = Vec<(
+    Option<(vir::ExprBool<'vir>, Span)>,
+    vir::ExprBool<'vir>,
+    Span,
+)>;
 
 #[derive(Clone, Debug, Default)]
 pub struct WandEncOutput<'vir> {
@@ -36,8 +40,8 @@ impl<'vir> WandEncOutput<'vir> {
         deps: &mut TaskEncoderDependencies<'vir, impl TaskEncoder>,
         g: IndirectKey,
         input: bool,
-        mut snap: impl FnMut(mir::Local) -> vir::Expr<'vir>,
-    ) -> Option<vir::Expr<'vir>> {
+        mut snap: impl FnMut(mir::Local) -> vir::ExprSnap<'vir>,
+    ) -> Option<vir::ExprBool<'vir>> {
         use vir::Reify;
         // There may not be any parameters for this generic, for example, if the
         // generic is the `Self` type of a trait but the function doesn't take a
@@ -66,7 +70,7 @@ impl<'vir> WandEncOutput<'vir> {
         vcx: &'vir vir::VirCtxt<'vir>,
         local_defs: &'a MirLocalDefEncOutput<'vir>,
         deps: &'a mut TaskEncoderDependencies<'vir, E>,
-    ) -> impl Iterator<Item = vir::Expr<'vir>> + 'a {
+    ) -> impl Iterator<Item = vir::ExprBool<'vir>> + 'a {
         self.inputs().filter_map(|g| {
             self.encode_generic(vcx, deps, g, true, &|i| local_defs.locals[i].impure_snap)
         })
@@ -77,7 +81,7 @@ impl<'vir> WandEncOutput<'vir> {
         vcx: &'vir vir::VirCtxt<'vir>,
         local_defs: &'a MirLocalDefEncOutput<'vir>,
         deps: &'a mut TaskEncoderDependencies<'vir, E>,
-    ) -> impl Iterator<Item = vir::Expr<'vir>> + 'a {
+    ) -> impl Iterator<Item = vir::ExprBool<'vir>> + 'a {
         self.outputs().filter_map(|g| {
             self.encode_generic(vcx, deps, g, false, |i| local_defs.locals[i].impure_snap)
         })
@@ -88,7 +92,7 @@ impl<'vir> WandEncOutput<'vir> {
         vcx: &'vir vir::VirCtxt<'vir>,
         local_defs: &'a MirLocalDefEncOutput<'vir>,
         deps: &'a mut TaskEncoderDependencies<'vir, E>,
-    ) -> impl Iterator<Item = vir::Expr<'vir>> + 'a {
+    ) -> impl Iterator<Item = vir::ExprBool<'vir>> + 'a {
         // TODO: wands for late-bound regions
         self.viper_wands().into_iter().map(|(lhs, rhs, pledge)| {
             let mut snaps = FxHashMap::default();
@@ -120,7 +124,7 @@ impl<'vir> WandEncOutput<'vir> {
 
     pub fn apply_wands<E: TaskEncoder>(
         &self,
-        arguments: &[vir::Expr<'vir>],
+        arguments: &[vir::ExprSnap<'vir>],
         label_pre: &'vir str,
         label_post: &'vir str,
         visitor: &mut ImpureEncVisitor<'vir, '_, E>,
@@ -216,11 +220,11 @@ impl<'vir> WandEncOutput<'vir> {
         lhs: &[IndirectKey],
         rhs: &[IndirectKey],
         pledge: &Pledges<'vir>,
-        mut snap_lhs: impl FnMut(mir::Local) -> vir::Expr<'vir>,
-        mut snap_rhs: impl FnMut(mir::Local) -> vir::Expr<'vir>,
+        mut snap_lhs: impl FnMut(mir::Local) -> vir::ExprSnap<'vir>,
+        mut snap_rhs: impl FnMut(mir::Local) -> vir::ExprSnap<'vir>,
         vcx: &'vir vir::VirCtxt<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, E>,
-    ) -> Result<vir::Wand<'vir>, vir::Expr<'vir>> {
+    ) -> Result<vir::Wand<'vir>, vir::ExprBool<'vir>> {
         let rhs = rhs
             .iter()
             .filter_map(|g| self.encode_generic(vcx, deps, *g, true, &mut snap_rhs));

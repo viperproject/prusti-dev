@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{Arity, CallableIdent, FunctionIdent, MethodIdent, TypeData, UnknownArity};
+use vir::{CallableIdn, FunctionIdn, MethodIdn};
 
 use crate::encoders::{
     domain::DomainEnc, lifted::ty_constructor::TyConstructorEnc, most_generic_ty::MostGenericTy,
@@ -19,50 +19,53 @@ impl CastTypePure {
     pub fn cast_to_generic_if_necessary<'vir, Curr, Next>(
         casters: &Casters<'vir, Self>,
         vcx: &'vir vir::VirCtxt<'_>,
-        snap: vir::ExprGen<'vir, Curr, Next>,
+        snap: vir::ExprGenSnap<'vir, Curr, Next>,
         ty_args: &'vir [LiftedTy<'vir, LiftedGeneric<'vir>>],
-    ) -> vir::ExprGen<'vir, Curr, Next> {
+    ) -> vir::ExprGenPSnap<'vir, Curr, Next> {
+        use vir::CastType;
         match casters {
-            CastFunctionsOutputRef::AlreadyGeneric => snap,
-            CastFunctionsOutputRef::Casters { make_generic, .. } => make_generic.apply(
-                vcx,
-                &std::iter::once(snap)
-                    .chain(ty_args.iter().map(|t| t.expr(vcx)))
-                    .collect::<Vec<_>>(),
+            CastFunctionsOutputRef::AlreadyGeneric => snap.downcast_ty(),
+            CastFunctionsOutputRef::Casters { make_generic, .. } => make_generic.gen()(
+                snap.downcast_ty(),
+                &ty_args.iter().map(|t| t.expr(vcx)).collect::<Vec<_>>(),
             ),
         }
     }
 }
 
 impl CastType for CastTypePure {
-    type CastOutput<'vir, Curr: 'vir, Next: 'vir> = vir::ExprGen<'vir, Curr, Next>;
+    type CastArgs<'vir, Curr: 'vir, Next: 'vir> = vir::ExprGenSnap<'vir, Curr, Next>;
+    type CastOutput<'vir, Curr: 'vir, Next: 'vir> = vir::ExprGenSnap<'vir, Curr, Next>;
     type ToGeneric<'vir> = MakeGenericCastFunction<'vir>;
     type ToConcrete<'vir> = MakeConcreteCastFunction<'vir>;
-    type CastApplicator<'vir> = vir::FunctionIdent<'vir, UnknownArity<'vir>>;
+    type CastApplicator<'vir> = FunctionIdn<'vir, (vir::Snap, vir::ManyTyVal), vir::Snap>;
 
     fn cast_to_concrete_if_possible<'vir, Curr, Next>(
         casters: &Casters<'vir, Self>,
         vcx: &'vir vir::VirCtxt<'_>,
-        snap: vir::ExprGen<'vir, Curr, Next>,
+        snap: Self::CastArgs<'vir, Curr, Next>,
         ty_args: &'vir [LiftedTy<'vir, LiftedGeneric<'vir>>],
     ) -> Self::CastOutput<'vir, Curr, Next> {
+        use vir::CastType;
         match casters {
             CastFunctionsOutputRef::AlreadyGeneric => snap,
-            CastFunctionsOutputRef::Casters { make_concrete, .. } => make_concrete.apply(
-                vcx,
-                &std::iter::once(snap)
-                    .chain(ty_args.iter().map(|t| t.expr(vcx)))
-                    .collect::<Vec<_>>(),
-            ),
+            CastFunctionsOutputRef::Casters { make_concrete, .. } => make_concrete.gen()(
+                snap.downcast_ty(),
+                &ty_args.iter().map(|t| t.expr(vcx)).collect::<Vec<_>>(),
+            ).upcast_ty(),
         }
     }
 
     fn to_concrete_applicator(to_concrete: Self::ToConcrete<'_>) -> Self::CastApplicator<'_> {
-        to_concrete
+        use vir::CastType;
+        let (a, b) = to_concrete.arity();
+        to_concrete.cast_ty((a.upcast_ty(), b))
     }
 
     fn to_generic_applicator(to_generic: Self::ToGeneric<'_>) -> Self::CastApplicator<'_> {
-        to_generic.as_unknown_arity()
+        use vir::CastType;
+        let (a, b) = to_generic.arity();
+        to_generic.cast_ty((a.upcast_ty(), b))
     }
 }
 
@@ -86,18 +89,20 @@ impl<'vir, Curr, Next> ImpureCastStmts<'vir, Curr, Next> {
 }
 
 impl CastType for CastTypeImpure {
+    type CastArgs<'vir, Curr: 'vir, Next: 'vir> = vir::ExprGenRef<'vir, Curr, Next>;
+
     type CastOutput<'vir, Curr: 'vir, Next: 'vir> = Option<ImpureCastStmts<'vir, Curr, Next>>;
 
-    type ToGeneric<'vir> = vir::MethodIdent<'vir, UnknownArity<'vir>>;
+    type ToGeneric<'vir> = vir::MethodIdn<'vir, (vir::Ref, vir::ManyTyVal)>;
 
-    type ToConcrete<'vir> = vir::MethodIdent<'vir, UnknownArity<'vir>>;
+    type ToConcrete<'vir> = vir::MethodIdn<'vir, (vir::Ref, vir::ManyTyVal)>;
 
-    type CastApplicator<'vir> = vir::MethodIdent<'vir, UnknownArity<'vir>>;
+    type CastApplicator<'vir> = vir::MethodIdn<'vir, (vir::Ref, vir::ManyTyVal)>;
 
     fn cast_to_concrete_if_possible<'vir, Curr, Next>(
         casters: &CastersEncOutputRef<Self::ToGeneric<'vir>, Self::ToConcrete<'vir>>,
         vcx: &'vir vir::VirCtxt<'_>,
-        snap: vir::ExprGen<'vir, Curr, Next>,
+        snap: Self::CastArgs<'vir, Curr, Next>,
         ty_args: &'vir [LiftedTy<'vir, LiftedGeneric<'vir>>],
     ) -> Self::CastOutput<'vir, Curr, Next> {
         match casters {
@@ -106,17 +111,13 @@ impl CastType for CastTypeImpure {
                 make_concrete,
                 make_generic,
             } => {
-                let args = vcx.alloc_slice(
-                    &std::iter::once(snap)
-                        .chain(ty_args.iter().map(|t| t.expr(vcx)))
-                        .collect::<Vec<_>>(),
-                );
+                let args = ty_args.iter().map(|t| t.expr(vcx)).collect::<Vec<_>>();
                 Some(ImpureCastStmts::new(
                     vcx.alloc(vir::StmtGenData::new(
-                        vcx.alloc(make_concrete.apply(vcx, args)),
+                        vcx.alloc(make_concrete.gen()(snap, &args)),
                     )),
                     vcx.alloc(vir::StmtGenData::new(
-                        vcx.alloc(make_generic.apply(vcx, args)),
+                        vcx.alloc(make_generic.gen()(snap, &args)),
                     )),
                 ))
             }
@@ -135,6 +136,8 @@ pub trait CastType
 where
     Self: Sized,
 {
+    type CastArgs<'vir, Curr: 'vir, Next: 'vir>;
+
     /// The shape of an applied cast, either an expression (for a pure cast)
     /// or a statement (for an impure cast)
     type CastOutput<'vir, Curr: 'vir, Next: 'vir>;
@@ -161,7 +164,7 @@ where
     fn cast_to_concrete_if_possible<'vir, Curr, Next>(
         casters: &Casters<'vir, Self>,
         vcx: &'vir vir::VirCtxt<'_>,
-        snap: vir::ExprGen<'vir, Curr, Next>,
+        args: Self::CastArgs<'vir, Curr, Next>,
         ty_args: &'vir [LiftedTy<'vir, LiftedGeneric<'vir>>],
     ) -> Self::CastOutput<'vir, Curr, Next>;
 }
@@ -191,8 +194,8 @@ pub type CastFunctionsOutputRef<'vir> =
     CastersEncOutputRef<MakeGenericCastFunction<'vir>, MakeConcreteCastFunction<'vir>>;
 
 pub type CastMethodsOutputRef<'vir> = CastersEncOutputRef<
-    MethodIdent<'vir, UnknownArity<'vir>>,
-    MethodIdent<'vir, UnknownArity<'vir>>,
+    MethodIdn<'vir, (vir::Ref, vir::ManyTyVal)>,
+    MethodIdn<'vir, (vir::Ref, vir::ManyTyVal)>,
 >;
 
 impl<G: Copy, C> CastersEncOutputRef<G, C> {
@@ -204,8 +207,10 @@ impl<G: Copy, C> CastersEncOutputRef<G, C> {
     }
 }
 
-pub type MakeGenericCastFunction<'vir> = FunctionIdent<'vir, UnknownArity<'vir>>;
-pub type MakeConcreteCastFunction<'vir> = FunctionIdent<'vir, UnknownArity<'vir>>;
+pub type MakeGenericCastFunction<'vir> =
+    FunctionIdn<'vir, (vir::CSnap, vir::ManyTyVal), vir::PSnap>;
+pub type MakeConcreteCastFunction<'vir> =
+    FunctionIdn<'vir, (vir::PSnap, vir::ManyTyVal), vir::CSnap>;
 
 /// Takes as input the most generic version (c.f. [`MostGenericTy`]) of a Rust
 /// type, and generates functions to convert the generic Viper representation of
@@ -240,9 +245,10 @@ impl TaskEncoder for CastersEnc<CastTypePure> {
             return Ok((&[], ()));
         }
         vir::with_vcx(|vcx| {
+            use vir::CastType;
             let domain_ref = deps.require_ref::<DomainEnc>(*ty)?;
             let generic_ref = deps.require_ref::<GenericEnc>(())?;
-            let self_ty = domain_ref.domain.apply(vcx, []);
+            let self_ty = (domain_ref.domain)().downcast_ty();
             let base_name = &domain_ref.base_name;
             let ty_constructor = deps.require_ref::<TyConstructorEnc>(*ty)?.ty_constructor;
 
@@ -252,22 +258,17 @@ impl TaskEncoder for CastersEnc<CastTypePure> {
                 .map(|g| deps.require_ref::<LiftedGenericEnc>(*g))
                 .collect::<Result<Vec<_>, _>>()?;
 
-            let make_generic_arg_tys = std::iter::once(self_ty)
-                .chain(ty_params.iter().map(|t| t.ty()))
-                .collect::<Vec<_>>();
-            let make_generic_ident = FunctionIdent::new(
+            let arg_tys = ty_params.iter().map(|t| t.ty()).collect::<Vec<_>>();
+            let arg_tys = vcx.alloc_slice(&arg_tys);
+            let make_generic_ident = FunctionIdn::new(
                 vir::vir_format_identifier!(vcx, "make_generic_s_{base_name}"),
-                UnknownArity::new(vcx.alloc(make_generic_arg_tys)),
+                (self_ty, arg_tys),
                 generic_ref.param_snapshot,
             );
 
-            let make_concrete_arg_tys = std::iter::once(generic_ref.param_snapshot)
-                .chain(ty_params.iter().map(|t| t.ty()))
-                .collect::<Vec<_>>();
-
-            let make_concrete_ident = FunctionIdent::new(
+            let make_concrete_ident = FunctionIdn::new(
                 vir::vir_format_identifier!(vcx, "make_concrete_s_{base_name}"),
-                UnknownArity::new(vcx.alloc(make_concrete_arg_tys)),
+                (generic_ref.param_snapshot, arg_tys),
                 self_ty,
             );
 
@@ -281,11 +282,7 @@ impl TaskEncoder for CastersEnc<CastTypePure> {
             let make_generic_arg = vcx.mk_local_decl("self", self_ty);
             let make_generic_expr = vcx.mk_local_ex(make_generic_arg.name, make_generic_arg.ty);
 
-            let make_generic_arg_decls = vcx.alloc_slice(
-                &std::iter::once(make_generic_arg)
-                    .chain(ty_params.iter().map(|t| t.decl()))
-                    .collect::<Vec<_>>(),
-            );
+            let ty_params_vec = ty_params.iter().map(|t| t.decl()).collect::<Vec<_>>();
 
             let make_concrete_ty_param_exprs =
                 ty_params.iter().map(|t| t.expr(vcx)).collect::<Vec<_>>();
@@ -303,24 +300,18 @@ impl TaskEncoder for CastersEnc<CastTypePure> {
             // Asserts that the type of `param` is equal to the ty constructor
             // applied to type arguments `args`
             let mk_type_spec = |param, args| {
-                let lifted_param_snap_ty = generic_ref.param_type_function.apply(vcx, [param]);
-                vcx.mk_eq_expr(lifted_param_snap_ty, ty_constructor.apply(vcx, args))
+                let lifted_param_snap_ty = (generic_ref.param_type_function)(param);
+                vcx.mk_eq_expr(lifted_param_snap_ty, ty_constructor(args))
             };
 
             let make_generic = vcx.mk_function(
-                make_generic_ident.name_str(),
-                make_generic_arg_decls,
-                generic_ref.param_snapshot,
+                make_generic_ident,
+                (make_generic_arg, &ty_params_vec),
                 &[],
                 vcx.alloc_slice(&[
                     mk_type_spec(make_generic_result, &ty_params_from_snap),
                     vcx.mk_eq_expr(
-                        make_concrete_ident.apply(
-                            vcx,
-                            &std::iter::once(make_generic_result)
-                                .chain(ty_params_from_snap.iter().copied())
-                                .collect::<Vec<_>>(),
-                        ),
+                        make_concrete_ident(make_generic_result, &ty_params_from_snap),
                         make_generic_expr,
                     ),
                 ]),
@@ -328,39 +319,26 @@ impl TaskEncoder for CastersEnc<CastTypePure> {
             );
 
             let make_concrete_snap_arg_decl = vcx.mk_local_decl("snap", generic_ref.param_snapshot);
-            let make_concrete_arg_decls = vcx.alloc_slice(
-                &std::iter::once(make_concrete_snap_arg_decl)
-                    .chain(ty_params.iter().map(|t| t.decl()))
-                    .collect::<Vec<_>>(),
+            let make_concrete_snap_arg_expr = vcx.mk_local_ex(
+                make_concrete_snap_arg_decl.name,
+                make_concrete_snap_arg_decl.ty,
             );
 
-            let make_concrete_pre = mk_type_spec(
-                vcx.mk_local_ex(
-                    make_concrete_snap_arg_decl.name,
-                    make_concrete_snap_arg_decl.ty,
-                ),
-                &make_concrete_ty_param_exprs,
-            );
+            let make_concrete_pre =
+                mk_type_spec(make_concrete_snap_arg_expr, &make_concrete_ty_param_exprs);
 
             let arg_ty_exprs = ty_params
                 .iter()
                 .map(|t| vcx.mk_local_ex(t.decl().name, t.decl().ty))
                 .collect::<Vec<_>>();
-            let make_generic_args = std::iter::once(vcx.mk_result(self_ty))
-                .chain(arg_ty_exprs)
-                .collect::<Vec<_>>();
             let make_concrete_post = vcx.mk_eq_expr(
-                make_generic_ident.apply(vcx, &make_generic_args),
-                vcx.mk_local_ex(
-                    make_concrete_snap_arg_decl.name,
-                    make_concrete_snap_arg_decl.ty,
-                ),
+                make_generic_ident(vcx.mk_result(self_ty), &arg_ty_exprs),
+                make_concrete_snap_arg_expr,
             );
 
             let make_concrete = vcx.mk_function(
-                make_concrete_ident.name_str(),
-                make_concrete_arg_decls,
-                self_ty,
+                make_concrete_ident,
+                (make_concrete_snap_arg_decl, &ty_params_vec),
                 vcx.alloc_slice(&[make_concrete_pre]),
                 vcx.alloc_slice(&[make_concrete_post]),
                 None,
@@ -392,25 +370,22 @@ impl TaskEncoder for CastersEnc<CastTypeImpure> {
             return Ok((&[], ()));
         }
         vir::with_vcx(|vcx| {
+            use vir::CastType;
             let predicate_ref = deps.require_ref::<PredicateEnc>(*ty)?;
             let generic_ref = deps.require_ref::<GenericEnc>(())?;
             let base_name = predicate_ref.ref_to_pred.name();
             let ty_constructor = deps.require_ref::<TyConstructorEnc>(*ty)?;
 
-            let arg_tys = vcx.alloc_slice(
-                &std::iter::once(&TypeData::Ref)
-                    .chain(ty_constructor.arity().args().iter().copied())
-                    .collect::<Vec<_>>(),
-            );
+            let arg_tys = vcx.alloc_slice(&ty_constructor.args().collect::<Vec<_>>());
 
-            let make_generic_ident = MethodIdent::new(
+            let make_generic_ident = MethodIdn::new(
                 vir::vir_format_identifier!(vcx, "make_generic_{base_name}"),
-                UnknownArity::new(arg_tys),
+                (vir::TYPE_REF, arg_tys),
             );
 
-            let make_concrete_ident = MethodIdent::new(
+            let make_concrete_ident = MethodIdn::new(
                 vir::vir_format_identifier!(vcx, "make_concrete_{base_name}"),
-                UnknownArity::new(arg_tys),
+                (vir::TYPE_REF, arg_tys),
             );
 
             deps.emit_output_ref(
@@ -423,12 +398,10 @@ impl TaskEncoder for CastersEnc<CastTypeImpure> {
             let (make_generic_pure, _) = deps
                 .require_ref::<CastersEnc<CastTypePure>>(*ty)?
                 .expect_casters();
-            let self_decl = vcx.mk_local_decl("self", &TypeData::Ref);
+            let self_decl = vcx.mk_local_decl("self", vir::TYPE_REF);
             let self_expr = vcx.mk_local_ex(self_decl.name, self_decl.ty);
             let arg_ty_decls = ty_constructor
-                .arity()
                 .args()
-                .iter()
                 .enumerate()
                 .map(|(idx, ty)| vcx.mk_local_decl(vcx.alloc_str(&format!("T{}", idx)), ty))
                 .collect::<Vec<_>>();
@@ -436,53 +409,30 @@ impl TaskEncoder for CastersEnc<CastTypeImpure> {
                 .iter()
                 .map(|decl| vcx.mk_local_ex(decl.name, decl.ty))
                 .collect::<Vec<_>>();
-            let decls = vcx.alloc_slice(
-                &[self_decl]
-                    .into_iter()
-                    .chain(arg_ty_decls)
-                    .collect::<Vec<_>>(),
-            );
+            let decls = (self_decl, arg_ty_decls.as_slice());
 
-            let concrete_predicate_args = &std::iter::once(self_expr)
-                .chain(arg_ty_exprs.iter().copied())
-                .collect::<Vec<_>>();
+            let concrete_predicate = (predicate_ref.ref_to_pred)(self_expr, &arg_ty_exprs)(None);
 
-            let concrete_predicate =
-                predicate_ref
-                    .ref_to_pred
-                    .apply(vcx, concrete_predicate_args, None);
-
-            let concrete_snap = predicate_ref
-                .ref_to_snap
-                .apply(vcx, concrete_predicate_args);
+            let concrete_snap = (predicate_ref.ref_to_snap)(self_expr, &arg_ty_exprs).downcast_ty();
 
             let concrete_predicate = vcx.mk_predicate_app_expr(concrete_predicate);
 
-            let lifted_ty_expr = ty_constructor.ty_constructor.apply(vcx, &arg_ty_exprs);
+            let lifted_ty_expr = (ty_constructor.ty_constructor)(&arg_ty_exprs);
 
-            let generic_predicate =
-                generic_ref
-                    .ref_to_pred
-                    .apply(vcx, [self_expr, lifted_ty_expr], None);
+            let generic_predicate = (generic_ref.ref_to_pred)(self_expr, lifted_ty_expr)(None);
 
-            let generic_snap = generic_ref
-                .ref_to_snap
-                .apply(vcx, [self_expr, lifted_ty_expr]);
+            let generic_snap = (generic_ref.ref_to_snap)(self_expr, lifted_ty_expr);
 
             let generic_predicate = vcx.mk_predicate_app_expr(generic_predicate);
 
-            let make_generic_pure_arg_exprs = std::iter::once(concrete_snap)
-                .chain(arg_ty_exprs)
-                .collect::<Vec<_>>();
-
             let make_generic_same_snap = vcx.mk_eq_expr(
-                vcx.mk_old_expr(make_generic_pure.apply(vcx, &make_generic_pure_arg_exprs)),
+                vcx.mk_old_expr(make_generic_pure(concrete_snap, &arg_ty_exprs)),
                 generic_snap,
             );
 
             let make_concrete_same_snap = vcx.mk_eq_expr(
                 vcx.mk_old_expr(generic_snap),
-                make_generic_pure.apply(vcx, &make_generic_pure_arg_exprs),
+                make_generic_pure(concrete_snap, &arg_ty_exprs),
             );
 
             let make_generic = vcx.mk_method(

@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
-use crate::{data::*, gendata::*};
+use crate::{data::*, gendata::*, CompType};
 
 fn fmt_comma_sep_display<T: Display>(f: &mut Formatter<'_>, els: &[T]) -> FmtResult {
     els.iter().enumerate().try_for_each(|(idx, el)| {
@@ -137,7 +137,7 @@ impl<'vir> Debug for DomainFunctionData<'vir> {
     }
 }
 
-impl<'vir, Curr, Next> Debug for ExprGenData<'vir, Curr, Next> {
+impl<'vir, Curr, Next, T: CompType> Debug for ExprGenData<'vir, Curr, Next, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         if let Some(span) = self.span {
             write!(f, "/*p:{}*/", span.id)?;
@@ -171,7 +171,7 @@ impl<'vir, Curr, Next> Debug for ExprKindGenData<'vir, Curr, Next> {
     }
 }
 
-impl<'vir> Debug for FieldData<'vir> {
+impl<'vir, T: CompType> Debug for FieldData<'vir, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         writeln!(f, "field {}: {:?}", self.name, self.ty)
     }
@@ -243,13 +243,13 @@ impl<'vir, Curr, Next> Debug for LetGenData<'vir, Curr, Next> {
     }
 }
 
-impl<'vir> Debug for LocalData<'vir> {
+impl<'vir, T: CompType> Debug for LocalData<'vir, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}", self.name)
     }
 }
 
-impl<'vir> Debug for LocalDeclData<'vir> {
+impl<'vir, T: CompType> Debug for LocalDeclData<'vir, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}: ", self.name)?;
         self.ty.fmt(f)?;
@@ -465,7 +465,13 @@ impl<'vir, Curr, Next> Debug for TriggerGenData<'vir, Curr, Next> {
     }
 }
 
-impl<'vir> Debug for TypeData<'vir> {
+impl<'vir, T: CompType> Debug for TypeData<'vir, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        (**self).fmt(f)
+    }
+}
+
+impl<'vir> Debug for TypeKind<'vir> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::Int { .. } => write!(f, "Int"),
@@ -482,7 +488,6 @@ impl<'vir> Debug for TypeData<'vir> {
             }
             Self::Ref => write!(f, "Ref"),
             Self::Perm => write!(f, "Perm"),
-            Self::Predicate => write!(f, "Predicate"),
             Self::Unsupported(u) => u.fmt(f),
         }
     }

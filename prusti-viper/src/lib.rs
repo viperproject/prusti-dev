@@ -2,6 +2,7 @@
 
 use rustc_hash::FxHashMap;
 use viper::{self, AstFactory, Position};
+use vir::CompType;
 
 /// Convert the given VIR program into a Viper program (i.e., Java object).
 pub fn program_to_viper<'vir>(
@@ -309,7 +310,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::DomainParam<'vir> {
     }
 }
 
-impl<'vir, 'v> ToViper<'vir, 'v> for vir::Expr<'vir> {
+impl<'vir, 'v, T: vir::CompType> ToViper<'vir, 'v> for vir::Expr<'vir, T> {
     type Output = viper::Expr<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
         match self.kind {
@@ -342,7 +343,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Expr<'vir> {
     }
 }
 
-impl<'vir, 'v> ToViper<'vir, 'v> for vir::Field<'vir> {
+impl<'vir, 'v, T: CompType> ToViper<'vir, 'v> for vir::Field<'vir, T> {
     type Output = viper::Field<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
         ctx.ast.field(self.name, self.ty.to_viper_no_pos(ctx))
@@ -495,7 +496,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Let<'vir> {
     }
 }
 
-impl<'vir, 'v> ToViper<'vir, 'v> for vir::LocalData<'vir> {
+impl<'vir, 'v, T: CompType> ToViper<'vir, 'v> for vir::LocalData<'vir, T> {
     type Output = viper::Expr<'v>;
     // `pos` coming from the parent `Expr` is used
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, pos: Position) -> Self::Output {
@@ -504,7 +505,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::LocalData<'vir> {
     }
 }
 
-impl<'vir, 'v> ToViper<'vir, 'v> for vir::LocalDeclData<'vir> {
+impl<'vir, 'v, T: CompType> ToViper<'vir, 'v> for vir::LocalDeclData<'vir, T> {
     type Output = viper::LocalVarDecl<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
         ctx.ast
@@ -806,14 +807,14 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Trigger<'vir> {
     }
 }
 
-impl<'vir, 'v> ToViper<'vir, 'v> for vir::Type<'vir> {
+impl<'vir, 'v, T: CompType> ToViper<'vir, 'v> for vir::Type<'vir, T> {
     type Output = viper::Type<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
-        match self {
-            vir::TypeData::Int => ctx.ast.int_type(),
-            vir::TypeData::Bool => ctx.ast.bool_type(),
-            vir::TypeData::DomainTypeParam(param) => ctx.ast.type_var(param.name),
-            vir::TypeData::Domain(name, params) => {
+        match self.kind() {
+            vir::TypeKind::Int => ctx.ast.int_type(),
+            vir::TypeKind::Bool => ctx.ast.bool_type(),
+            vir::TypeKind::DomainTypeParam(param) => ctx.ast.type_var(param.name),
+            vir::TypeKind::Domain(name, params) => {
                 let domain = ctx
                     .domains
                     .get(name)
@@ -838,8 +839,8 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Type<'vir> {
                         .collect::<Vec<_>>(),
                 )
             }
-            vir::TypeData::Ref => ctx.ast.ref_type(),
-            vir::TypeData::Perm => ctx.ast.perm_type(),
+            vir::TypeKind::Ref => ctx.ast.ref_type(),
+            vir::TypeKind::Perm => ctx.ast.perm_type(),
             //vir::TypeData::Predicate, // The type of a predicate application
             //vir::TypeData::Unsupported(UnsupportedType<'vir>)
             other => unimplemented!("{:?}", other),

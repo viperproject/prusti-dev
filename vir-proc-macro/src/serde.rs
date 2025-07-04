@@ -1,5 +1,5 @@
 use proc_macro::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::{parse_macro_input, spanned::Spanned, DeriveInput};
 
 use super::reify_kind::ReifyKind;
@@ -7,17 +7,17 @@ use super::reify_kind::ReifyKind;
 pub fn derive_serde(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = input.ident;
+    let (generic_args, generic_params) = crate::params_to_args_and_params(&input.generics);
 
-    // "UnOpGenData"
     let name_str = syn::LitStr::new(name.to_string().as_str(), name.span());
 
     let ref_impl = quote! {
-        impl<'vir> serde::Deserialize<'vir> for &'vir #name<'vir, !, !> {
+        impl<#(#generic_params),*> serde::Deserialize<'vir> for &'vir #name<#(#generic_args),*> {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where D:
                 serde::Deserializer<'vir>,
             {
-                let owned: #name<'vir, !, !> = #name::<'vir, !, !>::deserialize(deserializer)?;
+                let owned: #name<#(#generic_args),*> = #name::<#(#generic_args),*>::deserialize(deserializer)?;
                 Ok(crate::with_vcx(|vcx| vcx.alloc(owned)))
             }
         }
@@ -81,8 +81,17 @@ pub fn derive_serde(input: TokenStream) -> TokenStream {
                 })
                 .collect::<Vec<_>>();
 
+            let ga_no_never = generic_args
+                .iter()
+                .filter_map(|arg| match arg {
+                    syn::GenericArgument::Type(..) if arg.to_token_stream().to_string() != "!" => {
+                        Some(arg)
+                    }
+                    _ => None,
+                })
+                .collect::<Vec<_>>();
             quote! {
-                impl<'vir> serde::Serialize for #name<'vir, !, !> {
+                impl<#(#generic_params),*> serde::Serialize for #name<#(#generic_args),*> {
                     fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
                     where
                         S: serde::Serializer,
@@ -96,14 +105,14 @@ pub fn derive_serde(input: TokenStream) -> TokenStream {
                     }
                 }
 
-                impl<'vir> serde::Deserialize<'vir> for #name<'vir, !, !> {
+                impl<#(#generic_params),*> serde::Deserialize<'vir> for #name<#(#generic_args),*> {
                     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
                     where D:
                         serde::Deserializer<'vir>,
                     {
-                        struct DataVisitor<'vir>(std::marker::PhantomData<&'vir ()>);
-                        impl<'vir> serde::de::Visitor<'vir> for DataVisitor<'vir> {
-                            type Value = #name<'vir, !, !>;
+                        struct DataVisitor<#(#generic_params),*>(std::marker::PhantomData<&'vir (#(#ga_no_never),*)>);
+                        impl<#(#generic_params),*> serde::de::Visitor<'vir> for DataVisitor<'vir, #(#ga_no_never),*> {
+                            type Value = #name<#(#generic_args),*>;
 
                             fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
                                 formatter.write_str(#expecting)
@@ -123,7 +132,7 @@ pub fn derive_serde(input: TokenStream) -> TokenStream {
                             }
                         }
 
-                        deserializer.deserialize_seq(DataVisitor(std::marker::PhantomData))
+                        deserializer.deserialize_seq(DataVisitor::<'vir, #(#ga_no_never),*>(std::marker::PhantomData))
                     }
                 }
 
@@ -239,7 +248,7 @@ pub fn derive_serde(input: TokenStream) -> TokenStream {
                 .unzip();
 
             quote! {
-                impl<'vir> serde::Serialize for #name<'vir, !, !> {
+                impl<#(#generic_params),*> serde::Serialize for #name<#(#generic_args),*> {
                     fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
                     where
                         S: serde::Serializer,
@@ -252,7 +261,7 @@ pub fn derive_serde(input: TokenStream) -> TokenStream {
                     }
                 }
 
-                impl<'vir> serde::Deserialize<'vir> for #name<'vir, !, !> {
+                impl<#(#generic_params),*> serde::Deserialize<'vir> for #name<#(#generic_args),*> {
                     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
                     where
                         D: serde::Deserializer<'vir>,
@@ -262,7 +271,7 @@ pub fn derive_serde(input: TokenStream) -> TokenStream {
                         struct DataVisitor<'vir>(Option<usize>, std::marker::PhantomData<&'vir ()>);
 
                         impl<'vir> serde::de::Visitor<'vir> for DataVisitor<'vir> {
-                            type Value = #name<'vir, !, !>;
+                            type Value = #name<#(#generic_args),*>;
 
                             fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
                                 formatter.write_str(#expecting)

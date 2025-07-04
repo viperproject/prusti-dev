@@ -19,8 +19,8 @@ pub struct RustTyPredicatesEncOutputRef<'vir> {
     pub generic_predicate: PredicateEncOutputRef<'vir>,
 
     pub indirect_predicate: Option<(
-        vir::ExprGen<'vir, vir::Expr<'vir>, vir::ExprKind<'vir>>,
-        vir::ExprGen<'vir, vir::Expr<'vir>, vir::ExprKind<'vir>>,
+        vir::ExprGenBool<'vir, vir::ExprRef<'vir>, vir::ExprKind<'vir>>,
+        vir::ExprGenBool<'vir, vir::ExprRef<'vir>, vir::ExprKind<'vir>>,
     )>,
 
     /// The lifted representation of the input type, as a Viper value
@@ -33,8 +33,8 @@ impl<'vir> RustTyPredicatesEncOutputRef<'vir> {
     pub fn apply_method_assign<'tcx>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
-        self_ref: vir::Expr<'vir>,
-        self_new_snap: vir::Expr<'vir>,
+        self_ref: vir::ExprRef<'vir>,
+        self_new_snap: vir::ExprSnap<'vir>,
     ) -> vir::Stmt<'vir> {
         //assert_eq!(self_ref.ty(), &TypeData::Ref);
         assert_eq!(
@@ -42,47 +42,43 @@ impl<'vir> RustTyPredicatesEncOutputRef<'vir> {
             self_new_snap.ty(),
             "rhs of assignment does not have expected type"
         );
-        let mut args = vec![self_ref];
-        args.extend(self.ty.arg_exprs(vcx));
-        args.push(self_new_snap);
-        vcx.alloc(vir::StmtData::new(
-            vcx.alloc(self.generic_predicate.method_assign.apply(vcx, &args)),
-        ))
+        vcx.alloc(vir::StmtData::new(vcx.alloc(
+            (self.generic_predicate.method_assign)(
+                self_ref,
+                &self.ty.arg_exprs(vcx),
+                self_new_snap,
+            ),
+        )))
     }
 
-    pub fn snapshot(&self) -> vir::Type<'vir> {
+    pub fn snapshot(&self) -> vir::TypeSnap<'vir> {
         self.generic_predicate.snapshot
     }
 
     pub fn ref_to_pred<'tcx>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
-        self_ref: vir::Expr<'vir>,
-        perm: Option<vir::Expr<'vir>>,
-    ) -> vir::Expr<'vir> {
+        self_ref: vir::ExprRef<'vir>,
+        perm: Option<vir::ExprPerm<'vir>>,
+    ) -> vir::ExprBool<'vir> {
         vcx.mk_predicate_app_expr(self.ref_to_pred_app(vcx, self_ref, perm))
     }
 
     pub fn ref_to_pred_app<'tcx>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
-        self_ref: vir::Expr<'vir>,
-        perm: Option<vir::Expr<'vir>>,
+        self_ref: vir::ExprRef<'vir>,
+        perm: Option<vir::ExprPerm<'vir>>,
     ) -> vir::PredicateApp<'vir> {
-        self.generic_predicate
-            .ref_to_pred
-            .apply(vcx, self.ref_to_args(vcx, self_ref), perm)
+        (self.generic_predicate.ref_to_pred)(self_ref, &self.ref_to_ty_args(vcx))(perm)
     }
 
     pub fn ref_to_snap<'tcx>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
-        self_ref: vir::Expr<'vir>,
-    ) -> vir::Expr<'vir> {
-        let expr = self
-            .generic_predicate
-            .ref_to_snap
-            .apply(vcx, self.ref_to_args(vcx, self_ref));
+        self_ref: vir::ExprRef<'vir>,
+    ) -> vir::ExprSnap<'vir> {
+        let expr = (self.generic_predicate.ref_to_snap)(self_ref, &self.ref_to_ty_args(vcx));
         assert!(expr.ty() == self.snapshot());
         expr
     }
@@ -90,24 +86,20 @@ impl<'vir> RustTyPredicatesEncOutputRef<'vir> {
     pub fn ref_to_indirect_pred<'tcx>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
-        self_ref: vir::Expr<'vir>,
-        _perm: Option<vir::Expr<'vir>>,
+        self_ref: vir::ExprRef<'vir>,
+        _perm: Option<vir::ExprPerm<'vir>>,
         // TODO: make this a function of a lifetime being projected?
         // lifetime: ty::Region<'tcx>,
-    ) -> Option<(vir::Expr<'vir>, vir::Expr<'vir>)> {
+    ) -> Option<(vir::ExprBool<'vir>, vir::ExprBool<'vir>)> {
         use vir::Reify;
         self.indirect_predicate
             .map(|(pre, post)| (pre.reify(vcx, self_ref), post.reify(vcx, self_ref)))
-        //.map(|pred| vcx.mk_predicate_app_expr(pred.apply(vcx, self.ref_to_args(vcx, self_ref), perm)))
+        //.map(|pred| vcx.mk_predicate_app_expr(pred.apply(vcx, self.ref_to_ty_args(vcx, self_ref), perm)))
     }
 
     /// Arguments to `ref_to_pred` and `ref_to_snap`.
-    pub fn ref_to_args<'tcx>(
-        &self,
-        vcx: &'vir vir::VirCtxt<'tcx>,
-        self_ref: vir::Expr<'vir>,
-    ) -> &'vir [vir::Expr<'vir>] {
-        self.generic_predicate.ref_to_args(vcx, self.ty, self_ref)
+    pub fn ref_to_ty_args<'tcx>(&self, vcx: &'vir vir::VirCtxt<'tcx>) -> Vec<vir::ExprTyVal<'vir>> {
+        self.generic_predicate.ref_to_ty_args(vcx, self.ty)
     }
 }
 

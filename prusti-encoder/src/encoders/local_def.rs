@@ -24,11 +24,11 @@ pub type MirLocalDefEncError = ();
 
 #[derive(Clone, Copy)]
 pub struct LocalDef<'vir> {
-    pub local: vir::Local<'vir>,
-    pub local_ex: vir::Expr<'vir>,
-    pub impure_snap: vir::Expr<'vir>,
-    pub impure_pred: vir::Expr<'vir>,
-    pub impure_indirect_pred: Option<(vir::Expr<'vir>, vir::Expr<'vir>)>,
+    pub local: vir::LocalRef<'vir>,
+    pub local_snap: vir::LocalSnap<'vir>,
+    pub local_ex: vir::ExprRef<'vir>,
+    pub impure_snap: vir::ExprSnap<'vir>,
+    pub impure_pred: vir::ExprBool<'vir>,
     pub ty: &'vir PredicateEncOutputRef<'vir>,
 }
 
@@ -61,17 +61,17 @@ impl TaskEncoder for MirLocalDefEnc {
             name: &'vir str,
             ty: RustTyPredicatesEncOutputRef<'vir>,
         ) -> LocalDef<'vir> {
-            let local = vcx.mk_local(name, &vir::TypeData::Ref);
+            let local = vcx.mk_local(name, vir::TYPE_REF);
+            let local_snap = vcx.mk_local(name, ty.snapshot());
             let local_ex = vcx.mk_local_ex_local(local);
             let impure_snap = ty.ref_to_snap(vcx, local_ex);
             let impure_pred = ty.ref_to_pred(vcx, local_ex, None);
-            let impure_indirect_pred = ty.ref_to_indirect_pred(vcx, local_ex, None);
             LocalDef {
                 local,
+                local_snap,
                 local_ex,
                 impure_snap,
                 impure_pred,
-                impure_indirect_pred,
                 ty: vcx.alloc(ty.generic_predicate),
             }
         }

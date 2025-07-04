@@ -44,7 +44,7 @@ impl<'vir> RustTyGenericCastEncOutput<'vir, CastMethodsOutputRef<'vir>> {
     pub fn cast_to_concrete_if_possible<'tcx, Curr, Next>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
-        snap: vir::ExprGen<'vir, Curr, Next>,
+        snap: vir::ExprGenRef<'vir, Curr, Next>,
     ) -> Option<ImpureCastStmts<'vir, Curr, Next>> {
         CastTypeImpure::cast_to_concrete_if_possible(&self.cast, vcx, snap, self.ty_args)
     }
@@ -54,16 +54,16 @@ impl<'vir> RustTyGenericCastEncOutput<'vir, CastFunctionsOutputRef<'vir>> {
     pub fn cast_to_concrete_if_possible<'tcx, Curr, Next>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
-        snap: vir::ExprGen<'vir, Curr, Next>,
-    ) -> vir::ExprGen<'vir, Curr, Next> {
+        snap: vir::ExprGenSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
         CastTypePure::cast_to_concrete_if_possible(&self.cast, vcx, snap, self.ty_args)
     }
 
     pub fn cast_to_generic_if_necessary<'tcx, Curr, Next>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
-        snap: vir::ExprGen<'vir, Curr, Next>,
-    ) -> vir::ExprGen<'vir, Curr, Next> {
+        snap: vir::ExprGenSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenPSnap<'vir, Curr, Next> {
         CastTypePure::cast_to_generic_if_necessary(&self.cast, vcx, snap, self.ty_args)
     }
 }

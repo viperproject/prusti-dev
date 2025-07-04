@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use prusti_rustc_interface::middle::ty::{self, ParamTy, TyKind};
 use task_encoder::{EncodeFullResult, TaskEncoder};
-use vir::{with_vcx, FunctionIdent, UnknownArity};
+use vir::{with_vcx, FunctionIdn};
 
 use crate::encoders::{
     lifted::{
@@ -24,7 +24,7 @@ pub enum LiftedTy<'vir, T> {
     /// Non-generic type
     Instantiated {
         /// Type constructor function e.g. corresponding to `Option`, `Result`, etc
-        ty_constructor: FunctionIdent<'vir, UnknownArity<'vir>>,
+        ty_constructor: FunctionIdn<'vir, vir::ManyTyVal, vir::TyVal>,
 
         /// Arguments to the type constructor e.g. `T` in `Option<T>`
         args: &'vir [LiftedTy<'vir, T>],
@@ -61,21 +61,24 @@ impl<'vir, 'tcx, T: Copy> LiftedTy<'vir, T> {
     }
 }
 
-impl<'vir, 'tcx, Curr, Next> LiftedTy<'vir, vir::ExprGen<'vir, Curr, Next>> {
-    pub fn arg_exprs(&self, vcx: &'vir vir::VirCtxt<'tcx>) -> Vec<vir::ExprGen<'vir, Curr, Next>> {
+impl<'vir, 'tcx, Curr, Next> LiftedTy<'vir, vir::ExprGenTyVal<'vir, Curr, Next>> {
+    pub fn arg_exprs(
+        &self,
+        vcx: &'vir vir::VirCtxt<'tcx>,
+    ) -> Vec<vir::ExprGenTyVal<'vir, Curr, Next>> {
         match self {
             LiftedTy::Generic(g) => vec![*g],
             LiftedTy::Instantiated { args, .. } => args.iter().map(|a| a.expr(vcx)).collect(),
         }
     }
 
-    pub fn expr(&self, vcx: &'vir vir::VirCtxt<'tcx>) -> vir::ExprGen<'vir, Curr, Next> {
+    pub fn expr(&self, vcx: &'vir vir::VirCtxt<'tcx>) -> vir::ExprGenTyVal<'vir, Curr, Next> {
         match self {
             LiftedTy::Generic(g) => g,
             LiftedTy::Instantiated {
                 ty_constructor,
                 args,
-            } => ty_constructor.apply(vcx, &args.iter().map(|a| a.expr(vcx)).collect::<Vec<_>>()),
+            } => ty_constructor.gen()(&args.iter().map(|a| a.expr(vcx)).collect::<Vec<_>>()),
         }
     }
 }
@@ -84,14 +87,14 @@ impl<'vir, 'tcx> LiftedTy<'vir, LiftedGeneric<'vir>> {
     pub fn arg_exprs<Curr, Next>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
-    ) -> Vec<vir::ExprGen<'vir, Curr, Next>> {
+    ) -> Vec<vir::ExprGenTyVal<'vir, Curr, Next>> {
         self.map(vcx, &mut |g| g.expr(vcx)).arg_exprs(vcx)
     }
 
     pub fn expr<Curr, Next>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
-    ) -> vir::ExprGen<'vir, Curr, Next> {
+    ) -> vir::ExprGenTyVal<'vir, Curr, Next> {
         self.map(vcx, &mut |g| g.expr(vcx)).expr(vcx)
     }
 }

@@ -1,6 +1,9 @@
 use std::fmt::Debug;
 
-use crate::{data::*, debug_info::DebugInfo, genrefs::*, refs::*, spans::VirSpan, with_vcx};
+use crate::{
+    data::*, debug_info::DebugInfo, genrefs::*, refs::*, spans::VirSpan, with_vcx, CastType,
+    CompType,
+};
 
 use vir_proc_macro::*;
 
@@ -8,74 +11,76 @@ use vir_proc_macro::*;
 pub struct UnOpGenData<'vir, Curr, Next> {
     #[vir(reify_pass)]
     pub kind: UnOpKind,
-    pub expr: ExprGen<'vir, Curr, Next>,
+    pub expr: ExprGenPrim<'vir, Curr, Next>,
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct BinOpGenData<'vir, Curr, Next> {
     #[vir(reify_pass)]
     pub kind: BinOpKind,
-    pub lhs: ExprGen<'vir, Curr, Next>,
-    pub rhs: ExprGen<'vir, Curr, Next>,
+    pub lhs: ExprGenDyn<'vir, Curr, Next>,
+    pub rhs: ExprGenDyn<'vir, Curr, Next>,
 }
 
 impl<'vir, Curr, Next> BinOpGenData<'vir, Curr, Next> {
-    pub fn ty(&self) -> Type<'vir> {
+    pub fn ty(&self) -> TypePrim<'vir> {
         match self.kind {
             BinOpKind::CmpEq
             | BinOpKind::CmpNe
             | BinOpKind::CmpGt
             | BinOpKind::CmpLt
             | BinOpKind::CmpGe
-            | BinOpKind::CmpLe => &TypeData::Bool,
-            BinOpKind::And | BinOpKind::Or | BinOpKind::Implies => &TypeData::Bool,
+            | BinOpKind::CmpLe => crate::TYPE_BOOL.upcast_ty(),
+            BinOpKind::And | BinOpKind::Or | BinOpKind::Implies => crate::TYPE_BOOL.upcast_ty(),
             BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Div | BinOpKind::Mod => {
-                self.lhs.ty()
+                self.lhs.ty().downcast_ty()
             }
-            BinOpKind::DivRational => &TypeData::Perm,
+            BinOpKind::DivRational => crate::TYPE_PERM.upcast_ty(),
         }
     }
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct TernaryGenData<'vir, Curr, Next> {
-    pub cond: ExprGen<'vir, Curr, Next>,
-    pub then: ExprGen<'vir, Curr, Next>,
-    pub else_: ExprGen<'vir, Curr, Next>,
+    pub cond: ExprGenBool<'vir, Curr, Next>,
+    pub then: ExprGenDyn<'vir, Curr, Next>,
+    pub else_: ExprGenDyn<'vir, Curr, Next>,
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct ForallGenData<'vir, Curr, Next> {
     #[vir(reify_pass)]
-    pub qvars: &'vir [LocalDecl<'vir>],
+    pub qvars: &'vir [LocalDeclDyn<'vir>],
     pub triggers: &'vir [TriggerGen<'vir, Curr, Next>],
-    pub body: ExprGen<'vir, Curr, Next>,
+    pub body: ExprGenBool<'vir, Curr, Next>,
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct ExistsGenData<'vir, Curr, Next> {
     #[vir(reify_pass)]
-    pub qvars: &'vir [LocalDecl<'vir>],
+    pub qvars: &'vir [LocalDeclDyn<'vir>],
     pub triggers: &'vir [TriggerGen<'vir, Curr, Next>],
-    pub body: ExprGen<'vir, Curr, Next>,
+    pub body: ExprGenBool<'vir, Curr, Next>,
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct TriggerGenData<'vir, Curr, Next> {
-    pub exprs: &'vir [ExprGen<'vir, Curr, Next>],
+    pub exprs: &'vir [ExprGenDyn<'vir, Curr, Next>],
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct FuncAppGenData<'vir, Curr, Next> {
     pub target: &'vir str, // TODO: identifiers
-    pub args: &'vir [ExprGen<'vir, Curr, Next>],
+    pub args: &'vir [ExprGenDyn<'vir, Curr, Next>],
+    // TODO: does this need to be here? (we already track the type in the
+    // containing `ExprGenData`)
     #[vir(reify_pass, is_ref)]
-    pub result_ty: Type<'vir>,
+    pub result_ty: TypeDyn<'vir>,
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct OldGenData<'vir, Curr, Next> {
-    pub expr: ExprGen<'vir, Curr, Next>,
+    pub expr: ExprGenDyn<'vir, Curr, Next>,
     #[vir(reify_pass)]
     pub label: OldLabel<'vir>,
 }
@@ -83,35 +88,35 @@ pub struct OldGenData<'vir, Curr, Next> {
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct PredicateAppGenData<'vir, Curr, Next> {
     pub target: &'vir str, // TODO: identifiers
-    pub args: &'vir [ExprGen<'vir, Curr, Next>],
-    pub perm: Option<ExprGen<'vir, Curr, Next>>,
+    pub args: &'vir [ExprGenDyn<'vir, Curr, Next>],
+    pub perm: Option<ExprGenPerm<'vir, Curr, Next>>,
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct UnfoldingGenData<'vir, Curr, Next> {
     pub target: PredicateAppGen<'vir, Curr, Next>,
-    pub expr: ExprGen<'vir, Curr, Next>,
+    pub expr: ExprGenDyn<'vir, Curr, Next>,
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct AccFieldGenData<'vir, Curr, Next> {
-    pub recv: ExprGen<'vir, Curr, Next>,
+    pub recv: ExprGenRef<'vir, Curr, Next>,
     #[vir(reify_pass, is_ref)]
-    pub field: Field<'vir>, // TODO: identifiers
-    pub perm: Option<ExprGen<'vir, Curr, Next>>,
+    pub field: FieldDyn<'vir>, // TODO: identifiers
+    pub perm: Option<ExprGenPerm<'vir, Curr, Next>>,
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct LetGenData<'vir, Curr, Next> {
     pub name: &'vir str,
-    pub val: ExprGen<'vir, Curr, Next>,
-    pub expr: ExprGen<'vir, Curr, Next>,
+    pub val: ExprGenDyn<'vir, Curr, Next>,
+    pub expr: ExprGenDyn<'vir, Curr, Next>,
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct WandGenData<'vir, Curr, Next> {
-    pub lhs: ExprGen<'vir, Curr, Next>,
-    pub rhs: ExprGen<'vir, Curr, Next>,
+    pub lhs: ExprGenBool<'vir, Curr, Next>,
+    pub rhs: ExprGenBool<'vir, Curr, Next>,
 }
 
 /*
@@ -132,32 +137,39 @@ impl<A, B: GenRow> GenRow for fn(A) -> B {
 
 // TODO add position and other metadata
 #[derive(VirHash, VirSerde)]
-pub struct ExprGenData<'vir, Curr: 'vir, Next: 'vir> {
+pub struct ExprGenData<'vir, Curr: 'vir, Next: 'vir, T: CompType> {
     pub kind: ExprKindGen<'vir, Curr, Next>,
     #[vir(reify_pass)]
     pub debug_info: DebugInfo<'vir>,
     #[vir(reify_pass)]
     pub span: Option<&'vir VirSpan<'vir>>,
+    // #[vir(reify_pass)]
+    pub ty: Type<'vir, T>,
 }
 
-impl<'vir, Curr: 'vir, Next: 'vir> ExprGenData<'vir, Curr, Next> {
-    pub fn new(kind: ExprKindGen<'vir, Curr, Next>) -> Self {
+impl<'vir, Curr: 'vir, Next: 'vir, T: CompType> ExprGenData<'vir, Curr, Next, T> {
+    pub(crate) fn new_with_ty(kind: ExprKindGen<'vir, Curr, Next>, ty: Type<'vir, T>) -> Self {
         with_vcx(|vcx| Self {
             kind,
             debug_info: DebugInfo::new(vcx),
             span: vcx.top_span(),
+            ty,
         })
+    }
+
+    pub(crate) fn new(kind: ExprKindGen<'vir, Curr, Next>) -> Self {
+        Self::new_with_ty(kind, kind.ty().inner_cast_ty())
     }
 }
 
 #[derive(VirHash, VirSerde)]
 pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
-    Local(Local<'vir>),
-    Field(ExprGen<'vir, Curr, Next>, Field<'vir>), // TODO: FieldApp?
+    Local(LocalDyn<'vir>),
+    Field(ExprGenRef<'vir, Curr, Next>, FieldDyn<'vir>), // TODO: FieldApp?
     Old(OldGen<'vir, Curr, Next>),
     Const(Const<'vir>),
     /// Result of a pure function
-    Result(Type<'vir>),
+    Result(TypeDyn<'vir>), // TODO: do we need to store the type here when it's already stored in the containing ExprGen?
     AccField(AccFieldGen<'vir, Curr, Next>),
     Unfolding(UnfoldingGen<'vir, Curr, Next>),
     UnOp(UnOpGen<'vir, Curr, Next>),
@@ -184,41 +196,42 @@ unsafe impl<'vir> Send for ExprKindGenData<'vir, !, !> {}
 unsafe impl<'vir> Sync for ExprKindGenData<'vir, !, !> {}
 
 impl<'vir, Curr, Next> ExprKindGenData<'vir, Curr, Next> {
-    pub fn ty(&self) -> Type<'vir> {
+    pub fn ty(&self) -> TypeDyn<'vir> {
         match self {
             ExprKindGenData::Local(l) => l.ty,
             ExprKindGenData::Field(_, f) => f.ty,
             ExprKindGenData::Old(e) => e.expr.ty(),
-            ExprKindGenData::Const(c) => c.ty(),
+            ExprKindGenData::Const(c) => c.ty().as_dyn(),
             ExprKindGenData::Result(ty) => ty,
-            ExprKindGenData::AccField(_) => &TypeData::Bool,
+            ExprKindGenData::AccField(_) => crate::TYPE_BOOL.as_dyn(),
             ExprKindGenData::Unfolding(f) => f.expr.ty(),
-            ExprKindGenData::UnOp(u) => u.expr.ty(),
-            ExprKindGenData::BinOp(b) => b.ty(),
+            ExprKindGenData::UnOp(u) => u.expr.ty().as_dyn(),
+            ExprKindGenData::BinOp(b) => b.ty().as_dyn(),
             ExprKindGenData::Ternary(t) => t.then.ty(),
-            ExprKindGenData::Forall(_) => &TypeData::Bool,
-            ExprKindGenData::Exists(_) => &TypeData::Bool,
+            ExprKindGenData::Forall(_) => crate::TYPE_BOOL.as_dyn(),
+            ExprKindGenData::Exists(_) => crate::TYPE_BOOL.as_dyn(),
             ExprKindGenData::Let(l) => l.expr.ty(),
             ExprKindGenData::FuncApp(a) => a.result_ty,
-            ExprKindGenData::PredicateApp(_) => &TypeData::Predicate,
-            ExprKindGenData::Wand(..) => &TypeData::Predicate,
+            ExprKindGenData::PredicateApp(_) => crate::TYPE_BOOL.as_dyn(),
+            ExprKindGenData::Wand(..) => crate::TYPE_BOOL.as_dyn(),
             ExprKindGenData::Lazy(l) => l.ty,
             ExprKindGenData::Todo(msg) => panic!("{msg}"),
         }
     }
 }
 
-impl<'vir, Curr, Next> ExprGenData<'vir, Curr, Next> {
-    pub fn ty(&self) -> Type<'vir> {
-        self.kind.ty()
+impl<'vir, Curr, Next, T: CompType> ExprGenData<'vir, Curr, Next, T> {
+    pub fn ty(&self) -> Type<'vir, T> {
+        self.ty
     }
-    pub fn lift<Prev>(&self) -> ExprGen<'vir, Prev, ExprKindGen<'vir, Curr, Next>> {
+
+    pub fn lift<Prev>(&self) -> ExprGen<'vir, Prev, ExprKindGen<'vir, Curr, Next>, T> {
         match self.kind {
             ExprKindGenData::Lazy(_) => panic!("cannot lift lazy expression"),
             _ => unsafe {
                 std::mem::transmute::<
-                    &ExprGenData<'vir, Curr, Next>,
-                    &ExprGenData<'vir, Prev, ExprKindGen<'vir, Curr, Next>>,
+                    &ExprGenData<'vir, Curr, Next, T>,
+                    &ExprGenData<'vir, Prev, ExprKindGen<'vir, Curr, Next>, T>,
                 >(self)
             },
         }
@@ -229,7 +242,7 @@ pub struct LazyGenData<'vir, Curr: 'vir, Next: 'vir> {
     pub name: &'vir str,
     #[allow(clippy::type_complexity)]
     pub func: Box<dyn for<'a> Fn(&'vir crate::VirCtxt<'a>, Curr) -> Next + 'vir>,
-    pub ty: Type<'vir>,
+    pub ty: TypeDyn<'vir>,
 }
 
 impl<'vir, Curr: 'vir, Next: 'vir> std::hash::Hash for LazyGenData<'vir, Curr, Next> {
@@ -260,7 +273,7 @@ impl<'vir, Curr: 'vir, Next: 'vir> serde::Deserialize<'vir> for LazyGenData<'vir
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct DomainAxiomGenData<'vir, Curr, Next> {
     pub name: &'vir str, // ? or comment, then auto-gen the names?
-    pub expr: ExprGen<'vir, Curr, Next>,
+    pub expr: ExprGenBool<'vir, Curr, Next>,
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
@@ -277,37 +290,37 @@ pub struct DomainGenData<'vir, Curr, Next> {
 pub struct PredicateGenData<'vir, Curr, Next> {
     pub name: &'vir str, // TODO: identifiers
     #[vir(reify_pass)]
-    pub args: &'vir [LocalDecl<'vir>],
-    pub expr: Option<ExprGen<'vir, Curr, Next>>,
+    pub args: &'vir [LocalDeclDyn<'vir>],
+    pub expr: Option<ExprGenBool<'vir, Curr, Next>>,
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct FunctionGenData<'vir, Curr, Next> {
     pub name: &'vir str, // TODO: identifiers
     #[vir(reify_pass)]
-    pub args: &'vir [LocalDecl<'vir>],
+    pub args: &'vir [LocalDeclDyn<'vir>],
     #[vir(reify_pass, is_ref)]
-    pub ret: Type<'vir>,
-    pub pres: &'vir [ExprGen<'vir, Curr, Next>],
-    pub posts: &'vir [ExprGen<'vir, Curr, Next>],
-    pub expr: Option<ExprGen<'vir, Curr, Next>>,
+    pub ret: TypeDyn<'vir>,
+    pub pres: &'vir [ExprGenBool<'vir, Curr, Next>],
+    pub posts: &'vir [ExprGenBool<'vir, Curr, Next>],
+    pub expr: Option<ExprGenDyn<'vir, Curr, Next>>,
 }
 
 // TODO: why is this called "pure"?
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct PureAssignGenData<'vir, Curr, Next> {
-    pub lhs: ExprGen<'vir, Curr, Next>,
+    pub lhs: ExprGenDyn<'vir, Curr, Next>,
     //pub dest: Local<'vir>,
     //pub projs: &'vir [&'vir str],
-    pub rhs: ExprGen<'vir, Curr, Next>,
+    pub rhs: ExprGenDyn<'vir, Curr, Next>,
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct MethodCallGenData<'vir, Curr, Next> {
     #[vir(reify_pass)]
-    pub targets: &'vir [Local<'vir>],
+    pub targets: &'vir [LocalDyn<'vir>],
     pub method: &'vir str,
-    pub args: &'vir [ExprGen<'vir, Curr, Next>],
+    pub args: &'vir [ExprGenDyn<'vir, Curr, Next>],
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
@@ -331,19 +344,19 @@ impl<'vir, Curr: 'vir, Next: 'vir> StmtGenData<'vir, Curr, Next> {
 #[derive(VirHash, VirReify, VirSerde)]
 pub enum StmtKindGenData<'vir, Curr, Next> {
     LocalDecl(
-        #[vir(reify_pass, is_ref)] LocalDecl<'vir>,
-        Option<ExprGen<'vir, Curr, Next>>,
+        #[vir(reify_pass, is_ref)] LocalDeclDyn<'vir>,
+        Option<ExprGenDyn<'vir, Curr, Next>>,
     ),
     PureAssign(PureAssignGen<'vir, Curr, Next>),
-    Inhale(ExprGen<'vir, Curr, Next>),
-    Exhale(ExprGen<'vir, Curr, Next>),
+    Inhale(ExprGenBool<'vir, Curr, Next>),
+    Exhale(ExprGenBool<'vir, Curr, Next>),
     Unfold(PredicateAppGen<'vir, Curr, Next>),
     Fold(PredicateAppGen<'vir, Curr, Next>),
     Package(WandGen<'vir, Curr, Next>, &'vir [StmtGen<'vir, Curr, Next>]),
     Apply(WandGen<'vir, Curr, Next>),
     MethodCall(MethodCallGen<'vir, Curr, Next>),
     If(
-        ExprGen<'vir, Curr, Next>,
+        ExprGenBool<'vir, Curr, Next>,
         &'vir [StmtGen<'vir, Curr, Next>],
         &'vir [StmtGen<'vir, Curr, Next>],
     ),
@@ -354,7 +367,7 @@ pub enum StmtKindGenData<'vir, Curr, Next> {
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct GotoIfGenData<'vir, Curr, Next> {
-    pub value: ExprGen<'vir, Curr, Next>,
+    pub value: ExprGenDyn<'vir, Curr, Next>,
     pub targets: &'vir [GotoIfTargetGen<'vir, Curr, Next>],
     #[vir(reify_pass, is_ref)]
     pub otherwise: CfgBlockLabel<'vir>,
@@ -363,7 +376,7 @@ pub struct GotoIfGenData<'vir, Curr, Next> {
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct GotoIfTargetGenData<'vir, Curr, Next> {
-    pub value: ExprGen<'vir, Curr, Next>,
+    pub value: ExprGenDyn<'vir, Curr, Next>,
     #[vir(reify_pass, is_ref)]
     pub label: CfgBlockLabel<'vir>,
     pub statements: &'vir [StmtGen<'vir, Curr, Next>],
@@ -389,19 +402,19 @@ pub struct CfgBlockGenData<'vir, Curr, Next> {
 pub struct CfgLabelGenData<'vir, Curr, Next> {
     #[vir(reify_pass, is_ref)]
     pub label: CfgBlockLabel<'vir>,
-    pub invariants: &'vir [ExprGen<'vir, Curr, Next>],
+    pub invariants: &'vir [ExprGenBool<'vir, Curr, Next>],
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct MethodGenData<'vir, Curr, Next> {
     pub name: &'vir str, // TODO: identifiers
     #[vir(reify_pass)]
-    pub args: &'vir [LocalDecl<'vir>],
+    pub args: &'vir [LocalDeclDyn<'vir>],
     #[vir(reify_pass)]
-    pub rets: &'vir [LocalDecl<'vir>],
+    pub rets: &'vir [LocalDeclDyn<'vir>],
     // TODO: pre/post - add a comment variant
-    pub pres: &'vir [ExprGen<'vir, Curr, Next>],
-    pub posts: &'vir [ExprGen<'vir, Curr, Next>],
+    pub pres: &'vir [ExprGenBool<'vir, Curr, Next>],
+    pub posts: &'vir [ExprGenBool<'vir, Curr, Next>],
     pub body: Option<MethodBodyGen<'vir, Curr, Next>>,
 }
 
@@ -413,7 +426,7 @@ pub struct MethodBodyGenData<'vir, Curr, Next> {
 #[derive(Debug, VirHash, VirReify, VirSerde)]
 pub struct ProgramGenData<'vir, Curr, Next> {
     #[vir(reify_pass)]
-    pub fields: &'vir [Field<'vir>],
+    pub fields: &'vir [FieldDyn<'vir>],
     pub domains: &'vir [DomainGen<'vir, Curr, Next>],
     pub predicates: &'vir [PredicateGen<'vir, Curr, Next>],
     pub functions: &'vir [FunctionGen<'vir, Curr, Next>],
@@ -456,6 +469,7 @@ impl<'vir, Curr, Next> ProgramGenData<'vir, Curr, Next> {
 
 #[cfg(test)]
 mod tests {
+    use crate::CastType;
     macro_rules! roundtrip_test_eq {
         ($name:ident, $vcx:ident, $val:expr) => {
             #[test]
@@ -540,7 +554,7 @@ mod tests {
         vcx,
         crate::FieldData {
             name: vcx.alloc_str("hello"),
-            ty: &crate::TypeData::Bool,
+            ty: crate::TYPE_BOOL,
         }
     );
     roundtrip_test_match!(
@@ -558,9 +572,9 @@ mod tests {
     roundtrip_test_eq!(
         rt_type,
         vcx,
-        crate::TypeData::Domain(
+        crate::TypeKind::Domain(
             vcx.alloc_str("hello"),
-            vcx.alloc_slice(&[&crate::TypeData::Bool,]),
+            vcx.alloc_slice(&[crate::TYPE_BOOL.as_dyn()]),
         )
     );
     roundtrip_test_eq!(rt_unopkind, _vcx, crate::UnOpKind::Neg);

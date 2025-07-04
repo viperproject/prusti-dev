@@ -1,6 +1,6 @@
 use prusti_rustc_interface::middle::ty::{self};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::Reify;
+use vir::{CastType, Reify};
 
 use super::{rust_ty_predicates::RustTyPredicatesEnc, rust_ty_snapshots::RustTySnapshotsEnc};
 
@@ -41,8 +41,8 @@ impl IndirectKey {
 
 pub struct IndirectPredicatesEnc;
 
-type ExprInput<'vir> = vir::Expr<'vir>;
-type ExprOutput<'vir> = vir::ExprGen<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
+type ExprInput<'vir> = vir::ExprSnap<'vir>;
+type ExprOutput<'vir> = vir::ExprGenBool<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
 
 #[derive(Clone)]
 pub struct IndirectPredicatesEncOutputRef<'vir> {
@@ -75,25 +75,25 @@ impl TaskEncoder for IndirectPredicatesEnc {
         vir::with_vcx(|vcx| {
             let (ty, proj_region) = task_key;
             let self_ty_enc = deps.require_local::<RustTySnapshotsEnc>(*ty)?;
-            let mut covariant = Vec::new();
-            let mut contravariant = Vec::new();
+            let mut covariant = Vec::<ExprOutput<'vir>>::new();
+            let mut contravariant = Vec::<ExprOutput<'vir>>::new();
             match ty.kind() {
                 ty::TyKind::Ref(ref_region, inner_ty, ty::Mutability::Mut) => {
-                    let deref_access = self_ty_enc
-                        .generic_snapshot
-                        .specifics
-                        .expect_mutref()
-                        .deref_access;
+                    let ref_domain = self_ty_enc.generic_snapshot.specifics.expect_mutref();
                     if IndirectKey::from_region(*ref_region)
                         .is_some_and(|indirect| &indirect == proj_region)
                     {
                         let inner_ty_enc = deps.require_ref::<RustTyPredicatesEnc>(*inner_ty)?;
                         covariant.push(vcx.mk_lazy_expr(
                             "ref_indirect",
-                            &vir::TypeData::Predicate,
+                            vir::TYPE_BOOL,
                             Box::new(move |vcx, self_expr| {
                                 inner_ty_enc
-                                    .ref_to_pred(vcx, deref_access.apply(vcx, [self_expr]), None)
+                                    .ref_to_pred(
+                                        vcx,
+                                        (ref_domain.deref_access)(self_expr.downcast_ty()),
+                                        None,
+                                    )
                                     .kind
                             }),
                         ));
@@ -108,10 +108,14 @@ impl TaskEncoder for IndirectPredicatesEnc {
                         .map(|inner_expr| {
                             vcx.mk_lazy_expr(
                                 "ref_inner_indirect",
-                                &vir::TypeData::Predicate,
-                                Box::new(move |vcx, self_expr| {
+                                vir::TYPE_BOOL,
+                                Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
                                     inner_expr
-                                        .reify(vcx, deref_access.apply(vcx, [self_expr]))
+                                        .reify(
+                                            vcx,
+                                            (ref_domain.value_access)(self_expr.downcast_ty())
+                                                .upcast_ty(),
+                                        )
                                         .kind
                                 }),
                             )
@@ -130,10 +134,10 @@ impl TaskEncoder for IndirectPredicatesEnc {
                         let project = |inner_expr: ExprOutput<'vir>| {
                             vcx.mk_lazy_expr(
                                 "ref_inner_indirect",
-                                &vir::TypeData::Predicate,
-                                Box::new(move |vcx, self_expr| {
+                                vir::TYPE_BOOL,
+                                Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
                                     inner_expr
-                                        .reify(vcx, accessor.read.apply(vcx, [self_expr]))
+                                        .reify(vcx, (accessor.read)(self_expr.downcast_ty()))
                                         .kind
                                 }),
                             )

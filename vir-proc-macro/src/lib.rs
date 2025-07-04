@@ -21,3 +21,42 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
 pub fn derive_serde(input: TokenStream) -> TokenStream {
     serde::derive_serde(input)
 }
+
+fn params_to_args_and_params(
+    generics: &syn::Generics,
+) -> (Vec<syn::GenericArgument>, Vec<syn::GenericParam>) {
+    let mut i = 0;
+    let generic_params = generics
+        .params
+        .iter()
+        .filter_map(|param| match param.clone() {
+            param @ syn::GenericParam::Type(..) => {
+                i += 1;
+                (i > 2).then_some(param)
+            }
+            param => Some(param),
+        })
+        .collect::<Vec<_>>();
+    let mut i = 0;
+    let generic_args = generics
+        .params
+        .iter()
+        .map(|param| match param {
+            syn::GenericParam::Type(ty) => {
+                i += 1;
+                if i > 2 {
+                    let ident = &ty.ident;
+                    syn::parse_quote! { #ident }
+                } else {
+                    syn::parse_quote!(!)
+                }
+            }
+            syn::GenericParam::Lifetime(l) => syn::GenericArgument::Lifetime(l.lifetime.clone()),
+            syn::GenericParam::Const(c) => {
+                let ident = &c.ident;
+                syn::parse_quote! { #ident }
+            }
+        })
+        .collect::<Vec<_>>();
+    (generic_args, generic_params)
+}

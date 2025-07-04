@@ -4,11 +4,11 @@ use prusti_rustc_interface::{
 };
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{
-    BinaryArity, CallableIdent, FunctionIdent, MethodIdent, NullaryArity, PredicateIdent, TypeData,
-    UnaryArity, UnknownArity, VirCtxt,
+    CallableIdn, CastType, FunctionIdn, HasType, MethodIdn, PredicateIdn,
+    VirCtxt,
 };
 
-use crate::encoders::GenericEnc;
+use crate::encoders::{generic::GenericEncOutputRef, GenericEnc};
 
 use super::{
     domain::{DomainDataImmRef, DomainDataMutRef, DomainDataPrim, DomainDataStruct},
@@ -30,36 +30,36 @@ pub enum PredicateEncError {
 pub struct PredicateEncDataStruct<'vir> {
     pub snap_data: DomainDataStruct<'vir>,
     /// Ref to self as argument. Returns Ref to field.
-    pub ref_to_field_refs: &'vir [FunctionIdent<'vir, UnknownArity<'vir>>],
+    pub ref_to_field_refs: &'vir [FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal), vir::Ref>],
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct PredicateEncDataEnum<'vir> {
-    pub discr: FunctionIdent<'vir, UnaryArity<'vir>>,
+    pub discr: FunctionIdn<'vir, vir::Ref, vir::Ref>,
     pub discr_prim: DomainDataPrim<'vir>,
     //pub discr_bounds: DiscrBounds<'vir>,
-    // pub snap_to_discr_snap: FunctionIdent<'vir, UnaryArity<'vir>>,
+    // pub snap_to_discr_snap: FunctionIdn<'vir, UnaryArity<'vir>>,
     pub variants: &'vir [PredicateEncDataVariant<'vir>],
 }
 #[derive(Clone, Copy, Debug)]
 pub struct PredicateEncDataVariant<'vir> {
-    pub predicate: PredicateIdent<'vir, UnknownArity<'vir>>,
+    pub predicate: PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal)>,
     pub vid: abi::VariantIdx,
-    pub discr: vir::Expr<'vir>,
+    pub discr: vir::ExprCSnap<'vir>,
     pub fields: PredicateEncDataStruct<'vir>,
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct PredicateEncDataImmRef<'vir> {
-    pub deref_func: vir::FunctionIdent<'vir, BinaryArity<'vir>>,
-    pub perm: Option<vir::Expr<'vir>>,
+    pub deref_func: vir::FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal), vir::Ref>,
+    pub perm: Option<vir::ExprPerm<'vir>>,
     pub snap_data: DomainDataImmRef<'vir>,
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct PredicateEncDataMutRef<'vir> {
-    pub deref_func: vir::FunctionIdent<'vir, UnaryArity<'vir>>,
-    pub perm: Option<vir::Expr<'vir>>,
+    pub deref_func: vir::FunctionIdn<'vir, vir::Ref, vir::Ref>,
+    pub perm: Option<vir::ExprPerm<'vir>>,
     pub snap_data: DomainDataMutRef<'vir>,
 }
 
@@ -76,29 +76,31 @@ pub enum PredicateEncData<'vir> {
     Param,
 }
 
+pub type RefToIndirectPred<'vir> = i32; //vir::ExprGen<'vir, vir::Expr<'vir>, vir::ExprKind<'vir>>;
+
 // TODO: should output refs actually be references to structs...?
 #[derive(Clone, Debug)]
 pub struct PredicateEncOutputRef<'vir> {
     /// Constructs the Viper predicate application.
-    pub ref_to_pred: PredicateIdent<'vir, UnknownArity<'vir>>,
+    pub ref_to_pred: PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal)>,
     /// Construct snapshot from Viper ref.
-    pub ref_to_snap: FunctionIdent<'vir, UnknownArity<'vir>>,
+    pub ref_to_snap: FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal), vir::Snap>,
     /// Ref as first argument, followed by type parameters, followed by
     /// snapshot. Ensures predicate access to ref with snapshot value. This
     /// probably shouldn't be accessed directly, instead see
     /// `RustTyPredicatesEncOutputRef::apply_method_assign`.
-    pub(super) method_assign: MethodIdent<'vir, UnknownArity<'vir>>,
+    pub(super) method_assign: MethodIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::Snap)>,
     /// Construct snapshot from an unreachable.
-    pub unreachable_to_snap: FunctionIdent<'vir, NullaryArity<'vir>>,
+    pub unreachable_to_snap: FunctionIdn<'vir, (), vir::Snap>,
     /// Always `TypeData::Domain`.
-    pub snapshot: vir::Type<'vir>,
+    pub snapshot: vir::TypeSnap<'vir>,
     //pub method_refold: &'vir str,
     pub specifics: PredicateEncData<'vir>,
     #[allow(dead_code)]
-    pub generics: &'vir [vir::LocalDecl<'vir>],
+    pub generics: &'vir [vir::LocalDeclTyVal<'vir>],
 
     //pub ref_to_lifetime_pred: HashMap<ty::Region<'vir>, ()>,
-    pub ref_to_indirect_pred: Option<vir::ExprGen<'vir, vir::Expr<'vir>, vir::ExprKind<'vir>>>,
+    pub ref_to_indirect_pred: Option<RefToIndirectPred<'vir>>,
 }
 impl<'vir> task_encoder::OutputRefAny for PredicateEncOutputRef<'vir> {}
 
@@ -107,16 +109,12 @@ impl<'vir> PredicateEncOutputRef<'vir> {
     /// [`PredicateEncOutputRef::ref_to_snap`]. Takes as input a Ref representing
     /// the self, and the encoded Rust type (see [`LiftedTy`]). The arguments to the
     /// function are the type arguments of the lifted type.
-    pub fn ref_to_args<'tcx>(
+    pub fn ref_to_ty_args<'tcx>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
         instantiated_ty: LiftedTy<'vir, LiftedGeneric<'vir>>,
-        self_ref: vir::Expr<'vir>,
-    ) -> &'vir [vir::Expr<'vir>] {
-        assert!(self_ref.ty() == &TypeData::Ref);
-        let mut args = vec![self_ref];
-        args.extend(instantiated_ty.arg_exprs(vcx));
-        vcx.alloc_slice(&args)
+    ) -> Vec<vir::ExprTyVal<'vir>> {
+        instantiated_ty.arg_exprs(vcx)
     }
 
     #[track_caller]
@@ -184,7 +182,7 @@ impl<'vir> PredicateEncOutputRef<'vir> {
     pub fn expect_pred_variant_opt(
         &self,
         vid: Option<abi::VariantIdx>,
-    ) -> PredicateIdent<'vir, UnknownArity<'vir>> {
+    ) -> PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal)> {
         vid.map(|vid| self.expect_variant(vid).predicate)
             .unwrap_or(self.ref_to_pred)
     }
@@ -205,16 +203,14 @@ impl<'vir> PredicateEncOutputRef<'vir> {
 pub(crate) struct PredicateBuilder<'vir> {
     pub(crate) vcx: &'vir vir::VirCtxt<'vir>,
     name: Option<&'vir str>,
-    pub(crate) fields: Vec<vir::Field<'vir>>,
+    pub(crate) fields: Vec<vir::FieldDyn<'vir>>,
     pub(crate) predicates: Vec<vir::Predicate<'vir>>,
     pub(crate) functions: Vec<vir::Function<'vir>>,
     pub(crate) methods: Vec<vir::Method<'vir>>,
 
     // TODO: function idents!
-    pub(crate) unreachable_to_snap: Option<(
-        vir::FunctionIdent<'vir, NullaryArity<'vir>>,
-        vir::Function<'vir>,
-    )>,
+    pub(crate) unreachable_to_snap:
+        Option<(vir::FunctionIdn<'vir, (), vir::CSnap>, vir::Function<'vir>)>,
     pub(crate) function_snap: Option<vir::Function<'vir>>,
 }
 
@@ -246,88 +242,70 @@ impl<'vir> PredicateBuilder<'vir> {
         }
     }
 
-    pub(crate) fn field(&mut self, name: &str, typ: vir::Type<'vir>) -> vir::Field<'vir> {
+    pub(crate) fn field<T: vir::CompType>(
+        &mut self,
+        name: &str,
+        typ: vir::Type<'vir, T>,
+    ) -> vir::Field<'vir, T> {
         let name = self.ident_str(name);
         let field = self.vcx.mk_field(name, typ);
-        self.fields.push(field);
+        self.fields.push(field.as_dyn());
         field
     }
 
-    pub(crate) fn predicate_ident(
+    pub(crate) fn predicate_ident<A: vir::Arity>(
         &mut self,
         name: &str,
-        args: &[vir::LocalDecl<'vir>],
-    ) -> vir::PredicateIdent<'vir, vir::UnknownArity<'vir>> {
+        args: A::Tys<'vir>,
+    ) -> vir::PredicateIdn<'vir, A> {
         let name = self.ident_str(name);
-        let ident = vir::PredicateIdent::new(
-            vir::ViperIdent::new(name),
-            vir::UnknownArity::new(
-                self.vcx
-                    .alloc_slice(&args.iter().map(|arg| arg.ty).collect::<Vec<_>>()),
-            ),
-        );
+        let ident = vir::PredicateIdn::new(vir::ViperIdent::new(name), args);
         ident
     }
 
-    pub(crate) fn predicate(
+    pub(crate) fn predicate<A: vir::Arity>(
         &mut self,
         name: &str,
-        args: &[vir::LocalDecl<'vir>],
-        expr: Option<vir::Expr<'vir>>,
-    ) -> vir::PredicateIdent<'vir, vir::UnknownArity<'vir>> {
+        args: A::Tys<'vir>,
+        params: A::Locals<'_, 'vir>,
+        expr: Option<vir::ExprBool<'vir>>,
+    ) -> vir::PredicateIdn<'vir, A> {
         let ident = self.predicate_ident(name, args);
         self.predicates.push(
             self.vcx
-                .mk_predicate(ident, self.vcx.alloc_slice(args), expr),
+                .mk_predicate(ident, params, expr),
         );
         ident
     }
 
-    pub(crate) fn function_ident(
+    pub(crate) fn function_ident<A: vir::Arity, T: vir::CompType>(
         &mut self,
         name: &str,
-        args: &[vir::LocalDecl<'vir>],
-        ret: vir::Type<'vir>,
-    ) -> vir::FunctionIdent<'vir, vir::UnknownArity<'vir>> {
+        args: A::Tys<'vir>,
+        ret: vir::Type<'vir, T>,
+    ) -> vir::FunctionIdn<'vir, A, T> {
         let name = self.ident_str(name);
-        let ident = vir::FunctionIdent::new(
-            vir::ViperIdent::new(name),
-            vir::UnknownArity::new(
-                self.vcx
-                    .alloc_slice(&args.iter().map(|arg| arg.ty).collect::<Vec<_>>()),
-            ),
-            ret,
-        );
+        let ident = vir::FunctionIdn::new(vir::ViperIdent::new(name), args, ret);
         ident
     }
 
-    pub(crate) fn mk_function(
+    pub(crate) fn mk_function<A: vir::Arity, T: vir::CompType>(
         &self,
         name: &str,
-        args: &[vir::LocalDecl<'vir>],
-        ret: vir::Type<'vir>,
-        pres: &[vir::Expr<'vir>],
-        posts: &[vir::Expr<'vir>],
-        expr: Option<vir::Expr<'vir>>,
-    ) -> (
-        vir::FunctionIdent<'vir, vir::UnknownArity<'vir>>,
-        vir::Function<'vir>,
-    ) {
+        args: A::Tys<'vir>,
+        ret: vir::Type<'vir, T>,
+        params: A::Locals<'_, 'vir>,
+        pres: &[vir::ExprBool<'vir>],
+        posts: &[vir::ExprBool<'vir>],
+        expr: Option<vir::Expr<'vir, T>>,
+    ) -> (vir::FunctionIdn<'vir, A, T>, vir::Function<'vir>) {
         let name = self.ident_str(name);
-        let ident = vir::FunctionIdent::new(
-            vir::ViperIdent::new(name),
-            vir::UnknownArity::new(
-                self.vcx
-                    .alloc_slice(&args.iter().map(|arg| arg.ty).collect::<Vec<_>>()),
-            ),
-            ret,
-        );
+        let ident = vir::FunctionIdn::new(vir::ViperIdent::new(name), args, ret);
         (
             ident,
             self.vcx.mk_function(
-                name,
-                self.vcx.alloc_slice(args),
-                ret,
+                ident,
+                params,
                 self.vcx.alloc_slice(pres),
                 self.vcx.alloc_slice(posts),
                 expr,
@@ -335,40 +313,39 @@ impl<'vir> PredicateBuilder<'vir> {
         )
     }
 
-    pub(crate) fn function(
+    pub(crate) fn function<A: vir::Arity, T: vir::CompType>(
         &mut self,
         name: &str,
-        args: &[vir::LocalDecl<'vir>],
-        ret: vir::Type<'vir>,
-        pres: &[vir::Expr<'vir>],
-        posts: &[vir::Expr<'vir>],
-        expr: Option<vir::Expr<'vir>>,
-    ) -> vir::FunctionIdent<'vir, UnknownArity<'vir>> {
-        let (ident, function) = self.mk_function(name, args, ret, pres, posts, expr);
+        args: A::Tys<'vir>,
+        ret: vir::Type<'vir, T>,
+        params: A::Locals<'_, 'vir>,
+        pres: &[vir::ExprBool<'vir>],
+        posts: &[vir::ExprBool<'vir>],
+        expr: Option<vir::Expr<'vir, T>>,
+    ) -> vir::FunctionIdn<'vir, A, T> {
+        let (ident, function) = self.mk_function(name, args, ret, params, pres, posts, expr);
         self.functions.push(function);
         ident
     }
 
-    pub(crate) fn method(
+    pub(crate) fn method<A: vir::Arity>(
         &mut self,
         name: &str,
-        args: &[vir::LocalDecl<'vir>],
-        rets: &[vir::LocalDecl<'vir>],
-        pres: &[vir::Expr<'vir>],
-        posts: &[vir::Expr<'vir>],
-    ) -> vir::MethodIdent<'vir, UnknownArity<'vir>> {
+        args: A::Tys<'vir>,
+        rets: &[vir::LocalDeclDyn<'vir>],
+        params: A::Locals<'_, 'vir>,
+        pres: &[vir::ExprBool<'vir>],
+        posts: &[vir::ExprBool<'vir>],
+    ) -> vir::MethodIdn<'vir, A> {
         let name = self.ident_str(name);
-        let ident = MethodIdent::new(
+        let ident = MethodIdn::new(
             vir::ViperIdent::new(name),
-            UnknownArity::new(
-                self.vcx
-                    .alloc_slice(&args.iter().map(|arg| arg.ty).collect::<Vec<_>>()),
-            ),
+            args,
             //ret,
         );
         self.methods.push(self.vcx.mk_method(
             ident,
-            self.vcx.alloc_slice(args),
+            params,
             self.vcx.alloc_slice(rets),
             self.vcx.alloc_slice(pres),
             self.vcx.alloc_slice(posts),
@@ -391,7 +368,7 @@ impl<'vir> PredicateBuilder<'vir> {
 
 #[derive(Clone, Debug)]
 pub struct PredicateEncOutput<'vir> {
-    pub fields: Vec<vir::Field<'vir>>,
+    pub fields: Vec<vir::FieldDyn<'vir>>,
     pub predicates: Vec<vir::Predicate<'vir>>,
     // TODO: these should be generated on demand, put into tiny encoders ?
     pub unreachable_to_snap: vir::Function<'vir>,
@@ -420,27 +397,41 @@ impl TaskEncoder for PredicateEnc {
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
         let snap = deps.require_local::<SnapshotEnc>(*task_key)?;
-        let generic_output_ref = deps.require_ref::<GenericEnc>(())?;
 
         if let TyKind::Param(..) = task_key.kind() {
+            let generic_output_ref = deps.require_ref::<GenericEnc>(())?;
             let method_assign = vir::with_vcx(|vcx| {
-                MethodIdent::new(
+                MethodIdn::new(
                     vir::ViperIdent::new("assign_p_Param"),
-                    UnknownArity::new(vcx.alloc_slice(&[
-                        &TypeData::Ref,
-                        generic_output_ref.type_snapshot,
-                        generic_output_ref.param_snapshot,
-                    ])),
+                    (
+                        vir::TYPE_REF,
+                        vcx.alloc_slice(&[generic_output_ref.type_snapshot]),
+                        generic_output_ref.param_snapshot.upcast_ty(),
+                    ),
                 )
             });
+            let GenericEncOutputRef {
+                ref_to_pred,
+                ref_to_snap,
+                unreachable_to_snap,
+                ..
+            } = generic_output_ref;
+            let (rtp, rts) = (ref_to_pred.arity(), ref_to_snap.arity());
+            let (rtp, rts) = vir::with_vcx(|vcx| {
+                (
+                    (rtp.0, vcx.alloc_slice(&[rtp.1])),
+                    (rts.0, vcx.alloc_slice(&[rts.1])),
+                )
+            });
+            let (ref_to_pred, ref_to_snap) = (ref_to_pred.cast_args(rtp), ref_to_snap.cast_ty(rts));
             deps.emit_output_ref(
                 *task_key,
                 PredicateEncOutputRef {
-                    ref_to_pred: generic_output_ref.ref_to_pred.as_unknown_arity(),
-                    ref_to_snap: generic_output_ref.ref_to_snap.as_unknown_arity(),
-                    unreachable_to_snap: generic_output_ref.unreachable_to_snap,
+                    ref_to_pred,
+                    ref_to_snap,
+                    unreachable_to_snap: unreachable_to_snap.cast_ty(unreachable_to_snap.arity()),
                     method_assign,
-                    snapshot: generic_output_ref.param_snapshot,
+                    snapshot: snap.snapshot,
                     specifics: PredicateEncData::Param,
                     generics: &[],
                     ref_to_indirect_pred: None,
@@ -452,9 +443,9 @@ impl TaskEncoder for PredicateEnc {
                     vcx,
                     method_assign,
                     vec![vcx.mk_local_decl("t", generic_output_ref.type_snapshot)],
-                    generic_output_ref.param_snapshot,
-                    generic_output_ref.ref_to_pred.as_unknown_arity(),
-                    generic_output_ref.ref_to_snap.as_unknown_arity(),
+                    snap.snapshot,
+                    ref_to_pred,
+                    ref_to_snap,
                 );
                 Ok((
                     PredicateEncOutput {
@@ -476,8 +467,8 @@ impl TaskEncoder for PredicateEnc {
             let base_name = get_vir_base_name_kind(task_key.kind(), vcx);
             builder.set_name(&base_name);
 
-            let snap_type = snap.snapshot;
-            let ref_self = vcx.mk_local("self", &vir::TypeData::Ref);
+            let snap_type = snap.snapshot.downcast_ty::<vir::CSnap>();
+            let ref_self = vcx.mk_local("self", vir::TYPE_REF);
             let ref_self_decl = vcx.mk_local_decl_local(ref_self);
 
             let generic_decls = snap.generics.iter().map(|g| g.decl()).collect::<Vec<_>>();
@@ -486,71 +477,78 @@ impl TaskEncoder for PredicateEnc {
                 .iter()
                 .map(|g| g.expr(builder.vcx))
                 .collect::<Vec<_>>();
+            let generic_decl_tys = generic_decls
+                .iter()
+                .copied()
+                .map(vir::LocalDeclData::ty)
+                .collect::<Vec<_>>();
+            let generic_decl_tys = vcx.alloc_slice(&generic_decl_tys);
 
-            let self_pred_ident = builder.predicate_ident(
-                "",
-                &[ref_self_decl]
-                    .into_iter()
-                    .chain(generic_decls.iter().cloned())
-                    .collect::<Vec<_>>(),
-            );
-            let snap_func_ident = builder.function_ident(
+            let self_pred_ident =
+                builder.predicate_ident("", (ref_self_decl.ty(), generic_decl_tys));
+            let snap_func_ident = builder.function_ident::<(vir::Ref, vir::ManyTyVal), vir::CSnap>(
                 "snap",
-                &[ref_self_decl]
-                    .into_iter()
-                    .chain(generic_decls.iter().cloned())
-                    .collect::<Vec<_>>(),
+                (ref_self_decl.ty(), generic_decl_tys),
                 snap_type,
             );
 
             // unreachable (requires false) to snap (TODO: move to domain enc)
-            use vir::ToKnownArity;
             let (unr_ident, unr_func) = builder.mk_function(
                 "unreachable",
-                &[],
+                (),
                 snap_type,
+                (),
                 &[vcx.mk_bool::<false>()],
                 &[vcx.mk_bool::<false>()], // TODO: is this necessary?
                 None,
             );
-            builder.unreachable_to_snap = Some((unr_ident.to_known(), unr_func));
+            builder.unreachable_to_snap = Some((unr_ident, unr_func));
 
             // assign method
             let value = vcx.mk_local("value", snap_type);
             let method_assign = builder.method(
                 "assign",
-                &[ref_self_decl]
-                    .into_iter()
-                    .chain(generic_decls.iter().cloned())
-                    .chain([vcx.mk_local_decl_local(value)])
-                    .collect::<Vec<_>>(),
+                (ref_self_decl.ty(), generic_decl_tys, snap_type.upcast_ty()),
                 &[],
+                (ref_self_decl, generic_decls.as_slice(), vcx.mk_local_decl_local(value).upcast_ty()),
                 &[],
                 &[
-                    vir::expr! { [self_pred_ident](ref_self, ..[generic_exprs]) },
-                    vir::expr! { ([snap_func_ident](ref_self, ..[generic_exprs])) == (value) },
+                    vir::expr! { [self_pred_ident](ref_self, ..[generic_exprs.as_slice()]) },
+                    vir::expr! { ([snap_func_ident](ref_self, ..[generic_exprs.as_slice()])) == (value) },
                 ],
             );
 
-            if crate::encoders::spec::is_type_trusted(task_key.ty()) {
-                let args = &[ref_self_decl]
-                    .into_iter()
-                    .chain(generic_decls.iter().cloned())
-                    .collect::<Vec<_>>();
-                builder.predicate("", &args, None);
+            if crate::encoders::is_type_trusted(task_key.ty()) {
+                let args = (ref_self_decl, generic_decls.as_slice());
+                builder.predicate::<(vir::Ref, vir::ManyTyVal)>(
+                    "",
+                    (ref_self_decl.ty(), generic_decl_tys),
+                    args,
+                    None,
+                );
                 builder.function_snap = Some(
                     builder
-                        .mk_function("snap", &args, snap_type, &[], &[], None)
+                        .mk_function::<(vir::Ref, vir::ManyTyVal), _>(
+                            "snap",
+                            (ref_self_decl.ty(), generic_decl_tys),
+                            snap_type,
+                            args,
+                            &[],
+                            &[],
+                            None,
+                        )
                         .1,
                 );
+                let unreachable_to_snap = builder.unreachable_to_snap.unwrap().0;
                 deps.emit_output_ref(
                     *task_key,
                     PredicateEncOutputRef {
                         ref_to_pred: self_pred_ident,
-                        ref_to_snap: snap_func_ident,
-                        unreachable_to_snap: builder.unreachable_to_snap.unwrap().0,
+                        ref_to_snap: snap_func_ident.cast_ty(snap_func_ident.arity()),
+                        unreachable_to_snap: unreachable_to_snap
+                            .cast_ty(unreachable_to_snap.arity()),
                         method_assign,
-                        snapshot: snap_type,
+                        snapshot: snap_type.upcast_ty(),
                         specifics: PredicateEncData::Trusted,
                         generics: vcx.alloc_slice(&generic_decls),
                         ref_to_indirect_pred: None,
@@ -628,14 +626,15 @@ impl TaskEncoder for PredicateEnc {
                 _ => return Ok(None),
             };
 
+            let unreachable_to_snap = builder.unreachable_to_snap.unwrap().0;
             deps.emit_output_ref(
                 *task_key,
                 PredicateEncOutputRef {
                     ref_to_pred: self_pred_ident,
-                    ref_to_snap: snap_func_ident,
-                    unreachable_to_snap: builder.unreachable_to_snap.unwrap().0,
+                    ref_to_snap: snap_func_ident.cast_ty(snap_func_ident.arity()),
+                    unreachable_to_snap: unreachable_to_snap.cast_ty(unreachable_to_snap.arity()),
                     method_assign,
-                    snapshot: snap_type,
+                    snapshot: snap_type.upcast_ty(),
                     specifics,
                     generics: vcx.alloc_slice(&generic_decls),
                     ref_to_indirect_pred,
@@ -665,31 +664,30 @@ impl TaskEncoder for PredicateEnc {
 
 fn mk_method_assign<'vir>(
     vcx: &'vir VirCtxt<'_>,
-    ident: MethodIdent<'vir, UnknownArity<'vir>>,
-    generics: Vec<vir::LocalDecl<'vir>>,
-    snapshot: vir::Type<'vir>,
-    ref_to_pred: PredicateIdent<'vir, UnknownArity<'vir>>,
-    ref_to_snap: FunctionIdent<'vir, UnknownArity<'vir>>,
+    ident: MethodIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::Snap)>,
+    generics: Vec<vir::LocalDeclTyVal<'vir>>,
+    snapshot: vir::TypeSnap<'vir>,
+    ref_to_pred: PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal)>,
+    ref_to_snap: FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal), vir::Snap>,
 ) -> vir::Method<'vir> {
-    let self_local = vcx.mk_local_decl("self", &TypeData::Ref);
+    let self_local = vcx.mk_local_decl("self", vir::TYPE_REF);
     let self_new_local = vcx.mk_local_decl("self_new", snapshot);
 
-    let ref_to_args = std::iter::once(&self_local)
-        .chain(generics.iter())
+    let self_arg = vcx.mk_local_ex(self_local.name, self_local.ty);
+    let generic_args = generics
+        .iter()
+        .copied()
         .map(|decl| vcx.mk_local_ex(decl.name, decl.ty))
         .collect::<Vec<_>>();
 
-    let self_pred_app = vcx.mk_predicate_app_expr(ref_to_pred.apply(vcx, &ref_to_args, None));
+    let self_pred_app = vcx.mk_predicate_app_expr(ref_to_pred(self_arg, &generic_args)(None));
 
-    let mut assign_args = vec![self_local];
-    assign_args.extend(generics);
-    assign_args.push(self_new_local);
-    let assign_args = vcx.alloc_slice(&assign_args);
+    let assign_args = (self_local, generics.as_slice(), self_new_local);
 
     let posts = vcx.alloc_slice(&[
         self_pred_app,
         vcx.mk_eq_expr(
-            ref_to_snap.apply(vcx, &ref_to_args),
+            ref_to_snap(self_arg, &generic_args),
             vcx.mk_local_ex(self_new_local.name, snapshot),
         ),
     ]);

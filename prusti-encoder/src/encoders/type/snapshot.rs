@@ -13,14 +13,14 @@ pub struct SnapshotEnc;
 
 #[derive(Clone, Debug)]
 pub struct SnapshotEncOutputRef<'vir> {
-    pub snapshot: vir::Type<'vir>,
+    pub snapshot: vir::TypeSnap<'vir>,
 }
 impl<'vir> task_encoder::OutputRefAny for SnapshotEncOutputRef<'vir> {}
 
 #[derive(Clone, Debug)]
 pub struct SnapshotEncOutput<'vir> {
     pub base_name: String,
-    pub snapshot: vir::Type<'vir>,
+    pub snapshot: vir::TypeSnap<'vir>,
     pub generics: &'vir [LiftedGeneric<'vir>],
     pub specifics: DomainEncSpecifics<'vir>,
 }
@@ -43,7 +43,7 @@ impl TaskEncoder for SnapshotEnc {
     ) -> EncodeFullResult<'vir, Self> {
         vir::with_vcx(|vcx| {
             let out = deps.require_ref::<DomainEnc>(*ty)?;
-            let snapshot = out.domain.apply(vcx, []);
+            let snapshot = (out.domain)();
             deps.emit_output_ref(*ty, SnapshotEncOutputRef { snapshot })?;
             let specifics = deps.require_dep::<DomainEnc>(*ty)?;
             let generics = vcx.alloc_slice(

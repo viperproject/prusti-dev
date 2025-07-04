@@ -1,5 +1,5 @@
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder};
-use vir::{vir_format_identifier, CallableIdent, FunctionIdent, UnaryArity, UnknownArity};
+use vir::{vir_format_identifier, Arity, CallableIdn, CastType, FunctionIdn};
 
 use crate::encoders::{
     most_generic_ty::{extract_type_params, MostGenericTy},
@@ -10,17 +10,21 @@ use crate::encoders::{
 pub struct TyConstructorEncOutputRef<'vir> {
     /// Takes as input the generics for this type (if any),
     /// and returns the resulting type
-    pub ty_constructor: vir::FunctionIdent<'vir, UnknownArity<'vir>>,
+    pub ty_constructor: vir::FunctionIdn<'vir, vir::ManyTyVal, vir::TyVal>,
 
     /// Accessors of the arguments to an instantiation of the type constructor.
     /// Each function takes as input an instantiated type. The `i`th function in
     /// this list returns the `i`th argument to the type constructor.
-    pub ty_param_accessors: &'vir [vir::FunctionIdent<'vir, UnaryArity<'vir>>],
+    pub ty_param_accessors: &'vir [vir::FunctionIdn<'vir, vir::TyVal, vir::TyVal>],
 }
 
 impl<'vir> TyConstructorEncOutputRef<'vir> {
-    pub fn arity(&self) -> UnknownArity<'vir> {
-        *self.ty_constructor.arity()
+    pub fn arity(&self) -> <vir::ManyTyVal as Arity>::Tys<'vir> {
+        self.ty_constructor.arity()
+    }
+
+    pub fn args(&self) -> impl Iterator<Item = vir::TypeTyVal<'vir>> + '_ {
+        self.arity().into_iter().copied()
     }
 }
 
@@ -62,17 +66,17 @@ impl TaskEncoder for TyConstructorEnc {
             let (ty_constructor, _) = extract_type_params(vcx.tcx(), task_key.ty());
             let args = ty_constructor.generics();
             let type_function_args = vcx.alloc_slice(&vec![generic_ref.type_snapshot; args.len()]);
-            let type_function_ident = FunctionIdent::new(
+            let type_function_ident = FunctionIdn::new(
                 vir::vir_format_identifier!(
                     vcx,
                     "s_{}_type",
                     ty_constructor.get_vir_base_name(vcx)
                 ),
-                UnknownArity::new(type_function_args),
+                type_function_args,
                 generic_ref.type_snapshot,
             );
             functions.push(vcx.mk_domain_function(type_function_ident, false));
-            let ty_arg_decls: Vec<vir::LocalDecl<'vir>> = args
+            let ty_arg_decls: Vec<vir::LocalDeclTyVal<'vir>> = args
                 .iter()
                 .enumerate()
                 .map(|(idx, _)| {
@@ -82,24 +86,23 @@ impl TaskEncoder for TyConstructorEnc {
                     )
                 })
                 .collect();
-            let ty_arg_exprs: Vec<vir::Expr<'vir>> = ty_arg_decls
+            let ty_arg_exprs: Vec<vir::ExprTyVal<'vir>> = ty_arg_decls
                 .iter()
                 .map(|decl| vcx.mk_local_ex(decl.name, decl.ty))
                 .collect::<Vec<_>>();
-            let func_app = type_function_ident.apply(vcx, &ty_arg_exprs);
+            let func_app = type_function_ident(ty_arg_exprs.as_slice());
 
-            let ty_accessor_args = vcx.alloc_array(&[generic_ref.type_snapshot]);
             let ty_accessor_functions = args
                 .iter()
                 .map(|arg| {
-                    FunctionIdent::new(
+                    FunctionIdn::new(
                         vir::vir_format_identifier!(
                             vcx,
                             "s_{}_typaram_{}",
                             ty_constructor.get_vir_base_name(vcx),
                             arg.name
                         ),
-                        UnaryArity::new(ty_accessor_args),
+                        generic_ref.type_snapshot,
                         generic_ref.type_snapshot,
                     )
                 })
@@ -122,7 +125,7 @@ impl TaskEncoder for TyConstructorEnc {
                     vcx.mk_forall_expr(
                         axiom_qvars,
                         axiom_triggers,
-                        vcx.mk_eq_expr(accessor_function.apply(vcx, [func_app]), ty_arg),
+                        vcx.mk_eq_expr(accessor_function(func_app), ty_arg),
                     ),
                 ))
             }

@@ -5,6 +5,7 @@ use crate::encoders::{
 };
 use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
+use vir::{CallableIdn, CastType};
 
 pub(crate) fn domain<'vir>(
     task_key: <DomainEnc as TaskEncoder>::TaskKey<'vir>,
@@ -15,15 +16,17 @@ pub(crate) fn domain<'vir>(
     let ty_kind = ty.kind();
     assert!(matches!(ty_kind, ty::TyKind::Param(..)));
 
-    let base_name = get_vir_base_name_kind(ty_kind, builder.vcx);
+    let base_name = get_vir_base_name_kind(&ty_kind, builder.vcx);
     let out = deps.require_ref::<GenericEnc>(())?;
     deps.emit_output_ref(
         task_key,
         DomainEncOutputRef {
             base_name,
-            domain: out.domain_param_name,
+            domain: out.domain_param_name.cast_ty(),
             ty_param_accessors: &[],
-            typeof_function: out.param_type_function,
+            typeof_function: out
+                .param_type_function
+                .cast_ty(out.param_type_function.arity().upcast_ty()),
         },
     )?;
     Ok(DomainEncSpecifics::Param)

@@ -7,6 +7,7 @@ use prusti_rustc_interface::{
     target::abi::VariantIdx,
 };
 use task_encoder::{EncodeFullResult, TaskEncoder};
+use vir::{CallableIdn, CastType};
 
 use crate::encoders::lifted::cast::{CastArgs, CastToEnc};
 
@@ -60,8 +61,8 @@ impl<'vir> AggregateSnapArgsCastEncOutput<'vir> {
     pub fn apply_casts<Curr, Next>(
         &self,
         vcx: &'vir vir::VirCtxt<'_>,
-        exprs: impl Iterator<Item = vir::ExprGen<'vir, Curr, Next>>,
-    ) -> Vec<vir::ExprGen<'vir, Curr, Next>> {
+        exprs: impl Iterator<Item = vir::ExprGenSnap<'vir, Curr, Next>>,
+    ) -> Vec<vir::ExprGenSnap<'vir, Curr, Next>> {
         self.0
             .iter()
             .zip(exprs)
@@ -100,9 +101,9 @@ impl TaskEncoder for AggregateSnapArgsCastEnc {
                         let cast_functions = deps
                             .require_local::<RustTyCastersEnc<CastTypePure>>(*ty)
                             .unwrap();
-                        cast_functions
-                            .to_generic_cast()
-                            .map(|c| c.map_applicator(|f| f.as_unknown_arity()))
+                        cast_functions.to_generic_cast().map(|c| {
+                            c.map_applicator(|f| f.cast_ty((f.arity().0.upcast_ty(), f.arity().1)))
+                        })
                     })
                     .collect::<Vec<_>>(),
                 AggregateType::Closure { args, .. } => {

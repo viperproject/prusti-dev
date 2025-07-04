@@ -1,6 +1,8 @@
 #![feature(rustc_private)]
 #![feature(never_type)]
 #![feature(iter_intersperse)]
+#![feature(unboxed_closures, fn_traits, tuple_trait)]
+#![feature(macro_metavar_expr)]
 #![allow(clippy::needless_lifetimes)]
 
 mod context;
@@ -15,14 +17,18 @@ mod refs;
 mod reify;
 mod serde;
 mod spans;
-mod callable_idents;
+// mod callable_idents;
+mod callable;
 mod viper_ident;
+mod r#type;
 
-pub use callable_idents::*;
+// pub use callable_idents::*;
+pub use callable::*;
 pub use context::*;
 pub use data::*;
 pub use gendata::*;
 pub use genrefs::*;
+pub use r#type::*;
 pub use refs::*;
 pub use reify::*;
 pub use spans::VirSpan;

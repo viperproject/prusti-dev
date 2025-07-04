@@ -1,4 +1,4 @@
-use crate::{gendata::*, genrefs::*, refs::*, VirCtxt};
+use crate::{gendata::*, genrefs::*, refs::*, CompType, VirCtxt};
 
 pub use vir_proc_macro::*;
 
@@ -8,15 +8,16 @@ pub trait Reify<'vir, Curr> {
     fn reify<'tcx>(&self, vcx: &'vir VirCtxt<'tcx>, lctx: Curr) -> Self::Next;
 }
 
-impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
-    for ExprGen<'vir, Curr, ExprKindGen<'vir, NextA, NextB>>
+impl<'vir, Curr: Copy, NextA, NextB, T: CompType> Reify<'vir, Curr>
+    for ExprGen<'vir, Curr, ExprKindGen<'vir, NextA, NextB>, T>
 {
-    type Next = ExprGen<'vir, NextA, NextB>;
+    type Next = ExprGen<'vir, NextA, NextB, T>;
     fn reify<'tcx>(&self, vcx: &'vir VirCtxt<'tcx>, lctx: Curr) -> Self::Next {
         vcx.alloc(ExprGenData {
             kind: self.kind.reify(vcx, lctx),
             debug_info: self.debug_info,
             span: self.span,
+            ty: self.ty,
         })
     }
 }
@@ -62,10 +63,10 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
 //   slice of reify-able elements? same for an Option of a slice;
 //   for now these implementations are generated in the Reify derive macro
 
-impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
-    for [ExprGen<'vir, Curr, ExprKindGen<'vir, NextA, NextB>>]
+impl<'vir, Curr: Copy, NextA, NextB, T: CompType> Reify<'vir, Curr>
+    for [ExprGen<'vir, Curr, ExprKindGen<'vir, NextA, NextB>, T>]
 {
-    type Next = &'vir [ExprGen<'vir, NextA, NextB>];
+    type Next = &'vir [ExprGen<'vir, NextA, NextB, T>];
     fn reify<'tcx>(&self, vcx: &'vir VirCtxt<'tcx>, lctx: Curr) -> Self::Next {
         vcx.alloc_slice(
             &self
@@ -76,10 +77,10 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
     }
 }
 
-impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
-    for [&'vir [ExprGen<'vir, Curr, ExprKindGen<'vir, NextA, NextB>>]]
+impl<'vir, Curr: Copy, NextA, NextB, T: CompType> Reify<'vir, Curr>
+    for [&'vir [ExprGen<'vir, Curr, ExprKindGen<'vir, NextA, NextB>, T>]]
 {
-    type Next = &'vir [&'vir [ExprGen<'vir, NextA, NextB>]];
+    type Next = &'vir [&'vir [ExprGen<'vir, NextA, NextB, T>]];
     fn reify<'tcx>(&self, vcx: &'vir VirCtxt<'tcx>, lctx: Curr) -> Self::Next {
         vcx.alloc_slice(
             &self
@@ -90,15 +91,15 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
     }
 }
 
-impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
+impl<'vir, Curr: Copy, NextA, NextB, T: CompType> Reify<'vir, Curr>
     for [(
-        ExprGen<'vir, Curr, ExprKindGen<'vir, NextA, NextB>>,
+        ExprGen<'vir, Curr, ExprKindGen<'vir, NextA, NextB>, T>,
         CfgBlockLabel<'vir>,
         &'vir [StmtGen<'vir, Curr, ExprKindGen<'vir, NextA, NextB>>],
     )]
 {
     type Next = &'vir [(
-        ExprGen<'vir, NextA, NextB>,
+        ExprGen<'vir, NextA, NextB, T>,
         CfgBlockLabel<'vir>,
         &'vir [StmtGen<'vir, NextA, NextB>],
     )];
@@ -114,10 +115,10 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
     }
 }
 
-impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
-    for Option<ExprGen<'vir, Curr, ExprKindGen<'vir, NextA, NextB>>>
+impl<'vir, Curr: Copy, NextA, NextB, T: CompType> Reify<'vir, Curr>
+    for Option<ExprGen<'vir, Curr, ExprKindGen<'vir, NextA, NextB>, T>>
 {
-    type Next = Option<ExprGen<'vir, NextA, NextB>>;
+    type Next = Option<ExprGen<'vir, NextA, NextB, T>>;
     fn reify<'tcx>(&self, vcx: &'vir VirCtxt<'tcx>, lctx: Curr) -> Self::Next {
         self.map(|elem| elem.reify(vcx, lctx))
     }
