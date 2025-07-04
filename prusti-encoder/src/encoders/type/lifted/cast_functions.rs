@@ -1,5 +1,5 @@
 use task_encoder::{TaskEncoder, TaskEncoderDependencies, EncodeFullResult};
-use vir::{CallableIdent, FunctionIdent, UnaryArity, UnknownArity};
+use vir::{CallableIdent, FunctionIdn, UnaryArity, UnknownArity};
 
 use crate::encoders::{
     domain::DomainEnc,
@@ -13,7 +13,7 @@ use super::{
     ty::LiftedTy,
 };
 
-pub type MakeGenericCastFunction<'vir> = FunctionIdent<'vir, UnaryArity<'vir>>;
+pub type MakeGenericCastFunction<'vir> = FunctionIdn<'vir, UnaryArity<'vir>>;
 
 /// Takes as input the most generic version (c.f. [`MostGenericTy`]) of a Rust
 /// type, and generates functions to convert the generic Viper representation of
@@ -32,7 +32,7 @@ pub enum CastFunctionsOutputRef<'vir> {
         /// argument is the snapshot encoding of the expresion (an s_Param).
         /// Remaining arguments are type parameters (e.g. the encoded <T, U> for
         /// casting a Result<T, U>).
-        make_concrete: vir::FunctionIdent<'vir, UnknownArity<'vir>>,
+        make_concrete: vir::FunctionIdn<'vir, UnknownArity<'vir>>,
     },
     AlreadyGeneric,
 }
@@ -118,7 +118,7 @@ impl TaskEncoder for CastFunctionsEnc {
                 .ty_constructor;
 
             let make_generic_arg_tys = [self_ty];
-            let make_generic_ident = FunctionIdent::new(
+            let make_generic_ident = FunctionIdn::new(
                 vir::vir_format_identifier!(vcx, "make_generic_s_{base_name}"),
                 UnaryArity::new(vcx.alloc(make_generic_arg_tys)),
                 generic_ref.param_snapshot,
@@ -133,7 +133,7 @@ impl TaskEncoder for CastFunctionsEnc {
                 .chain(make_concrete_ty_params.iter().map(|t| t.ty()))
                 .collect::<Vec<_>>();
 
-            let make_concrete_ident = FunctionIdent::new(
+            let make_concrete_ident = FunctionIdn::new(
                 vir::vir_format_identifier!(vcx, "make_concrete_s_{base_name}"),
                 UnknownArity::new(vcx.alloc(make_concrete_arg_tys)),
                 self_ty,

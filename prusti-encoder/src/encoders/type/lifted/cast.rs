@@ -1,6 +1,6 @@
 use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies, TaskEncoderError};
-use vir::{FunctionIdent, MethodIdent, StmtGen, UnknownArity, VirCtxt};
+use vir::{FunctionIdn, MethodIdn, StmtGen, VirCtxt};
 
 use super::{
     casters::{CastType, CastTypeImpure, CastTypePure, Casters, CastersEncOutputRef},
@@ -38,7 +38,7 @@ pub struct Cast<'vir, T> {
     pub ty_args: &'vir [LiftedTy<'vir, LiftedGeneric<'vir>>],
 }
 
-pub type PureCast<'vir> = Cast<'vir, FunctionIdent<'vir, UnknownArity<'vir>>>;
+pub type PureCast<'vir> = Cast<'vir, FunctionIdn<'vir, (vir::Snap, vir::ManyTyVal), vir::Snap>>;
 
 impl<'vir, T> Cast<'vir, T> {
     pub fn new(
@@ -59,18 +59,16 @@ impl<'vir, T> Cast<'vir, T> {
     }
 }
 
-impl<'vir> Cast<'vir, FunctionIdent<'vir, UnknownArity<'vir>>> {
+impl<'vir> PureCast<'vir> {
     /// Returns the result of the cast
     pub fn apply<Curr: 'vir, Next: 'vir>(
         &self,
         vcx: &'vir VirCtxt,
-        expr: vir::ExprGen<'vir, Curr, Next>,
-    ) -> vir::ExprGen<'vir, Curr, Next> {
-        self.cast_applicator.apply(
-            vcx,
-            &std::iter::once(expr)
-                .chain(self.ty_args.iter().map(|t| t.expr(vcx)))
-                .collect::<Vec<_>>(),
+        expr: vir::ExprGenSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        self.cast_applicator.gen()(
+            expr,
+            &self.ty_args.iter().map(|t| t.expr(vcx)).collect::<Vec<_>>(),
         )
     }
 }
@@ -81,32 +79,30 @@ pub enum GenericCastOutputRef<'vir, T> {
     Cast(Cast<'vir, T>),
 }
 
-impl<'vir> GenericCastOutputRef<'vir, FunctionIdent<'vir, UnknownArity<'vir>>> {
+impl<'vir> GenericCastOutputRef<'vir, FunctionIdn<'vir, (vir::Snap, vir::ManyTyVal), vir::Snap>> {
     pub fn apply_cast_if_necessary<Curr: 'vir, Next: 'vir>(
         &self,
         vcx: &'vir VirCtxt<'_>,
-        expr: vir::ExprGen<'vir, Curr, Next>,
-    ) -> vir::ExprGen<'vir, Curr, Next> {
+        expr: vir::ExprGenSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
         match self {
             GenericCastOutputRef::NoCast => expr,
             GenericCastOutputRef::Cast(Cast {
                 cast_applicator,
                 ty_args,
-            }) => cast_applicator.apply(
-                vcx,
-                &std::iter::once(expr)
-                    .chain(ty_args.iter().map(|t| t.expr(vcx)))
-                    .collect::<Vec<_>>(),
+            }) => cast_applicator.gen()(
+                expr,
+                &ty_args.iter().map(|t| t.expr(vcx)).collect::<Vec<_>>(),
             ),
         }
     }
 }
 
-impl<'vir> GenericCastOutputRef<'vir, MethodIdent<'vir, UnknownArity<'vir>>> {
+impl<'vir> GenericCastOutputRef<'vir, MethodIdn<'vir, (vir::Ref, vir::ManyTyVal)>> {
     pub fn apply_cast_if_necessary<Curr: 'vir, Next: 'vir>(
         &self,
         vcx: &'vir VirCtxt<'_>,
-        expr: vir::ExprGen<'vir, Curr, Next>,
+        expr: vir::ExprGenRef<'vir, Curr, Next>,
     ) -> Option<StmtGen<'vir, Curr, Next>> {
         match self {
             GenericCastOutputRef::NoCast => None,
@@ -114,16 +110,10 @@ impl<'vir> GenericCastOutputRef<'vir, MethodIdent<'vir, UnknownArity<'vir>>> {
                 cast_applicator,
                 ty_args,
             }) => Some(
-                vcx.alloc(vir::StmtGenData::new(
-                    vcx.alloc(
-                        cast_applicator.apply(
-                            vcx,
-                            &std::iter::once(expr)
-                                .chain(ty_args.iter().map(|t| t.expr(vcx)))
-                                .collect::<Vec<_>>(),
-                        ),
-                    ),
-                )),
+                vcx.alloc(vir::StmtGenData::new(vcx.alloc(cast_applicator.gen()(
+                    expr,
+                    &ty_args.iter().map(|t| t.expr(vcx)).collect::<Vec<_>>(),
+                )))),
             ),
         }
     }
@@ -206,7 +196,8 @@ where
 impl TaskEncoder for CastToEnc<CastTypePure> {
     task_encoder::encoder_cache!(CastToEnc<CastTypePure>);
     type TaskDescription<'tcx> = CastArgs<'tcx>;
-    type OutputRef<'vir> = GenericCastOutputRef<'vir, FunctionIdent<'vir, UnknownArity<'vir>>>;
+    type OutputRef<'vir> =
+        GenericCastOutputRef<'vir, FunctionIdn<'vir, (vir::Snap, vir::ManyTyVal), vir::Snap>>;
     type OutputFullLocal<'vir> = ();
     type EncodingError = ();
 
@@ -227,7 +218,7 @@ impl TaskEncoder for CastToEnc<CastTypePure> {
 impl TaskEncoder for CastToEnc<CastTypeImpure> {
     task_encoder::encoder_cache!(CastToEnc<CastTypeImpure>);
     type TaskDescription<'tcx> = CastArgs<'tcx>;
-    type OutputRef<'vir> = GenericCastOutputRef<'vir, MethodIdent<'vir, UnknownArity<'vir>>>;
+    type OutputRef<'vir> = GenericCastOutputRef<'vir, MethodIdn<'vir, (vir::Ref, vir::ManyTyVal)>>;
     type OutputFullLocal<'vir> = ();
     type EncodingError = ();
 
