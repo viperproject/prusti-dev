@@ -437,7 +437,9 @@ impl<'tcx> VirCtxt<'tcx> {
             .downcast_ty()
     }
 
-    fn mk_bin_op_expr_inner<'vir, Curr, Next, T: CompType>(
+    /// To be used only when `kind` is generated e.g. with a `from` call.
+    /// Otherwise always use either `mk_eq_expr` or `mk_bin_op_expr`.
+    pub fn mk_bin_op_expr_inner<'vir, Curr, Next, T: CompType>(
         &'vir self,
         kind: BinOpKind,
         lhs: ExprGen<'vir, Curr, Next, T>,
@@ -592,6 +594,7 @@ impl<'tcx> VirCtxt<'tcx> {
         args: A::Locals<'_, 'vir>,
         pres: &'vir [ExprGenBool<'vir, Curr, Next>],
         posts: &'vir [ExprGenBool<'vir, Curr, Next>],
+        decreases: Option<DecreasesGen<'vir, Curr, Next>>,
         expr: Option<ExprGen<'vir, Curr, Next, T>>,
     ) -> FunctionGen<'vir, Curr, Next> {
         let name = ident.name().to_str();
@@ -623,6 +626,7 @@ impl<'tcx> VirCtxt<'tcx> {
             ret: ret.as_dyn(),
             pres,
             posts,
+            decreases: decreases.unwrap_or(&DecreasesGenData::None),
             expr: expr.map(|e| e.as_dyn()),
         })
     }

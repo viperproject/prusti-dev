@@ -308,6 +308,7 @@ impl<'vir> PredicateBuilder<'vir> {
                 params,
                 self.vcx.alloc_slice(pres),
                 self.vcx.alloc_slice(posts),
+                None,
                 expr,
             ),
         )

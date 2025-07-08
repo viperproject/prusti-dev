@@ -7,7 +7,7 @@ use crate::ast_factory::{
     AstFactory,
 };
 use jni::objects::JObject;
-use viper_sys::wrappers::viper::silver::ast;
+use viper_sys::wrappers::viper::silver::{ast, plugin};
 
 // Floating-Point Operations
 #[derive(Debug, Clone, Copy)]
@@ -1489,5 +1489,27 @@ impl<'a> AstFactory<'a> {
             ),
         );
         Expr::new(obj)
+    }
+
+    pub fn decreases_tuple(
+        &self,
+        tuple_expressions: &[Expr],
+        condition: Option<Expr>,
+    ) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            plugin::standard::termination::DecreasesTuple,
+            self.jni.new_seq(&map_to_jobjects!(tuple_expressions)),
+            self.jni.new_option(condition.map(|c| c.to_jobject()))
+        )
+    }
+
+    pub fn decreases_wildcard(&self, condition: Option<Expr>) -> Expr<'a> {
+        build_ast_node!(self, Expr, plugin::standard::termination::DecreasesWildcard, self.jni.new_option(condition.map(|c| c.to_jobject())))
+    }
+
+    pub fn decreases_star(&self) -> Expr<'a> {
+        build_ast_node!(self, Expr, plugin::standard::termination::DecreasesStar)
     }
 }

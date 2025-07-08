@@ -406,6 +406,21 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::FuncApp<'vir> {
 impl<'vir, 'v> ToViper<'vir, 'v> for vir::Function<'vir> {
     type Output = viper::Function<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
+        let decreases = match &self.decreases {
+            vir::DecreasesGenData::Tuple(e, c) =>
+                Some(ctx.ast.decreases_tuple(
+                    &e.iter()
+                        .map(|v| v.to_viper_no_pos(ctx))
+                        .collect::<Vec<_>>(),
+                    c.as_ref().map(|v| v.to_viper_no_pos(ctx)),
+                )),
+            vir::DecreasesGenData::Wildcard(c) =>
+                Some(ctx.ast.decreases_wildcard(
+                    c.as_ref().map(|v| v.to_viper_no_pos(ctx)),
+                )),
+            vir::DecreasesGenData::Star => Some(ctx.ast.decreases_star()),
+            vir::DecreasesGenData::None => None,
+        };
         ctx.ast.function(
             self.name,
             &self
@@ -423,6 +438,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Function<'vir> {
                 .posts
                 .iter()
                 .map(|v| v.to_viper_no_pos(ctx))
+                .chain(decreases.into_iter())
                 .collect::<Vec<_>>(),
             ctx.ast.no_position(), // TODO: position (each function should have its own)
             self.expr.map(|v| v.to_viper_no_pos(ctx)),

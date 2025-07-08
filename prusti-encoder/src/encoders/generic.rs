@@ -93,12 +93,13 @@ impl TaskEncoder for GenericEnc {
                 )))]),
                 vcx.alloc_slice(&[vcx.mk_eq_expr(typ(vcx.mk_result(vir::TYPE_PSNAP)), t)]),
                 None,
+                None,
             );
 
             // unreachable_to_snap
             let false_ = vcx.alloc_slice(&[vcx.mk_bool::<false>()]);
             let unreachable_to_snap =
-                vcx.mk_function(unreachable_to_snap, (), false_, false_, None);
+                vcx.mk_function(unreachable_to_snap, (), false_, false_, None, None);
             Ok((
                 GenericEncOutput {
                     param_snapshot: vir::vir_domain! { vcx; domain s_Param {

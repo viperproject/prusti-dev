@@ -230,6 +230,15 @@ fn main() {
             java_class!("viper.silver.plugin.standard.refute.Refute", vec![
                 constructor!(),
             ]),
+            java_class!("viper.silver.plugin.standard.termination.DecreasesTuple", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.plugin.standard.termination.DecreasesWildcard", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.plugin.standard.termination.DecreasesStar", vec![
+                constructor!(),
+            ]),
             java_class!("viper.silver.ast.Bool$", vec![
                 object_getter!(),
             ]),
