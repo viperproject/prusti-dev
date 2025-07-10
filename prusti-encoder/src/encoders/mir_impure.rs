@@ -337,6 +337,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         to_skip: &mut Vec<mir::BasicBlock>,
     ) {
         let conditions = edge.conditions();
+
+        // For each block `b` where the edge is only valid if control flow
+        // continues from `b` to a specified subset of its successors, `cond`
+        // contains the corresponding VIR expression.
         let cond = conditions.all_branch_choices().map(|choices| {
             let successors = choices.successors(self.body);
             let tos = &self.from_to_vars[&choices.from()];
@@ -344,9 +348,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             let conj = candidates
                 .map(|(_, var)| self.vcx.mk_local_ex(var, vir::TYPE_BOOL))
                 .collect::<Vec<_>>();
-            self.vcx.mk_conj(self.vcx.alloc_slice(&conj))
+            // Control flow must continue from `choices.from()` to any one of the `successors`
+            self.vcx.mk_disj(self.vcx.alloc_slice(&conj))
         }).collect::<Vec<_>>();
-        let cond = self.vcx.mk_disj(self.vcx.alloc_slice(&cond));
+        // For each block `b` where the edge validity depends on the successor taken from `b`,
+        // every successor must be valid.
+        let cond = self.vcx.mk_conj(self.vcx.alloc_slice(&cond));
         let stmts = self.block(|self_| {
             self_.pcs_handle_edge_conditionless(
                 borrows_state,
