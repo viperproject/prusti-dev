@@ -1052,10 +1052,27 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .deps
                     .require_local::<RustTyCastersEnc<CastTypePure>>(closure_ty)
                     .unwrap();
-                reify_args.push(cast.cast_to_concrete_if_possible(
-                    self.vcx,
-                    ref_to_closure_ty_out.value_access.gen()(closure_ref.downcast_ty()).upcast_ty(),
-                ));
+                let has_ref_upvars = match closure_ty.kind() {
+                    TyKind::Closure(_, cl_args) => {
+                        cl_args.as_closure().upvar_tys().iter().any(|upvar_ty| {
+                            matches!(upvar_ty.kind(), ty::TyKind::Ref(_, _, _))
+                        })
+                    }
+                    _ => false,
+                };
+                if !(has_ref_upvars) {
+                    reify_args.push(
+                        cast.cast_to_concrete_if_possible(
+                            self.vcx,
+                            ref_to_closure_ty_out 
+                                .value_access
+                                .gen()(closure_ref.downcast_ty())
+                                .upcast_ty(),
+                        ),
+                    );
+                } else {
+                    reify_args.push(closure_ref)
+                }
                 reify_args.extend(
                     qvars
                         .iter()
