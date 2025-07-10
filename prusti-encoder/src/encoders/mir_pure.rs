@@ -626,8 +626,12 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     ) -> Update<'vir> {
         let mut update = Update::new();
         match &stmt.kind {
-            mir::StatementKind::StorageLive(..)
-            | mir::StatementKind::StorageDead(..)
+            &mir::StatementKind::StorageLive(local) => {
+                let new_version = self.version_ctr[local];
+                self.version_ctr[local] += 1;
+                update.versions.insert(local, new_version);
+            }
+            mir::StatementKind::StorageDead(..)
             | mir::StatementKind::FakeRead(..)
             | mir::StatementKind::AscribeUserType(..)
             | mir::StatementKind::PlaceMention(..) => {} // nop
