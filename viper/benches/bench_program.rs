@@ -192,5 +192,6 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
         &[even_function],
         &[even_num_box_predicate],
         &[method],
+        &[],
     )
 }

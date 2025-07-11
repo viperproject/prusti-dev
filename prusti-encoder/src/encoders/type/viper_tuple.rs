@@ -36,7 +36,7 @@ impl<'vir> ViperTupleEncOutput<'vir> {
         elem: usize,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
         self.tuple
-            .map(|t| (t.1.field_access[elem].read.gen())(tuple.downcast_ty()))
+            .map(|t| t.1.field_access[elem].gen()(tuple.downcast_ty()))
             .unwrap_or_else(|| tuple)
     }
 }

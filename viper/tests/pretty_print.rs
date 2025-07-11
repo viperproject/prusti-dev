@@ -27,7 +27,7 @@ fn success_with_complex_program() {
         )),
     );
 
-    let program = ast.program(&[], &[], &[], &[], &[method]);
+    let program = ast.program(&[], &[], &[], &[], &[method], &[]);
 
     let pretty_printed = ast_utils.pretty_print(program);
 
