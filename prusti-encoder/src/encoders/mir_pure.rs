@@ -396,7 +396,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             curr_ver[local]
                         }),
                     ),
-                ).upcast_ty()
+                )
+                .upcast_ty()
             })
             .collect::<Vec<_>>();
         self.reify_binds(update, tuple_ref.mk_cons(self.vcx, &tuple_args))
@@ -1275,7 +1276,7 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
                     let struct_like = e_ty
                         .generic_predicate
                         .expect_variant_opt(place_ty.variant_index);
-                    let proj = struct_like.snap_data.field_access[0].read;
+                    let proj = struct_like.snap_data.field_access[0];
                     let proj_app = proj.gen()(expr);
                     let place_ref =
                         place_ref.map(|pr| struct_like.ref_to_field_refs[0].gen()(pr, &[]));
@@ -1332,7 +1333,7 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
             let struct_like = e_ty
                 .generic_predicate
                 .expect_variant_opt(place_ty.variant_index);
-            let proj = struct_like.snap_data.field_access[field_idx.as_usize()].read;
+            let proj = struct_like.snap_data.field_access[field_idx.as_usize()];
             let proj_app = proj.gen()(expr);
             let proj_app = if let TyKind::Adt(def, _) = tykind {
                 // The ADT type for the field might be generic, concretize if necessary

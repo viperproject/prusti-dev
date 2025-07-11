@@ -128,7 +128,7 @@ cfg_if! {
                     check_expr_bindings(m, *expr);
                     m.remove(name);
                 },
-                ExprKindGenData::FuncApp(FuncAppGenData { args, .. }) => {
+                ExprKindGenData::FuncApp(FuncAppGenData { args, .. }) | ExprKindGenData::AdtConstructor(FuncAppGenData { args, .. }) => {
                     for arg in args.iter() {
                         check_expr_bindings(m, *arg);
                     }
@@ -147,6 +147,9 @@ cfg_if! {
                     }
                 },
                 ExprKindGenData::Field(e, _) => {
+                    check_expr_bindings(m, e.as_dyn());
+                },
+                ExprKindGenData::AdtDestructor(e, _) | ExprKindGenData::AdtDiscriminator(e, _) => {
                     check_expr_bindings(m, e.as_dyn());
                 },
                 ExprKindGenData::Unfolding(UnfoldingGenData { target, expr }) => {
@@ -464,6 +467,34 @@ impl<'tcx> VirCtxt<'tcx> {
         ))
     }
 
+    pub(crate) fn mk_adt_destructor_expr<'vir, Curr, Next, T: CompType>(
+        &'vir self,
+        recv: ExprGenCSnap<'vir, Curr, Next>,
+        destr: AdtDestructor<'vir, T>,
+    ) -> ExprGen<'vir, Curr, Next, T> {
+        if recv.ty() != destr.input {
+            typecheck_error!(
+                "Unexpected type for adt field {}. Expected: {:?}, Actual: {:?}",
+                destr.name,
+                destr.input,
+                recv.ty()
+            );
+        }
+        self.alloc(ExprGenData::new(
+            self.alloc(ExprKindGenData::AdtDestructor(recv, destr.as_dyn())),
+        ))
+    }
+
+    pub fn mk_adt_discriminator_expr<'vir, Curr, Next>(
+        &'vir self,
+        recv: ExprGenCSnap<'vir, Curr, Next>,
+        discr: &'vir str,
+    ) -> ExprGenBool<'vir, Curr, Next> {
+        self.alloc(ExprGenData::new(
+            self.alloc(ExprKindGenData::AdtDiscriminator(recv, discr)),
+        ))
+    }
+
     pub fn mk_unfolding_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
         target: PredicateAppGen<'vir, Curr, Next>,
@@ -563,6 +594,15 @@ impl<'tcx> VirCtxt<'tcx> {
         self.alloc(FieldData { name, ty })
     }
 
+    pub fn mk_adt_destructor<'vir, T: CompType>(
+        &'vir self,
+        name: &'vir str,
+        input: TypeCSnap<'vir>,
+        ty: Type<'vir, T>,
+    ) -> AdtDestructor<'vir, T> {
+        self.alloc(AdtDestructorData { name, input, ty })
+    }
+
     pub fn mk_domain_axiom<'vir, Curr, Next>(
         &'vir self,
         name: ViperIdent<'vir>,
@@ -649,6 +689,32 @@ impl<'tcx> VirCtxt<'tcx> {
         expr: Option<ExprGenBool<'vir, Curr, Next>>,
     ) -> PredicateGen<'vir, Curr, Next> {
         self.alloc(PredicateGenData { name, args, expr })
+    }
+
+    pub fn mk_adt<'vir, Curr, Next>(
+        &'vir self,
+        name: ViperIdent<'vir>,
+        typarams: &'vir [DomainParam<'vir>],
+        constructors: &'vir [AdtConstructorGen<'vir, Curr, Next>],
+    ) -> AdtGen<'vir, Curr, Next> {
+        self.alloc(AdtGenData {
+            name: name.to_str(),
+            typarams,
+            constructors,
+        })
+    }
+
+    pub fn mk_adt_constructor<'vir, Curr, Next, T: CompType>(
+        &'vir self,
+        name: &'vir str,
+        args: &'vir [LocalDecl<'vir, T>],
+        // TODO: axiom support
+    ) -> AdtConstructorGen<'vir, Curr, Next> {
+        self.alloc(AdtConstructorGenData {
+            name,
+            args: args.as_dyn(),
+            axiom: None,
+        })
     }
 
     pub fn mk_domain<'vir, Curr, Next>(
@@ -878,6 +944,7 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_program<'vir, Curr, Next>(
         &'vir self,
         fields: &'vir [FieldDyn<'vir>],
+        adts: &'vir [AdtGen<'vir, Curr, Next>],
         domains: &'vir [DomainGen<'vir, Curr, Next>],
         predicates: &'vir [PredicateGen<'vir, Curr, Next>],
         functions: &'vir [FunctionGen<'vir, Curr, Next>],
@@ -885,6 +952,7 @@ impl<'tcx> VirCtxt<'tcx> {
     ) -> ProgramGen<'vir, Curr, Next> {
         self.alloc(ProgramGenData {
             fields,
+            adts,
             domains,
             predicates,
             functions,

@@ -1,159 +1,25 @@
 use crate::encoders::{
-    domain::{DomainBuilder, DomainEnc, DomainEncOutputRef, FieldFunctions, FieldTy},
-    lifted::ty_constructor::TyConstructorEnc,
+    domain::{DomainBuilder, DomainEnc, DomainEncOutputRef, FieldTy},
     predicate::PredicateBuilder,
     rust_ty_predicates::RustTyPredicatesEncOutputRef,
-    snapshot::SnapshotEncOutput,
-    GenericEnc, PredicateEnc,
+    snapshot::SnapshotEncOutput, PredicateEnc,
 };
-use prusti_rustc_interface::middle::ty::{ParamTy, TyKind};
+use prusti_rustc_interface::middle::ty::ParamTy;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
-use vir::{vir_format, FunctionIdn, HasType, PredicateIdn};
+use vir::{vir_format, CastType, FunctionIdn, HasType, PredicateIdn};
 
 pub fn domain<'vir>(
     prefix: &str,
     fields: &[FieldTy<'vir>],
-    task_key: <DomainEnc as TaskEncoder>::TaskKey<'vir>,
-    output_ref: &DomainEncOutputRef<'vir>,
-    generics: &[ParamTy],
-    deps: &mut TaskEncoderDependencies<'vir, DomainEnc>,
     builder: &mut DomainBuilder<'vir>,
-) -> Result<
-    (
-        FunctionIdn<'vir, vir::ManySnap, vir::CSnap>,
-        &'vir [FieldFunctions<'vir>],
-        Vec<vir::LocalSnap<'vir>>,
-    ),
-    EncodeFullError<'vir, DomainEnc>,
-> {
-    // constructor
-    let cons_ident = builder.function(
-        &format!("{prefix}cons"),
-        builder
-            .vcx
-            .alloc_slice(&fields.iter().map(|fty| fty.ty).collect::<Vec<_>>()),
-        builder.self_type(),
-    );
-
-    // field accessors
-    let field_reads = fields
-        .iter()
-        .enumerate()
-        .map(|(idx, ty)| {
-            builder.function(&format!("{prefix}read_{idx}"), builder.self_type(), ty.ty)
-        })
-        .collect::<Vec<_>>();
-    let field_writes = fields
-        .iter()
-        .enumerate()
-        .map(|(idx, ty)| {
-            builder.function(
-                &format!("{prefix}write_{idx}"),
-                (builder.self_type(), ty.ty),
-                builder.self_type(),
-            )
-        })
-        .collect::<Vec<_>>();
-
-    // variables for quantifiers
-    let field_vars = fields
-        .iter()
-        .enumerate()
-        .map(|(idx, ty)| {
-            builder
-                .vcx
-                .mk_local(vir_format!(builder.vcx, "f{idx}"), ty.ty)
-        })
-        .collect::<Vec<_>>();
-
-    // TODO: typeof and read_type axioms
-    /*
-    // for struct U<T> { x: T, y: i32 }
-    // this one forwards the generic
-    axiom ax_s_U_read_0_type {
-        forall self: s_U :: {s_U_read_0(self)} (typ(s_U_read_0(self))) == (s_U_typaram_T(typeof_s_U(self)))
-    }
-    // this one seems less useful: this could be an axiom over s_Int_i32_typeof generally?
-    axiom ax_s_U_read_1_type {
-        forall self: s_U :: {s_U_read_1(self)} (s_Int_i32_typeof(s_U_read_1(self))) == (s_Int_i32_type())
-    }
-    axiom ax_typeof_s_U {
-        forall self: s_U :: {s_U_typaram_T(typeof_s_U(self))} (typeof_s_U(self)) == (s_U_type(s_U_typaram_T(typeof_s_U(self))))
-    }
-    */
-
-    if prefix.is_empty() {
-        // TODO: this ensures that we only produce one axiom for enums, but the
-        //   check based on prefix is not very clean
-        let ty_cons = deps.require_ref::<TyConstructorEnc>(task_key)?;
-        builder.axiom("typeof", vir::expr! {
-            forall s: [builder.self_type()] ::
-                {[output_ref.typeof_function]((s) as Snap)}
-                ([output_ref.typeof_function]((s) as Snap)) == ([ty_cons.ty_constructor](..[generics.iter()
-                    .enumerate()
-                    .map(|(param_idx, _)| {
-                        vir::expr! { [output_ref.ty_param_accessors[param_idx]]([output_ref.typeof_function]((s) as Snap)) }
-                        // output_ref.ty_param_accessors[param_idx].apply(builder.vcx, [output_ref.typeof_function.apply(builder.vcx, [s])])
-                    })
-                    .collect::<Vec<_>>()
-                    .as_slice()]))
-        });
-    }
-
-    // field accessor axioms
-    let generic_enc = deps.require_ref::<GenericEnc>(())?;
-    for idx in 0..fields.len() {
-        builder.axiom(
-            &format!("{prefix}cons_read_{idx}"),
-            vir::expr! {
-                forall ..[field_vars] ::
-                    {[cons_ident](..[field_vars.as_slice()])}
-                    ([field_reads[idx]]([cons_ident](..[field_vars.as_slice()]))) == ([field_vars[idx]])
-            },
-        );
-        if let TyKind::Param(p) = fields[idx].rust_ty.kind() {
-            // TODO: this only handles top-level generics
-            let param_idx = p.index as usize;
-            builder.axiom(&format!("{prefix}type_read_{idx}"), vir::expr! {
-                forall s: [builder.self_type()] ::
-                    {[field_reads[idx]](s)}
-                    ([generic_enc.param_type_function](([field_reads[idx]](s)) as PSnap)) == ([output_ref.ty_param_accessors[param_idx]]([output_ref.typeof_function]((s) as Snap)))
-            });
-        }
-    }
-    for write_idx in 0..fields.len() {
-        for read_idx in 0..fields.len() {
-            // TODO: is the trigger here too specific? we could trigger on the read already?
-            builder.axiom(&format!("{prefix}write_{write_idx}_read_{read_idx}"), if read_idx == write_idx {
-                vir::expr! {
-                    forall s: [builder.self_type()], value: [fields[write_idx].ty] ::
-                        {[field_reads[read_idx]]([field_writes[write_idx]](s, value))}
-                        ([field_reads[read_idx]]([field_writes[write_idx]](s, value))) == (value)
-                }
-            } else {
-                vir::expr! {
-                    forall s: [builder.self_type()], value: [fields[write_idx].ty] ::
-                        {[field_reads[read_idx]]([field_writes[write_idx]](s, value))}
-                        ([field_reads[read_idx]]([field_writes[write_idx]](s, value))) == ([field_reads[read_idx]](s))
-                }
-            });
-        }
-    }
-
-    let field_access = field_reads
-        .into_iter()
-        .zip(field_writes)
-        .map(|(read, write)| FieldFunctions {
-            read: read,
-            write: write,
-        })
-        .collect::<Vec<_>>();
-
-    Ok((
-        cons_ident,
-        builder.vcx.alloc_slice(&field_access),
-        field_vars,
-    ))
+    discr: Option<vir::ExprCSnap<'vir>>,
+) -> (
+    FunctionIdn<'vir, vir::ManySnap, vir::CSnap>,
+    &'vir [vir::AdtDestructorSnap<'vir>],
+) {
+    let field_tys = builder.vcx.alloc_slice(&fields.iter().map(|f| f.ty).collect::<Vec<_>>());
+    let (cons, des) = builder.constructor(prefix, field_tys, discr);
+    (cons, builder.vcx.alloc_slice(&des).downcast_ty())
 }
 
 pub(crate) fn predicate<'vir>(

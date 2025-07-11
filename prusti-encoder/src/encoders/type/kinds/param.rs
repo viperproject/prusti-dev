@@ -23,10 +23,6 @@ pub(crate) fn domain<'vir>(
         DomainEncOutputRef {
             base_name,
             domain: out.domain_param_name.cast_ty(),
-            ty_param_accessors: &[],
-            typeof_function: out
-                .param_type_function
-                .cast_ty(out.param_type_function.arity().upcast_ty()),
         },
     )?;
     Ok(DomainEncSpecifics::Param)
