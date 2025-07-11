@@ -1,4 +1,5 @@
 #![no_std]
+#![cfg_attr(feature = "prusti", feature(unboxed_closures, tuple_trait))]
 
 /// A macro for writing a precondition on a function.
 pub use prusti_contracts_proc_macros::requires;
@@ -353,14 +354,16 @@ pub fn rel_end<const E: usize>() {}
 /// Universal quantifier.
 ///
 /// This is a Prusti-internal representation of the `forall` syntax.
-pub fn forall<T, F>(_trigger_set: T, _closure: &F) -> bool {
+#[cfg(feature = "prusti")]
+pub fn forall<T, A: core::marker::Tuple, F: Fn<A>>(_trigger_set: T, _closure: &F) -> bool {
     true
 }
 
 /// Existential quantifier.
 ///
 /// This is a Prusti-internal representation of the `exists` syntax.
-pub fn exists<T, F>(_trigger_set: T, _closure: F) -> bool {
+#[cfg(feature = "prusti")]
+pub fn exists<T, A: core::marker::Tuple, F: Fn<A>>(_trigger_set: T, _closure: &F) -> bool {
     true
 }
 

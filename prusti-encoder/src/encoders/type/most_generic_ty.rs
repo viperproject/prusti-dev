@@ -106,6 +106,15 @@ impl<'tcx> MostGenericTy<'tcx> {
             TyKind::Ref(_, _, ty::Mutability::Mut) => vec![],
             TyKind::RawPtr(inner, _) => vec![as_param_ty(*inner)],
             TyKind::Param(p) => vec![p],
+            TyKind::Closure(_, args) => {
+                args.as_closure()
+                    .parent_args()
+                    .iter()
+                    .copied()
+                    .filter_map(ty::GenericArg::as_type)
+                    .map(as_param_ty)
+                    .collect()
+            }
             TyKind::Bool
             | TyKind::Char
             | TyKind::Float(_)
@@ -113,7 +122,6 @@ impl<'tcx> MostGenericTy<'tcx> {
             | TyKind::Never
             | TyKind::Uint(_)
             | TyKind::Str
-            | TyKind::Closure(..)
             | TyKind::FnPtr(..) => Vec::new(),
             other => todo!("generics for {:?}", other),
         }
@@ -191,6 +199,15 @@ pub fn extract_type_params<'tcx>(
             (MostGenericTy(ty), vec![inner])
         }
         TyKind::Param(_) => (MostGenericTy(to_placeholder(tcx, None)), Vec::new()),
+        TyKind::Closure(_, args) => {
+            let args = args.as_closure()
+                .parent_args()
+                .iter()
+                .copied()
+                .filter_map(ty::GenericArg::as_type)
+                .collect();
+            (MostGenericTy(ty), args)
+        }
         TyKind::Bool
         | TyKind::Char
         | TyKind::Int(_)
@@ -198,7 +215,6 @@ pub fn extract_type_params<'tcx>(
         | TyKind::Float(_)
         | TyKind::Never
         | TyKind::Str
-        | TyKind::Closure(..)
         | TyKind::FnPtr(..) => (MostGenericTy(ty), Vec::new()),
         _ => todo!("extract_type_params for {:?}", ty),
     }
