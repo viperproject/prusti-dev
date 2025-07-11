@@ -35,11 +35,12 @@ pub(crate) fn domain<'vir>(
 
     let fields = params
         .iter()
-        .map(|ty| FieldTy::from_ty(builder.vcx, deps, ty))
+        .map(|ty| FieldTy::from_ty(deps, ty))
         .collect::<Result<Vec<_>, _>>()?;
 
-    let (field_snaps_to_snap, field_access, _) =
-        super::structlike::domain("", &fields, task_key, output_ref, &generics, deps, builder)?;
+    let (field_snaps_to_snap, field_access) = super::structlike::domain(
+        "", &fields, builder, None,
+    );
 
     Ok(DomainEncSpecifics::StructLike(DomainDataStruct {
         field_snaps_to_snap,

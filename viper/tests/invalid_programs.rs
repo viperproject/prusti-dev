@@ -24,7 +24,7 @@ fn runtime_error() {
     // This is an error, as Silicon expects the method body to be a Seqn statement.
     let method_body = ast.assert(ast.true_lit(), ast.no_position());
     let method = ast.method("foo", &[], &[], &[], &[], Some(method_body));
-    let program = ast.program(&[], &[], &[], &[], &[method]);
+    let program = ast.program(&[], &[], &[], &[], &[method], &[]);
 
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
@@ -92,7 +92,7 @@ where
 
     let method = ast.method("foo", &[], &[], &[], &[], Some(method_body));
 
-    let program = ast.program(&[], &[], &[], &[], &[method]);
+    let program = ast.program(&[], &[], &[], &[], &[method], &[]);
 
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);

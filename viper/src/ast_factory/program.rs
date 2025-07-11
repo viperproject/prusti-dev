@@ -4,14 +4,14 @@
 
 use crate::ast_factory::{
     structs::{
-        Domain, DomainFunc, Expr, Field, Function, LocalVarDecl, Method, NamedDomainAxiom,
-        Position, Predicate, Program, Stmt, Type,
+        Adt, AdtConstructor, Domain, DomainFunc, Expr, Field, Function, LocalVarDecl, Method,
+        NamedDomainAxiom, Position, Predicate, Program, Stmt, Type,
     },
     AstFactory,
 };
 use jni::objects::JObject;
 use std::collections::BTreeMap;
-use viper_sys::wrappers::viper::silver::ast;
+use viper_sys::wrappers::viper::silver::{ast, plugin};
 
 impl<'a> AstFactory<'a> {
     pub fn program(
@@ -21,6 +21,7 @@ impl<'a> AstFactory<'a> {
         functions: &[Function],
         predicates: &[Predicate],
         methods: &[Method],
+        adts: &[Adt],
     ) -> Program<'a> {
         build_ast_node!(
             self,
@@ -31,7 +32,7 @@ impl<'a> AstFactory<'a> {
             self.jni.new_seq(&map_to_jobjects!(functions)),
             self.jni.new_seq(&map_to_jobjects!(predicates)),
             self.jni.new_seq(&map_to_jobjects!(methods)),
-            self.jni.new_seq(&[])
+            self.jni.new_seq(&map_to_jobjects!(adts))
         )
     }
 
@@ -126,6 +127,49 @@ impl<'a> AstFactory<'a> {
             self.no_trafos(),
         ));
         Method::new(obj)
+    }
+
+    pub fn adt(&self, name: &str, constructors: &[AdtConstructor], type_vars: &[Type]) -> Adt<'a> {
+        build_ast_node!(
+            self,
+            Adt,
+            plugin::standard::adt::Adt,
+            self.jni.new_string(name),
+            self.jni.new_seq(&map_to_jobjects!(constructors)),
+            self.jni.new_seq(&map_to_jobjects!(type_vars)),
+            self.jni.new_map(&[])
+        )
+    }
+
+    pub fn adt_constructor(
+        &self,
+        name: &str,
+        args: &[LocalVarDecl],
+        adt_name: &str,
+        adt_type_vars: &[Type],
+    ) -> AdtConstructor<'a> {
+        let ty_map: Vec<(_, _)> = adt_type_vars
+            .iter()
+            .map(|t| (t.to_jobject(), t.to_jobject()))
+            .collect();
+        let adt_ty = self
+            .jni
+            .unwrap_result(self.env.with_local_frame(16, move || {
+                plugin::standard::adt::AdtType::with(self.env).new(
+                    self.jni.new_string(adt_name),
+                    self.jni.new_map(&ty_map),
+                    self.jni.new_seq(&map_to_jobjects!(adt_type_vars)),
+                )
+            }));
+        build_adt_node!(
+            self,
+            AdtConstructor,
+            plugin::standard::adt::AdtConstructor,
+            self.jni.new_string(name),
+            self.jni.new_seq(&map_to_jobjects!(args));
+            adt_ty,
+            self.jni.new_string(adt_name)
+        )
     }
 
     pub fn domain(

@@ -8,10 +8,10 @@ use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, ExprGenBool, ExprGenSnap, FunctionIdn, Reify, ViperIdent};
 
 use crate::encoders::{
-    domain::DomainEnc,
     lifted::{
         func_def_ty_params::LiftedTyParamsEnc,
         ty::{EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc},
+        ty_constructor::TyConstructorEnc,
     },
     most_generic_ty::extract_type_params,
     GenericEnc, MirLocalDefEnc, MirPureEnc, MirPureEncTask, MirSpecEnc, PureKind,
@@ -74,7 +74,7 @@ where
             // necessary to include an explicit assertion
             LiftedTy::Instantiated { args, .. } if !args.is_empty() => {
                 let domain_ref = deps
-                    .require_ref::<DomainEnc>(extract_type_params(vcx.tcx(), ty).0)
+                    .require_ref::<TyConstructorEnc>(extract_type_params(vcx.tcx(), ty).0)
                     .unwrap();
                 Some(vcx.mk_eq_expr(domain_ref.typeof_function.gen()(arg), lifted_ty.expr(vcx)))
             }

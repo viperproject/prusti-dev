@@ -189,6 +189,12 @@ pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
     // inhale/exhale
     Lazy(LazyGen<'vir, Curr, Next>),
 
+    // Adt ops
+    AdtDestructor(ExprGenCSnap<'vir, Curr, Next>, AdtDestructorDyn<'vir>),
+    AdtConstructor(FuncAppGen<'vir, Curr, Next>),
+    // TODO: make this not a &str
+    AdtDiscriminator(ExprGenCSnap<'vir, Curr, Next>, &'vir str),
+
     Todo(&'vir str),
 }
 
@@ -215,6 +221,9 @@ impl<'vir, Curr, Next> ExprKindGenData<'vir, Curr, Next> {
             ExprKindGenData::PredicateApp(_) => crate::TYPE_BOOL.as_dyn(),
             ExprKindGenData::Wand(..) => crate::TYPE_BOOL.as_dyn(),
             ExprKindGenData::Lazy(l) => l.ty,
+            ExprKindGenData::AdtDestructor(_, destr) => destr.ty,
+            ExprKindGenData::AdtConstructor(a) => a.result_ty,
+            ExprKindGenData::AdtDiscriminator(_, _) => crate::TYPE_BOOL.as_dyn(),
             ExprKindGenData::Todo(msg) => panic!("{msg}"),
         }
     }
@@ -284,6 +293,22 @@ pub struct DomainGenData<'vir, Curr, Next> {
     pub axioms: &'vir [DomainAxiomGen<'vir, Curr, Next>],
     #[vir(reify_pass)]
     pub functions: &'vir [DomainFunction<'vir>],
+}
+
+#[derive(VirHash, VirReify, VirSerde)]
+pub struct AdtGenData<'vir, Curr, Next> {
+    pub name: &'vir str,
+    #[vir(reify_pass)]
+    pub typarams: &'vir [DomainParam<'vir>],
+    pub constructors: &'vir [AdtConstructorGen<'vir, Curr, Next>],
+}
+
+#[derive(VirHash, VirReify, VirSerde)]
+pub struct AdtConstructorGenData<'vir, Curr, Next> {
+    pub name: &'vir str,
+    #[vir(reify_pass)]
+    pub args: &'vir [LocalDeclDyn<'vir>],
+    pub axiom: Option<ExprGenBool<'vir, Curr, Next>>,
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
@@ -436,6 +461,7 @@ pub struct MethodBodyGenData<'vir, Curr, Next> {
 pub struct ProgramGenData<'vir, Curr, Next> {
     #[vir(reify_pass)]
     pub fields: &'vir [FieldDyn<'vir>],
+    pub adts: &'vir [AdtGen<'vir, Curr, Next>],
     pub domains: &'vir [DomainGen<'vir, Curr, Next>],
     pub predicates: &'vir [PredicateGen<'vir, Curr, Next>],
     pub functions: &'vir [FunctionGen<'vir, Curr, Next>],

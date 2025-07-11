@@ -9,22 +9,18 @@ use prusti_rustc_interface::{
 };
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{
-    Arity, CallableIdn, CastType, CompType, DomainAxiomData, DomainIdnCSnap, FunctionIdn, Type,
+    AdtDestructorPSnap, AdtDestructorRef, Arity, CallableIdn, CastType, CompType, DomainAxiomData, DomainIdnCSnap, FunctionIdn, Type
+};
+
+use super::{
+    most_generic_ty::{extract_type_params, get_vir_base_name_kind, MostGenericTy},
+    rust_ty_snapshots::RustTySnapshotsEnc,
 };
 
 /// You probably never want to use this, use `SnapshotEnc` instead.
 /// Note: there should never be a dependency on `PredicateEnc` inside this
 /// encoder!
 pub struct DomainEnc;
-
-#[derive(Clone, Copy, Debug)]
-pub struct FieldFunctions<'vir> {
-    /// Snapshot of self as argument. Returns domain of field.
-    pub read: FunctionIdn<'vir, vir::CSnap, vir::Snap>,
-    /// Snapshot of self as first argument and of field as second. Returns
-    /// updated domain of self.
-    pub write: FunctionIdn<'vir, (vir::CSnap, vir::Snap), vir::CSnap>,
-}
 
 #[derive(Clone, Copy, Debug)]
 pub struct DomainDataPrim<'vir> {
@@ -39,18 +35,18 @@ pub struct DomainDataImmRef<'vir> {
     /// Construct domain from a `Ref` value.
     pub prim_to_snap: FunctionIdn<'vir, (vir::Ref, vir::PSnap), vir::CSnap>,
     /// Function to access the referee.
-    pub deref_access: FunctionIdn<'vir, vir::CSnap, vir::Ref>,
+    pub deref_access: AdtDestructorRef<'vir>,
     /// Function to access the snapshot value.
-    pub value_access: FunctionIdn<'vir, vir::CSnap, vir::PSnap>,
+    pub value_access: AdtDestructorPSnap<'vir>,
 }
 #[derive(Clone, Copy, Debug)]
 pub struct DomainDataMutRef<'vir> {
     /// Construct domain from a `Ref` value.
     pub prim_to_snap: FunctionIdn<'vir, (vir::Ref, vir::PSnap), vir::CSnap>,
     /// Function to access the referee.
-    pub deref_access: FunctionIdn<'vir, vir::CSnap, vir::Ref>,
+    pub deref_access: AdtDestructorRef<'vir>,
     /// Function to access the snapshot value.
-    pub value_access: FunctionIdn<'vir, vir::CSnap, vir::PSnap>,
+    pub value_access: AdtDestructorPSnap<'vir>,
 }
 #[derive(Clone, Copy, Debug)]
 pub struct DomainDataStruct<'vir> {
@@ -58,7 +54,7 @@ pub struct DomainDataStruct<'vir> {
     /// from the single Viper primitive value.
     pub field_snaps_to_snap: FunctionIdn<'vir, vir::ManySnap, vir::CSnap>,
     /// Functions to access the fields.
-    pub field_access: &'vir [FieldFunctions<'vir>],
+    pub field_access: &'vir [vir::AdtDestructorSnap<'vir>],
 }
 #[derive(Clone, Copy, Debug)]
 pub struct DomainDataEnum<'vir> {
@@ -102,37 +98,34 @@ pub enum DomainEncSpecifics<'vir> {
 pub struct DomainEncOutputRef<'vir> {
     pub base_name: String,
     pub domain: vir::DomainIdnSnap<'vir>,
-    pub(super) ty_param_accessors: &'vir [FunctionIdn<'vir, vir::TyVal, vir::TyVal>],
-    /// Returns the Viper representation of the type of a snapshot-encoded value
-    pub typeof_function: FunctionIdn<'vir, vir::Snap, vir::TyVal>,
-}
-
-impl<'vir> DomainEncOutputRef<'vir> {
-    /// Takes as input a snapshot encoding of a rust value, and returns
-    /// the `idx`th type parameter of it's type.
-    pub fn ty_param_from_snap(
-        &self,
-        _vcx: &'vir vir::VirCtxt,
-        idx: usize,
-        snap: vir::ExprCSnap<'vir>,
-    ) -> vir::ExprTyVal<'vir> {
-        (self.ty_param_accessors[idx])((self.typeof_function)(snap.upcast_ty()))
-    }
 }
 
 impl<'vir> task_encoder::OutputRefAny for DomainEncOutputRef<'vir> {}
 
-use super::{
-    lifted::{
-        ty::{EncodeGenericsAsParamTy, LiftedTy, LiftedTyEnc},
-        ty_constructor::TyConstructorEnc,
-    },
-    most_generic_ty::{extract_type_params, get_vir_base_name_kind, MostGenericTy},
-    rust_ty_snapshots::RustTySnapshotsEnc,
-};
+pub fn all_outputs<'vir>() -> (
+    Vec<vir::Domain<'vir>>,
+    Vec<(vir::Adt<'vir>, Option<vir::Function<'vir>>)>,
+) {
+    let mut domains = Vec::new();
+    let mut adts = Vec::new();
+    for output in DomainEnc::all_outputs() {
+        match output {
+            DomainEncOutput::Domain(domain) => domains.push(domain),
+            DomainEncOutput::Adt { adt, discr_fn } => adts.push((adt, discr_fn)),
+            DomainEncOutput::None => {}
+        }
+    }
+    (domains, adts)
+}
 
-pub fn all_outputs<'vir>() -> Vec<vir::Domain<'vir>> {
-    DomainEnc::all_outputs().into_iter().flatten().collect()
+#[derive(Debug, Clone, Copy)]
+pub enum DomainEncOutput<'vir> {
+    None,
+    Domain(vir::Domain<'vir>),
+    Adt {
+        adt: vir::Adt<'vir>,
+        discr_fn: Option<vir::Function<'vir>>,
+    },
 }
 
 impl TaskEncoder for DomainEnc {
@@ -147,7 +140,7 @@ impl TaskEncoder for DomainEnc {
     /// encoded in [`GenericEnc`]. The reason we do not encode the domain for
     /// `Param` types here is because we don't want [`GenericEnc`] to depend on
     /// this encoder: doing so would create a cyclic dependency.
-    type OutputFullLocal<'vir> = Option<vir::Domain<'vir>>;
+    type OutputFullLocal<'vir> = DomainEncOutput<'vir>;
 
     type EncodingError = ();
 
@@ -169,11 +162,7 @@ impl TaskEncoder for DomainEnc {
 
             let base_name = get_vir_base_name_kind(task_key.kind(), builder.vcx);
             builder.set_name(&base_name);
-            let typeof_ident = builder.function("typeof", builder.self_type(), builder.type_type());
-            let ty_param_accessors = deps
-                .require_ref::<TyConstructorEnc>(*task_key)?
-                .ty_param_accessors;
-            let output_ref = builder.output_ref(base_name, typeof_ident, ty_param_accessors);
+            let output_ref = builder.output_ref(base_name);
             deps.emit_output_ref(*task_key, output_ref.clone())?;
 
             let specifics = match task_key.kind() {
@@ -215,8 +204,28 @@ pub(crate) struct DomainBuilder<'vir> {
     generics: Option<Vec<vir::LocalDeclTyVal<'vir>>>,
     domain_ident: Option<vir::DomainIdnCSnap<'vir>>,
     self_type: Option<vir::TypeCSnap<'vir>>,
-    axioms: Vec<vir::DomainAxiom<'vir>>,
-    functions: Vec<vir::DomainFunction<'vir>>,
+    specifics: DomainBuilderSpecifics<'vir>,
+}
+
+pub enum DomainBuilderSpecifics<'vir> {
+    Domain {
+        axioms: Vec<vir::DomainAxiom<'vir>>,
+        functions: Vec<vir::DomainFunction<'vir>>,
+    },
+    Adt {
+        constructors: Vec<vir::AdtConstructor<'vir>>,
+        discr_fn: Option<DiscrFnBuilder<'vir>>,
+    },
+}
+
+#[derive(Clone, Copy)]
+enum DiscrFnBuilder<'vir> {
+    Building {
+        param: vir::LocalDeclCSnap<'vir>,
+        recv: vir::ExprCSnap<'vir>,
+        acc: vir::ExprCSnap<'vir>,
+    },
+    Built(vir::Function<'vir>),
 }
 
 impl<'vir> DomainBuilder<'vir> {
@@ -227,8 +236,10 @@ impl<'vir> DomainBuilder<'vir> {
             generics: None,
             domain_ident: None,
             self_type: None,
-            axioms: Vec::new(),
-            functions: Vec::new(),
+            specifics: DomainBuilderSpecifics::Domain {
+                axioms: Vec::new(),
+                functions: Vec::new(),
+            },
         }
     }
 
@@ -244,62 +255,187 @@ impl<'vir> DomainBuilder<'vir> {
         self.generics = Some(generics);
     }
 
+    pub(crate) fn set_adt_mode(&mut self) {
+        if matches!(self.specifics, DomainBuilderSpecifics::Adt { .. }) {
+            return;
+        }
+        self.specifics = DomainBuilderSpecifics::Adt {
+            constructors: Vec::new(),
+            discr_fn: None,
+        };
+    }
+
+    pub(crate) fn constructor<A: vir::Arity>(
+        &mut self,
+        prefix: &str,
+        fields: A::Tys<'vir>,
+        discr: Option<vir::ExprCSnap<'vir>>,
+    ) -> (
+        FunctionIdn<'vir, A, vir::CSnap>,
+        Vec<vir::AdtDestructorDyn<'vir>>,
+    ) {
+        self.set_adt_mode();
+
+        let name = format!("{prefix}cons");
+        let self_ty = self.self_type();
+        let DomainBuilderSpecifics::Adt {
+            constructors,
+            discr_fn,
+        } = &mut self.specifics
+        else {
+            panic!("constructors can only be added to adt specifics");
+        };
+        assert!(
+            discr_fn.is_none() || discr.is_some(),
+            "discr was passed previously, but now it wasn't"
+        );
+        let self_name = self.name.expect("name should be set");
+        let name = vir::vir_format!(self.vcx, "{self_name}_{name}",);
+        let locals = self.vcx.alloc_slice(
+            &A::params(fields)
+                .into_iter()
+                .enumerate()
+                .map(|(i, ty)| {
+                    self.vcx
+                        .mk_local_decl(vir::vir_format!(self.vcx, "{self_name}_{prefix}{i}",), ty)
+                })
+                .collect::<Vec<_>>(),
+        );
+        constructors.push(self.vcx.mk_adt_constructor(name, locals));
+        let ident = FunctionIdn::new(
+            vir::ViperIdent::new(name),
+            fields,
+            self_ty,
+        );
+        if let Some(discr) = discr {
+            let df = discr_fn.take().map(|df| {
+                let DiscrFnBuilder::Building { param, recv, acc } = df else {
+                    panic!("discriminant function was already built");
+                };
+                let acc =
+                    self.vcx
+                        .mk_ternary_expr(self.vcx.mk_adt_discriminator_expr(recv, name), discr, acc);
+                DiscrFnBuilder::Building { param, recv, acc }
+            });
+            let df = df.unwrap_or_else(|| DiscrFnBuilder::Building {
+                param: self.vcx.mk_local_decl("self", self_ty),
+                recv: self.vcx.mk_local_ex("self", self_ty),
+                acc: discr,
+            });
+            *discr_fn = Some(df)
+        }
+        (
+            ident,
+            locals.iter()
+                .map(|arg| self.vcx.mk_adt_destructor(arg.name, self_ty, arg.ty))
+                .collect(),
+        )
+    }
+
+    pub(crate) fn build_discr_fn(
+        &mut self,
+        ty: vir::TypeCSnap<'vir>,
+    ) -> vir::FunctionIdn<'vir, vir::CSnap, vir::CSnap> {
+        let DomainBuilderSpecifics::Adt { discr_fn, .. } = &mut self.specifics else {
+            panic!("discriminant function can only be built for adt specifics");
+        };
+        let Some(DiscrFnBuilder::Building { param, acc, .. }) = discr_fn else {
+            panic!("discriminant function not started or already built");
+        };
+        let ident = FunctionIdn::new(
+            vir::ViperIdent::new(vir::vir_format!(
+                self.vcx,
+                "{}_discr",
+                self.name.expect("name should be set")
+            )),
+            param.ty,
+            ty,
+        );
+        let built_fn = self.vcx.mk_function(
+            ident,
+            (*param,),
+            &[],
+            &[],
+            None,
+            Some(acc),
+        );
+        *discr_fn = Some(DiscrFnBuilder::Built(built_fn));
+        ident
+    }
+
     pub(crate) fn function<A: Arity, T: CompType>(
         &mut self,
         name: &str,
         args: A::Tys<'vir>,
         ret: Type<'vir, T>,
     ) -> FunctionIdn<'vir, A, T> {
+        let DomainBuilderSpecifics::Domain { functions, .. } = &mut self.specifics else {
+            panic!("functions can only be added to domain specifics");
+        };
         let name = vir::vir_format!(
             self.vcx,
             "{}_{name}",
             self.name.expect("name should be set")
         );
         let ident = FunctionIdn::new(vir::ViperIdent::new(name), args, ret);
-        self.functions
-            .push(self.vcx.mk_domain_function(ident, false));
+        functions.push(self.vcx.mk_domain_function(ident, false));
         ident
     }
 
     pub(crate) fn axiom(&mut self, name: &str, expr: vir::ExprBool<'vir>) {
+        let DomainBuilderSpecifics::Domain { axioms, .. } = &mut self.specifics else {
+            panic!("axioms can only be added to domain specifics");
+        };
         let name = vir::vir_format!(
             self.vcx,
             "{}_ax_{name}",
             self.name.expect("name should be set")
         );
-        self.axioms
-            .push(self.vcx.alloc(DomainAxiomData { name, expr }));
+        axioms.push(self.vcx.alloc(DomainAxiomData { name, expr }));
     }
 
     pub(crate) fn self_type(&self) -> vir::TypeCSnap<'vir> {
         self.self_type.expect("name should be set")
     }
 
-    pub(crate) fn type_type(&self) -> vir::TypeTyVal<'vir> {
-        vir::TYPE_TYVAL
-    }
-
-    pub(crate) fn output_ref(
-        &self,
-        base_name: String,
-        typeof_function: FunctionIdn<'vir, vir::CSnap, vir::TyVal>,
-        ty_param_accessors: &[FunctionIdn<'vir, vir::TyVal, vir::TyVal>],
-    ) -> DomainEncOutputRef<'vir> {
+    pub(crate) fn output_ref(&self, base_name: String) -> DomainEncOutputRef<'vir> {
         DomainEncOutputRef {
             base_name,
             domain: self.domain_ident.expect("name should be set").cast_ty(),
-            typeof_function: typeof_function.cast_ty(typeof_function.arity().upcast_ty()),
-            ty_param_accessors: self.vcx.alloc_slice(ty_param_accessors),
         }
     }
 
-    pub(crate) fn build(self) -> Option<vir::Domain<'vir>> {
-        Some(self.vcx.mk_domain(
-            self.domain_ident?.name(),
-            &[],
-            self.vcx.alloc_slice(&self.axioms),
-            self.vcx.alloc_slice(&self.functions),
-        ))
+    pub(crate) fn build(self) -> DomainEncOutput<'vir> {
+        let Some(domain_ident) = self.domain_ident else {
+            return DomainEncOutput::None;
+        };
+        let name = domain_ident.name();
+        match &self.specifics {
+            DomainBuilderSpecifics::Domain { axioms, functions } => {
+                let domain = self.vcx.mk_domain(
+                    name,
+                    &[],
+                    self.vcx.alloc_slice(axioms.as_slice()),
+                    self.vcx.alloc_slice(functions.as_slice()),
+                );
+                DomainEncOutput::Domain(domain)
+            }
+            DomainBuilderSpecifics::Adt {
+                constructors,
+                discr_fn,
+            } => {
+                let adt = self
+                    .vcx
+                    .mk_adt(name, &[], self.vcx.alloc_slice(constructors.as_slice()));
+                let discr_fn = discr_fn.map(|df| {
+                    let DiscrFnBuilder::Built(df) = df else {
+                        panic!("discriminant function not built");
+                    };
+                    df
+                });
+                DomainEncOutput::Adt { adt, discr_fn }
+            }
+        }
     }
 }
 
@@ -391,20 +527,6 @@ pub(super) struct FieldTy<'vir> {
 
     /// The type of encoded field
     pub(super) ty: vir::TypeSnap<'vir>,
-
-    /// Information about the Rust type, only defined for fields that correspond
-    /// to actual Rust types. For example, this will be `None` for a Viper
-    /// `Bool` field encoded as part of the snapshot encoding of the rust bool
-    /// type.
-    pub(super) rust_ty_data: Option<LiftedRustTyData<'vir>>,
-}
-
-#[derive(Clone)]
-pub(super) struct LiftedRustTyData<'vir> {
-    /// The representation of the Rust type of the field
-    lifted_ty: LiftedTy<'vir, ParamTy>,
-    /// Takes as input the value of the field, and returns its type
-    typeof_function: FunctionIdn<'vir, vir::Snap, vir::TyVal>,
 }
 
 impl<'vir> FieldTy<'vir> {
@@ -418,12 +540,11 @@ impl<'vir> FieldTy<'vir> {
             .fields
             .iter()
             .map(|f| f.ty(vcx.tcx(), params))
-            .map(|ty| Self::from_ty(vcx, deps, ty))
+            .map(|ty| Self::from_ty(deps, ty))
             .collect::<Result<Vec<_>, _>>()
     }
 
     pub(super) fn from_ty<T: TaskEncoder>(
-        vcx: &'vir vir::VirCtxt<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, T>,
         ty: ty::Ty<'vir>,
     ) -> Result<FieldTy<'vir>, EncodeFullError<'vir, T>> {
@@ -431,17 +552,9 @@ impl<'vir> FieldTy<'vir> {
             .require_ref::<RustTySnapshotsEnc>(ty)?
             .generic_snapshot
             .snapshot;
-        let typeof_function = deps
-            .require_ref::<DomainEnc>(extract_type_params(vcx.tcx(), ty).0)?
-            .typeof_function;
-        let lifted_ty = deps.require_local::<LiftedTyEnc<EncodeGenericsAsParamTy>>(ty)?;
         Ok(FieldTy {
             rust_ty: ty,
             ty: vir_ty,
-            rust_ty_data: Some(LiftedRustTyData {
-                lifted_ty,
-                typeof_function,
-            }),
         })
     }
 }

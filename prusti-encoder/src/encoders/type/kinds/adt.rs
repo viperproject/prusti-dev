@@ -48,19 +48,15 @@ pub(crate) fn domain<'vir>(
                 rust_ty_data: None,
             }], task_key, output_ref, &generics, deps, builder)?;
             */
-            let (field_snaps_to_snap, field_access, _) = super::structlike::domain(
+            let (field_snaps_to_snap, field_access) = super::structlike::domain(
                 "",
                 &[FieldTy::from_ty(
-                    builder.vcx,
                     deps,
                     generics[0].to_ty(builder.vcx.tcx()),
                 )?],
-                task_key,
-                output_ref,
-                &generics,
-                deps,
                 builder,
-            )?;
+                None,
+            );
 
             Ok(DomainEncSpecifics::StructLike(DomainDataStruct {
                 field_snaps_to_snap,
@@ -71,9 +67,9 @@ pub(crate) fn domain<'vir>(
             let variant = adt.non_enum_variant();
             let fields = FieldTy::mk_field_tys(builder.vcx, deps, variant, params)?;
 
-            let (field_snaps_to_snap, field_access, _) = super::structlike::domain(
-                "", &fields, task_key, output_ref, &generics, deps, builder,
-            )?;
+            let (field_snaps_to_snap, field_access) = super::structlike::domain(
+                "", &fields, builder, None,
+            );
 
             Ok(DomainEncSpecifics::StructLike(DomainDataStruct {
                 field_snaps_to_snap,
@@ -93,69 +89,45 @@ pub(crate) fn domain<'vir>(
                 .generic_snapshot;
             let discr_prim = discr_ty.specifics.expect_primitive();
 
-            // discriminant
-            let discr_ident = builder.function(
-                "discr",
-                builder.self_type(),
-                discr_ty.snapshot.downcast_ty(),
-            );
+            let variants = adt
+                .variants()
+                .iter_enumerated()
+                .zip(adt.discriminants(builder.vcx.tcx()))
+                .map(|((var_idx, variant), (_, discr))| {
+                    let var_idx_num = var_idx.as_u32();
+                    let discr = (discr_ty.specifics.expect_primitive().prim_to_snap)(
+                        discr_prim.expr_from_bits(discr.ty, discr.val),
+                    );
 
-            let variants =
-                adt.variants()
-                    .iter_enumerated()
-                    .zip(adt.discriminants(builder.vcx.tcx()))
-                    .map(|((var_idx, variant), (_, discr))| {
-                        let var_idx_num = var_idx.as_u32();
-                        let discr = (discr_ty.specifics.expect_primitive().prim_to_snap)(
-                            discr_prim.expr_from_bits(discr.ty, discr.val),
-                        );
+                    let fields = FieldTy::mk_field_tys(builder.vcx, deps, variant, params)?;
 
-                        let fields = FieldTy::mk_field_tys(builder.vcx, deps, variant, params)?;
+                    let (field_snaps_to_snap, field_access) = super::structlike::domain(
+                        &format!("{var_idx_num}_"),
+                        &fields,
+                        builder,
+                        Some(discr),
+                    );
 
-                        let (field_snaps_to_snap, field_access, field_vars) =
-                            super::structlike::domain(
-                                &format!("{var_idx_num}_"),
-                                &fields,
-                                task_key,
-                                output_ref,
-                                &generics,
-                                deps,
-                                builder,
-                            )?;
-
-                        // discriminant of constructor is known
-                        builder.axiom(&format!("{var_idx_num}_cons_discr"), vir::expr! {
-                            forall ..[field_vars] ::
-                                {[field_snaps_to_snap](..[field_vars.as_slice()])}
-                                ([discr_ident]([field_snaps_to_snap](..[field_vars.as_slice()]))) == ([discr])
-                        });
-
-                        Ok(DomainDataVariant {
-                            name: variant.name,
-                            vid: var_idx,
-                            discr,
-                            fields: DomainDataStruct {
-                                field_snaps_to_snap,
-                                field_access,
-                            },
-                        })
+                    Ok(DomainDataVariant {
+                        name: variant.name,
+                        vid: var_idx,
+                        discr,
+                        fields: DomainDataStruct {
+                            field_snaps_to_snap,
+                            field_access,
+                        },
                     })
-                    .collect::<Result<Vec<_>, _>>()?;
+                })
+                .collect::<Result<Vec<_>, _>>()?;
 
             // discriminant can only have the selected values
-            builder.axiom("discr_values", vir::expr! {
-                forall s: [builder.self_type()] :: {[discr_ident](s)} [builder.vcx.mk_disj(&variants.iter()
-                    .map(|variant| vir::expr! {
-                        ([discr_ident](s)) == ([variant.discr])
-                    })
-                    .collect::<Vec<_>>())]
-            });
+            let snap_to_discr_snap = builder.build_discr_fn(discr_ty.snapshot.downcast_ty());
 
             Ok(DomainEncSpecifics::EnumLike(Some(DomainDataEnum {
                 discr_ty: discr_ty.snapshot,
                 discr_prim,
                 //pub discr_bounds: DiscrBounds<'vir>,
-                snap_to_discr_snap: discr_ident,
+                snap_to_discr_snap,
                 variants: builder.vcx.alloc_slice(&variants), //pub variants: &'vir [DomainDataVariant<'vir>],
             })))
 
