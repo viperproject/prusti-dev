@@ -294,7 +294,7 @@ impl TaskEncoder for CastersEnc<CastTypePure> {
                 .generics()
                 .iter()
                 .enumerate()
-                .map(|(idx, _)| ty_constructor.ty_param_from_snap(vcx, idx, make_generic_expr.upcast_ty()))
+                .map(|(idx, _)| ty_constructor.ty_param_from_snap(vcx, idx, make_generic_expr))
                 .collect::<Vec<_>>();
 
             // Asserts that the type of `param` is equal to the ty constructor

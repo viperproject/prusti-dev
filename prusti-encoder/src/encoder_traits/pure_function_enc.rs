@@ -76,7 +76,7 @@ where
                 let domain_ref = deps
                     .require_ref::<TyConstructorEnc>(extract_type_params(vcx.tcx(), ty).0)
                     .unwrap();
-                Some(vcx.mk_eq_expr(domain_ref.typeof_function.gen()(arg), lifted_ty.expr(vcx)))
+                Some(vcx.mk_eq_expr(domain_ref.typeof_function.gen()(arg.downcast_ty()), lifted_ty.expr(vcx)))
             }
             _ => None,
         }
