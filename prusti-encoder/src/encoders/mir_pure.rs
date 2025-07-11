@@ -967,29 +967,31 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 self.vcx.mk_eq_expr(lhs, rhs)
             }
             PrustiBuiltin::Forall => {
-                assert_eq!(arg_tys.len(), 2);
+                assert_eq!(arg_tys.len(), 3);
 
                 let (ty_args, encoded_args) = self.encode_fn_args(sig, arg_tys, args, curr_ver);
                 // TODO: for now, let's expect this to give us these four:
                 //   - type of the trigger param (unit unless triggers provided)
+                //   - type of the closure args (a tuple type)
                 //   - type of the body param (a closure type)
                 //   - expression for the triggers
                 //   - expression for the body
-                assert_eq!(ty_args.len(), 2);
+                assert_eq!(ty_args.len(), 3);
                 assert_eq!(encoded_args.len(), 2);
 
-                let closure_ty = arg_tys[1].expect_ty();
+                let closure_ty = arg_tys[2].expect_ty();
 
-                let (qvar_tys, _upvar_tys, cl_def_id) = match closure_ty.peel_refs().kind() {
+                let (qvar_tys, _upvar_tys, cl_kind, cl_def_id) = match closure_ty.kind() {
                     TyKind::Closure(cl_def_id, cl_args) => (
                         match cl_args.as_closure().sig().skip_binder().inputs()[0].kind() {
                             TyKind::Tuple(list) => list,
                             _ => unreachable!(),
                         },
                         cl_args.as_closure().upvar_tys().iter().collect::<Vec<_>>(),
+                        cl_args.as_closure().kind(),
                         *cl_def_id,
                     ),
-                    _ => panic!("illegal prusti::forall"),
+                    other => panic!("illegal prusti::forall: expected closure, got {other:?}"),
                 };
 
                 let qvars = self.vcx.alloc_slice(
@@ -1010,16 +1012,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                                     ),
                                     ty_out.generic_snapshot.snapshot,
                                 )
-                                .as_dyn()
                         })
                         .collect::<Vec<_>>(),
                 );
-                //let qvar_tuple_ref = self.deps.require_ref::<ViperTupleEnc>(
-                //    qvars.len(),
-                //).unwrap();
-                //let upvar_tuple_ref = self.deps.require_ref::<ViperTupleEnc>(
-                //    upvar_tys.len(),
-                //).unwrap();
 
                 let mut reify_args = vec![];
                 // TODO: big hack!
@@ -1035,48 +1030,15 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         encoded_args[1],
                     )
                 };
-                let tcx = self.vcx.tcx();
-                let ref_to_closure_ty = tcx.mk_ty_from_kind(TyKind::Ref(
-                    tcx.lifetimes.re_erased,
-                    closure_ty,
-                    ty::Mutability::Not,
-                ));
-                let ref_to_closure_ty_out = self
-                    .deps
-                    .require_local::<RustTySnapshotsEnc>(ref_to_closure_ty)
-                    .unwrap()
-                    .generic_snapshot
-                    .specifics
-                    .expect_immref();
-                let cast = self
-                    .deps
-                    .require_local::<RustTyCastersEnc<CastTypePure>>(closure_ty)
-                    .unwrap();
-                let has_ref_upvars = match closure_ty.kind() {
-                    TyKind::Closure(_, cl_args) => {
-                        cl_args.as_closure().upvar_tys().iter().any(|upvar_ty| {
-                            matches!(upvar_ty.kind(), ty::TyKind::Ref(_, _, _))
-                        })
-                    }
-                    _ => false,
-                };
-                if !(has_ref_upvars) {
-                    reify_args.push(
-                        cast.cast_to_concrete_if_possible(
-                            self.vcx,
-                            ref_to_closure_ty_out 
-                                .value_access
-                                .gen()(closure_ref.downcast_ty())
-                                .upcast_ty(),
-                        ),
-                    );
-                } else {
-                    reify_args.push(closure_ref)
-                }
+                // The signature of `forall` should enforce that the argument is
+                // an `Fn` only.
+                assert_eq!(cl_kind, ty::ClosureKind::Fn);
+
+                reify_args.push(closure_ref);
                 reify_args.extend(
                     qvars
                         .iter()
-                        .map(|qvar| self.vcx.mk_local_ex(qvar.name, qvar.ty).downcast_ty()),
+                        .map(|qvar| self.vcx.mk_local_ex(qvar.name, qvar.ty)),
                 );
 
                 // TODO: recursively invoke MirPure encoder to encode
@@ -1099,10 +1061,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     // arguments to the closure are
                     // - the closure itself
                     // - the qvars
-                    .reify(
-                        self.vcx,
-                        (cl_def_id, self.vcx.alloc_slice(&reify_args)),
-                    )
+                    .reify(self.vcx, (cl_def_id, self.vcx.alloc_slice(&reify_args)))
                     .lift();
 
                 self.vcx.mk_forall_expr(
