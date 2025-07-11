@@ -19,7 +19,7 @@ pub struct TyConstructorEncOutputRef<'vir> {
     pub ty_param_accessors: &'vir [vir::FunctionIdn<'vir, vir::TyVal, vir::TyVal>],
 
     /// Returns the Viper representation of the type of a snapshot-encoded value
-    pub typeof_function: vir::FunctionIdn<'vir, vir::Snap, vir::TyVal>,
+    pub typeof_function: vir::FunctionIdn<'vir, vir::CSnap, vir::TyVal>,
 }
 
 impl<'vir> TyConstructorEncOutputRef<'vir> {
@@ -37,7 +37,7 @@ impl<'vir> TyConstructorEncOutputRef<'vir> {
         &self,
         vcx: &'vir vir::VirCtxt,
         idx: usize,
-        snap: vir::ExprSnap<'vir>,
+        snap: vir::ExprCSnap<'vir>,
     ) -> vir::ExprTyVal<'vir> {
         self.ty_param_accessors[idx]((self.typeof_function)(snap))
     }
@@ -74,7 +74,7 @@ impl TaskEncoder for TyConstructorEnc {
         task_key: &Self::TaskKey<'vir>,
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
-        // TODO: do we want to check that this isn't a Param type? If so change the snap below to CSnap.
+        assert!(!task_key.is_generic());
         let generic_ref = deps.require_ref::<GenericEnc>(())?;
         let mut functions = vec![];
         let mut axioms = vec![];
@@ -117,7 +117,7 @@ impl TaskEncoder for TyConstructorEnc {
                 .collect::<Vec<_>>();
 
             let domain = deps.require_ref::<DomainEnc>(*task_key)?;
-            let snap = (domain.domain)();
+            let snap = (domain.domain)().downcast_ty();
             let typeof_function = FunctionIdn::new(
                 vir::vir_format_identifier!(vcx, "s_{base_name}_typeof"),
                 snap,
