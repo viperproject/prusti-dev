@@ -5,6 +5,9 @@ macro_rules! typed_gen {
 }
 
 pub type AccFieldGen<'vir, Curr, Next> = &'vir crate::gendata::AccFieldGenData<'vir, Curr, Next>;
+pub type AdtGen<'vir, Curr, Next> = &'vir crate::gendata::AdtGenData<'vir, Curr, Next>;
+pub type AdtConstructorGen<'vir, Curr, Next> =
+    &'vir crate::gendata::AdtConstructorGenData<'vir, Curr, Next>;
 pub type BinOpGen<'vir, Curr, Next> = &'vir crate::gendata::BinOpGenData<'vir, Curr, Next>;
 pub type CfgBlockGen<'vir, Curr, Next> = &'vir crate::gendata::CfgBlockGenData<'vir, Curr, Next>;
 pub type CfgLabelGen<'vir, Curr, Next> = &'vir crate::gendata::CfgLabelGenData<'vir, Curr, Next>;

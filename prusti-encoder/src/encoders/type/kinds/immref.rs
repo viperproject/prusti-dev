@@ -24,46 +24,12 @@ pub(crate) fn domain<'vir>(
 
     let inner_ty_out = deps.require_ref::<RustTySnapshotsEnc>(*inner_ty)?;
     let inner_type = inner_ty_out.generic_snapshot.snapshot.downcast_ty();
-
-    let deref_ident = builder.function("deref", builder.self_type(), vir::TYPE_REF);
-    let value_ident = builder.function("value", builder.self_type(), inner_type);
-    let cons_ident = builder.function("cons", (vir::TYPE_REF, inner_type), builder.self_type());
-
-    let generic_enc = deps.require_ref::<GenericEnc>(())?;
-    let ty_type_func = deps.require_ref::<TyConstructorEnc>(task_key)?;
-    builder.axiom("deref", vir::expr! {
-        forall r: Ref, value: [inner_type] :: {[cons_ident](r, value)} ([deref_ident]([cons_ident](r, value))) == (r)
-    });
-    builder.axiom("value", vir::expr! {
-        forall r: Ref, value: [inner_type] :: {[cons_ident](r, value)} ([value_ident]([cons_ident](r, value))) == (value)
-    });
-    builder.axiom("typeof", vir::expr! {
-        forall r: [vir::TYPE_REF], p: [inner_type] ::
-            {[output_ref.typeof_function](([cons_ident](r, p)) as Snap)}
-            ([output_ref.typeof_function](([cons_ident](r, p)) as Snap)) == ([ty_type_func.ty_constructor]([[generic_enc.param_type_function](p)]))
-    });
-    // builder.axiom("cons", vir::expr! {
-    //     forall s: [builder.self_type()] :: {[deref_ident](s)} ([cons_ident]([deref_ident](s))) == (s)
-    // });
-
-    // TODO: was this an axiom we had???
-    /*
-    match ty_kind {
-        ty::TyKind::Int(_) => {
-            let min = builder.vcx.get_min_int(&ty_kind);
-            let max = builder.vcx.get_max_int(&ty_kind);
-            builder.axiom("bounds", vir::expr! {
-                forall s: [builder.self_type()] :: {[deref_ident](s)} (([min]) <= ([deref_ident](s))) && (([deref_ident](s)) <= ([max]))
-            });
-        }
-        _ => (),
-    }
-    */
+    let (field_snaps_to_snap, field_access) = builder.constructor("", (vir::TYPE_REF, inner_type), None);
 
     Ok(DomainEncSpecifics::ImmRef(DomainDataImmRef {
-        prim_to_snap: cons_ident,
-        deref_access: deref_ident,
-        value_access: value_ident,
+        prim_to_snap: field_snaps_to_snap,
+        deref_access: field_access[0].downcast_ty(),
+        value_access: field_access[1].downcast_ty(),
     }))
 }
 

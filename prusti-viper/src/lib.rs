@@ -9,6 +9,9 @@ pub fn program_to_viper<'vir>(
     program: vir::Program<'vir>,
     ast: &'vir AstFactory<'_>,
 ) -> viper::Program<'vir> {
+    let mut adts = FxHashMap::default();
+    let mut adt_constructors: FxHashMap<_, _> = Default::default();
+    let mut adt_destructors: FxHashMap<_, _> = Default::default();
     let mut domains: FxHashMap<_, _> = Default::default();
     let mut domain_functions: FxHashMap<_, _> = Default::default();
     let mut domain_axioms: FxHashMap<_, _> = Default::default();
@@ -21,8 +24,20 @@ pub fn program_to_viper<'vir>(
             domain_axioms.insert(axiom.name, (*domain, *axiom));
         }
     }
+    for adt in program.adts {
+        adts.insert(adt.name, *adt);
+        for constructor in adt.constructors {
+            adt_constructors.insert(constructor.name, (*adt, *constructor));
+            for destructor in constructor.args {
+                adt_destructors.insert(destructor.name, (*adt, *destructor));
+            }
+        }
+    }
     let ctx = ToViperContext {
         ast,
+        adts,
+        adt_constructors,
+        adt_destructors,
         domains,
         domain_functions,
         domain_axioms,
@@ -38,6 +53,15 @@ pub fn program_to_viper<'vir>(
 pub struct ToViperContext<'vir, 'v> {
     /// Wrapper around JNI methods to create Viper AST methods.
     ast: &'v AstFactory<'v>,
+
+    /// Map of all adts in the program, keyed by name.
+    adts: FxHashMap<&'vir str, vir::Adt<'vir>>,
+
+    /// Map of all adt constructors in the program, keyed by name.
+    adt_constructors: FxHashMap<&'vir str, (vir::Adt<'vir>, vir::AdtConstructor<'vir>)>,
+
+    /// Map of all adt destructors in the program, keyed by name.
+    adt_destructors: FxHashMap<&'vir str, (vir::Adt<'vir>, vir::LocalDeclDyn<'vir>)>,
 
     /// Map of all domains in the program, keyed by name.
     domains: FxHashMap<&'vir str, vir::Domain<'vir>>,
@@ -242,6 +266,33 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Const<'vir> {
     }
 }
 
+impl<'vir, 'v> ToViper<'vir, 'v> for vir::Adt<'vir> {
+    type Output = viper::Adt<'v>;
+    fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
+        let type_vars = self
+            .typarams
+            .iter()
+            .map(|v| v.to_viper_no_pos(ctx))
+            .collect::<Vec<_>>();
+        let constructors = &self
+            .constructors
+            .iter()
+            .map(|v| {
+                ctx.ast.adt_constructor(
+                    v.name,
+                    &v.args
+                        .iter()
+                        .map(|v| v.to_viper_no_pos(ctx))
+                        .collect::<Vec<_>>(),
+                    self.name,
+                    &type_vars,
+                )
+            })
+            .collect::<Vec<_>>();
+        ctx.ast.adt(self.name, constructors, &type_vars)
+    }
+}
+
 impl<'vir, 'v> ToViper<'vir, 'v> for vir::Domain<'vir> {
     type Output = viper::Domain<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
@@ -336,6 +387,21 @@ impl<'vir, 'v, T: vir::CompType> ToViper<'vir, 'v> for vir::Expr<'vir, T> {
             vir::ExprKindData::Unfolding(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::UnOp(v) => v.to_viper_with_span(ctx, self.span),
 
+            vir::ExprKindData::AdtConstructor(v) => v.to_viper_with_span(ctx, self.span),
+            vir::ExprKindData::AdtDestructor(recv, field) => ctx.ast.adt_destructor(
+                field.name,
+                recv.to_viper_no_pos(ctx),
+                &[],
+                field.ty.to_viper_no_pos(ctx),
+                ctx.adt_destructors.get(field.name).unwrap().0.name,
+            ),
+            vir::ExprKindData::AdtDiscriminator(recv, field) => ctx.ast.adt_discr(
+                field,
+                recv.to_viper_no_pos(ctx),
+                &[],
+                ctx.adt_constructors.get(field).unwrap().0.name,
+            ),
+
             //vir::ExprKindData::Lazy(&'vir str, Box<dyn for <'a> Fn(&'vir crate::VirCtxt<'a>, Curr) -> Next + 'vir>),
             //vir::ExprKindData::Todo(&'vir str) => unreachable!(),
             _ => unimplemented!(),
@@ -388,6 +454,18 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::FuncApp<'vir> {
                 domain.name,
                 pos,
             )
+        } else if let Some((adt, _)) = ctx.adt_constructors.get(self.target) {
+            ctx.ast.adt_constructor_app(
+                self.target,
+                &self
+                    .args
+                    .iter()
+                    .map(|v| v.to_viper_no_pos(ctx))
+                    .collect::<Vec<_>>(),
+                &[],
+                self.result_ty.to_viper_no_pos(ctx),
+                adt.name,
+            )
         } else {
             ctx.ast.func_app(
                 self.target,
@@ -407,17 +485,14 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Function<'vir> {
     type Output = viper::Function<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
         let decreases = match &self.decreases {
-            vir::DecreasesGenData::Tuple(e, c) =>
-                Some(ctx.ast.decreases_tuple(
-                    &e.iter()
-                        .map(|v| v.to_viper_no_pos(ctx))
-                        .collect::<Vec<_>>(),
-                    c.as_ref().map(|v| v.to_viper_no_pos(ctx)),
-                )),
-            vir::DecreasesGenData::Wildcard(c) =>
-                Some(ctx.ast.decreases_wildcard(
-                    c.as_ref().map(|v| v.to_viper_no_pos(ctx)),
-                )),
+            vir::DecreasesGenData::Tuple(e, c) => Some(ctx.ast.decreases_tuple(
+                &e.iter().map(|v| v.to_viper_no_pos(ctx)).collect::<Vec<_>>(),
+                c.as_ref().map(|v| v.to_viper_no_pos(ctx)),
+            )),
+            vir::DecreasesGenData::Wildcard(c) => Some(
+                ctx.ast
+                    .decreases_wildcard(c.as_ref().map(|v| v.to_viper_no_pos(ctx))),
+            ),
             vir::DecreasesGenData::Star => Some(ctx.ast.decreases_star()),
             vir::DecreasesGenData::None => None,
         };
@@ -680,6 +755,11 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Program<'vir> {
                 .iter()
                 .map(|v| v.to_viper_no_pos(ctx))
                 .collect::<Vec<_>>(),
+            &self
+                .adts
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
         )
     }
 }
@@ -831,29 +911,34 @@ impl<'vir, 'v, T: CompType> ToViper<'vir, 'v> for vir::Type<'vir, T> {
             vir::TypeKind::Bool => ctx.ast.bool_type(),
             vir::TypeKind::DomainTypeParam(param) => ctx.ast.type_var(param.name),
             vir::TypeKind::Domain(name, params) => {
-                let domain = ctx
-                    .domains
-                    .get(name)
-                    .unwrap_or_else(|| panic!("Domain {name} not found"));
-                ctx.ast.domain_type(
-                    name,
-                    &domain
-                        .typarams
-                        .iter()
-                        .zip(params.iter())
-                        .map(|(domain_param, actual)| {
-                            (
-                                ctx.ast.type_var(domain_param.name),
-                                actual.to_viper_no_pos(ctx),
-                            )
-                        })
-                        .collect::<Vec<_>>(),
-                    &domain
-                        .typarams
-                        .iter()
-                        .map(|v| ctx.ast.type_var(v.name))
-                        .collect::<Vec<_>>(),
-                )
+                let (domain, typarams) = match (ctx.domains.get(name), ctx.adts.get(name)) {
+                    (Some(_), Some(_)) | (None, None) => {
+                        panic!("Domain/Adt {name} not found")
+                    }
+                    (Some(domain), None) => (true, domain.typarams),
+                    (None, Some(adt)) => (false, adt.typarams),
+                };
+                let partial_typ_vars_map = typarams
+                    .iter()
+                    .zip(params.iter())
+                    .map(|(domain_param, actual)| {
+                        (
+                            ctx.ast.type_var(domain_param.name),
+                            actual.to_viper_no_pos(ctx),
+                        )
+                    })
+                    .collect::<Vec<_>>();
+                let type_parameters = typarams
+                    .iter()
+                    .map(|v| ctx.ast.type_var(v.name))
+                    .collect::<Vec<_>>();
+                if domain {
+                    ctx.ast
+                        .domain_type(name, &partial_typ_vars_map, &type_parameters)
+                } else {
+                    ctx.ast
+                        .adt_type(name, &partial_typ_vars_map, &type_parameters)
+                }
             }
             vir::TypeKind::Ref => ctx.ast.ref_type(),
             vir::TypeKind::Perm => ctx.ast.perm_type(),

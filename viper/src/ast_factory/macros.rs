@@ -89,6 +89,26 @@ macro_rules! build_ast_node {
 }
 
 #[macro_export]
+macro_rules! build_adt_node {
+    ($self:expr, $wrapper:ident, $($java_class:ident)::+, $($args1:expr),+ ; $($args2:expr),+) => {
+         {
+            let obj = $self.jni.unwrap_result(
+                $self.env.with_local_frame(16, move || {
+                    $($java_class)::+::with($self.env).new(
+                        $($args1),+ ,
+                        $self.no_position().to_jobject(),
+                        $self.no_info(),
+                        $($args2),+ ,
+                        $self.no_trafos(),
+                    )
+                })
+            );
+            $wrapper::new(obj)
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! get_ast_object {
     ($self:expr, $wrapper:ident, $($java_class:ident)::+) => {
         {

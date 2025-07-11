@@ -71,6 +71,7 @@ pub fn test_entrypoint<'tcx>(
     let mut viper_code = String::new();
 
     let mut program_fields = vec![];
+    let mut program_adts = vec![];
     let mut program_domains = vec![];
     let mut program_predicates = vec![];
     let mut program_functions = vec![];
@@ -127,7 +128,15 @@ pub fn test_entrypoint<'tcx>(
     }
 
     header(&mut viper_code, "snapshots");
-    for output in crate::encoders::DomainEnc_all_outputs() {
+    let (domains, adts) = crate::encoders::DomainEnc_all_outputs();
+    for (output, discr_fn) in adts {
+        viper_code.push_str(&format!("{:?}\n", output));
+        program_adts.push(output);
+        if let Some(discr_fn) = discr_fn {
+            program_functions.push(discr_fn);
+        }
+    }
+    for output in domains {
         viper_code.push_str(&format!("{:?}\n", output));
         program_domains.push(output);
     }
@@ -167,6 +176,7 @@ pub fn test_entrypoint<'tcx>(
     let program = vir::with_vcx(|vcx| {
         vcx.mk_program(
             vcx.alloc_slice(&program_fields),
+            vcx.alloc_slice(&program_adts),
             vcx.alloc_slice(&program_domains),
             vcx.alloc_slice(&program_predicates),
             vcx.alloc_slice(&program_functions),
