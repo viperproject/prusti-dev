@@ -340,7 +340,7 @@ impl TaskEncoder for CastersEnc<CastTypePure> {
             let make_concrete = vcx.mk_function(
                 make_concrete_ident,
                 (make_concrete_snap_arg_decl, &ty_params_vec),
-                vcx.alloc_slice(&[make_concrete_pre]),
+                &[],
                 vcx.alloc_slice(&[make_concrete_post]),
                 None,
                 None,
