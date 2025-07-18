@@ -150,27 +150,8 @@ where
                 typing_env,
                 vcx.tcx().fn_sig(def_id),
             );
-            let input_tys = sig
-                .inputs()
-                .iter()
-                .map(|i| i.skip_binder())
-                .copied()
-                .collect::<Vec<_>>();
-            let type_preconditions = input_tys.iter().enumerate().filter_map(|(idx, ty)| {
-                let vir_arg = local_defs.locals[mir::Local::from(idx + 1)];
-                let vir_arg = vcx.mk_local_ex(vir_arg.local.name, vir_arg.ty.snapshot);
-                Self::mk_type_assertion(vcx, deps, vir_arg, *ty)
-            });
 
             tracing::debug!("finished {def_id:?}");
-
-            let mut type_preconditions: Vec<_> = type_preconditions.collect();
-            let pres = if type_preconditions.is_empty() {
-                spec.pres
-            } else {
-                type_preconditions.extend(spec.pres);
-                type_preconditions
-            };
 
             let type_postcondition = Self::mk_type_assertion(
                 vcx,
@@ -187,7 +168,8 @@ where
                 function: vcx.mk_function(
                     function_ref,
                     (&func_tyval_args, &func_args),
-                    vcx.alloc_slice(&pres),
+                    // Functions do not have type preconditions
+                    vcx.alloc_slice(&spec.pres),
                     vcx.alloc_slice(&posts),
                     expr.is_none().then_some(&vir::DecreasesGenData::Star),
                     expr,

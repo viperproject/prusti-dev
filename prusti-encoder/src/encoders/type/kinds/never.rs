@@ -48,7 +48,7 @@ pub(crate) fn predicate<'vir>(
                 ref_self_decl.ty(),
                 snap_type,
                 (ref_self_decl,),
-                &[], // &[vir::expr! { false }],
+                &[],
                 &[],
                 None,
             )
