@@ -74,7 +74,6 @@ impl<'tcx> MostGenericTy<'tcx> {
     }
 
     pub fn tuple(arity: usize) -> Self {
-        assert!(arity != 1);
         let tuple = vir::with_vcx(|vcx| {
             let new_tys = vcx.tcx().mk_type_list_from_iter(
                 (0..arity).map(|index| to_placeholder(vcx.tcx(), Some(index))),
