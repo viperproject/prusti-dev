@@ -9,7 +9,7 @@ use prusti_rustc_interface::{
     span::{def_id::DefId, source_map::Spanned},
     target::abi,
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{add_debug_note, CastType, CompType};
 // TODO: replace uses of `PredicateEnc` with `SnapshotEnc`
@@ -174,28 +174,38 @@ impl TaskEncoder for MirPureEnc {
 #[derive(Debug, Default)]
 struct Update<'vir> {
     binds: Vec<UpdateBind<'vir>>,
-    versions: HashMap<mir::Local, usize>,
+    versions: HashMap<mir::Local, Version>,
 }
 
 #[derive(Debug)]
 enum UpdateBind<'vir> {
-    Local(mir::Local, usize, ExprRet<'vir>),
-    Phi(usize, ExprRet<'vir>),
+    Local(mir::Local, Version, ExprRet<'vir>),
+    Phi(Version, ExprRet<'vir>),
 }
 
 impl<'vir> Update<'vir> {
     fn new() -> Self {
-        Default::default()
+        Self::default()
     }
 
-    fn merge(self, newer: Self) -> Self {
+    fn assign(&mut self, local: mir::Local, mut version: Version, expr: ExprRet<'vir>) {
+        version.initialised = true;
+        self.binds.push(UpdateBind::Local(local, version, expr));
+        self.versions.insert(local, version);
+    }
+
+    fn merge(self, newer: Option<Self>) -> Option<Self> {
+        Some(self.merge_inner(newer?))
+    }
+
+    fn merge_inner(self, newer: Self) -> Self {
         Self {
             binds: self.binds.into_iter().chain(newer.binds).collect(),
             versions: self.versions.into_iter().chain(newer.versions).collect(),
         }
     }
 
-    fn add_to_map(&self, curr_ver: &mut HashMap<mir::Local, usize>) {
+    fn add_to_map(&self, curr_ver: &mut HashMap<mir::Local, Version>) {
         for (local, ver) in &self.versions {
             curr_ver.insert(*local, *ver);
         }
@@ -210,7 +220,7 @@ struct Enc<'vir: 'enc, 'enc> {
     body: &'enc mir::Body<'vir>,
     rev_doms: rev_doms::ReverseDominators,
     deps: &'enc mut TaskEncoderDependencies<'vir, MirPureEnc>,
-    // visited: IndexVec<mir::BasicBlock, bool>,
+    /// Always holds the next version to be used for a local.
     version_ctr: IndexVec<mir::Local, usize>,
     phi_ctr: usize,
     old_mode: bool,
@@ -224,7 +234,7 @@ impl<'vir, 'enc> PureFuncAppEnc<'vir, MirPureEnc> for Enc<'vir, 'enc> {
         self.vcx
     }
 
-    type EncodeOperandArgs = HashMap<mir::Local, usize>;
+    type EncodeOperandArgs = HashMap<mir::Local, Version>;
 
     type Curr = ExprInput<'vir>;
 
@@ -285,7 +295,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         }
     }
 
-    fn mk_local(&self, local: mir::Local, version: usize) -> &'vir str {
+    fn mk_local(&self, local: mir::Local, version: Version) -> &'vir str {
         vir::vir_format!(
             self.vcx,
             "_{}_{}s_{}",
@@ -304,20 +314,20 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             .snapshot
     }
 
-    fn mk_local_ex(&mut self, local: mir::Local, version: usize) -> ExprRet<'vir> {
+    fn mk_local_ex(&mut self, local: mir::Local, version: Version) -> ExprRet<'vir> {
         let ty = self.get_ty_for_local(local);
         self.vcx.mk_local_ex(self.mk_local(local, version), ty)
     }
 
-    fn mk_phi(&self, idx: usize) -> &'vir str {
-        vir::vir_format!(self.vcx, "_{}_phi_{}", self.encoding_depth, idx)
+    fn mk_phi(&self, version: Version) -> &'vir str {
+        vir::vir_format!(self.vcx, "_{}_phi_{}", self.encoding_depth, version)
     }
 
     fn mk_phi_acc<T: vir::CompType>(
         &mut self,
         local: mir::Local,
         tuple_ref: crate::encoders::ViperTupleEncOutput<'vir>,
-        idx: usize,
+        version: Version,
         elem_idx: usize,
         _ty: vir::Type<'vir, T>,
     ) -> ExprRet<'vir> {
@@ -331,28 +341,24 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             tuple_ref.mk_elem(
                 self.vcx,
                 self.vcx.mk_local_ex(
-                    self.mk_phi(idx),
-                    tuple_ref.snapshot().map(|t| t).unwrap_or_else(|| {
-                        self.deps
-                            .require_ref::<GenericEnc>(())
-                            .unwrap()
-                            .param_snapshot
-                            .upcast_ty()
-                    }),
+                    self.mk_phi(version),
+                    tuple_ref.snapshot(),
                 ),
                 elem_idx,
             ),
         )
     }
 
-    fn bump_version(&mut self, update: &mut Update<'vir>, local: mir::Local, expr: ExprRet<'vir>) {
-        let new_version = self.version_ctr[local];
-        self.version_ctr[local] += 1;
+    fn bump_version(&mut self, update: &mut Update<'vir>, local: mir::Local, expr: ExprRet<'vir>, location: mir::Location) {
+        let new_version = self.bump_version_no_assign(local, location);
         // check that `local` and `expr` type correspond
-        update
-            .binds
-            .push(UpdateBind::Local(local, new_version, expr));
-        update.versions.insert(local, new_version);
+        update.assign(local, new_version, expr);
+    }
+
+    fn bump_version_no_assign(&mut self, local: mir::Local, location: mir::Location) -> Version {
+        let index = self.version_ctr[local];
+        self.version_ctr[local] += 1;
+        Version { index, location, initialised: false }
     }
 
     fn reify_binds<T: CompType>(
@@ -372,39 +378,43 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         &mut self,
         tuple_ref: &crate::encoders::ViperTupleEncOutput<'vir>,
         mod_locals: &[mir::Local],
-        curr_ver: &HashMap<mir::Local, usize>,
-        update: Update<'vir>,
+        curr_ver: &HashMap<mir::Local, Version>,
+        update: Option<Update<'vir>>,
     ) -> ExprRet<'vir> {
-        let tuple_args = mod_locals
-            .iter()
-            .map(|local| {
-                let local_ty = self.body.local_decls[*local].ty;
-                let cast = self
-                    .deps
-                    .require_local::<RustTyCastersEnc<CastTypePure>>(local_ty)
-                    .unwrap();
-                cast.cast_to_generic_if_necessary(
-                    self.vcx,
-                    self.mk_local_ex(
-                        *local,
-                        update.versions.get(local).copied().unwrap_or_else(|| {
-                            // TODO: remove (debug)
-                            if !curr_ver.contains_key(local) {
-                                tracing::error!("unknown version of local! {}", local.as_usize());
-                                return 0xff;
-                            }
-                            curr_ver[local]
-                        }),
-                    ),
-                ).upcast_ty()
-            })
-            .collect::<Vec<_>>();
-        self.reify_binds(update, tuple_ref.mk_cons(self.vcx, &tuple_args))
+        update.map(|update| {
+            let tuple_args = mod_locals
+                .iter()
+                .map(|local| {
+                    let local_ty = self.body.local_decls[*local].ty;
+                    let cast = self
+                        .deps
+                        .require_local::<RustTyCastersEnc<CastTypePure>>(local_ty)
+                        .unwrap();
+                    cast.cast_to_generic_if_necessary(
+                        self.vcx,
+                        self.mk_local_ex(
+                            *local,
+                            update.versions.get(local).copied().unwrap_or_else(|| {
+                                // TODO: remove (debug)
+                                if !curr_ver.contains_key(local) {
+                                    tracing::error!("unknown version of local! {}", local.as_usize());
+                                    return Version { index: 0xff, ..Default::default() };
+                                }
+                                curr_ver[local]
+                            }),
+                        ),
+                    ).upcast_ty()
+                })
+                .collect::<Vec<_>>();
+            self.reify_binds(update, tuple_ref.mk_cons(self.vcx, &tuple_args))
+        }).unwrap_or_else(|| tuple_ref.mk_unreachable(self.vcx))
     }
 
     fn encode_body(&mut self) -> ExprRet<'vir> {
         let mut init = Update::new();
-        init.versions.insert(mir::RETURN_PLACE, 0);
+        let v0 = Version::default();
+        // TODO: what about locals which never have StorageLive (i.e. always_live)?
+        init.versions.insert(mir::RETURN_PLACE, v0);
         for local in 1..=self.body.arg_count {
             let local_ex = self.vcx.mk_lazy_expr(
                 vir::vir_format!(self.vcx, "pure in _{local}"),
@@ -412,15 +422,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 Box::new(move |_vcx, lctx: ExprInput<'vir>| lctx.1[local - 1].kind),
             );
             // check that `local` and `expr` type correspond
-            init.binds
-                .push(UpdateBind::Local(local.into(), 0, local_ex));
-            init.versions.insert(local.into(), 0);
+            self.bump_version(&mut init, local.into(), local_ex, v0.location);
         }
 
         let update = self.encode_cfg(&init.versions, mir::START_BLOCK, self.rev_doms.end);
 
-        let res = init.merge(update);
-        let ret_version = res.versions.get(&mir::RETURN_PLACE).copied().unwrap_or(0);
+        // do we ever panic here? if yes, return the `unreachable_to_snap` expr.
+        let res = init.merge(update).expect("function unconditionally terminates with unreachable");
+        let ret_version = res.versions.get(&mir::RETURN_PLACE).copied().unwrap_or(v0);
 
         let ex = self.mk_local_ex(mir::RETURN_PLACE, ret_version);
         self.reify_binds(res, ex)
@@ -428,14 +437,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
     fn encode_cfg(
         &mut self,
-        curr_ver: &HashMap<mir::Local, usize>,
+        curr_ver: &HashMap<mir::Local, Version>,
         curr: mir::BasicBlock,
         join_point: mir::BasicBlock,
-    ) -> Update<'vir> {
+    ) -> Option<Update<'vir>> {
         if curr == join_point {
             // We are done with the current fragment of the CFG, the rest is
             // handled in a parent call.
-            return Update::new();
+            return Some(Update::new());
         }
 
         // walk block statements first
@@ -443,14 +452,23 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         let stmt_update = self.body[curr]
             .statements
             .iter()
-            .fold(Update::new(), |update, stmt| {
-                let newer = self.encode_stmt(&new_curr_ver, stmt);
+            .enumerate()
+            .fold(Update::new(), |update, (statement_index, stmt)| {
+                let location = mir::Location {
+                    block: curr,
+                    statement_index,
+                };
+                let newer = self.encode_stmt(&new_curr_ver, stmt, location);
                 newer.add_to_map(&mut new_curr_ver);
-                update.merge(newer)
+                update.merge_inner(newer)
             });
 
         // then walk terminator
         let term = self.body[curr].terminator.as_ref().unwrap();
+        let location = mir::Location {
+            block: curr,
+            statement_index: self.body[curr].statements.len(),
+        };
         match &term.kind {
             &mir::TerminatorKind::Goto { target }
             | &mir::TerminatorKind::FalseEdge {
@@ -489,7 +507,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 // defined before the branch
                 let mut mod_locals = updates
                     .iter()
-                    .flat_map(|update| update.versions.keys())
+                    .flat_map(|update| update.iter().flat_map(|v| v.versions.keys()))
                     .filter(|local| new_curr_ver.contains_key(local))
                     .copied()
                     .collect::<Vec<_>>();
@@ -522,7 +540,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 );
 
                 // assign tuple into a `phi` variable
-                let phi_idx = self.phi_ctr;
+                let phi_idx = Version { index: self.phi_ctr, location, initialised: true };
                 self.phi_ctr += 1;
                 let mut phi_update = Update::new();
                 phi_update.binds.push(UpdateBind::Phi(phi_idx, phi_expr));
@@ -533,7 +551,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 for (elem_idx, local) in mod_locals.iter().enumerate() {
                     let ty = self.get_ty_for_local(*local);
                     let expr = self.mk_phi_acc(*local, tuple_ref.clone(), phi_idx, elem_idx, ty);
-                    self.bump_version(&mut phi_update, *local, expr);
+                    self.bump_version(&mut phi_update, *local, expr, location);
                     new_curr_ver.insert(*local, phi_update.versions[local]);
                 }
 
@@ -542,21 +560,11 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 stmt_update.merge(phi_update.merge(end_update))
             }
 
-            mir::TerminatorKind::Return => stmt_update,
+            mir::TerminatorKind::Return => Some(stmt_update),
 
             mir::TerminatorKind::Unreachable => {
-                // update the return place to "unreachable"
-                let mut end_update = Update::new();
-                let local = mir::RETURN_PLACE;
-                let ty = self.body.local_decls[local].ty;
-                let unreachable = self
-                    .deps
-                    .require_ref::<RustTyPredicatesEnc>(ty)
-                    .unwrap()
-                    .generic_predicate
-                    .unreachable_to_snap;
-                self.bump_version(&mut end_update, local, unreachable.gen()());
-                end_update
+                // will result in generating an unreachable phi merge
+                None
             }
 
             mir::TerminatorKind::Call {
@@ -606,13 +614,13 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
                 let mut term_update = Update::new();
                 assert!(destination.projection.is_empty());
-                self.bump_version(&mut term_update, destination.local, expr);
+                self.bump_version(&mut term_update, destination.local, expr, location);
                 term_update.add_to_map(&mut new_curr_ver);
 
                 // walk rest of CFG
                 let end_update = self.encode_cfg(&new_curr_ver, target.unwrap(), join_point);
 
-                stmt_update.merge(term_update).merge(end_update)
+                stmt_update.merge_inner(term_update).merge(end_update)
             }
 
             k => todo!("terminator kind {k:?}"),
@@ -621,14 +629,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
     fn encode_stmt(
         &mut self,
-        curr_ver: &HashMap<mir::Local, usize>,
+        curr_ver: &HashMap<mir::Local, Version>,
         stmt: &mir::Statement<'vir>,
+        location: mir::Location,
     ) -> Update<'vir> {
         let mut update = Update::new();
         match &stmt.kind {
             &mir::StatementKind::StorageLive(local) => {
-                let new_version = self.version_ctr[local];
-                self.version_ctr[local] += 1;
+                let new_version = self.bump_version_no_assign(local, location);
                 update.versions.insert(local, new_version);
             }
             mir::StatementKind::StorageDead(..)
@@ -638,7 +646,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             mir::StatementKind::Assign(box (dest, rvalue)) => {
                 //assert!(dest.projection.is_empty());
                 let expr = self.encode_rvalue(curr_ver, rvalue);
-                self.bump_version(&mut update, dest.local, expr);
+                self.bump_version(&mut update, dest.local, expr, location);
             }
             k => todo!("statement kind {k:?}"),
         }
@@ -647,7 +655,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
     fn encode_rvalue(
         &mut self,
-        curr_ver: &HashMap<mir::Local, usize>,
+        curr_ver: &HashMap<mir::Local, Version>,
         rvalue: &mir::Rvalue<'vir>,
     ) -> ExprRet<'vir> {
         let rvalue_ty = rvalue.ty(self.body, self.vcx.tcx());
@@ -810,7 +818,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
     fn encode_operand(
         &mut self,
-        curr_ver: &HashMap<mir::Local, usize>,
+        curr_ver: &HashMap<mir::Local, Version>,
         operand: &mir::Operand<'vir>,
     ) -> ExprRet<'vir> {
         match operand {
@@ -828,7 +836,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
     fn encode_place(
         &mut self,
-        curr_ver: &HashMap<mir::Local, usize>,
+        curr_ver: &HashMap<mir::Local, Version>,
         place: &mir::Place<'vir>,
     ) -> ExprRet<'vir> {
         self.encode_place_with_ref(curr_ver, place).0
@@ -836,7 +844,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
     fn encode_place_with_ref(
         &mut self,
-        curr_ver: &HashMap<mir::Local, usize>,
+        curr_ver: &HashMap<mir::Local, Version>,
         place: &mir::Place<'vir>,
     ) -> (ExprRet<'vir>, Option<ExprRetRef<'vir>>) {
         // TODO: remove (debug)
@@ -906,7 +914,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         sig: Binder<'vir, FnSig<'vir>>,
         arg_tys: ty::GenericArgsRef<'vir>,
         args: &[Spanned<mir::Operand<'vir>>],
-        curr_ver: &HashMap<mir::Local, usize>,
+        curr_ver: &HashMap<mir::Local, Version>,
     ) -> ExprRet<'vir> {
         #[derive(Debug)]
         enum PrustiBuiltin {
@@ -1135,7 +1143,13 @@ mod rev_doms {
         pub fn new<'a, 'vir>(blocks: &'a mir::BasicBlocks<'vir>) -> Self {
             let no_succ_blocks = blocks
                 .iter_enumerated()
-                .filter(|(_, data)| data.terminator().successors().next().is_none())
+                .filter(|(_, data)| {
+                    /* The commented line below prevents e.g. a SwitchInt with a branch
+                       going to an Unreachable terminator from having a join point, so
+                       do not treat such terminators as return blocks. */
+                    // data.terminator().successors().next().is_none()
+                    matches!(data.terminator().kind, mir::TerminatorKind::Return | mir::TerminatorKind::UnwindResume)
+                })
                 .map(|(bb, _)| bb)
                 .collect();
             let rbb = RevBasicBlocks(blocks, no_succ_blocks);
@@ -1195,7 +1209,7 @@ mod rev_doms {
 /*
 fn encode_place<'vir>(
     vcx: vir::VirCtxt<'vir>
-    curr_ver: &HashMap<mir::Local, usize>,
+    curr_ver: &HashMap<mir::Local, Version>,
     place: &mir::Place<'vir>,
 ) -> ExprRet<'vir> {
     self.encode_place_with_ref(curr_ver, place).0
@@ -1203,7 +1217,7 @@ fn encode_place<'vir>(
 fn encode_place_with_ref<'vir, 'enc>(
     vcx: &'vir vir::VirCtxt<'vir>,
     deps: &'enc mut TaskEncoderDependencies<'vir, MirPureEnc>,
-    curr_ver: &HashMap<mir::Local, usize>,
+    curr_ver: &HashMap<mir::Local, Version>,
     place: &mir::Place<'vir>,
 ) -> (ExprRet<'vir>, Option<ExprRet<'vir>>) {
     // TODO: remove (debug)
@@ -1361,5 +1375,33 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
         }
         mir::ProjectionElem::Downcast(..) => (expr.upcast_ty(), place_ref),
         _ => todo!("Unsupported ProjectionElem {:?}", elem),
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Version {
+    index: usize,
+    location: mir::Location,
+    initialised: bool,
+}
+
+impl Default for Version {
+    fn default() -> Self {
+        Self {
+            index: 0,
+            location: mir::Location::START,
+            initialised: false,
+        }
+    }
+}
+
+impl fmt::Display for Version {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if cfg!(debug_assertions) {
+            assert!(self.initialised);
+            write!(f, "{:?}_s{}_i{}", self.location.block, self.location.statement_index, self.index)
+        } else {
+            write!(f, "{}", self.index)
+        }
     }
 }
