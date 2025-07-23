@@ -137,6 +137,32 @@ impl<'vir> Debug for DomainFunctionData<'vir> {
     }
 }
 
+impl<'vir, Curr, Next> Debug for AdtGenData<'vir, Curr, Next> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        writeln!(f, "  adt {}", self.name)?;
+        if !self.typarams.is_empty() {
+            write!(f, "[")?;
+            fmt_comma_sep_display(f, self.typarams)?;
+            write!(f, "]")?;
+        }
+        writeln!(f, " {{")?;
+        for constructor in self.constructors {
+            writeln!(f, "{constructor:?}")?;
+        }
+        writeln!(f, "  }}")
+    }
+}
+
+impl<'vir, Curr, Next> Debug for AdtConstructorGenData<'vir, Curr, Next> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "    {}(", self.name)?;
+        fmt_comma_sep(f, self.args)?;
+        write!(f, ")")?;
+        assert!(self.axiom.is_none());
+        Ok(())
+    }
+}
+
 impl<'vir, Curr, Next, T: CompType> Debug for ExprGenData<'vir, Curr, Next, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         if let Some(span) = self.span {
@@ -166,6 +192,9 @@ impl<'vir, Curr, Next> Debug for ExprKindGenData<'vir, Curr, Next> {
             Self::Ternary(e) => e.fmt(f),
             Self::UnOp(e) => e.fmt(f),
             Self::Unfolding(e) => e.fmt(f),
+            Self::AdtConstructor(e) => e.fmt(f),
+            Self::AdtDestructor(e, field) => write!(f, "{:?}.{}", e, field.name),
+            Self::AdtDiscriminator(e, cons) => write!(f, "{:?}.is{cons}", e),
             Self::Todo(e) => write!(f, "{}", e),
         }
     }

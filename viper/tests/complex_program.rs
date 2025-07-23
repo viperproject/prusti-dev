@@ -189,6 +189,7 @@ fn success_with_complex_program() {
         &[even_function],
         &[even_num_box_predicate],
         &[method],
+        &[],
     );
 
     let mut verifier =

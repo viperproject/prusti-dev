@@ -59,7 +59,7 @@ fn verify_multiple_errors(backend: viper::VerificationBackend, args: Vec<String>
         &[],
         Some(body),
     );
-    let program = ast.program(&[], &[], &[], &[], &[method]);
+    let program = ast.program(&[], &[], &[], &[], &[method], &[]);
 
     let mut verifier =
         verification_context.new_verifier_with_default_smt_and_extra_args(backend, args);

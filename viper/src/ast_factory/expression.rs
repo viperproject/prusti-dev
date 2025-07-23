@@ -1040,6 +1040,64 @@ impl<'a> AstFactory<'a> {
         Expr::new(obj)
     }
 
+    pub fn adt_constructor_app(
+        &self,
+        constructor_name: &str,
+        args: &[Expr],
+        type_var_map: &[(Type, Type)],
+        return_type: Type,
+        adt_name: &str,
+    ) -> Expr<'a> {
+        build_adt_node!(
+            self,
+            Expr,
+            plugin::standard::adt::AdtConstructorApp,
+            self.jni.new_string(constructor_name),
+            self.jni.new_seq(&map_to_jobjects!(args)),
+            self.jni.new_map(&map_to_jobject_pairs!(type_var_map));
+            return_type.to_jobject(),
+            self.jni.new_string(adt_name)
+        )
+    }
+
+    pub fn adt_destructor(
+        &self,
+        destructor_name: &str,
+        rcv: Expr,
+        type_var_map: &[(Type, Type)],
+        return_type: Type,
+        adt_name: &str,
+    ) -> Expr<'a> {
+        build_adt_node!(
+            self,
+            Expr,
+            plugin::standard::adt::AdtDestructorApp,
+            self.jni.new_string(destructor_name),
+            rcv.to_jobject(),
+            self.jni.new_map(&map_to_jobject_pairs!(type_var_map));
+            return_type.to_jobject(),
+            self.jni.new_string(adt_name)
+        )
+    }
+
+    pub fn adt_discr(
+        &self,
+        constructor_name: &str,
+        rcv: Expr,
+        type_var_map: &[(Type, Type)],
+        adt_name: &str,
+    ) -> Expr<'a> {
+        build_adt_node!(
+            self,
+            Expr,
+            plugin::standard::adt::AdtDiscriminatorApp,
+            self.jni.new_string(constructor_name),
+            rcv.to_jobject(),
+            self.jni.new_map(&map_to_jobject_pairs!(type_var_map));
+            self.jni.new_string(adt_name)
+        )
+    }
+
     pub fn field_access_with_pos(&self, rcv: Expr, field: Field, pos: Position) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,

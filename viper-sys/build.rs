@@ -334,6 +334,24 @@ fn main() {
             java_class!("viper.silver.ast.Domain", vec![
                 constructor!(),
             ]),
+            java_class!("viper.silver.plugin.standard.adt.Adt", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.plugin.standard.adt.AdtConstructor", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.plugin.standard.adt.AdtType", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.plugin.standard.adt.AdtConstructorApp", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.plugin.standard.adt.AdtDestructorApp", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.plugin.standard.adt.AdtDiscriminatorApp", vec![
+                constructor!(),
+            ]),
             java_class!("viper.silver.ast.NamedDomainAxiom", vec![
                 constructor!(),
             ]),
