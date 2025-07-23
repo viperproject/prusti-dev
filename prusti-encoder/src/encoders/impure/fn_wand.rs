@@ -25,10 +25,7 @@ type Pledges<'vir> = Vec<(
 
 #[derive(Clone, Debug, Default)]
 pub struct WandEncOutput<'vir> {
-    pub late_bound: Vec<IndirectKey>,
-    pub inputs: Vec<IndirectKey>,
-    pub outputs: Vec<IndirectKey>,
-    pub edges: Vec<(IndirectKey, IndirectKey)>,
+    edges: WandEncEdges,
     pub generic_to_param: FxHashMap<IndirectKey, Vec<(mir::Local, ty::Ty<'vir>)>>,
     pub pledges: Pledges<'vir>,
 }
@@ -251,6 +248,64 @@ pub struct WandEncTask {
     pub def_id: DefId,
 }
 
+#[derive(Clone, Debug, Default)]
+struct WandEncEdges {
+    /// for b in inputs { requires b }
+    inputs: Vec<IndirectKey>,
+    /// for a in outputs { ensures a }
+    outputs: Vec<IndirectKey>,
+    /// for (a, b) in edges { ensures a --* b }
+    edges: Vec<(IndirectKey, IndirectKey)>,
+}
+
+impl WandEncEdges {
+    fn input(&mut self, key: IndirectKey) {
+        debug_assert!(!self.inputs.contains(&key), "input {key:?} already exists");
+        self.inputs.push(key);
+    }
+
+    fn output(&mut self, key: IndirectKey) {
+        debug_assert!(
+            !self.outputs.contains(&key),
+            "output {key:?} already exists"
+        );
+        self.outputs.push(key);
+    }
+
+    fn input_and_output(&mut self, key: IndirectKey, skip_output: bool) {
+        if !skip_output {
+            self.output(key);
+        }
+        self.input(key);
+        self.edge(key, key);
+    }
+
+    /// Adds an edge of `output --* input`.
+    fn edge(&mut self, output: IndirectKey, input: IndirectKey) {
+        debug_assert!(
+            self.inputs.contains(&input),
+            "input {input:?} does not exist"
+        );
+        debug_assert!(
+            self.outputs.contains(&output),
+            "output {output:?} does not exist"
+        );
+        debug_assert!(
+            !self.edges.contains(&(output, input)),
+            "edge {output:?} --* {input:?} already exists"
+        );
+        let output_param = matches!(output, IndirectKey::Param(..));
+        let input_param = matches!(input, IndirectKey::Param(..));
+        if input_param ^ output_param {
+            // TODO: handle generics that are instantiated with a lifetime type
+            // and are nested under another lifetime, e.g.
+            // fn foo<T>(x: &mut T) -> &mut T (with `T -> &mut i32`)
+            return;
+        }
+        self.edges.push((output, input));
+    }
+}
+
 impl TaskEncoder for WandEnc {
     task_encoder::encoder_cache!(WandEnc);
 
@@ -280,39 +335,64 @@ impl TaskEncoder for WandEnc {
             let substs = ecx.identity_substs(def_id);
 
             let fn_sig = ecx.get_fn_sig(def_id, substs);
-            let late_bound = tcx.collect_referenced_late_bound_regions(fn_sig);
             let args = [fn_sig.skip_binder().output()]
                 .into_iter()
                 .chain(fn_sig.skip_binder().inputs().iter().copied())
                 .enumerate();
             let mut generic_to_param: FxHashMap<IndirectKey, Vec<_>> = Default::default();
+
+            let mut gidx_map: FxHashMap<IndirectKey, Result<ty::Variance, usize>> =
+                Default::default();
+            let mut edges = WandEncEdges::default();
+
             for (i, ty) in args {
                 for ga in ty.walk() {
                     let Some(key) = IndirectKey::from_generic_arg(ga) else {
                         continue;
                     };
-                    generic_to_param
-                        .entry(key)
-                        .or_default()
-                        .push((mir::Local::from_usize(i), ty));
+                    let local = mir::Local::from_usize(i);
+                    if let IndirectKey::Late(..) = key {
+                        // A late bound lifetime is guaranteed to not be nested
+                        // (otherwise it would have an outlives and not be late bound).
+                        if local == mir::RETURN_PLACE {
+                            match gidx_map.insert(key, Ok(ty::Variance::Covariant)) {
+                                Some(Ok(ty::Variance::Covariant)) => {}
+                                None => edges.output(key),
+                                _ => unreachable!(),
+                            }
+                        } else {
+                            use std::collections::hash_map::Entry;
+                            match gidx_map.entry(key) {
+                                Entry::Occupied(mut o) => match o.get() {
+                                    Ok(ty::Variance::Covariant) => {
+                                        o.insert(Ok(ty::Variance::Invariant)).ok();
+                                        edges.input_and_output(key, true);
+                                    }
+                                    Ok(ty::Variance::Contravariant | ty::Variance::Invariant) => {}
+                                    _ => unreachable!(),
+                                },
+                                Entry::Vacant(v) => {
+                                    v.insert(Ok(ty::Variance::Contravariant));
+                                    edges.input(key);
+                                }
+                            }
+                        }
+                    }
+                    generic_to_param.entry(key).or_default().push((local, ty));
                 }
             }
 
             let outlives_env = ecx.outlives_env(def_id);
 
-            // for b in inputs { requires b }
-            let mut inputs = Vec::new();
-            // for a in outputs { ensures a }
-            let mut outputs = Vec::new();
-            // for (a, b) in edges { ensures a --* b }
-            let mut edges = Vec::new();
-
             let variances = tcx.variances_of(def_id);
             let generics = tcx.generics_of(def_id);
             assert_eq!(generics.count(), variances.len());
-            assert!(generics.has_late_bound_regions.is_some() || late_bound.is_empty());
+            // Old way of collecting late bound regions, not used anymore.
+            debug_assert!(
+                generics.has_late_bound_regions.is_some()
+                    || tcx.collect_referenced_late_bound_regions(fn_sig).is_empty()
+            );
 
-            let mut gidx_map: FxHashMap<IndirectKey, usize> = Default::default();
             for i in 0..generics.count() {
                 let g = generics.param_at(i, tcx);
                 let key = match g.kind {
@@ -326,18 +406,16 @@ impl TaskEncoder for WandEnc {
                     // TODO: skip here?
                     ty::GenericParamDefKind::Const { .. } => continue,
                 };
-                gidx_map.insert(key, i);
+                gidx_map.insert(key, Err(i));
                 match variances[i] {
                     ty::Variance::Covariant => {
-                        outputs.push(key);
+                        edges.output(key);
                     }
                     ty::Variance::Contravariant => {
-                        inputs.push(key);
+                        edges.input(key);
                     }
                     ty::Variance::Invariant => {
-                        inputs.push(key);
-                        outputs.push(key);
-                        edges.push((key, key));
+                        edges.input_and_output(key, false);
                     }
                     ty::Variance::Bivariant => todo!("not sure what this means/how to handle it"),
                 }
@@ -345,13 +423,16 @@ impl TaskEncoder for WandEnc {
 
             // `b` outlives `a`
             let mut insert_edge = |a, b| {
-                let (v_a, v_b) = (variances[gidx_map[&a]], variances[gidx_map[&b]]);
+                let (v_a, v_b) = (
+                    gidx_map[&a].unwrap_or_else(|i| variances[i]),
+                    gidx_map[&b].unwrap_or_else(|i| variances[i]),
+                );
                 if let (
                     ty::Variance::Covariant | ty::Variance::Invariant,
                     ty::Variance::Contravariant | ty::Variance::Invariant,
                 ) = (v_a, v_b)
                 {
-                    edges.push((a, b));
+                    edges.edge(a, b);
                 }
             };
 
@@ -380,21 +461,17 @@ impl TaskEncoder for WandEnc {
                 let GenericKind::Param(b) = pred.0 else {
                     todo!("region bound pair: {pred:?}");
                 };
-                let ty::RegionKind::ReEarlyParam(a) = pred.1.kind() else {
+                let Some(a) = IndirectKey::from_region(pred.1) else {
                     todo!("region bound pair: {pred:?}");
                 };
-                insert_edge(IndirectKey::Early(a), IndirectKey::Param(b));
+                // This edge may be skipped, see TODO in `WandEncEdges::edge`.
+                insert_edge(a, IndirectKey::Param(b));
             }
-
-            let late_bound = late_bound.into_iter().map(IndirectKey::Late).collect();
 
             let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false))?;
 
             Ok((
                 WandEncOutput {
-                    late_bound,
-                    inputs,
-                    outputs,
                     edges,
                     generic_to_param,
                     pledges: spec.pledges,
@@ -407,17 +484,15 @@ impl TaskEncoder for WandEnc {
 
 impl<'vir> WandEncOutput<'vir> {
     pub fn inputs(&self) -> impl Iterator<Item = IndirectKey> + '_ {
-        self.inputs
-            .iter()
-            .copied()
-            .chain(self.late_bound.iter().copied())
+        self.edges.inputs.iter().copied()
     }
 
     pub fn outputs(&self) -> impl Iterator<Item = IndirectKey> + '_ {
-        self.outputs
-            .iter()
-            .copied()
-            .chain(self.late_bound.iter().copied())
+        self.edges.outputs.iter().copied()
+    }
+
+    pub fn edges(&self) -> impl Iterator<Item = (IndirectKey, IndirectKey)> + '_ {
+        self.edges.edges.iter().copied()
     }
 
     /// convert edges to viper-supported wands
@@ -429,13 +504,13 @@ impl<'vir> WandEncOutput<'vir> {
         let mut wands: Vec<(Vec<IndirectKey>, Vec<IndirectKey>, Pledges<'vir>)> =
             Default::default();
 
-        for (lhs, rhs) in &self.edges {
-            edge_lhs.entry(*rhs).or_default().push(*lhs);
-            edge_rhs.entry(*lhs).or_default().push(*rhs);
+        for (lhs, rhs) in self.edges() {
+            edge_lhs.entry(rhs).or_default().push(lhs);
+            edge_rhs.entry(lhs).or_default().push(rhs);
         }
 
         let mut skip = FxHashSet::default();
-        for &rhs in &self.inputs {
+        for rhs in self.inputs() {
             if !skip.insert(rhs) {
                 continue;
             }
