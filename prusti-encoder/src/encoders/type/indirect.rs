@@ -29,11 +29,11 @@ impl IndirectKey {
         match region.kind() {
             RegionKind::ReEarlyParam(e) => Some(IndirectKey::Early(e)),
             RegionKind::ReBound(_, g) => Some(IndirectKey::Late(g.kind)),
+            RegionKind::ReLateParam(r) => Some(IndirectKey::Late(r.bound_region)),
             RegionKind::ReVar(r) => Some(IndirectKey::Var(r)),
-            RegionKind::RePlaceholder(..)
-            | RegionKind::ReError(..)
-            | RegionKind::ReErased
-            | RegionKind::ReLateParam(..) => unreachable!("{region:?}"),
+            RegionKind::RePlaceholder(..) | RegionKind::ReError(..) | RegionKind::ReErased => {
+                unreachable!("{region:?}")
+            }
             RegionKind::ReStatic => None,
         }
     }
