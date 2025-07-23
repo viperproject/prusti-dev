@@ -250,7 +250,7 @@ impl TaskEncoder for CastersEnc<CastTypePure> {
             let generic_ref = deps.require_ref::<GenericEnc>(())?;
             let self_ty = (domain_ref.domain)().downcast_ty();
             let base_name = &domain_ref.base_name;
-            let ty_constructor = deps.require_ref::<TyConstructorEnc>(*ty)?.ty_constructor;
+            let ty_constructor = deps.require_ref::<TyConstructorEnc>(*ty)?;
 
             let ty_params = ty
                 .generics()
@@ -294,14 +294,14 @@ impl TaskEncoder for CastersEnc<CastTypePure> {
                 .generics()
                 .iter()
                 .enumerate()
-                .map(|(idx, _)| domain_ref.ty_param_from_snap(vcx, idx, make_generic_expr))
+                .map(|(idx, _)| ty_constructor.ty_param_from_snap(vcx, idx, make_generic_expr))
                 .collect::<Vec<_>>();
 
             // Asserts that the type of `param` is equal to the ty constructor
             // applied to type arguments `args`
             let mk_type_spec = |param, args| {
                 let lifted_param_snap_ty = (generic_ref.param_type_function)(param);
-                vcx.mk_eq_expr(lifted_param_snap_ty, ty_constructor(args))
+                vcx.mk_eq_expr(lifted_param_snap_ty, (ty_constructor.ty_constructor)(args))
             };
 
             let make_generic = vcx.mk_function(

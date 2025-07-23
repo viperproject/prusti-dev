@@ -36,7 +36,7 @@ impl<'vir> ViperTupleEncOutput<'vir> {
         tuple: vir::ExprGenSnap<'vir, Curr, Next>,
         elem: usize,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
-        self.domain_data.field_access[elem].read.gen()(tuple.downcast_ty())
+        self.domain_data.field_access[elem].gen()(tuple.downcast_ty())
     }
 
     pub fn mk_unreachable<'tcx, Curr, Next>(

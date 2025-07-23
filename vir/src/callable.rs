@@ -78,6 +78,25 @@ impl<'a, 'vir, T: CompType, R: CompType> FnOnce<(&'a [crate::Type<'vir, T>],)>
     }
 }
 
+// An Adt destructor
+
+pub struct AdtDestructorWrapper<'vir, T: CompType>(AdtDestructor<'vir, T>);
+
+impl<'vir, T: CompType> crate::AdtDestructorData<'vir, T> {
+    pub fn gen(&'vir self) -> AdtDestructorWrapper<'vir, T> {
+        AdtDestructorWrapper(self)
+    }
+}
+
+impl<'a, 'vir, Curr, Next, T: CompType> FnOnce<(crate::ExprGenCSnap<'vir, Curr, Next>,)> for AdtDestructorWrapper<'vir, T> {
+    type Output = crate::ExprGen<'vir, Curr, Next, T>;
+    extern "rust-call" fn call_once(self, args: (crate::ExprGenCSnap<'vir, Curr, Next>,)) -> Self::Output {
+        with_vcx(|vcx| {
+            vcx.mk_adt_destructor_expr(args.0, self.0)
+        })
+    }
+}
+
 // Any callable thing
 
 pub trait CallableIdn<'vir, A: Arity> {
