@@ -1,5 +1,5 @@
 use crate::encoders::{
-    domain::{DomainBuilder, DomainEnc, DomainEncOutputRef, DomainEncSpecifics},
+    domain::{DomainBuilder, DomainEnc, DomainEncOutputRef, DomainEncSpecifics, PureTypeBuilder, PureTypeCommon},
     most_generic_ty::get_vir_base_name_kind,
     GenericEnc,
 };
@@ -10,8 +10,8 @@ use vir::{CallableIdn, CastType};
 pub(crate) fn domain<'vir>(
     task_key: <DomainEnc as TaskEncoder>::TaskKey<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, DomainEnc>,
-    builder: &mut DomainBuilder<'vir>,
-) -> Result<DomainEncSpecifics<'vir>, EncodeFullError<'vir, DomainEnc>> {
+    builder: PureTypeCommon<'vir>,
+) -> Result<(DomainEncSpecifics<'vir>, PureTypeBuilder<'vir>), EncodeFullError<'vir, DomainEnc>> {
     let ty = task_key.ty();
     let ty_kind = ty.kind();
     assert!(matches!(ty_kind, ty::TyKind::Param(..)));
@@ -23,11 +23,7 @@ pub(crate) fn domain<'vir>(
         DomainEncOutputRef {
             base_name,
             domain: out.domain_param_name.cast_ty(),
-            ty_param_accessors: &[],
-            typeof_function: out
-                .param_type_function
-                .cast_ty(out.param_type_function.arity().upcast_ty()),
         },
     )?;
-    Ok(DomainEncSpecifics::Param)
+    Ok((DomainEncSpecifics::Param, Err(DomainBuilder::new(builder))))
 }

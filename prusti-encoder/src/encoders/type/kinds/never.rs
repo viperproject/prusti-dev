@@ -3,7 +3,7 @@ use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::HasType;
 
 use crate::encoders::{
-    domain::{DomainBuilder, DomainEnc, DomainEncSpecifics},
+    domain::{DomainBuilder, DomainEnc, DomainEncSpecifics, PureTypeBuilder, PureTypeCommon},
     predicate::{PredicateBuilder, PredicateEncData},
     snapshot::SnapshotEncOutput,
     PredicateEnc,
@@ -12,10 +12,10 @@ use crate::encoders::{
 pub(crate) fn domain<'vir>(
     task_key: <DomainEnc as TaskEncoder>::TaskKey<'vir>,
     _deps: &mut TaskEncoderDependencies<'vir, DomainEnc>,
-    _builder: &mut DomainBuilder<'vir>,
-) -> Result<DomainEncSpecifics<'vir>, EncodeFullError<'vir, DomainEnc>> {
+    builder: PureTypeCommon<'vir>,
+) -> Result<(DomainEncSpecifics<'vir>, PureTypeBuilder<'vir>), EncodeFullError<'vir, DomainEnc>> {
     assert_eq!(*task_key.ty().kind(), ty::TyKind::Never);
-    Ok(DomainEncSpecifics::Never)
+    Ok((DomainEncSpecifics::Never, Err(DomainBuilder::new(builder))))
 }
 
 pub(crate) fn predicate<'vir>(

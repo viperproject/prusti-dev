@@ -345,6 +345,15 @@ impl<'vir, Ty: CompType> ExprApply<'vir, (crate::ExprRef<'vir>,), Ty> for crate:
         self.call_once(args)
     }
 }
+impl<'vir, Ty: CompType> ExprApply<'vir, (crate::ExprCSnap<'vir>,), Ty> for crate::AdtDestructor<'vir, Ty> {
+    fn expr_apply(
+        self,
+        _vcx: &'vir crate::VirCtxt,
+        args: (crate::ExprCSnap<'vir>,),
+    ) -> crate::Expr<'vir, Ty> {
+        self.gen().call_once(args)
+    }
+}
 
 pub trait ExprQuote<'vir, Ty: CompType> {
     fn expr(&self, vcx: &'vir crate::VirCtxt) -> crate::Expr<'vir, Ty>;

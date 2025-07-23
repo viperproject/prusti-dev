@@ -192,6 +192,16 @@ pub struct FieldData<'vir, T: CompType> {
     pub ty: Type<'vir, T>,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
+pub struct AdtDestructorData<'vir, T: CompType> {
+    #[serde(with = "crate::serde::serde_str")]
+    pub name: &'vir str, // TODO: identifiers
+    #[serde(with = "crate::serde::serde_ref")]
+    pub input: TypeCSnap<'vir>,
+    #[serde(with = "crate::serde::serde_ref")]
+    pub ty: Type<'vir, T>,
+}
+
 #[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
 #[serde(bound(deserialize = "'de: 'vir"))]
 pub struct DomainFunctionData<'vir> {
@@ -230,51 +240,9 @@ pub enum OldLabel<'vir> {
     Label(#[serde(with = "crate::serde::serde_str")] &'vir str),
 }
 
-// macro_rules! impl_ty_casts {
-//     ($($name:ident),*) => {
-//         $(
-//             impl<'vir, T: CompType> $name<'vir, T> {
-//                 /// The most general type cast. Always use `upcast_ty` or `downcast_ty` if
-//                 /// possible. The only reason to use this if casting e.g. a generic
-//                 /// `ExprGen<T>` type to a `ExprDyn` type.
-//                 fn cast_ty<U: CompType>(&self) -> &$name<'vir, U> {
-//                     U::check(self.ty.ty());
-//                     // SAFETY: all `ExpType` types have the same layout, the above `new`
-//                     // call checks that the contained type is valid for the new type.
-//                     unsafe { std::mem::transmute(self) }
-//                 }
-
-//                 /// Will panic if casting to an incorrect type.
-//                 pub fn downcast_ty<U: CompType>(&self) -> &$name<'vir, U> where T: TransmuteFrom<U> {
-//                     self.cast_ty::<U>()
-//                 }
-
-//                 /// Cannot panic.
-//                 pub fn upcast_ty<U: CompType>(&self) -> &$name<'vir, U> where U: TransmuteFrom<T> {
-//                     // Should never panic
-//                     self.cast_ty::<U>()
-//                 }
-
-//                 /// Cannot panic.
-//                 pub fn as_dyn(&self) -> &$name<'vir, crate::Dyn> {
-//                     self.cast_ty()
-//                 }
-//             }
-
-//             // impl<'vir, T: CompTypeUpcast<'vir, U>, U: CompType> Deref for $name<'vir, T> {
-//             //     type Target = $name<'vir, U>;
-//             //     fn deref(&self) -> &Self::Target {
-//             //         // The inner type check should never fail
-//             //         self.upcast_ty()
-//             //     }
-//             // }
-//         )*
-//     };
-// }
-
-// impl_ty_casts!(LocalData, LocalDeclData, FieldData);
-
 pub type AccFieldData<'vir> = crate::gendata::AccFieldGenData<'vir, !, !>;
+pub type AdtData<'vir> = crate::gendata::AdtGenData<'vir, !, !>;
+pub type AdtConstructorData<'vir> = crate::gendata::AdtConstructorGenData<'vir, !, !>;
 pub type BinOpData<'vir> = crate::gendata::BinOpGenData<'vir, !, !>;
 pub type CfgBlockData<'vir> = crate::gendata::CfgBlockGenData<'vir, !, !>;
 pub type CfgLabelData<'vir> = crate::gendata::CfgLabelGenData<'vir, !, !>;
