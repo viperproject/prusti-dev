@@ -4,7 +4,7 @@
 
 use crate::ast_factory::{structs::Type, AstFactory};
 use jni::objects::JObject;
-use viper_sys::wrappers::viper::silver::ast;
+use viper_sys::wrappers::viper::silver::{ast, plugin};
 
 impl<'a> AstFactory<'a> {
     pub fn int_type(&self) -> Type<'a> {
@@ -31,6 +31,23 @@ impl<'a> AstFactory<'a> {
         let obj = self
             .jni
             .unwrap_result(ast::TypeVar::with(self.env).new(self.jni.new_string(name)));
+        Type::new(obj)
+    }
+
+    pub fn adt_type(
+        &self,
+        adt_name: &str,
+        partial_typ_vars_map: &[(Type, Type)],
+        type_parameters: &[Type],
+    ) -> Type<'a> {
+        let obj = self.jni.unwrap_result(
+            plugin::standard::adt::AdtType::with(self.env).new(
+                self.jni.new_string(adt_name),
+                self.jni
+                    .new_map(&map_to_jobject_pairs!(partial_typ_vars_map)),
+                self.jni.new_seq(&map_to_jobjects!(type_parameters)),
+            ),
+        );
         Type::new(obj)
     }
 

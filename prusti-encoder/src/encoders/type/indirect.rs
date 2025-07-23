@@ -91,7 +91,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                                 inner_ty_enc
                                     .ref_to_pred(
                                         vcx,
-                                        (ref_domain.deref_access)(self_expr.downcast_ty()),
+                                        ref_domain.deref_access.gen()(self_expr.downcast_ty()),
                                         None,
                                     )
                                     .kind
@@ -113,7 +113,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                                     inner_expr
                                         .reify(
                                             vcx,
-                                            (ref_domain.value_access)(self_expr.downcast_ty())
+                                            ref_domain.value_access.gen()(self_expr.downcast_ty())
                                                 .upcast_ty(),
                                         )
                                         .kind
@@ -137,7 +137,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                                 vir::TYPE_BOOL,
                                 Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
                                     inner_expr
-                                        .reify(vcx, (accessor.read)(self_expr.downcast_ty()))
+                                        .reify(vcx, accessor.gen()(self_expr.downcast_ty()))
                                         .kind
                                 }),
                             )

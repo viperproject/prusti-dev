@@ -1,5 +1,5 @@
 use crate::encoders::{
-    domain::{DomainBuilder, DomainDataStruct, DomainEnc, DomainEncSpecifics},
+    domain::{DomainBuilder, DomainDataStruct, DomainEnc, DomainEncSpecifics, PureTypeBuilder, PureTypeCommon},
     predicate::{PredicateBuilder, PredicateEncData, PredicateEncDataStruct},
     snapshot::SnapshotEncOutput,
     PredicateEnc,
@@ -11,18 +11,19 @@ use vir::{CastType, HasType};
 pub(crate) fn domain<'vir>(
     task_key: <DomainEnc as TaskEncoder>::TaskKey<'vir>,
     _deps: &mut TaskEncoderDependencies<'vir, DomainEnc>,
-    builder: &mut DomainBuilder<'vir>,
-) -> Result<DomainEncSpecifics<'vir>, EncodeFullError<'vir, DomainEnc>> {
+    builder: PureTypeCommon<'vir>,
+) -> Result<(DomainEncSpecifics<'vir>, PureTypeBuilder<'vir>), EncodeFullError<'vir, DomainEnc>> {
+    let mut builder = DomainBuilder::new(builder);
     let ty = task_key.ty();
     let ty_kind = ty.kind();
     assert_eq!(*ty_kind, ty::TyKind::Str);
 
     let dummy_cons_ident = builder.function("cons", &[][..], builder.self_type());
 
-    Ok(DomainEncSpecifics::StructLike(DomainDataStruct {
+    Ok((DomainEncSpecifics::StructLike(DomainDataStruct {
         field_snaps_to_snap: dummy_cons_ident,
         field_access: &[],
-    }))
+    }), Err(builder)))
 }
 
 pub(crate) fn predicate<'vir>(

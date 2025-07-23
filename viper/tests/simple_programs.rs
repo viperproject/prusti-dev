@@ -22,7 +22,7 @@ fn success_with_empty_program() {
 
     let ast = verification_context.new_ast_factory();
 
-    let program = ast.program(&[], &[], &[], &[], &[]);
+    let program = ast.program(&[], &[], &[], &[], &[], &[]);
 
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
@@ -49,7 +49,7 @@ fn failure_with_assert_false() {
 
     let method = ast.method("foo", &[], &[], &[], &[], Some(body));
 
-    let program = ast.program(&[], &[], &[], &[], &[method]);
+    let program = ast.program(&[], &[], &[], &[], &[method], &[]);
 
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
@@ -93,7 +93,7 @@ fn success_with_assert_with_boolean_operations() {
 
     let method = ast.method("foo", &[], &[], &[], &[], Some(body));
 
-    let program = ast.program(&[], &[], &[], &[], &[method]);
+    let program = ast.program(&[], &[], &[], &[], &[method], &[]);
 
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
@@ -123,7 +123,7 @@ fn success_with_assert_false_in_dead_code() {
 
     let method = ast.method("foo", &[], &[], &[], &[], Some(body));
 
-    let program = ast.program(&[], &[], &[], &[], &[method]);
+    let program = ast.program(&[], &[], &[], &[], &[method], &[]);
 
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
@@ -157,7 +157,7 @@ fn success_with_assign_if_and_assert() {
 
     let method = ast.method("foo", &[], &[], &[], &[], Some(method_body));
 
-    let program = ast.program(&[], &[], &[], &[], &[method]);
+    let program = ast.program(&[], &[], &[], &[], &[method], &[]);
 
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
@@ -197,7 +197,7 @@ fn failure_with_assign_if_and_assert() {
 
     let method = ast.method("foo", &[], &[], &[], &[], Some(method_body));
 
-    let program = ast.program(&[], &[], &[], &[], &[method]);
+    let program = ast.program(&[], &[], &[], &[], &[method], &[]);
 
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
@@ -249,7 +249,7 @@ fn success_with_complex_post_condition() {
 
     let method = ast.method("foo", &[], &[], &[], &[], Some(body));
 
-    let program = ast.program(&[], &[], &[], &[], &[method]);
+    let program = ast.program(&[], &[], &[], &[], &[method], &[]);
 
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);

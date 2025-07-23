@@ -140,7 +140,30 @@ pub fn dump_viper_program(
     let namespace = "viper_program";
     let filename = format!("{program_name}.vpr");
     info!("Dumping Viper program to '{}/{}'", namespace, filename);
-    report(namespace, filename, ast_utils.pretty_print(program));
+    report(
+        namespace,
+        filename,
+        bodge_field_adt_discr(ast_utils.pretty_print(program)),
+    );
+}
+
+/// The pretty printing of Viper adt field discriminators is currently broken,
+/// this is a workaround for that. Remove once we're on a Viper version where
+/// that is fixed.
+fn bodge_field_adt_discr(s: String) -> String {
+    assert_eq!(include_str!("../../viper-toolchain"), "v-2025-02-04-1042\n");
+    s.split('.')
+        .map(|s| {
+            let Some(space) = s.as_bytes().iter().position(|c| *c == b' ') else {
+                return std::borrow::Cow::Borrowed(s);
+            };
+            if space == 0 || s.as_bytes()[space - 1] != b'?' {
+                return std::borrow::Cow::Borrowed(s);
+            }
+            std::borrow::Cow::Owned(format!("is{}{}", &s[..space - 1], &s[space..]))
+        })
+        .collect::<Vec<_>>()
+        .join(".")
 }
 
 fn new_viper_verifier<'v, 't: 'v>(

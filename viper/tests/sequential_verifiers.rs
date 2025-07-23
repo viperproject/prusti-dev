@@ -40,7 +40,7 @@ fn sequential_verifier_initialization() {
 
         let method = ast.method("foo", &[], &[], &[], &[], Some(body));
 
-        let program = ast.program(&[], &[], &[], &[], &[method]);
+        let program = ast.program(&[], &[], &[], &[], &[method], &[]);
 
         let mut verifier =
             verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);

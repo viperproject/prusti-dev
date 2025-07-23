@@ -165,7 +165,7 @@ mod private {
             })*
         };
     }
-    impl_unsafe_cast!(LocalData; LocalDeclData; FieldData; ExprGenData<Curr, Next>; TypeData);
+    impl_unsafe_cast!(LocalData; LocalDeclData; FieldData; AdtDestructorData; ExprGenData<Curr, Next>; TypeData);
 }
 
 pub trait HasType<'vir, T: CompType> {
@@ -185,4 +185,4 @@ macro_rules! impl_has_type {
     };
 }
 
-impl_has_type!(LocalData.ty; LocalDeclData.ty; FieldData.ty; ExprGenData<Curr, Next>.ty; TypeData);
+impl_has_type!(LocalData.ty; LocalDeclData.ty; FieldData.ty; AdtDestructorData.ty; ExprGenData<Curr, Next>.ty; TypeData);

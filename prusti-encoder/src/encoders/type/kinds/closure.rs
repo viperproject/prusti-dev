@@ -1,6 +1,6 @@
 use crate::encoders::{
     domain::{
-        DomainBuilder, DomainDataStruct, DomainEnc, DomainEncOutputRef, DomainEncSpecifics, FieldTy,
+        AdtBuilder, DomainDataStruct, DomainEnc, DomainEncOutputRef, DomainEncSpecifics, FieldTy, PureTypeBuilder, PureTypeCommon
     },
     predicate::{PredicateBuilder, PredicateEncData, PredicateEncDataStruct},
     rust_ty_predicates::RustTyPredicatesEnc,
@@ -15,8 +15,9 @@ pub(crate) fn domain<'vir>(
     task_key: <DomainEnc as TaskEncoder>::TaskKey<'vir>,
     output_ref: &DomainEncOutputRef<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, DomainEnc>,
-    builder: &mut DomainBuilder<'vir>,
-) -> Result<DomainEncSpecifics<'vir>, EncodeFullError<'vir, DomainEnc>> {
+    builder: PureTypeCommon<'vir>,
+) -> Result<(DomainEncSpecifics<'vir>, PureTypeBuilder<'vir>), EncodeFullError<'vir, DomainEnc>> {
+    let mut builder = AdtBuilder::new(builder);
     let ty = task_key.ty();
     let ty_kind = ty.kind();
     let ty::TyKind::Closure(_def_id, args) = ty_kind else {
@@ -27,16 +28,16 @@ pub(crate) fn domain<'vir>(
     let fields = cl_args
         .upvar_tys()
         .iter()
-        .map(|ty| FieldTy::from_ty(builder.vcx, deps, ty))
+        .map(|ty| FieldTy::from_ty(deps, ty))
         .collect::<Result<Vec<_>, _>>()?;
 
-    let (field_snaps_to_snap, field_access, _) =
-        super::structlike::domain("", &fields, task_key, output_ref, &[], deps, builder)?;
+    let (field_snaps_to_snap, field_access) =
+        super::structlike::domain("", &fields, &mut builder, None);
 
-    Ok(DomainEncSpecifics::StructLike(DomainDataStruct {
+    Ok((DomainEncSpecifics::StructLike(DomainDataStruct {
         field_snaps_to_snap,
         field_access,
-    }))
+    }), Ok(builder)))
 
     /*
     let cl_args = args.as_closure();
