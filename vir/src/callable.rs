@@ -176,9 +176,9 @@ impl<'vir, A: Arity, R: CompType> FunctionIdn<'vir, A, R> {
     }
 }
 
-impl<'a, 'vir, A: Arity, R: CompType> FnOnce<A::Exprs<'a, 'vir, !, !>> for FunctionIdn<'vir, A, R> {
+impl<'a, 'vir, A: Arity, R: CompType> FnOnce<A::Exprs<'a, 'vir, (), !>> for FunctionIdn<'vir, A, R> {
     type Output = crate::Expr<'vir, R>;
-    extern "rust-call" fn call_once(self, args: A::Exprs<'a, 'vir, !, !>) -> Self::Output {
+    extern "rust-call" fn call_once(self, args: A::Exprs<'a, 'vir, (), !>) -> Self::Output {
         self.gen().call_once(args)
     }
 }
@@ -248,9 +248,9 @@ impl<'vir, A: Arity> MethodIdn<'vir, A> {
         }
     }
 }
-impl<'a, 'vir, A: Arity> FnOnce<A::Exprs<'a, 'vir, !, !>> for MethodIdn<'vir, A> {
-    type Output = StmtKindGenData<'vir, !, !>;
-    extern "rust-call" fn call_once(self, args: A::Exprs<'a, 'vir, !, !>) -> Self::Output {
+impl<'a, 'vir, A: Arity> FnOnce<A::Exprs<'a, 'vir, (), !>> for MethodIdn<'vir, A> {
+    type Output = StmtKindGenData<'vir, (), !>;
+    extern "rust-call" fn call_once(self, args: A::Exprs<'a, 'vir, (), !>) -> Self::Output {
         self.gen().call_once(args)
     }
 }
@@ -331,9 +331,9 @@ impl<'vir, A: Arity> PredicateIdn<'vir, A> {
     }
 }
 
-impl<'a, 'vir, A: Arity> FnOnce<A::Exprs<'a, 'vir, !, !>> for PredicateIdn<'vir, A> {
-    type Output = PredicateIdnCurry<'vir, !, !>;
-    extern "rust-call" fn call_once(self, args: A::Exprs<'a, 'vir, !, !>) -> Self::Output {
+impl<'a, 'vir, A: Arity> FnOnce<A::Exprs<'a, 'vir, (), !>> for PredicateIdn<'vir, A> {
+    type Output = PredicateIdnCurry<'vir, (), !>;
+    extern "rust-call" fn call_once(self, args: A::Exprs<'a, 'vir, (), !>) -> Self::Output {
         self.gen().call_once(args)
     }
 }

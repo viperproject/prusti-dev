@@ -107,7 +107,7 @@ impl_exp_type!(Dyn, TypeKind::Unsupported(..) => false, "Represents a dynamicall
 #[macro_export]
 macro_rules! typecheck_error {
     ($($arg:tt)*) => {
-        if cfg!(feature = "vir_panic_on_typecheck_error") {
+        if cfg!(feature = "vir_panic_on_typecheck_error") || cfg!(debug_assertions) {
             panic!($($arg)*);
         } else {
             tracing::error!(
@@ -176,13 +176,13 @@ pub trait HasType<'vir, T: CompType> {
 }
 
 macro_rules! impl_has_type {
-    ($($name:ident$(<$($g:ident),+>)?$(.$t:tt)?);+) => {
+    ($($name:ident$(<$($g:ident),+>)?$(.$t0:tt)?$(($t1:tt))?);+) => {
         $(impl<'vir$($(, $g)*)?, T: CompType> HasType<'vir, T> for $crate::$name<'vir$($(, $g)*)?, T> {
             fn ty(&'vir self) -> $crate::Type<'vir, T> {
-                self$(.$t)?
+                self$(.$t0)?$(.$t1())?
             }
         })*
     };
 }
 
-impl_has_type!(LocalData.ty; LocalDeclData.ty; FieldData.ty; AdtDestructorData.ty; ExprGenData<Curr, Next>.ty; TypeData);
+impl_has_type!(LocalData.ty; LocalDeclData.ty; FieldData.ty; AdtDestructorData.ty; ExprGenData<Curr, Next>(ty); TypeData);

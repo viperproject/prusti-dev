@@ -1,7 +1,7 @@
 use crate::{
     callable::*,
     data::*,
-    debug_info::{DebugInfo, DEBUGINFO_NONE},
+    debug_info::DebugInfo,
     gendata::*,
     genrefs::*,
     refs::*,
@@ -11,17 +11,6 @@ use cfg_if::cfg_if;
 use prusti_rustc_interface::middle::ty;
 use std::fmt::Debug;
 
-macro_rules! const_expr {
-    ($expr_kind:expr, $ty:ident => $ety:ident) => {{
-        const TY: $crate::$ety = unsafe { &$crate::TypeData::new_unchecked($crate::TypeKind::$ty) };
-        &ExprGenData {
-            kind: $expr_kind,
-            debug_info: DEBUGINFO_NONE,
-            span: None,
-            ty: TY,
-        }
-    }};
-}
 cfg_if! {
     if #[cfg(debug_assertions)] {
 
@@ -346,7 +335,7 @@ impl<'tcx> VirCtxt<'tcx> {
     ) -> ExprGen<'vir, Curr, Next, T> {
         let v = self.mk_const_expr(ConstData::Int(exec as u128));
         let args = [expr.as_dyn(), v.as_dyn()];
-        self.mk_func_app("rel", self.alloc_array(&args), expr.ty)
+        self.mk_func_app("rel", self.alloc_array(&args), expr.ty())
     }
 
     pub fn mk_forall_expr<'vir, Curr, Next, T: CompType>(
@@ -541,40 +530,6 @@ impl<'tcx> VirCtxt<'tcx> {
             self.alloc(ExprKindGenData::Todo(msg)),
             ty,
         ))
-    }
-
-    pub const fn mk_bool<'vir, const VALUE: bool>(&'vir self) -> ExprBool<'vir> {
-        self.mk_bool_gen::<!, !, VALUE>()
-    }
-
-    // TODO: can this simply replace mk_bool?
-    pub const fn mk_bool_gen<'vir, Curr, Next, const VALUE: bool>(
-        &'vir self,
-    ) -> ExprGenBool<'vir, Curr, Next> {
-        const_expr!(&ExprKindGenData::Const(&ConstData::Bool(VALUE)), Bool => TypeBool)
-    }
-
-    pub const fn mk_int<'vir, const VALUE: i128>(&'vir self) -> ExprInt<'vir> {
-        if VALUE < 0 {
-            const_expr!(&ExprKindGenData::UnOp(&UnOpData {
-                kind: UnOpKind::Neg,
-                expr: const_expr!(&ExprKindGenData::Const(&ConstData::Int((-VALUE) as u128)), Int => TypePrim),
-            }), Int => TypeInt)
-        } else {
-            const_expr!(&ExprKindGenData::<!, !>::Const(&ConstData::Int(VALUE as u128)), Int => TypeInt)
-        }
-    }
-
-    pub const fn mk_uint<'vir, const VALUE: u128>(&'vir self) -> ExprInt<'vir> {
-        const_expr!(&ExprKindGenData::<!, !>::Const(&ConstData::Int(VALUE)), Int => TypeInt)
-    }
-
-    pub const fn mk_wildcard<'vir, Curr, Next>(&'vir self) -> ExprGenPerm<'vir, Curr, Next> {
-        const_expr!(&ExprKindGenData::<Curr, Next>::Const(&ConstData::Wildcard), Perm => TypePerm)
-    }
-
-    pub const fn mk_null<'vir, Curr, Next>(&'vir self) -> ExprGenRef<'vir, Curr, Next> {
-        const_expr!(&ExprKindGenData::<Curr, Next>::Const(&ConstData::Null), Ref => TypeRef)
     }
 
     pub fn mk_result<'vir, Curr, Next, T: CompType>(
@@ -972,7 +927,7 @@ impl<'tcx> VirCtxt<'tcx> {
                         .downcast_ty()
                 })
             })
-            .unwrap_or_else(|| self.mk_bool_gen::<Curr, Next, true>())
+            .unwrap_or_else(|| self.mk_bool::<true>().gen())
     }
 
     pub fn mk_disj<'vir>(&'vir self, elems: &[ExprBool<'vir>]) -> ExprBool<'vir> {

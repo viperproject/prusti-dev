@@ -44,11 +44,13 @@ fn params_to_args_and_params(
         .map(|param| match param {
             syn::GenericParam::Type(ty) => {
                 i += 1;
-                if i > 2 {
-                    let ident = &ty.ident;
-                    syn::parse_quote! { #ident }
-                } else {
-                    syn::parse_quote!(!)
+                match i {
+                    1 => syn::parse_quote!(()),
+                    2 => syn::parse_quote!(!),
+                    _ => {
+                        let ident = &ty.ident;
+                        syn::parse_quote! { #ident }
+                    }
                 }
             }
             syn::GenericParam::Lifetime(l) => syn::GenericArgument::Lifetime(l.lifetime.clone()),
