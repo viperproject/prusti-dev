@@ -139,7 +139,7 @@ where
 
 impl<'vir, E: TaskEncoder> PureFuncAppEnc<'vir, E> for ImpureEncVisitor<'vir, '_, E> {
     type EncodeOperandArgs = ();
-    type Curr = !;
+    type Curr = ();
     type Next = !;
     type LocalDeclsSrc = mir::LocalDecls<'vir>;
     fn vcx(&self) -> &'vir vir::VirCtxt<'vir> {
