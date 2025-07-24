@@ -485,7 +485,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 edge_to_loop,
                 &mut to_skip,
             ),
-            BorrowPcgActionKind::AddEdge { edge, for_read: _ } => self.pcs_handle_edge(
+            BorrowPcgActionKind::AddEdge { edge } => self.pcs_handle_edge(
                 pcg.borrow_pcg(),
                 edge,
                 true,

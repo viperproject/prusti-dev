@@ -75,6 +75,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             }
             let mut wand_lhs = Vec::new();
             for i in outputs {
+                let i = match *i {
+                    PCGNode::RegionProjection(region_projection) => region_projection,
+                    PCGNode::Place(_) => unreachable!(),
+                };
                 let exprs = self.encode_region_projection(i, &mut let_bind);
                 wand_lhs.extend(exprs);
             }
@@ -94,9 +98,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         self.vcx.alloc_slice(&inv)
     }
 
-    pub(super) fn encode_pcg_node(
+    pub(super) fn encode_pcg_node<T: RegionProjectionBaseLike<'vir>>(
         &mut self,
-        node: &PCGNode<'vir, MaybeRemotePlace<'vir>, MaybeRemotePlace<'vir>>,
+        node: &PCGNode<'vir, MaybeRemotePlace<'vir>, T>,
         wand_rhs: &mut Vec<vir::ExprBool<'vir>>,
         old_outer: &mut WandOldOuter<'vir>,
     ) {
@@ -195,22 +199,27 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         vcx: &'vir vir::VirCtxt<'vir>,
         at: SnapshotLocation,
     ) -> vir::OldLabel<'vir> {
-        match at {
-            // TODO: handle this properly!!
-            SnapshotLocation::After(loc) => {
-                let name =
-                    vir::vir_format!(vcx, "_after_{}_{}", loc.block.index(), loc.statement_index);
-                vir::OldLabel::Label(name)
-            }
-            SnapshotLocation::Mid(loc) => {
-                let name =
-                    vir::vir_format!(vcx, "_mid_{}_{}", loc.block.index(), loc.statement_index);
-                vir::OldLabel::Label(name)
-            }
-            SnapshotLocation::Start(bb) => {
-                vir::OldLabel::Block(vir::CfgBlockLabelData::BasicBlock(bb.as_usize()))
-            }
+        if let SnapshotLocation::Start(bb) | SnapshotLocation::Loop(bb) = at {
+            return vir::OldLabel::Block(vir::CfgBlockLabelData::BasicBlock(bb.as_usize()));
         }
+        let label_identifier = match at {
+            SnapshotLocation::Start(_) => "start",
+            SnapshotLocation::Prepare(_) => "prepare",
+            SnapshotLocation::BeforeCollapse(_) => "before_collapse",
+            SnapshotLocation::Mid(_) => "mid",
+            SnapshotLocation::After(_) => "after",
+            SnapshotLocation::Loop(_) => "loop",
+            SnapshotLocation::BeforeRefReassignment(_) => "before_ref_reassignment",
+        };
+        let location = at.location();
+        let label = vir::vir_format!(
+            vcx,
+            "_{}_{}_{}",
+            label_identifier,
+            location.block.index(),
+            location.statement_index
+        );
+        vir::OldLabel::Label(label)
     }
 
     fn mk_wand_outer<T: vir::CompType>(
