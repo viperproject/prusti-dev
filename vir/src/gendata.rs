@@ -1,8 +1,7 @@
 use std::fmt::Debug;
 
 use crate::{
-    data::*, debug_info::DebugInfo, genrefs::*, refs::*, spans::VirSpan, with_vcx, CastType,
-    CompType,
+    data::*, debug_info::{DebugInfo, DEBUGINFO_NONE}, genrefs::*, refs::*, spans::VirSpan, typecheck_error, with_vcx, CastType, CompType
 };
 
 use vir_proc_macro::*;
@@ -144,21 +143,74 @@ pub struct ExprGenData<'vir, Curr: 'vir, Next: 'vir, T: CompType> {
     #[vir(reify_pass)]
     pub span: Option<&'vir VirSpan<'vir>>,
     // #[vir(reify_pass)]
-    pub ty: Type<'vir, T>,
+    ty: Type<'vir, T>,
+}
+
+macro_rules! const_expr {
+    ($expr_kind:expr, $ty:ident => $ety:ident) => {{
+        const TY: $crate::$ety = unsafe { &$crate::TypeData::new_unchecked($crate::TypeKind::$ty) };
+        &ExprGenData {
+            kind: $expr_kind,
+            debug_info: DEBUGINFO_NONE,
+            span: None,
+            ty: TY,
+        }
+    }};
 }
 
 impl<'vir, Curr: 'vir, Next: 'vir, T: CompType> ExprGenData<'vir, Curr, Next, T> {
-    pub(crate) fn new_with_ty(kind: ExprKindGen<'vir, Curr, Next>, ty: Type<'vir, T>) -> Self {
-        with_vcx(|vcx| Self {
-            kind,
-            debug_info: DebugInfo::new(vcx),
-            span: vcx.top_span(),
-            ty,
-        })
-    }
-
     pub(crate) fn new(kind: ExprKindGen<'vir, Curr, Next>) -> Self {
         Self::new_with_ty(kind, kind.ty().inner_cast_ty())
+    }
+
+    pub(crate) fn new_with_ty(kind: ExprKindGen<'vir, Curr, Next>, ty: Type<'vir, T>) -> Self {
+        with_vcx(|vcx| Self::new_inner(kind, DebugInfo::new(vcx), vcx.top_span(), ty))
+    }
+
+    pub(crate) fn new_inner(kind: ExprKindGen<'vir, Curr, Next>, debug_info: DebugInfo<'vir>, span: Option<&'vir VirSpan<'vir>>, ty: Type<'vir, T>) -> Self {
+        if kind.ty() != ty.as_dyn() {
+            typecheck_error!(
+                "ExprGenData new_inner: kind {:?} has type {:?}, but trying to create with type {:?}",
+                kind,
+                kind.ty(),
+                ty
+            );
+        }
+        Self {
+            kind,
+            debug_info,
+            span,
+            ty,
+        }
+    }
+}
+
+impl<'tcx> crate::VirCtxt<'tcx> {
+    pub const fn mk_bool<'vir, const VALUE: bool>(&'vir self) -> ExprBool<'vir> {
+        const_expr!(&ExprKindGenData::Const(&ConstData::Bool(VALUE)), Bool => TypeBool)
+    }
+
+    pub const fn mk_int<'vir, const VALUE: i128>(&'vir self) -> ExprInt<'vir> {
+        if VALUE < 0 {
+            const_expr!(&ExprKindGenData::UnOp(&UnOpData {
+                kind: UnOpKind::Neg,
+                expr: const_expr!(&ExprKindGenData::Const(&ConstData::Int((-VALUE) as u128)), Int => TypePrim),
+            }), Int => TypeInt)
+        } else {
+            const_expr!(&ExprKindGenData::<(), !>::Const(&ConstData::Int(VALUE as u128)), Int => TypeInt)
+        }
+    }
+
+    pub const fn mk_uint<'vir, const VALUE: u128>(&'vir self) -> ExprInt<'vir> {
+        const_expr!(&ExprKindGenData::<(), !>::Const(&ConstData::Int(VALUE)), Int => TypeInt)
+    }
+
+    pub const fn mk_wildcard<'vir>(&'vir self) -> ExprPerm<'vir> {
+        const_expr!(&ExprKindGenData::Const(&ConstData::Wildcard), Perm => TypePerm)
+    }
+
+    pub const fn mk_null<'vir>(&'vir self) -> ExprRef<'vir> {
+        const_expr!(&ExprKindGenData::Const(&ConstData::Null), Ref => TypeRef)
     }
 }
 
@@ -198,8 +250,8 @@ pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
     Todo(&'vir str),
 }
 
-unsafe impl<'vir> Send for ExprKindGenData<'vir, !, !> {}
-unsafe impl<'vir> Sync for ExprKindGenData<'vir, !, !> {}
+unsafe impl<'vir> Send for ExprKindGenData<'vir, (), !> {}
+unsafe impl<'vir> Sync for ExprKindGenData<'vir, (), !> {}
 
 impl<'vir, Curr, Next> ExprKindGenData<'vir, Curr, Next> {
     pub fn ty(&self) -> TypeDyn<'vir> {
@@ -234,7 +286,7 @@ impl<'vir, Curr, Next, T: CompType> ExprGenData<'vir, Curr, Next, T> {
         self.ty
     }
 
-    pub fn lift<Prev>(&self) -> ExprGen<'vir, Prev, ExprKindGen<'vir, Curr, Next>, T> {
+    pub fn lift<Prev>(&'vir self) -> ExprGen<'vir, Prev, ExprKindGen<'vir, Curr, Next>, T> {
         match self.kind {
             ExprKindGenData::Lazy(_) => panic!("cannot lift lazy expression"),
             _ => unsafe {
@@ -243,6 +295,17 @@ impl<'vir, Curr, Next, T: CompType> ExprGenData<'vir, Curr, Next, T> {
                     &ExprGenData<'vir, Prev, ExprKindGen<'vir, Curr, Next>, T>,
                 >(self)
             },
+        }
+    }
+}
+
+impl<'vir, T: CompType> ExprGenData<'vir, (), !, T> {
+    pub fn gen<Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next, T> {
+        unsafe {
+            std::mem::transmute::<
+                &ExprGenData<'vir, (), !, T>,
+                &ExprGenData<'vir, Curr, Next, T>,
+            >(self)
         }
     }
 }
@@ -469,7 +532,7 @@ pub struct ProgramGenData<'vir, Curr, Next> {
     // verification flags?
 }
 
-impl<'vir> ProgramGenData<'vir, !, !> {
+impl<'vir> ProgramGenData<'vir, (), !> {
     pub fn to_ref(&self) -> crate::ProgramRef {
         use std::hash::{Hash, Hasher};
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
@@ -480,7 +543,7 @@ impl<'vir> ProgramGenData<'vir, !, !> {
             //   `'static` reference. The reference is not used except in
             //   `VirCtxt::get_program`. See comment there.
             program: unsafe {
-                std::mem::transmute::<&ProgramGenData<'vir, !, !>, &ProgramGenData<'static, !, !>>(
+                std::mem::transmute::<&ProgramGenData<'vir, (), !>, &ProgramGenData<'static, (), !>>(
                     self,
                 )
             },
@@ -540,11 +603,11 @@ mod tests {
     //     crate::BinOpGenData {
     //         kind: crate::BinOpKind::Sub,
     //         lhs: &crate::ExprGenData {
-    //             kind: &crate::ExprKindGenData::<!, !>::Todo("todo"),
+    //             kind: &crate::ExprKindGenData::<(), !>::Todo("todo"),
     //             debug_info: DebugInfo::new(&vcx)
     //         },
     //         rhs: &crate::ExprGenData {
-    //             kind: &crate::ExprKindGenData::<!, !>::Todo("todo"),
+    //             kind: &crate::ExprKindGenData::<(), !>::Todo("todo"),
     //             debug_info: DebugInfo::new(&vcx)
     //         },
     //     },
@@ -595,13 +658,13 @@ mod tests {
     roundtrip_test_match!(
         rt_stmt,
         _vcx,
-        crate::StmtKindGenData::<!, !>::Dummy("hello",),
+        crate::StmtKindGenData::<(), !>::Dummy("hello",),
         crate::StmtKindGenData::Dummy("hello",)
     );
     roundtrip_test_match!(
         rt_terminatorstmt,
         _vcx,
-        crate::TerminatorStmtGenData::<!, !>::Exit,
+        crate::TerminatorStmtGenData::<(), !>::Exit,
         crate::TerminatorStmtGenData::Exit
     );
     roundtrip_test_eq!(

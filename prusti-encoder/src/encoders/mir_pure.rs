@@ -690,7 +690,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     // will return `None` if this isn't a re-borrow, and if it's
                     // a re-borrow of created-in-pure reference then it will be
                     // field projections of `null` which is also `null`.
-                    let place_ref = place_ref.unwrap_or_else(|| self.vcx.mk_null());
+                    let place_ref = place_ref.unwrap_or_else(|| self.vcx.mk_null().gen());
                     e_rvalue_ty.gen()(place_ref, snap).upcast_ty()
                 } else {
                     let e_rvalue_ty = rvalue_snapshot_encoding
@@ -700,7 +700,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     // For shared borrows we want to use just the snapshot
                     // without the reference so that snapshot equality compares
                     // only values.
-                    e_rvalue_ty.gen()(self.vcx.mk_null(), snap).upcast_ty()
+                    e_rvalue_ty.gen()(self.vcx.mk_null().gen(), snap).upcast_ty()
                 }
             }
             // ThreadLocalRef
@@ -1034,7 +1034,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 //   operation, which will work like reify
                 //   but panicking on a Lazy(..)?
                 let closure_ref = unsafe {
-                    std::mem::transmute::<ExprRet<'_>, vir::ExprGen<'_, !, !, vir::Snap>>(
+                    std::mem::transmute::<ExprRet<'_>, vir::ExprGen<'_, (), !, vir::Snap>>(
                         encoded_args[1],
                     )
                 };

@@ -84,7 +84,7 @@ pub fn derive_serde(input: TokenStream) -> TokenStream {
             let ga_no_never = generic_args
                 .iter()
                 .filter_map(|arg| match arg {
-                    syn::GenericArgument::Type(..) if arg.to_token_stream().to_string() != "!" => {
+                    syn::GenericArgument::Type(..) if !matches!(arg.to_token_stream().to_string().as_str(), "!" | "()") => {
                         Some(arg)
                     }
                     _ => None,
