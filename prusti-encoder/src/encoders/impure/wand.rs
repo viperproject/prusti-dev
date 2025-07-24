@@ -3,12 +3,12 @@ use pcg::{
         borrow_pcg_edge::{BorrowPcgEdgeLike, BorrowPcgEdgeRef},
         edge::{abstraction::AbstractionType, kind::BorrowPcgEdgeKind},
         graph::BorrowsGraph,
-        region_projection::RegionProjection,
         state::BorrowsState,
         unblock_graph::UnblockGraph,
+        AbstractionInputTarget, AbstractionOutputTarget,
     },
     pcg::PCGNode,
-    utils::{maybe_old::MaybeOldPlace, maybe_remote::MaybeRemotePlace},
+    utils::maybe_remote::MaybeRemotePlace,
 };
 use task_encoder::TaskEncoder;
 
@@ -16,8 +16,8 @@ use crate::encoders::ImpureEncVisitor;
 
 use super::r#loop::WandOldOuter;
 
-type Inputs<'a> = Vec<PCGNode<'a, MaybeRemotePlace<'a>, MaybeRemotePlace<'a>>>;
-type Outputs<'a> = Vec<RegionProjection<'a, MaybeOldPlace<'a>>>;
+type Inputs<'a> = Vec<AbstractionInputTarget<'a>>;
+type Outputs<'a> = Vec<AbstractionOutputTarget<'a>>;
 
 impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     pub(crate) fn ignore_abstraction_edge(
@@ -26,7 +26,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         let inputs: Inputs<'vir> = at.inputs();
         let skip = inputs
             .iter()
-            .any(|i| matches!(i, PCGNode::Place(MaybeRemotePlace::Remote(_))));
+            .any(|i| matches!(**i, PCGNode::Place(MaybeRemotePlace::Remote(_))));
         if skip {
             None
         } else {
@@ -64,13 +64,17 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         let mut proof_block = Vec::new();
         let mut wand_rhs = Vec::new();
         for i in inputs {
-            self.encode_pcg_node(&i, &mut wand_rhs, &mut old_outer);
+            self.encode_pcg_node(&*i, &mut wand_rhs, &mut old_outer);
             if package {
-                proof_block.extend(self.create_package_script(borrows_state, i, &mut old_outer));
+                proof_block.extend(self.create_package_script(borrows_state, *i, &mut old_outer));
             }
         }
         let mut wand_lhs = Vec::new();
         for i in outputs {
+            let i = match *i {
+                PCGNode::Place(_) => unreachable!(),
+                PCGNode::RegionProjection(region_projection) => region_projection,
+            };
             let exprs = self.encode_region_projection(i, &mut old_outer);
             wand_lhs.extend(exprs);
         }
