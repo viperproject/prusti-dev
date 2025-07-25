@@ -19,7 +19,7 @@ use crate::encoders::{
 };
 
 pub(super) enum WandOldOuter<'vir> {
-    LetBind(Vec<(&'vir str, vir::ExprSnap<'vir>)>),
+    LetBind(Vec<(&'vir str, Result<vir::ExprSnap<'vir>, vir::ExprRef<'vir>>)>),
     Label(Option<&'vir str>),
 }
 
@@ -91,6 +91,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 unreachable!()
             };
             for (ident, expr) in let_bind {
+                let expr = expr.map_or_else(|e| e.as_dyn(), |e| e.as_dyn());
                 wand = self.vcx.mk_let_expr(ident, expr, wand);
             }
             inv.push(wand);
@@ -177,7 +178,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         (place_snap, ty, ty_out)
     }
 
-    fn configure_old<T: vir::CompType>(
+    fn configure_old<T: SnapOrRef>(
         &mut self,
         place: MaybeRemotePlace,
         expr: vir::Expr<'vir, T>,
@@ -222,16 +223,15 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         vir::OldLabel::Label(label)
     }
 
-    fn mk_wand_outer<T: vir::CompType>(
+    fn mk_wand_outer<T: SnapOrRef>(
         &mut self,
         expr: vir::Expr<'vir, T>,
         old_outer: &mut WandOldOuter<'vir>,
     ) -> vir::Expr<'vir, T> {
         match old_outer {
             WandOldOuter::LetBind(let_bind) => {
-                let ident = vir::vir_format!(self.vcx, "_snap{}", let_bind.len());
-                // TODO: this is sometimes `Ref` type?
-                let_bind.push((ident, expr.inner_cast_ty()));
+                let ident = vir::vir_format!(self.vcx, "_lb{}", let_bind.len());
+                let_bind.push((ident, T::as_result(expr)));
                 self.vcx.mk_local_ex(ident, expr.ty())
             }
             WandOldOuter::Label(label) => {
@@ -239,5 +239,21 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 self.vcx.mk_local_labelled_old_expr(expr, label)
             }
         }
+    }
+}
+
+trait SnapOrRef: vir::CompType {
+    fn as_result<'vir>(e: vir::Expr<'vir, Self>) -> Result<vir::ExprSnap<'vir>, vir::ExprRef<'vir>>;
+}
+
+impl SnapOrRef for vir::Snap {
+    fn as_result<'vir>(e: vir::Expr<'vir, Self>) -> Result<vir::ExprSnap<'vir>, vir::ExprRef<'vir>> {
+        Ok(e)
+    }
+}
+
+impl SnapOrRef for vir::Ref {
+    fn as_result<'vir>(e: vir::Expr<'vir, Self>) -> Result<vir::ExprSnap<'vir>, vir::ExprRef<'vir>> {
+        Err(e)
     }
 }
