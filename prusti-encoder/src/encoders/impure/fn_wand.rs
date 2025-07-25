@@ -505,8 +505,8 @@ impl<'vir> WandEncOutput<'vir> {
             Default::default();
 
         for (lhs, rhs) in self.edges() {
-            edge_lhs.entry(rhs).or_default().push(lhs);
-            edge_rhs.entry(lhs).or_default().push(rhs);
+            edge_lhs.entry(lhs).or_default().push(rhs);
+            edge_rhs.entry(rhs).or_default().push(lhs);
         }
 
         let mut skip = FxHashSet::default();
@@ -520,13 +520,13 @@ impl<'vir> WandEncOutput<'vir> {
             };
             let lhs = lhss.first().unwrap();
             let rhss = &edge_lhs[lhs];
-            for rhs_other in rhss {
-                let lhss_other = &edge_lhs[rhs_other];
-                assert_eq!(lhss, lhss_other, "two inputs do not block the same set of outputs: {rhs:?} blocks {lhss:?}, {rhs_other:?} blocks {lhss_other:?}");
-            }
             for lhs_other in lhss {
-                let rhss_other = &edge_rhs[lhs_other];
-                assert_eq!(rhss, rhss_other, "two outputs are not blocked by the same set of inputs: {lhs:?} blocked by {rhss:?}, {lhs_other:?} blocked by {rhss_other:?}");
+                let rhss_other = &edge_lhs[lhs_other];
+                assert_eq!(rhss, rhss_other, "two outputs do not block the same set of inputs: {lhs:?} blocks {rhss:?}, {lhs_other:?} blocks {rhss_other:?}");
+            }
+            for rhs_other in rhss {
+                let lhss_other = &edge_rhs[rhs_other];
+                assert_eq!(lhss, lhss_other, "two inputs are not blocked by the same set of outputs: {rhs:?} blocked by {lhss:?}, {rhs_other:?} blocked by {lhss_other:?}");
             }
             wands.push((lhss.clone(), rhss.clone(), vec![]));
             skip.extend(rhss);
