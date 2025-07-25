@@ -124,10 +124,8 @@ where
                 .as_local()
                 .filter(|_| !trusted && is_function_with_body(vcx.tcx(), def_id));
             let blocks = if let Some(local_def_id) = local_def_id {
-                let body = vcx
-                    .body_mut()
-                    .get_impure_fn_body(local_def_id, substs, caller_def_id);
                 let body_with_facts = vcx.body_mut().get_impure_fn_body_with_facts(local_def_id);
+                let body = &body_with_facts.body;
 
                 let loop_analysis = LoopAnalysis::find_loops(&body);
                 let bc = BorrowCheckerImpl::new(vcx.tcx(), &body_with_facts);
