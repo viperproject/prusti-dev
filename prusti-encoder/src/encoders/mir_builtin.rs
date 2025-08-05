@@ -92,6 +92,7 @@ impl TaskEncoder for MirBuiltinEnc {
 fn int_name(ty: ty::Ty<'_>) -> &'static str {
     match ty.kind() {
         ty::TyKind::Bool => "bool",
+        ty::TyKind::Char => "char",
         ty::TyKind::Int(kind) => kind.name_str(),
         ty::TyKind::Uint(kind) => kind.name_str(),
         _ => unreachable!("non-integer type"),
