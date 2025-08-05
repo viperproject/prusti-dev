@@ -189,8 +189,7 @@ fn main() {
 
         let mut callbacks = PrustiCompilerCalls;
 
-        driver::RunCompiler::new(&rustc_args, &mut callbacks).run();
-        Ok(())
+        driver::run_compiler(&rustc_args, &mut callbacks)
     });
 
     // Check if verifying a program in our test suite is taking too long

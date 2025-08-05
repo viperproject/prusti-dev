@@ -7,7 +7,7 @@ use std::ops::Deref;
 use prusti_rustc_interface::{
     middle::ty::{self, IntTy, ParamTy, TyKind, UintTy},
     span::symbol,
-    target::abi,
+    abi,
 };
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{

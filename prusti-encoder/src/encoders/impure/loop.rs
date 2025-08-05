@@ -169,7 +169,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         old_outer: &mut WandOldOuter<'vir>,
     ) -> (
         vir::ExprSnap<'vir>,
-        mir::tcx::PlaceTy<'vir>,
+        mir::PlaceTy<'vir>,
         RustTyPredicatesEncOutputRef<'vir>,
     ) {
         let p = Self::get_place(place);

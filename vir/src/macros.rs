@@ -351,7 +351,7 @@ impl<'vir, Ty: CompType> ExprApply<'vir, (crate::ExprCSnap<'vir>,), Ty> for crat
         _vcx: &'vir crate::VirCtxt,
         args: (crate::ExprCSnap<'vir>,),
     ) -> crate::Expr<'vir, Ty> {
-        self.gen().call_once(args)
+        self.call().call_once(args)
     }
 }
 
@@ -387,7 +387,7 @@ macro_rules! expr_inner {
         $crate::CastType::inner_cast_ty::<$crate::$ty>($crate::expr_inner!(@expr_one; $($e)*))
     };
     (@expr_one; unfolding ( [ $outer:expr ] ( $($args:tt)* ) ) in ( $($rhs:tt)+ ) ) => { vcx!().mk_unfolding_expr(
-        $outer.call($crate::expr_inner!(@expr_args; $($args)*))(None),
+        $outer.call_once($crate::expr_inner!(@expr_args; $($args)*))(None),
         $crate::expr_inner!(@expr_one; $($rhs)*),
     ) };
     (@expr_one; acc( [ $outer:expr ] ( $($args:tt)* ) ) ) => { {

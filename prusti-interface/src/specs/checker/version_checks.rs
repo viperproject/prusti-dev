@@ -3,7 +3,7 @@ use crate::{
     environment::{EnvQuery, Environment},
     utils, PrustiError,
 };
-use prusti_rustc_interface::{ast::ast::Attribute, errors::MultiSpan, hir, middle::hir::map::Map};
+use prusti_rustc_interface::{errors::MultiSpan, hir};
 use prusti_utils::config;
 
 /// Checks for mismatched version issues between `prusti` and `prusti-contracts`/`prusti-specs`
@@ -20,7 +20,7 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for MismatchedVersionsChecker {
             env_query: env.query,
             errors: Vec::new(),
         };
-        env.query.hir().walk_attributes(&mut check_version);
+        env.query.tcx().hir_walk_attributes(&mut check_version);
 
         if let Some(min_prusti_version) = config::min_prusti_version() {
             if env.compare_prusti_version(&min_prusti_version).is_lt() {
@@ -48,14 +48,13 @@ struct CheckVersionVisitor<'tcx> {
 }
 
 impl<'tcx> hir::intravisit::Visitor<'tcx> for CheckVersionVisitor<'tcx> {
-    type Map = Map<'tcx>;
     type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::All;
 
-    fn nested_visit_map(&mut self) -> Self::Map {
-        self.env_query.hir()
+    fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
+        self.env_query.tcx()
     }
 
-    fn visit_attribute(&mut self, attr: &'tcx Attribute) {
+    fn visit_attribute(&mut self, attr: &'tcx hir::Attribute) {
         // Only report one such error here:
         if !self.errors.is_empty() {
             return;
@@ -72,7 +71,7 @@ impl<'tcx> hir::intravisit::Visitor<'tcx> for CheckVersionVisitor<'tcx> {
                         built with '{0}'! Please use `prusti-specs` version '{0}' or newer.{downgrade_msg}",
                         Environment::get_specs_version(),
                     ),
-                    MultiSpan::from_span(attr.span),
+                    MultiSpan::from_span(attr.span()),
                 ));
             }
         }

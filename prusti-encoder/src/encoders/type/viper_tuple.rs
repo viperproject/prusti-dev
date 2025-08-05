@@ -27,7 +27,7 @@ impl<'vir> ViperTupleEncOutput<'vir> {
         _vcx: &'vir vir::VirCtxt<'tcx>,
         elems: &[vir::ExprGenSnap<'vir, Curr, Next>],
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
-        self.domain_data.field_snaps_to_snap.gen()(elems).upcast_ty()
+        self.domain_data.field_snaps_to_snap.call()(elems).upcast_ty()
     }
 
     pub fn mk_elem<'tcx, Curr, Next>(
@@ -36,14 +36,14 @@ impl<'vir> ViperTupleEncOutput<'vir> {
         tuple: vir::ExprGenSnap<'vir, Curr, Next>,
         elem: usize,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
-        self.domain_data.field_access[elem].gen()(tuple.downcast_ty())
+        self.domain_data.field_access[elem].call()(tuple.downcast_ty())
     }
 
     pub fn mk_unreachable<'tcx, Curr, Next>(
         &self,
         _vcx: &'vir vir::VirCtxt<'tcx>,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
-        self.unreachable_to_snap.gen()()
+        self.unreachable_to_snap.call()()
     }
 }
 

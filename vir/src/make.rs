@@ -927,7 +927,7 @@ impl<'tcx> VirCtxt<'tcx> {
                         .downcast_ty()
                 })
             })
-            .unwrap_or_else(|| self.mk_bool::<true>().gen())
+            .unwrap_or_else(|| self.mk_bool::<true>().lazy())
     }
 
     pub fn mk_disj<'vir>(&'vir self, elems: &[ExprBool<'vir>]) -> ExprBool<'vir> {
