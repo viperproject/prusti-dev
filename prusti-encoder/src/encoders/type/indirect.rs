@@ -14,7 +14,7 @@ pub enum IndirectKey {
 
 impl IndirectKey {
     pub fn from_generic_arg(ga: ty::GenericArg) -> Option<Self> {
-        match ga.unpack() {
+        match ga.kind() {
             ty::GenericArgKind::Lifetime(region) => Self::from_region(region),
             ty::GenericArgKind::Type(ty) => match *ty.kind() {
                 ty::TyKind::Param(p) => Some(IndirectKey::Param(p)),
@@ -29,7 +29,7 @@ impl IndirectKey {
         match region.kind() {
             RegionKind::ReEarlyParam(e) => Some(IndirectKey::Early(e)),
             RegionKind::ReBound(_, g) => Some(IndirectKey::Late(g.kind)),
-            RegionKind::ReLateParam(r) => Some(IndirectKey::Late(r.bound_region)),
+            RegionKind::ReLateParam(r) => todo!("{r:?}"),//Some(IndirectKey::Late(r.bound_region)),
             RegionKind::ReVar(r) => Some(IndirectKey::Var(r)),
             RegionKind::RePlaceholder(..) | RegionKind::ReError(..) | RegionKind::ReErased => {
                 unreachable!("{region:?}")
@@ -91,7 +91,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                                 inner_ty_enc
                                     .ref_to_pred(
                                         vcx,
-                                        ref_domain.deref_access.gen()(self_expr.downcast_ty()),
+                                        ref_domain.deref_access.call()(self_expr.downcast_ty()),
                                         None,
                                     )
                                     .kind
@@ -113,7 +113,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                                     inner_expr
                                         .reify(
                                             vcx,
-                                            ref_domain.value_access.gen()(self_expr.downcast_ty())
+                                            ref_domain.value_access.call()(self_expr.downcast_ty())
                                                 .upcast_ty(),
                                         )
                                         .kind
@@ -137,7 +137,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                                 vir::TYPE_BOOL,
                                 Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
                                     inner_expr
-                                        .reify(vcx, accessor.gen()(self_expr.downcast_ty()))
+                                        .reify(vcx, accessor.call()(self_expr.downcast_ty()))
                                         .kind
                                 }),
                             )

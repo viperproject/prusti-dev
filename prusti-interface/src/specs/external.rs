@@ -4,7 +4,6 @@ use prusti_rustc_interface::{
         def_id::{DefId, LocalDefId},
         intravisit::{self, Visitor},
     },
-    middle::hir::map::Map,
     span::Span,
 };
 
@@ -299,11 +298,10 @@ struct ExternSpecVisitor<'tcx> {
 }
 
 impl<'tcx> Visitor<'tcx> for ExternSpecVisitor<'tcx> {
-    type Map = Map<'tcx>;
     type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::All;
 
-    fn nested_visit_map(&mut self) -> Self::Map {
-        self.env_query.hir()
+    fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
+        self.env_query.tcx()
     }
 
     fn visit_expr(&mut self, ex: &'tcx prusti_rustc_interface::hir::Expr<'tcx>) {

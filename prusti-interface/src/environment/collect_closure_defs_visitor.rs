@@ -6,14 +6,12 @@ use prusti_rustc_interface::{
         def_id::DefId,
         intravisit::{walk_expr, Visitor},
     },
-    middle::hir::map::Map,
 };
 
 use crate::utils::has_spec_only_attr;
 
 pub struct CollectClosureDefsVisitor<'env, 'tcx: 'env> {
     env: &'env Environment<'tcx>,
-    map: Map<'tcx>,
     result: Vec<DefId>,
 }
 
@@ -21,7 +19,6 @@ impl<'env, 'tcx> CollectClosureDefsVisitor<'env, 'tcx> {
     pub fn new(env: &'env Environment<'tcx>) -> Self {
         CollectClosureDefsVisitor {
             env,
-            map: env.query.hir(),
             result: Vec::new(),
         }
     }
@@ -31,11 +28,10 @@ impl<'env, 'tcx> CollectClosureDefsVisitor<'env, 'tcx> {
 }
 
 impl<'env, 'tcx> Visitor<'tcx> for CollectClosureDefsVisitor<'env, 'tcx> {
-    type Map = Map<'tcx>;
     type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::OnlyBodies;
 
-    fn nested_visit_map(&mut self) -> Self::Map {
-        self.map
+    fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
+        self.env.tcx()
     }
 
     #[tracing::instrument(level = "trace", skip(self, expr))]

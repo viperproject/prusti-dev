@@ -5,7 +5,7 @@ use prusti_rustc_interface::{
         def_id::LocalDefId,
         intravisit::{self, Visitor},
     },
-    middle::{hir::map::Map, ty::TyCtxt},
+    middle::ty::TyCtxt,
     span::Span,
 };
 
@@ -45,11 +45,10 @@ pub struct NonSpecExprVisitorWrapper<'tcx, T: NonSpecExprVisitor<'tcx>> {
 
 /// An implementation for `intravisit::Visitor` for [NonSpecExprVisitor] implementing types
 impl<'tcx, T: NonSpecExprVisitor<'tcx>> Visitor<'tcx> for NonSpecExprVisitorWrapper<'tcx, T> {
-    type Map = Map<'tcx>;
     type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::All;
 
-    fn nested_visit_map(&mut self) -> Self::Map {
-        self.wrapped.tcx().hir()
+    fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
+        self.wrapped.tcx()
     }
 
     fn visit_item(&mut self, i: &'tcx hir::Item<'tcx>) {
@@ -58,7 +57,7 @@ impl<'tcx, T: NonSpecExprVisitor<'tcx>> Visitor<'tcx> for NonSpecExprVisitorWrap
         use hir::ItemKind::*;
 
         match i.kind {
-            Static(_, _, _) | Fn(_, _, _) | Mod(_) | Impl { .. } => {
+            Static(..) | Fn { .. } | Mod(..) | Impl { .. } => {
                 intravisit::walk_item(self, i);
             }
             _ => {
@@ -82,7 +81,7 @@ impl<'tcx, T: NonSpecExprVisitor<'tcx>> Visitor<'tcx> for NonSpecExprVisitorWrap
     ) {
         // Stop checking inside `prusti::spec_only` functions
         let tcx = self.wrapped.tcx();
-        let attrs = tcx.hir().attrs(tcx.local_def_id_to_hir_id(local_id));
+        let attrs = tcx.hir_attrs(tcx.local_def_id_to_hir_id(local_id));
         if has_spec_only_attr(attrs) {
             return;
         }

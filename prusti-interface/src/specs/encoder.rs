@@ -14,14 +14,18 @@ use prusti_rustc_interface::{
     serialize::{opaque, Encodable, Encoder},
     span::{
         hygiene::{raw_encode_syntax_context, HygieneEncodeContext},
-        ExpnId, Span, SpanEncoder, StableSourceFileId, Symbol, SyntaxContext,
+        ByteSymbol, ExpnId, Span, SpanEncoder, StableSourceFileId, Symbol, SyntaxContext,
     },
 };
 
 // Tags for encoding Symbol's
-const SYMBOL_STR: u8 = 0;
-const SYMBOL_OFFSET: u8 = 1;
-const SYMBOL_PREINTERNED: u8 = 2;
+pub(super) const SYMBOL_STR: u8 = 0;
+pub(super) const SYMBOL_OFFSET: u8 = 1;
+pub(super) const SYMBOL_PREINTERNED: u8 = 2;
+
+pub(super) const BYTE_SYMBOL_STR: u8 = 3;
+pub(super) const BYTE_SYMBOL_OFFSET: u8 = 1;
+pub(super) const BYTE_SYMBOL_PREINTERNED: u8 = 2;
 
 pub struct DefSpecsEncoder<'a, 'tcx> {
     tcx: TyCtxt<'tcx>,
@@ -31,6 +35,7 @@ pub struct DefSpecsEncoder<'a, 'tcx> {
     interpret_allocs: FxIndexSet<AllocId>,
     hygiene_context: &'a HygieneEncodeContext,
     symbol_table: FxHashMap<Symbol, usize>,
+    byte_symbol_table: FxHashMap<ByteSymbol, usize>,
 }
 
 impl<'a, 'tcx> DefSpecsEncoder<'a, 'tcx> {
@@ -52,6 +57,7 @@ impl<'a, 'tcx> DefSpecsEncoder<'a, 'tcx> {
             interpret_allocs: Default::default(),
             hygiene_context: &hygiene_context,
             symbol_table: Default::default(),
+            byte_symbol_table: Default::default(),
         };
 
         meta.encode(&mut encoder);
@@ -115,7 +121,7 @@ impl<'a, 'tcx> SpanEncoder for DefSpecsEncoder<'a, 'tcx> {
     }
     fn encode_symbol(&mut self, sym: Symbol) {
         // if symbol preinterned, emit tag and symbol index
-        if sym.is_preinterned() {
+        if Symbol::is_predefined(sym.as_u32()) {
             self.opaque.emit_u8(SYMBOL_PREINTERNED);
             self.opaque.emit_u32(sym.as_u32());
         } else {
@@ -153,10 +159,32 @@ impl<'a, 'tcx> SpanEncoder for DefSpecsEncoder<'a, 'tcx> {
     fn encode_def_id(&mut self, id: DefId) {
         self.tcx.def_path_hash(id).encode(self)
     }
+    
+    fn encode_byte_symbol(&mut self, byte_sym: ByteSymbol) {
+        // if symbol preinterned, emit tag and symbol index
+        if Symbol::is_predefined(byte_sym.as_u32()) {
+            self.opaque.emit_u8(BYTE_SYMBOL_PREINTERNED);
+            self.opaque.emit_u32(byte_sym.as_u32());
+        } else {
+            // otherwise write it as string or as offset to it
+            match self.byte_symbol_table.entry(byte_sym) {
+                Entry::Vacant(o) => {
+                    self.opaque.emit_u8(BYTE_SYMBOL_STR);
+                    let pos = self.opaque.position();
+                    o.insert(pos);
+                    self.emit_byte_str(byte_sym.as_byte_str());
+                }
+                Entry::Occupied(o) => {
+                    let x = *o.get();
+                    self.emit_u8(BYTE_SYMBOL_OFFSET);
+                    self.emit_usize(x);
+                }
+            }
+        }
+    }
 }
 
-impl<'a, 'tcx> TyEncoder for DefSpecsEncoder<'a, 'tcx> {
-    type I = TyCtxt<'tcx>;
+impl<'a, 'tcx> TyEncoder<'tcx> for DefSpecsEncoder<'a, 'tcx> {
     const CLEAR_CROSS_CRATE: bool = true;
 
     fn position(&self) -> usize {

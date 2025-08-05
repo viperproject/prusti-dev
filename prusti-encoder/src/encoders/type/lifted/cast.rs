@@ -66,7 +66,7 @@ impl<'vir> PureCast<'vir> {
         vcx: &'vir VirCtxt,
         expr: vir::ExprGenSnap<'vir, Curr, Next>,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
-        self.cast_applicator.gen()(
+        self.cast_applicator.call()(
             expr,
             &self.ty_args.iter().map(|t| t.expr(vcx)).collect::<Vec<_>>(),
         )
@@ -90,7 +90,7 @@ impl<'vir> GenericCastOutputRef<'vir, FunctionIdn<'vir, (vir::Snap, vir::ManyTyV
             GenericCastOutputRef::Cast(Cast {
                 cast_applicator,
                 ty_args,
-            }) => cast_applicator.gen()(
+            }) => cast_applicator.call()(
                 expr,
                 &ty_args.iter().map(|t| t.expr(vcx)).collect::<Vec<_>>(),
             ),
@@ -110,7 +110,7 @@ impl<'vir> GenericCastOutputRef<'vir, MethodIdn<'vir, (vir::Ref, vir::ManyTyVal)
                 cast_applicator,
                 ty_args,
             }) => Some(
-                vcx.alloc(vir::StmtGenData::new(vcx.alloc(cast_applicator.gen()(
+                vcx.alloc(vir::StmtGenData::new(vcx.alloc(cast_applicator.call()(
                     expr,
                     &ty_args.iter().map(|t| t.expr(vcx)).collect::<Vec<_>>(),
                 )))),
