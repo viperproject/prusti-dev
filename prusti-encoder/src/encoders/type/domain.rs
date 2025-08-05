@@ -505,6 +505,7 @@ impl<'vir> DomainDataPrim<'vir> {
                         ((std::mem::size_of::<usize>() * 8) as u64, true)
                     }
                     TyKind::Uint(ty) => (ty.bit_width().unwrap(), false),
+                    TyKind::Char => (32, false),
                     kind => unreachable!("{kind:?}"),
                 };
                 let size = abi::Size::from_bits(bit_width);
