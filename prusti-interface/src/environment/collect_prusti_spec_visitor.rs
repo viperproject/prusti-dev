@@ -40,16 +40,16 @@ impl<'tcx> CollectPrustiSpecVisitor<'tcx> {
     pub fn visit_all_item_likes(&mut self) {
         let items = self.env_query.tcx().hir_crate_items(());
         for id in items.free_items() {
-            self.visit_item(self.env_query.hir().item(id));
+            self.visit_item(self.env_query.tcx().hir_item(id));
         }
         for id in items.trait_items() {
-            self.visit_trait_item(self.env_query.hir().trait_item(id));
+            self.visit_trait_item(self.env_query.tcx().hir_trait_item(id));
         }
         for id in items.impl_items() {
-            self.visit_impl_item(self.env_query.hir().impl_item(id));
+            self.visit_impl_item(self.env_query.tcx().hir_impl_item(id));
         }
         for id in items.foreign_items() {
-            self.visit_foreign_item(self.env_query.hir().foreign_item(id));
+            self.visit_foreign_item(self.env_query.tcx().hir_foreign_item(id));
         }
     }
 }
@@ -61,7 +61,7 @@ impl<'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'tcx> {
         if has_spec_only_attr(attrs) || has_extern_spec_attr(attrs) {
             return;
         }
-        if let hir::ItemKind::Fn(..) = item.kind {
+        if let hir::ItemKind::Fn { .. } = item.kind {
             let def_id = self.env_query.as_local_def_id(item.hir_id()).to_def_id();
             let item_def_path = self.env_name.get_item_def_path(def_id);
             trace!("Add {} to procedures", item_def_path);

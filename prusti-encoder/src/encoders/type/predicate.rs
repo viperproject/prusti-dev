@@ -1,6 +1,6 @@
 use prusti_rustc_interface::{
     middle::ty::{self, TyKind},
-    target::abi,
+    abi,
 };
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{

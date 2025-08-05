@@ -9,7 +9,7 @@ use prusti_rustc_interface::{
     },
     serialize::{opaque, Decodable, Decoder},
     session::StableCrateId,
-    span::{BytePos, ExpnId, Span, SpanDecoder, StableSourceFileId, Symbol, SyntaxContext},
+    span::{BytePos, ByteSymbol, ExpnId, Span, SpanDecoder, StableSourceFileId, Symbol, SyntaxContext},
 };
 use rustc_hash::FxHashMap;
 
@@ -34,11 +34,6 @@ impl<'a, 'tcx> DefSpecsDecoder<'a, 'tcx> {
 //const TAG_FULL_SPAN: u8 = 0;
 //const TAG_PARTIAL_SPAN: u8 = 1;
 
-// Tags for encoding Symbol's
-const SYMBOL_STR: u8 = 0;
-const SYMBOL_OFFSET: u8 = 1;
-const SYMBOL_PREINTERNED: u8 = 2;
-
 impl<'a, 'tcx> SpanDecoder for DefSpecsDecoder<'a, 'tcx> {
     fn decode_span(&mut self) -> Span {
         let sm = self.tcx.sess.source_map();
@@ -58,12 +53,13 @@ impl<'a, 'tcx> SpanDecoder for DefSpecsDecoder<'a, 'tcx> {
     fn decode_symbol(&mut self) -> Symbol {
         let tag = self.read_u8();
 
+        use crate::specs::encoder;
         match tag {
-            SYMBOL_STR => {
+            encoder::SYMBOL_STR => {
                 let s = self.read_str();
                 Symbol::intern(s)
             }
-            SYMBOL_OFFSET => {
+            encoder::SYMBOL_OFFSET => {
                 // read str offset
                 let pos = self.read_usize();
 
@@ -74,9 +70,9 @@ impl<'a, 'tcx> SpanDecoder for DefSpecsDecoder<'a, 'tcx> {
                 });
                 sym
             }
-            SYMBOL_PREINTERNED => {
+            encoder::SYMBOL_PREINTERNED => {
                 let symbol_index = self.read_u32();
-                Symbol::new_from_decoded(symbol_index)
+                Symbol::new(symbol_index)
             }
             _ => unreachable!(),
         }
@@ -109,15 +105,42 @@ impl<'a, 'tcx> SpanDecoder for DefSpecsDecoder<'a, 'tcx> {
     fn decode_attr_id(&mut self) -> AttrId {
         todo!()
     }
+    
+    fn decode_byte_symbol(&mut self) -> ByteSymbol {
+        let tag = self.read_u8();
+
+        use crate::specs::encoder;
+        match tag {
+            encoder::BYTE_SYMBOL_STR => {
+                let s = self.read_byte_str();
+                ByteSymbol::intern(s)
+            }
+            encoder::BYTE_SYMBOL_OFFSET => {
+                // read str offset
+                let pos = self.read_usize();
+
+                // move to str ofset and read
+                let sym = self.opaque.with_position(pos, |d| {
+                    let s = d.read_byte_str();
+                    ByteSymbol::intern(s)
+                });
+                sym
+            }
+            encoder::BYTE_SYMBOL_PREINTERNED => {
+                let symbol_index = self.read_u32();
+                ByteSymbol::new(symbol_index)
+            }
+            _ => unreachable!(),
+        }
+    }
 }
 
 implement_ty_decoder!(DefSpecsDecoder<'a, 'tcx>);
 
-impl<'a, 'tcx> TyDecoder for DefSpecsDecoder<'a, 'tcx> {
-    type I = TyCtxt<'tcx>;
+impl<'a, 'tcx> TyDecoder<'tcx> for DefSpecsDecoder<'a, 'tcx> {
     const CLEAR_CROSS_CRATE: bool = true;
 
-    fn interner(&self) -> Self::I {
+    fn interner(&self) -> TyCtxt<'tcx> {
         self.tcx
     }
 

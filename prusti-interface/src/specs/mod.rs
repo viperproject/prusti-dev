@@ -8,7 +8,6 @@ use crate::{
 };
 use log::debug;
 use prusti_rustc_interface::{
-    ast::ast,
     data_structures::fx::FxHashMap,
     errors::MultiSpan,
     hir::{
@@ -16,7 +15,7 @@ use prusti_rustc_interface::{
         def_id::{DefId, LocalDefId},
         intravisit, FnRetTy,
     },
-    middle::{hir::map::Map, ty},
+    middle::ty,
     span::Span,
 };
 use prusti_utils::config;
@@ -109,9 +108,10 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     #[tracing::instrument(level = "debug", skip_all)]
-    pub fn collect_specs(&mut self, hir: Map<'tcx>) {
-        hir.walk_toplevel_module(self);
-        hir.walk_attributes(self);
+    pub fn collect_specs(&mut self) {
+        let tcx = self.env.tcx();
+        tcx.hir_walk_toplevel_module(self);
+        tcx.hir_walk_attributes(self);
     }
 
     #[tracing::instrument(level = "debug", skip_all)]
@@ -319,11 +319,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         }
 
         let mut cl_visitor = CollectAllClosureDefsVisitor {
-            map: self.env.query.hir(),
+            tcx: self.env.tcx(),
             result: Vec::new(),
         };
         for def_id in specs.iter().chain(predicates.iter()) {
-            let body_id = self.env.query.hir().body_owned_by(def_id.expect_local());
+            let body_id = self.env.query.tcx().hir_body_owned_by(def_id.expect_local());
             intravisit::Visitor::visit_nested_body(&mut cl_visitor, body_id.id());
         }
         for def_id in cl_visitor.result {
@@ -336,15 +336,15 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 /// quantifiers/triggers inside specs and predicates, so they can be
 /// exported.
 struct CollectAllClosureDefsVisitor<'tcx> {
-    map: Map<'tcx>,
+    tcx: ty::TyCtxt<'tcx>,
     result: Vec<LocalDefId>,
 }
 
 impl<'tcx> intravisit::Visitor<'tcx> for CollectAllClosureDefsVisitor<'tcx> {
     type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::OnlyBodies;
 
-    fn nested_visit_map(&mut self) -> Self::Map {
-        self.map
+    fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
+        self.tcx
     }
 
     fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
@@ -370,7 +370,7 @@ pub fn is_spec_fn(tcx: ty::TyCtxt, def_id: DefId) -> bool {
 }
 
 #[tracing::instrument(level = "trace")]
-fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<ProcedureSpecRefs> {
+fn get_procedure_spec_ids(def_id: DefId, attrs: &[hir::Attribute]) -> Option<ProcedureSpecRefs> {
     let mut spec_id_refs = vec![];
 
     spec_id_refs.extend(
@@ -444,11 +444,10 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
 }
 
 impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
-    type Map = Map<'tcx>;
     type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::All;
 
-    fn nested_visit_map(&mut self) -> Self::Map {
-        self.env.query.hir()
+    fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
+        self.env.tcx()
     }
 
     fn visit_trait_item(&mut self, ti: &'tcx prusti_rustc_interface::hir::TraitItem) {

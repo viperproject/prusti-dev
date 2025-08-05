@@ -25,7 +25,7 @@ impl CastTypePure {
         use vir::CastType;
         match casters {
             CastFunctionsOutputRef::AlreadyGeneric => snap.downcast_ty(),
-            CastFunctionsOutputRef::Casters { make_generic, .. } => make_generic.gen()(
+            CastFunctionsOutputRef::Casters { make_generic, .. } => make_generic.call()(
                 snap.downcast_ty(),
                 &ty_args.iter().map(|t| t.expr(vcx)).collect::<Vec<_>>(),
             ),
@@ -49,7 +49,7 @@ impl CastType for CastTypePure {
         use vir::CastType;
         match casters {
             CastFunctionsOutputRef::AlreadyGeneric => snap,
-            CastFunctionsOutputRef::Casters { make_concrete, .. } => make_concrete.gen()(
+            CastFunctionsOutputRef::Casters { make_concrete, .. } => make_concrete.call()(
                 snap.downcast_ty(),
                 &ty_args.iter().map(|t| t.expr(vcx)).collect::<Vec<_>>(),
             ).upcast_ty(),
@@ -114,10 +114,10 @@ impl CastType for CastTypeImpure {
                 let args = ty_args.iter().map(|t| t.expr(vcx)).collect::<Vec<_>>();
                 Some(ImpureCastStmts::new(
                     vcx.alloc(vir::StmtGenData::new(
-                        vcx.alloc(make_concrete.gen()(snap, &args)),
+                        vcx.alloc(make_concrete.call()(snap, &args)),
                     )),
                     vcx.alloc(vir::StmtGenData::new(
-                        vcx.alloc(make_generic.gen()(snap, &args)),
+                        vcx.alloc(make_generic.call()(snap, &args)),
                     )),
                 ))
             }

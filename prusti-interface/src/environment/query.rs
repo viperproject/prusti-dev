@@ -3,14 +3,10 @@ use std::fmt::Debug;
 use crate::data::ProcedureDefId;
 use log::debug;
 use prusti_rustc_interface::{
-    ast::ast::Attribute,
     data_structures::fx::FxIndexSet,
-    hir::hir_id::HirId,
+    hir::{hir_id::HirId, Attribute},
     infer::infer::{outlives::env::OutlivesEnvironment, InferCtxt},
-    middle::{
-        hir::map::Map,
-        ty::{self, GenericArgsRef, ParamEnv, PredicatePolarity, TraitPredicate, TyCtxt},
-    },
+    middle::ty::{self, GenericArgsRef, ParamEnv, PredicatePolarity, TraitPredicate, TyCtxt},
     span::{
         def_id::{DefId, LocalDefId, CRATE_DEF_ID},
         source_map::SourceMap,
@@ -42,11 +38,6 @@ impl<'tcx> EnvQuery<'tcx> {
         self.tcx
     }
 
-    /// Returns the hir context
-    pub fn hir(self) -> Map<'tcx> {
-        self.tcx.hir()
-    }
-
     /// Returns the `CodeMap`
     pub fn codemap(self) -> &'tcx SourceMap {
         self.tcx.sess.source_map()
@@ -73,7 +64,7 @@ impl<'tcx> EnvQuery<'tcx> {
     }
 
     pub fn get_local_attributes(self, def_id: impl IntoParamTcx<'tcx, HirId>) -> &'tcx [Attribute] {
-        self.tcx.hir().attrs(def_id.into_param(self.tcx))
+        self.tcx.hir_attrs(def_id.into_param(self.tcx))
     }
 
     pub fn get_attributes(self, def_id: impl IntoParam<ProcedureDefId>) -> &'tcx [Attribute] {
@@ -81,7 +72,7 @@ impl<'tcx> EnvQuery<'tcx> {
         if let Some(local_def_id) = def_id.as_local() {
             self.get_local_attributes(local_def_id)
         } else {
-            self.tcx.item_attrs(def_id)
+            self.tcx.get_all_attrs(def_id)
         }
     }
 
@@ -213,8 +204,9 @@ impl<'tcx> EnvQuery<'tcx> {
 
         let infcx = self.infer_ctxt();
         let param_env = self.tcx.param_env(def_id);
-        let ib = infcx.implied_bounds_tys(param_env, CRATE_DEF_ID, &wf_tys);
-        OutlivesEnvironment::with_bounds(param_env, ib)
+        // TODO: what value to use for `disable_implied_bounds_hack`?
+        let ib = infcx.implied_bounds_tys(CRATE_DEF_ID, param_env, wf_tys, true);
+        OutlivesEnvironment::from_normalized_bounds(param_env, vec![], ib, Default::default())
     }
 
     /// Returns true iff `def_id` is a closure.

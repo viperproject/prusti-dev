@@ -300,7 +300,7 @@ impl<'vir, Curr, Next, T: CompType> ExprGenData<'vir, Curr, Next, T> {
 }
 
 impl<'vir, T: CompType> ExprGenData<'vir, (), !, T> {
-    pub fn gen<Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next, T> {
+    pub fn lazy<Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next, T> {
         unsafe {
             std::mem::transmute::<
                 &ExprGenData<'vir, (), !, T>,
