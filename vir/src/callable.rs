@@ -83,7 +83,7 @@ impl<'a, 'vir, T: CompType, R: CompType> FnOnce<(&'a [crate::Type<'vir, T>],)>
 pub struct AdtDestructorWrapper<'vir, T: CompType>(AdtDestructor<'vir, T>);
 
 impl<'vir, T: CompType> crate::AdtDestructorData<'vir, T> {
-    pub fn gen(&'vir self) -> AdtDestructorWrapper<'vir, T> {
+    pub fn call(&'vir self) -> AdtDestructorWrapper<'vir, T> {
         AdtDestructorWrapper(self)
     }
 }
@@ -154,7 +154,7 @@ impl<'vir, A: Arity, R: CompType> FunctionIdn<'vir, A, R> {
         }
     }
 
-    pub fn gen<Curr, Next>(self) -> FunctionIdnGen<'vir, Curr, Next, A, R> {
+    pub fn call<Curr, Next>(self) -> FunctionIdnGen<'vir, Curr, Next, A, R> {
         FunctionIdnGen {
             inner: self,
             _p: core::marker::PhantomData,
@@ -179,7 +179,7 @@ impl<'vir, A: Arity, R: CompType> FunctionIdn<'vir, A, R> {
 impl<'a, 'vir, A: Arity, R: CompType> FnOnce<A::Exprs<'a, 'vir, (), !>> for FunctionIdn<'vir, A, R> {
     type Output = crate::Expr<'vir, R>;
     extern "rust-call" fn call_once(self, args: A::Exprs<'a, 'vir, (), !>) -> Self::Output {
-        self.gen().call_once(args)
+        self.call().call_once(args)
     }
 }
 
@@ -241,7 +241,7 @@ impl<'vir, A: Arity> MethodIdn<'vir, A> {
         }
     }
 
-    pub fn gen<Curr, Next>(self) -> MethodIdnGen<'vir, Curr, Next, A> {
+    pub fn call<Curr, Next>(self) -> MethodIdnGen<'vir, Curr, Next, A> {
         MethodIdnGen {
             inner: self,
             _p: core::marker::PhantomData,
@@ -251,7 +251,7 @@ impl<'vir, A: Arity> MethodIdn<'vir, A> {
 impl<'a, 'vir, A: Arity> FnOnce<A::Exprs<'a, 'vir, (), !>> for MethodIdn<'vir, A> {
     type Output = StmtKindGenData<'vir, (), !>;
     extern "rust-call" fn call_once(self, args: A::Exprs<'a, 'vir, (), !>) -> Self::Output {
-        self.gen().call_once(args)
+        self.call().call_once(args)
     }
 }
 impl<'a, 'vir, Curr: 'vir, Next: 'vir, A: Arity> FnOnce<A::Exprs<'a, 'vir, Curr, Next>>
@@ -316,14 +316,14 @@ impl<'vir, A: Arity> PredicateIdn<'vir, A> {
         }
     }
 
-    pub fn call<'a, Curr, Next>(
+    pub fn call_once<'a, Curr, Next>(
         self,
         args: A::Exprs<'a, 'vir, Curr, Next>,
     ) -> PredicateIdnCurry<'vir, Curr, Next> {
-        self.gen().call_once(args)
+        self.call().call_once(args)
     }
 
-    pub fn gen<'a, Curr, Next>(self) -> PredicateIdnGen<'a, 'vir, Curr, Next, A> {
+    pub fn call<'a, Curr, Next>(self) -> PredicateIdnGen<'a, 'vir, Curr, Next, A> {
         PredicateIdnGen {
             inner: self,
             _p: core::marker::PhantomData,
@@ -334,7 +334,7 @@ impl<'vir, A: Arity> PredicateIdn<'vir, A> {
 impl<'a, 'vir, A: Arity> FnOnce<A::Exprs<'a, 'vir, (), !>> for PredicateIdn<'vir, A> {
     type Output = PredicateIdnCurry<'vir, (), !>;
     extern "rust-call" fn call_once(self, args: A::Exprs<'a, 'vir, (), !>) -> Self::Output {
-        self.gen().call_once(args)
+        self.call().call_once(args)
     }
 }
 

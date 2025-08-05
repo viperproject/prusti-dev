@@ -12,7 +12,7 @@ use prusti_rustc_interface::{
         def::{DefKind, Res},
         intravisit, HirId, QPath, TyKind,
     },
-    middle::{hir::map::Map, ty::TyCtxt},
+    middle::ty::TyCtxt,
     span::Span,
 };
 use rustc_hash::FxHashMap;
@@ -33,7 +33,7 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for IllegalModelUsagesChecker {
         }
         .wrap_as_visitor();
 
-        env.query.hir().walk_toplevel_module(&mut visit);
+        env.query.tcx().hir_walk_toplevel_module(&mut visit);
 
         let illegal_model_usages = visit.wrapped.model_usages_in_non_spec_code;
         illegal_model_usages
@@ -106,7 +106,7 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for ModelDefinedOnTypeWithoutFields {
             env_query: env.query,
             modelled_types: FxHashMap::default(),
         };
-        env.query.hir().walk_toplevel_module(&mut collect);
+        env.query.tcx().hir_walk_toplevel_module(&mut collect);
 
         // Mark all modelled types as "dangerous", i.e. assume they have no fields
         let mut modelled_types_has_fields: FxHashMap<HirId, bool> = collect
@@ -159,11 +159,10 @@ struct CollectModelledTypes<'tcx> {
 }
 
 impl<'tcx> intravisit::Visitor<'tcx> for CollectModelledTypes<'tcx> {
-    type Map = Map<'tcx>;
     type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::All;
 
-    fn nested_visit_map(&mut self) -> Self::Map {
-        self.env_query.hir()
+    fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
+        self.env_query.tcx()
     }
 
     fn visit_item(&mut self, item: &'tcx hir::Item<'tcx>) {

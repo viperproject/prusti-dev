@@ -60,14 +60,14 @@ impl TaskEncoder for MirSpecEnc {
         vir::with_vcx(|vcx| {
             let local_iter = (1..=local_defs.arg_count).map(mir::Local::from);
             let all_args: Vec<vir::ExprSnap<'vir>> = if pure {
-                let result_ty = local_defs.locals[mir::RETURN_PLACE].ty;
+                let result_ty = local_defs[mir::RETURN_PLACE].ty;
                 local_iter
-                    .map(|local| vcx.mk_local_ex_local(local_defs.locals[local].local_snap))
+                    .map(|local| vcx.mk_local_ex_local(local_defs[local].local_snap))
                     .chain([vcx.mk_result(result_ty.snapshot)])
                     .collect()
             } else {
                 local_iter
-                    .map(|local| local_defs.locals[local].impure_snap)
+                    .map(|local| local_defs[local].impure_snap)
                     .collect()
             };
             let all_args = vcx.alloc_slice(&all_args);
@@ -118,7 +118,7 @@ impl TaskEncoder for MirSpecEnc {
                 let post_args: Vec<vir::ExprSnap<'vir>> = pre_args
                     .iter()
                     .map(|arg| vcx.mk_old_expr(arg))
-                    .chain([local_defs.locals[mir::RETURN_PLACE].impure_snap])
+                    .chain([local_defs[mir::RETURN_PLACE].impure_snap])
                     .collect();
                 vcx.alloc_slice(&post_args)
             };
@@ -160,7 +160,7 @@ impl TaskEncoder for MirSpecEnc {
                     .map(|arg| vcx.mk_old_expr(arg))
                     // TODO: this looks a bit hardcoded...
                     .chain([
-                        vcx.mk_local_ex("_0s", local_defs.locals[mir::RETURN_PLACE].ty.snapshot)
+                        vcx.mk_local_ex("_0s", local_defs[mir::RETURN_PLACE].ty.snapshot)
                     ])
                     .collect::<Vec<_>>(),
             );

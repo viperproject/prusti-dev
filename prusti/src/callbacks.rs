@@ -38,11 +38,13 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> MirBorrowck<'tcx
         } else {
             consumers::ConsumerOptions::PoloniusOutputFacts
         };
-        let body_with_facts = consumers::get_body_with_borrowck_facts(tcx, def_id, consumer_opts);
-        // SAFETY: This is safe because we are feeding in the same `tcx` that is
-        // going to be used as a witness when pulling out the data.
-        unsafe {
-            mir_storage::store_mir_body(tcx, def_id, body_with_facts);
+        let body_with_facts = consumers::get_bodies_with_borrowck_facts(tcx, def_id, consumer_opts);
+        for (def_id, body) in body_with_facts {
+            // SAFETY: This is safe because we are feeding in the same `tcx` that is
+            // going to be used as a witness when pulling out the data.
+            unsafe {
+                mir_storage::store_mir_body(tcx, def_id, body);
+            }
         }
     }
     let mut providers = Providers::default();
@@ -135,9 +137,8 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         spec_checker.check(&env);
         compiler.sess.dcx().abort_if_errors();
 
-        let hir = env.query.hir();
         let mut spec_collector = specs::SpecCollector::new(&mut env);
-        spec_collector.collect_specs(hir);
+        spec_collector.collect_specs();
 
         let mut def_spec = spec_collector.build_def_specs();
         // Do print_typeckd_specs prior to importing cross crate

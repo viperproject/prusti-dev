@@ -66,6 +66,7 @@ impl TaskEncoder for ConstEnc {
                                 let _inner_ty = ty.builtin_deref(true).unwrap();
                                 todo!()
                             }
+                            GlobalAlloc::TypeId { .. } => todo!(),
                         }
                     }),
                     ConstValue::ZeroSized => {

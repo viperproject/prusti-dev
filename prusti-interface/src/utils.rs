@@ -7,7 +7,7 @@
 //! Various helper functions for working with `mir::Place`.
 
 use prusti_rustc_interface::{
-    ast::ast,
+    hir,
     middle::{mir, ty::TyCtxt},
 };
 use std::borrow::Borrow;
@@ -87,94 +87,92 @@ impl<'tcx> VecPlace<'tcx> {
 
 /// Check if `prusti::<name>` is among the attributes.
 /// Any arguments of the attribute are ignored.
-pub fn has_prusti_attr(attrs: &[ast::Attribute], name: &str) -> bool {
-    attrs.iter().any(|attr| match &attr.kind {
-        ast::AttrKind::Normal(normal_attr) => {
-            let ast::AttrItem {
-                unsafety: _,
+pub fn has_prusti_attr(attrs: &[hir::Attribute], name: &str) -> bool {
+    attrs.iter().any(|attr| match attr {
+        hir::Attribute::Unparsed(normal_attr) => {
+            let hir::AttrItem {
+                span: _,
                 path:
-                    ast::Path {
+                    hir::AttrPath {
                         span: _,
                         segments,
-                        tokens: _,
                     },
                 args: _,
-                tokens: _,
-            } = &normal_attr.item;
+                ..
+            } = &**normal_attr;
             segments.len() == 2
-                && segments[0].ident.as_str() == "prusti"
-                && segments[1].ident.as_str() == name
+                && segments[0].as_str() == "prusti"
+                && segments[1].as_str() == name
         }
         _ => false,
     })
 }
 
 /// Check if `prusti::spec_only` is among the attributes.
-pub fn has_spec_only_attr(attrs: &[ast::Attribute]) -> bool {
+pub fn has_spec_only_attr(attrs: &[hir::Attribute]) -> bool {
     has_prusti_attr(attrs, "spec_only")
 }
 
 /// Check if `prusti::extern_spec` is among the attributes.
-pub fn has_extern_spec_attr(attrs: &[ast::Attribute]) -> bool {
+pub fn has_extern_spec_attr(attrs: &[hir::Attribute]) -> bool {
     has_prusti_attr(attrs, "extern_spec")
 }
 
-pub fn read_extern_spec_attr(attrs: &[ast::Attribute]) -> Option<String> {
+pub fn read_extern_spec_attr(attrs: &[hir::Attribute]) -> Option<String> {
     read_prusti_attr("extern_spec", attrs)
 }
 
-pub fn read_specs_version_attr(attr: &ast::Attribute) -> Option<String> {
+pub fn read_specs_version_attr(attr: &hir::Attribute) -> Option<String> {
     read_prusti_attr("specs_version", &[attr])
 }
 
-pub fn has_to_model_fn_attr(attrs: &[ast::Attribute]) -> bool {
+pub fn has_to_model_fn_attr(attrs: &[hir::Attribute]) -> bool {
     has_prusti_attr(attrs, "type_models_to_model_fn")
 }
 
-pub fn has_to_model_impl_attr(attrs: &[ast::Attribute]) -> bool {
+pub fn has_to_model_impl_attr(attrs: &[hir::Attribute]) -> bool {
     has_prusti_attr(attrs, "type_models_to_model_impl")
 }
 
-pub fn has_trait_bounds_type_cond_spec(attrs: &[ast::Attribute]) -> bool {
+pub fn has_trait_bounds_type_cond_spec(attrs: &[hir::Attribute]) -> bool {
     has_prusti_attr(attrs, "type_cond_spec_trait_bounds_in_where_clause")
 }
 
-pub fn has_abstract_predicate_attr(attrs: &[ast::Attribute]) -> bool {
+pub fn has_abstract_predicate_attr(attrs: &[hir::Attribute]) -> bool {
     has_prusti_attr(attrs, "abstract_predicate")
 }
 
 /// Read the value stored in a Prusti attribute (e.g. `prusti::<attr_name>="...")`.
-pub fn read_prusti_attrs<T: Borrow<ast::Attribute>>(attr_name: &str, attrs: &[T]) -> Vec<String> {
+pub fn read_prusti_attrs<T: Borrow<hir::Attribute>>(attr_name: &str, attrs: &[T]) -> Vec<String> {
     let mut strings = vec![];
     for attr in attrs {
-        if let ast::AttrKind::Normal(normal_attr) = &attr.borrow().kind {
-            if let ast::AttrItem {
-                unsafety: _,
+        if let hir::Attribute::Unparsed(normal_attr) = &attr.borrow() {
+            if let hir::AttrItem {
+                span: _,
                 path:
-                    ast::Path {
+                    hir::AttrPath {
                         span: _,
                         segments,
-                        tokens: _,
                     },
                 args:
-                    ast::AttrArgs::Eq {
-                        value: ast::AttrArgsEq::Hir(token_lit),
+                    hir::AttrArgs::Eq {
+                        expr,
                         eq_span: _,
                     },
-                tokens: _,
-            } = &normal_attr.item
+                ..
+            } = &**normal_attr
             {
                 // Skip attributes whose path don't match with "prusti::<attr_name>"
                 if !(segments.len() == 2
-                    && segments[0].ident.as_str() == "prusti"
-                    && segments[1].ident.as_str() == attr_name)
+                    && segments[0].as_str() == "prusti"
+                    && segments[1].as_str() == attr_name)
                 {
                     continue;
                 }
                 fn extract_string(token: &prusti_rustc_interface::ast::token::Lit) -> String {
                     token.symbol.as_str().replace("\\\"", "\"")
                 }
-                strings.push(extract_string(&token_lit.as_token_lit()));
+                strings.push(extract_string(&expr.as_token_lit()));
             }
         };
     }
@@ -182,6 +180,6 @@ pub fn read_prusti_attrs<T: Borrow<ast::Attribute>>(attr_name: &str, attrs: &[T]
 }
 
 /// Read the value stored in a single Prusti attribute (e.g. `prusti::<attr_name>="...")`.
-pub fn read_prusti_attr<T: Borrow<ast::Attribute>>(attr_name: &str, attrs: &[T]) -> Option<String> {
+pub fn read_prusti_attr<T: Borrow<hir::Attribute>>(attr_name: &str, attrs: &[T]) -> Option<String> {
     read_prusti_attrs(attr_name, attrs).pop()
 }

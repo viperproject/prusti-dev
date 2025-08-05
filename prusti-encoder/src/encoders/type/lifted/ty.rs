@@ -78,7 +78,7 @@ impl<'vir, 'tcx, Curr, Next> LiftedTy<'vir, vir::ExprGenTyVal<'vir, Curr, Next>>
             LiftedTy::Instantiated {
                 ty_constructor,
                 args,
-            } => ty_constructor.gen()(&args.iter().map(|a| a.expr(vcx)).collect::<Vec<_>>()),
+            } => ty_constructor.call()(&args.iter().map(|a| a.expr(vcx)).collect::<Vec<_>>()),
         }
     }
 }

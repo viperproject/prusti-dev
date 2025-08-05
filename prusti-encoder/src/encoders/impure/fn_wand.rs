@@ -69,7 +69,7 @@ impl<'vir> WandEncOutput<'vir> {
         deps: &'a mut TaskEncoderDependencies<'vir, E>,
     ) -> impl Iterator<Item = vir::ExprBool<'vir>> + 'a {
         self.inputs().filter_map(|g| {
-            self.encode_generic(vcx, deps, g, true, &|i| local_defs.locals[i].impure_snap)
+            self.encode_generic(vcx, deps, g, true, |i| local_defs[i].impure_snap)
         })
     }
 
@@ -80,7 +80,7 @@ impl<'vir> WandEncOutput<'vir> {
         deps: &'a mut TaskEncoderDependencies<'vir, E>,
     ) -> impl Iterator<Item = vir::ExprBool<'vir>> + 'a {
         self.outputs().filter_map(|g| {
-            self.encode_generic(vcx, deps, g, false, |i| local_defs.locals[i].impure_snap)
+            self.encode_generic(vcx, deps, g, false, |i| local_defs[i].impure_snap)
         })
     }
 
@@ -100,18 +100,18 @@ impl<'vir> WandEncOutput<'vir> {
                         let name = vir::vir_format!(vcx, "wand{:?}", i);
                         (
                             name,
-                            vcx.mk_local_ex(name, local_defs.locals[i].ty.snapshot),
+                            vcx.mk_local_ex(name, local_defs[i].ty.snapshot),
                         )
                     })
                     .1
             };
-            let snap_rhs = |i| vcx.mk_old_expr(local_defs.locals[i].impure_snap);
+            let snap_rhs = |i| vcx.mk_old_expr(local_defs[i].impure_snap);
             match self.mk_wand(&lhs, &rhs, &pledge, snap_lhs, snap_rhs, vcx, deps) {
                 Ok(wand) => {
                     snaps
                         .into_iter()
                         .fold(vcx.mk_wand_expr(wand), |acc, (local, (name, _))| {
-                            vcx.mk_let_expr(name, local_defs.locals[local].impure_snap, acc)
+                            vcx.mk_let_expr(name, local_defs[local].impure_snap, acc)
                         })
                 }
                 Err(rhs) => rhs,
@@ -156,13 +156,17 @@ impl<'vir> WandEncOutput<'vir> {
         let vcx = visitor.vcx;
         let label = visitor.new_label("package_post");
         let snap_lhs = |l| {
+            let ld: crate::encoders::LocalDef<'vir> = visitor.local_defs.locals[l];
             if l == mir::RETURN_PLACE {
-                vcx.mk_local_labelled_old_expr(visitor.local_defs.locals[l].impure_snap, label)
+                vcx.mk_local_labelled_old_expr(ld.impure_snap, label)
             } else {
-                vcx.mk_old_expr(visitor.local_defs.locals[l].impure_snap)
+                vcx.mk_old_expr(ld.impure_snap)
             }
         };
-        let snap_rhs = |l| vcx.mk_old_expr(visitor.local_defs.locals[l].impure_snap);
+        let snap_rhs = |l| {
+            let ld: crate::encoders::LocalDef<'vir> = visitor.local_defs.locals[l];
+            vcx.mk_old_expr(ld.impure_snap)
+        };
 
         for (lhs, rhs, pledge) in self.viper_wands() {
             if lhs.is_empty() {

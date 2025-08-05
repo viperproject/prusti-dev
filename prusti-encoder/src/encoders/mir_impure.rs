@@ -24,7 +24,7 @@ use prusti_rustc_interface::{
         ty::{self, GenericArgs, TyKind},
     },
     span::def_id::DefId,
-    target::abi,
+    abi,
 };
 use prusti_utils::config;
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
@@ -170,7 +170,7 @@ impl<'vir, E: TaskEncoder> PureFuncAppEnc<'vir, E> for ImpureEncVisitor<'vir, '_
 
 pub(crate) struct EncodePlaceResult<'vir> {
     pub(crate) expr: vir::ExprRef<'vir>,
-    pub(crate) ty: mir::tcx::PlaceTy<'vir>,
+    pub(crate) ty: mir::PlaceTy<'vir>,
 }
 
 macro_rules! comment {
@@ -635,7 +635,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 // coincides with taking a snapshot of the heap accesses we
                 // have performed thus far, or, if the local variable itself is
                 // a shared reference, it happens immediately.
-                let mut place_ty = mir::tcx::PlaceTy::from_ty(self.local_decls[place.local].ty);
+                let mut place_ty = mir::PlaceTy::from_ty(self.local_decls[place.local].ty);
                 let mut encoded_place = mir::Place::from(place.local);
                 let (mut crossed_ref, mut result) =
                     if matches!(place_ty.ty.kind(), TyKind::Ref(_, _, ty::Mutability::Not)) {
@@ -644,10 +644,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                             .require_ref::<RustTyPredicatesEnc>(place_ty.ty)
                             .unwrap();
                         let snap_val = ty_out
-                            .ref_to_snap(self.vcx, self.local_defs.locals[place.local].local_ex);
+                            .ref_to_snap(self.vcx, self.local_defs[place.local].local_ex);
                         (true, snap_val.as_dyn())
                     } else {
-                        (false, self.local_defs.locals[place.local].local_ex.as_dyn())
+                        (false, self.local_defs[place.local].local_ex.as_dyn())
                     };
                 for elem in place.projection {
                     if crossed_ref {
@@ -731,9 +731,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     }
 
     pub(crate) fn encode_place(&mut self, place: Place<'vir>) -> EncodePlaceResult<'vir> {
-        let mut place_ty = mir::tcx::PlaceTy::from_ty(self.local_decls[place.local].ty);
+        let mut place_ty = mir::PlaceTy::from_ty(self.local_decls[place.local].ty);
         let mut encoded_place = mir::Place::from(place.local);
-        let mut result = self.local_defs.locals[place.local].local_ex;
+        let mut result = self.local_defs[place.local].local_ex;
         // TODO: factor this out (duplication with pure encoder)?
         for &elem in place.projection {
             result = self.encode_place_element(place_ty, elem, result);
@@ -825,7 +825,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     ) -> (
         EncodePlaceResult<'vir>,
         vir::ExprSnap<'vir>,
-        mir::tcx::PlaceTy<'vir>,
+        mir::PlaceTy<'vir>,
         RustTyPredicatesEncOutputRef<'vir>,
     ) {
         let ty = (*place).ty(self.local_decls, self.vcx.tcx());
@@ -839,7 +839,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
     fn encode_place_element(
         &mut self,
-        place_ty: mir::tcx::PlaceTy<'vir>,
+        place_ty: mir::PlaceTy<'vir>,
         elem: mir::PlaceElem<'vir>,
         expr: vir::ExprRef<'vir>,
     ) -> vir::ExprRef<'vir> {
@@ -1684,7 +1684,16 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     }
                     mir::AssertMessage::MisalignedPointerDereference { .. } => {
                         "misaligned pointer may be dereferenced"
-                    } // mir::AssertMessage::NullPointerDereference => "",
+                    }
+                    mir::AssertKind::ResumedAfterDrop(..) => {
+                        "execution may continue after drop"
+                    }
+                    mir::AssertKind::NullPointerDereference => {
+                        "null pointer may be dereferenced"
+                    }
+                    mir::AssertKind::InvalidEnumConstruction(..) => {
+                        "invalid enum construction may occur"
+                    }
                 };
                 self.vcx().with_span(span, |vcx| {
                     vcx.handle_error("exhale.failed:assertion.false", move |_| {

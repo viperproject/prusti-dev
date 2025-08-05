@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 use prusti_rustc_interface::{
     index::IndexVec,
     middle::{mir, ty},
@@ -130,5 +132,12 @@ impl TaskEncoder for MirLocalDefEnc {
             };
             Ok((data, ()))
         })
+    }
+}
+
+impl<'vir> Index<mir::Local> for MirLocalDefEncOutput<'vir> {
+    type Output = LocalDef<'vir>;
+    fn index(&self, index: mir::Local) -> &Self::Output {
+        &self.locals[index]
     }
 }

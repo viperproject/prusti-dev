@@ -104,14 +104,14 @@ where
             // Viper resources that must be passed in/out given the signature,
             // without going through any dereferences.
             let mut args = Vec::with_capacity(arg_count + substs.len());
-            for arg_idx in 0..arg_count {
-                let name_p = local_defs.locals[arg_idx.into()].local.name;
+            for arg_idx in (0..arg_count).map(mir::Local::from) {
+                let name_p = local_defs[arg_idx].local.name;
                 args.push(vir::vir_local_decl! { vcx; [name_p] : Ref });
-                if arg_idx != 0 {
-                    pres.push(local_defs.locals[arg_idx.into()].impure_pred);
+                if arg_idx != mir::RETURN_PLACE {
+                    pres.push(local_defs[arg_idx].impure_pred);
                 }
             }
-            posts.push(local_defs.locals[mir::RETURN_PLACE].impure_pred);
+            posts.push(local_defs[mir::RETURN_PLACE].impure_pred);
 
             // ..
             pres.extend(wands.indirect_pres(vcx, &local_defs, deps));
@@ -140,7 +140,7 @@ where
                 );
                 let mut start_stmts = Vec::new();
                 for local in (arg_count..body.local_decls.len()).map(mir::Local::from) {
-                    let name_p = local_defs.locals[local].local.name;
+                    let name_p = local_defs[local].local.name;
                     start_stmts.push(
                         vcx.mk_local_decl_stmt(vir::vir_local_decl! { vcx; [name_p] : Ref }, None),
                     )

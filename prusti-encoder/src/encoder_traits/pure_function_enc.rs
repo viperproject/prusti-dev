@@ -64,7 +64,7 @@ where
             LiftedTy::Generic(generic) => {
                 let generic_enc = deps.require_ref::<GenericEnc>(()).unwrap();
                 Some(vcx.mk_eq_expr(
-                    generic_enc.param_type_function.gen()(arg.downcast_ty()),
+                    generic_enc.param_type_function.call()(arg.downcast_ty()),
                     generic.expr(vcx),
                 ))
             }
@@ -76,7 +76,7 @@ where
                 let domain_ref = deps
                     .require_ref::<TyConstructorEnc>(extract_type_params(vcx.tcx(), ty).0)
                     .unwrap();
-                Some(vcx.mk_eq_expr(domain_ref.typeof_function.gen()(arg.downcast_ty()), lifted_ty.expr(vcx)))
+                Some(vcx.mk_eq_expr(domain_ref.typeof_function.call()(arg.downcast_ty()), lifted_ty.expr(vcx)))
             }
             _ => None,
         }
@@ -103,9 +103,9 @@ where
             let ty_args = vcx.alloc_slice(&ty_args);
             let snap_args = (1..=local_defs.arg_count)
                 .map(mir::Local::from)
-                .map(|def_idx| local_defs.locals[def_idx].ty.snapshot);
+                .map(|def_idx| local_defs[def_idx].ty.snapshot);
             let snap_args = vcx.alloc_slice(&snap_args.collect::<Vec<_>>());
-            let return_type = local_defs.locals[mir::RETURN_PLACE].ty;
+            let return_type = local_defs[mir::RETURN_PLACE].ty;
             let function_ref =
                 FunctionIdn::new(function_ident, (ty_args, snap_args), return_type.snapshot);
             deps.emit_output_ref(task_key, MirFunctionEncOutputRef { function_ref })?;
@@ -118,7 +118,7 @@ where
                 .collect::<Vec<_>>();
 
             let func_args = (1..=local_defs.arg_count).map(mir::Local::from).map(|arg| {
-                vcx.mk_local_decl_local(local_defs.locals[arg].local_snap)
+                vcx.mk_local_decl_local(local_defs[arg].local_snap)
             }).collect::<Vec<_>>();
 
             let expr = if trusted {
@@ -157,7 +157,7 @@ where
                 .copied()
                 .collect::<Vec<_>>();
             let type_preconditions = input_tys.iter().enumerate().filter_map(|(idx, ty)| {
-                let vir_arg = local_defs.locals[mir::Local::from(idx + 1)];
+                let vir_arg = local_defs[mir::Local::from(idx + 1)];
                 let vir_arg = vcx.mk_local_ex(vir_arg.local.name, vir_arg.ty.snapshot);
                 Self::mk_type_assertion(vcx, deps, vir_arg, *ty)
             });

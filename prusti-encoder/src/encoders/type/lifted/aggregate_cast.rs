@@ -4,7 +4,7 @@ use prusti_rustc_interface::{
         ty::{GenericArgs, Ty},
     },
     span::def_id::DefId,
-    target::abi::VariantIdx,
+    abi::VariantIdx,
 };
 use task_encoder::{EncodeFullResult, TaskEncoder};
 use vir::{CallableIdn, CastType};

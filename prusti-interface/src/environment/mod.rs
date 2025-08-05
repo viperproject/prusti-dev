@@ -73,8 +73,8 @@ impl<'tcx> Environment<'tcx> {
 
         let mut cl_visitor = CollectClosureDefsVisitor::new(self);
         self.query
-            .hir()
-            .visit_all_item_likes_in_crate(&mut cl_visitor);
+            .tcx()
+            .hir_visit_all_item_likes_in_crate(&mut cl_visitor);
 
         let (mut procedures, types) = visitor.into_result();
         procedures.extend(cl_visitor.get_closure_defs());

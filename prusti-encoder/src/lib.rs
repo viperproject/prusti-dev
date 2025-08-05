@@ -1,6 +1,5 @@
 #![feature(rustc_private)]
 #![feature(associated_type_defaults)]
-#![feature(let_chains)]
 #![feature(box_patterns)]
 #![feature(never_type)]
 #![feature(allocator_api)]
@@ -32,7 +31,7 @@ pub fn test_entrypoint<'tcx>(
 
     // TODO: this should be a "crate" encoder, which will deps.require all the methods in the crate
 
-    for def_id in tcx.hir().body_owners() {
+    for def_id in tcx.hir_body_owners() {
         tracing::debug!("test_entrypoint item: {def_id:?}");
         let kind = tcx.def_kind(def_id);
         match kind {

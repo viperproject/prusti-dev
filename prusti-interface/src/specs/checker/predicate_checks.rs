@@ -13,7 +13,7 @@ use prusti_rustc_interface::{
         def_id::{DefId, LocalDefId},
         intravisit,
     },
-    middle::{hir::map::Map, ty::TyCtxt},
+    middle::ty::TyCtxt,
     span::Span,
 };
 
@@ -67,8 +67,8 @@ impl IllegalPredicateUsagesChecker {
             predicates: FxHashMap::default(),
             abstract_predicate_with_bodies: FxHashSet::default(),
         };
-        env_query.hir().walk_toplevel_module(&mut collect);
-        env_query.hir().walk_attributes(&mut collect);
+        env_query.tcx().hir_walk_toplevel_module(&mut collect);
+        env_query.tcx().hir_walk_attributes(&mut collect);
 
         collect
     }
@@ -86,8 +86,8 @@ impl IllegalPredicateUsagesChecker {
         }
         .wrap_as_visitor();
 
-        env_query.hir().walk_toplevel_module(&mut visit);
-        env_query.hir().walk_attributes(&mut visit);
+        env_query.tcx().hir_walk_toplevel_module(&mut visit);
+        env_query.tcx().hir_walk_attributes(&mut visit);
 
         visit.wrapped.pred_usages
     }
@@ -102,11 +102,10 @@ struct CollectPredicatesVisitor<'tcx> {
 }
 
 impl<'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'tcx> {
-    type Map = Map<'tcx>;
     type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::All;
 
-    fn nested_visit_map(&mut self) -> Self::Map {
-        self.env_query.hir()
+    fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
+        self.env_query.tcx()
     }
 
     fn visit_fn(

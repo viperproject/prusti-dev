@@ -7,7 +7,7 @@ use prusti_rustc_interface::{
         ty::{self, Binder, FnSig, GenericArgs, TyKind},
     },
     span::{def_id::DefId, source_map::Spanned},
-    target::abi,
+    abi,
 };
 use std::{collections::HashMap, fmt};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
@@ -525,7 +525,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     |expr, ((cond_val, _target), branch_update)| {
                         self.vcx.mk_ternary_expr(
                             self.vcx.mk_eq_expr(
-                                (discr_ty_out.snap_to_prim.gen())(discr_expr),
+                                (discr_ty_out.snap_to_prim.call())(discr_expr),
                                 discr_ty_out.expr_from_bits(discr_ty, cond_val).lift(),
                             ),
                             self.reify_branch(
@@ -690,8 +690,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     // will return `None` if this isn't a re-borrow, and if it's
                     // a re-borrow of created-in-pure reference then it will be
                     // field projections of `null` which is also `null`.
-                    let place_ref = place_ref.unwrap_or_else(|| self.vcx.mk_null().gen());
-                    e_rvalue_ty.gen()(place_ref, snap).upcast_ty()
+                    let place_ref = place_ref.unwrap_or_else(|| self.vcx.mk_null().lazy());
+                    e_rvalue_ty.call()(place_ref, snap).upcast_ty()
                 } else {
                     let e_rvalue_ty = rvalue_snapshot_encoding
                         .specifics
@@ -700,7 +700,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     // For shared borrows we want to use just the snapshot
                     // without the reference so that snapshot equality compares
                     // only values.
-                    e_rvalue_ty.gen()(self.vcx.mk_null().gen(), snap).upcast_ty()
+                    e_rvalue_ty.call()(self.vcx.mk_null().lazy(), snap).upcast_ty()
                 }
             }
             // ThreadLocalRef
@@ -722,7 +722,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .unwrap()
                     .bin_op()
                     .unwrap();
-                binop_function.gen()(
+                binop_function.call()(
                     self.encode_operand(curr_ver, l).downcast_ty(),
                     self.encode_operand(curr_ver, r).downcast_ty(),
                 )
@@ -739,7 +739,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .unwrap()
                     .un_op()
                     .unwrap();
-                unop_function.gen()(self.encode_operand(curr_ver, operand).downcast_ty())
+                unop_function.call()(self.encode_operand(curr_ver, operand).downcast_ty())
                     .upcast_ty()
             }
             // Discriminant
@@ -773,7 +773,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         .map(|field| self.encode_operand(curr_ver, field))
                         .collect::<Vec<_>>();
                     let casted_args = ty_caster.apply_casts(self.vcx, cons_args.into_iter());
-                    sl.snap_data.field_snaps_to_snap.gen()(&casted_args).upcast_ty()
+                    sl.snap_data.field_snaps_to_snap.call()(&casted_args).upcast_ty()
                 }
                 _ => todo!("Unsupported Rvalue::AggregateKind: {kind:?}"),
             },
@@ -789,7 +789,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .get_enumlike()
                     .filter(|_| place_ty.variant_index.is_none())
                 {
-                    Some(ty) => ty.unwrap().snap_to_discr_snap.gen()(
+                    Some(ty) => ty.unwrap().snap_to_discr_snap.call()(
                         self.encode_place(curr_ver, place).downcast_ty(),
                     ),
                     None => {
@@ -802,7 +802,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             .expect_primitive();
                         // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
                         let zero = self.vcx.mk_uint::<0>();
-                        e_rvalue_ty.prim_to_snap.gen()(zero.upcast_ty()).lift()
+                        e_rvalue_ty.prim_to_snap.call()(zero.upcast_ty()).lift()
                     }
                 };
                 discr.upcast_ty()
@@ -850,7 +850,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         // TODO: remove (debug)
         assert!(curr_ver.contains_key(&place.local));
 
-        let mut place_ty = mir::tcx::PlaceTy::from_ty(self.body.local_decls[place.local].ty);
+        let mut place_ty = mir::PlaceTy::from_ty(self.body.local_decls[place.local].ty);
 
         let should_wrap = {
             let is_in_a_mode =
@@ -900,7 +900,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
     fn encode_place_element(
         &mut self,
-        place_ty: mir::tcx::PlaceTy<'vir>,
+        place_ty: mir::PlaceTy<'vir>,
         elem: mir::PlaceElem<'vir>,
         expr: ExprCRet<'vir>,
         place_ref: Option<ExprRetRef<'vir>>,
@@ -939,8 +939,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             "rel_start" => PrustiBuiltin::ModeStart(Mode::Rel(
                 arg_tys[0]
                     .expect_const()
-                    .to_valtree()
-                    .0
+                    .to_value()
+                    .valtree
                     .try_to_scalar_int()
                     .unwrap()
                     .to_bits_unchecked() as usize,
@@ -948,8 +948,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             "rel_end" => PrustiBuiltin::ModeEnd(Mode::Rel(
                 arg_tys[0]
                     .expect_const()
-                    .to_valtree()
-                    .0
+                    .to_value()
+                    .valtree
                     .try_to_scalar_int()
                     .unwrap()
                     .to_bits_unchecked() as usize,
@@ -1075,7 +1075,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 self.vcx.mk_forall_expr(
                     qvars,
                     &[], // TODO
-                    bool.snap_to_prim.gen()(body.downcast_ty()).downcast_ty(),
+                    bool.snap_to_prim.call()(body.downcast_ty()).downcast_ty(),
                 )
             }
             PrustiBuiltin::ModeStart(mode) => {
@@ -1125,7 +1125,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 self.vcx.mk_bool::<true>().lift() //TODO what value do we return?
             }
         };
-        bool.prim_to_snap.gen()(prim.upcast_ty()).upcast_ty()
+        bool.prim_to_snap.call()(prim.upcast_ty()).upcast_ty()
     }
 }
 
@@ -1273,7 +1273,7 @@ fn encode_place_with_ref<'vir, 'enc>(
 pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
     vcx: &'vir vir::VirCtxt<'vir>,
     deps: &'enc mut TaskEncoderDependencies<'vir, T>,
-    place_ty: mir::tcx::PlaceTy<'vir>,
+    place_ty: mir::PlaceTy<'vir>,
     elem: mir::PlaceElem<'vir>,
     expr: ExprCRet<'vir>,
     place_ref: Option<ExprRetRef<'vir>>,
@@ -1290,9 +1290,9 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
                         .generic_predicate
                         .expect_variant_opt(place_ty.variant_index);
                     let proj = struct_like.snap_data.field_access[0];
-                    let proj_app = proj.gen()(expr);
+                    let proj_app = proj.call()(expr);
                     let place_ref =
-                        place_ref.map(|pr| struct_like.ref_to_field_refs[0].gen()(pr, &[]));
+                        place_ref.map(|pr| struct_like.ref_to_field_refs[0].call()(pr, &[]));
                     (proj_app, place_ref)
                 }
                 TyKind::Ref(_, inner_ty, ty::Mutability::Not) => {
@@ -1302,7 +1302,7 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
                         .generic_snapshot
                         .specifics
                         .expect_immref();
-                    let val_expr = e_ty.value_access.gen()(expr);
+                    let val_expr = e_ty.value_access.call()(expr);
                     // Since the `expr` is the target of a reference, it is encoded as a `Param`.
                     // If it is not a type parameter, we cast it to its concrete Snapshot.
                     let cast = deps
@@ -1320,7 +1320,7 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
                         .expect_mutref();
                     let inner_ty_out = deps.require_ref::<RustTyPredicatesEnc>(*inner_ty).unwrap();
                     //let ref_expr = Some(e_ty.deref_access.apply(vcx, [expr]));
-                    let ref_expr = e_ty.deref_access.gen()(expr);
+                    let ref_expr = e_ty.deref_access.call()(expr);
                     // let val_expr = e_ty.value_access.apply(vcx, [expr]);
                     // let place_ty = place_ty.projection_ty(vcx.tcx(), elem);
                     // Since the `expr` is the target of a reference, it is encoded as a `Param`.
@@ -1347,7 +1347,7 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
                 .generic_predicate
                 .expect_variant_opt(place_ty.variant_index);
             let proj = struct_like.snap_data.field_access[field_idx.as_usize()];
-            let proj_app = proj.gen()(expr);
+            let proj_app = proj.call()(expr);
             let proj_app = if let TyKind::Adt(def, _) = tykind {
                 // The ADT type for the field might be generic, concretize if necessary
                 let variant = def.variant(place_ty.variant_index.unwrap_or(abi::FIRST_VARIANT));
@@ -1370,7 +1370,7 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
                 proj_app
             };
             let place_ref = place_ref
-                .map(|pr| struct_like.ref_to_field_refs[field_idx.as_usize()].gen()(pr, &[]));
+                .map(|pr| struct_like.ref_to_field_refs[field_idx.as_usize()].call()(pr, &[]));
             (proj_app, place_ref)
         }
         mir::ProjectionElem::Downcast(..) => (expr.upcast_ty(), place_ref),
