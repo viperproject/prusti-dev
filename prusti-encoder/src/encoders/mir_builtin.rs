@@ -86,6 +86,12 @@ impl TaskEncoder for MirBuiltinEnc {
             }
         })
     }
+
+    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
+        for output in Self::all_outputs_local() {
+            program.add_function(output.function);
+        }
+    }
 }
 
 // TODO: this function is also useful for the type encoder, extract?

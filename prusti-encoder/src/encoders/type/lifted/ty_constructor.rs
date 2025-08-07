@@ -16,7 +16,7 @@ pub struct TyConstructorEncOutputRef<'vir> {
     /// Accessors of the arguments to an instantiation of the type constructor.
     /// Each function takes as input an instantiated type. The `i`th function in
     /// this list returns the `i`th argument to the type constructor.
-    pub ty_param_accessors: &'vir [vir::FunctionIdn<'vir, vir::TyVal, vir::TyVal>],
+    pub ty_param_accessors: &'vir [vir::AdtDestructor<'vir, vir::TyVal, vir::TyVal>],
 
     /// Returns the Viper representation of the type of a snapshot-encoded value
     pub typeof_function: vir::FunctionIdn<'vir, vir::CSnap, vir::TyVal>,
@@ -39,7 +39,7 @@ impl<'vir> TyConstructorEncOutputRef<'vir> {
         idx: usize,
         snap: vir::ExprCSnap<'vir>,
     ) -> vir::ExprTyVal<'vir> {
-        self.ty_param_accessors[idx]((self.typeof_function)(snap))
+        self.ty_param_accessors[idx].call()((self.typeof_function)(snap))
     }
 }
 
@@ -47,7 +47,8 @@ impl<'vir> OutputRefAny for TyConstructorEncOutputRef<'vir> {}
 
 #[derive(Clone)]
 pub struct TyConstructorEncOutput<'vir> {
-    pub domain: vir::Domain<'vir>,
+    pub variant: vir::AdtConstructor<'vir>,
+    pub typeof_function: vir::DomainFunction<'vir>,
 }
 
 /// Encodes the lifted representation of a Rust type constructor (e.g. Option,
@@ -76,8 +77,6 @@ impl TaskEncoder for TyConstructorEnc {
     ) -> EncodeFullResult<'vir, Self> {
         assert!(!task_key.is_generic());
         let generic_ref = deps.require_ref::<GenericEnc>(())?;
-        let mut functions = vec![];
-        let mut axioms = vec![];
         vir::with_vcx(|vcx| {
             let (ty_constructor, _) = extract_type_params(vcx.tcx(), task_key.ty());
             let base_name = ty_constructor.get_vir_base_name(vcx);
@@ -88,28 +87,12 @@ impl TaskEncoder for TyConstructorEnc {
                 type_function_args,
                 generic_ref.type_snapshot,
             );
-            functions.push(vcx.mk_domain_function(type_function_ident, false));
-            let ty_arg_decls: Vec<vir::LocalDeclTyVal<'vir>> = args
-                .iter()
-                .enumerate()
-                .map(|(idx, _)| {
-                    vcx.mk_local_decl(
-                        vcx.alloc_str(&format!("arg_{}", idx)),
-                        generic_ref.type_snapshot,
-                    )
-                })
-                .collect();
-            let ty_arg_exprs: Vec<vir::ExprTyVal<'vir>> = ty_arg_decls
-                .iter()
-                .map(|decl| vcx.mk_local_ex(decl.name, decl.ty))
-                .collect::<Vec<_>>();
-            let func_app = type_function_ident(ty_arg_exprs.as_slice());
 
             let ty_accessor_functions = args
                 .iter()
                 .map(|arg| {
-                    FunctionIdn::new(
-                        vir::vir_format_identifier!(vcx, "s_{base_name}_typaram_{}", arg.name),
+                    vcx.mk_adt_destructor(
+                        vir::vir_format!(vcx, "s_{base_name}_typaram_{}", arg.name),
                         generic_ref.type_snapshot,
                         generic_ref.type_snapshot,
                     )
@@ -123,7 +106,6 @@ impl TaskEncoder for TyConstructorEnc {
                 snap,
                 generic_ref.type_snapshot,
             );
-            functions.push(vcx.mk_domain_function(typeof_function, false));
             deps.emit_output_ref(
                 *task_key,
                 TyConstructorEncOutputRef {
@@ -133,33 +115,37 @@ impl TaskEncoder for TyConstructorEnc {
                 },
             )?;
 
-            let axiom_qvars = vcx.alloc_slice(&ty_arg_decls);
-            let axiom_triggers = vcx.alloc_slice(&[vcx.mk_trigger(&[func_app])]);
-            for (accessor_function, ty_arg) in ty_accessor_functions.iter().zip(ty_arg_exprs.iter())
-            {
-                functions.push(vcx.mk_domain_function(*accessor_function, false));
-                axioms.push(vcx.mk_domain_axiom(
-                    vir::vir_format_identifier!(vcx, "ax_{}", accessor_function.name()),
-                    vcx.mk_forall_expr(
-                        axiom_qvars,
-                        axiom_triggers,
-                        vcx.mk_eq_expr(accessor_function(func_app), ty_arg),
-                    ),
-                ))
-            }
+            let args = ty_accessor_functions.iter().map(|d|
+                vcx.mk_local_decl(d.name, d.ty)
+            ).collect::<Vec<_>>();
+            let variant = vcx.mk_adt_constructor(type_function_ident.name().to_str(), vcx.alloc_slice(&args));
+            let typeof_function = vcx.mk_domain_function(typeof_function, false);
             let result = TyConstructorEncOutput {
-                domain: vcx.mk_domain(
-                    vir_format_identifier!(
-                        vcx,
-                        "s_{}_ty_constructor",
-                        task_key.get_vir_base_name(vcx)
-                    ),
-                    &[],
-                    vcx.alloc_slice(&axioms),
-                    vcx.alloc_slice(&functions),
-                ),
+                variant,
+                typeof_function,
             };
             Ok((result, ()))
+        })
+    }
+
+    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
+        let all = Self::all_outputs_local();
+        vir::with_vcx(|vcx| {
+            let mut typeof_fns = Vec::new();
+            let args = vcx.alloc_array(&[vcx.mk_local_decl("non_unit", vir::TYPE_INT)]);
+            let unknown = vcx.mk_adt_constructor("Unknown_type", args);
+            let constructors = all
+                .into_iter()
+                .map(|output| {
+                    typeof_fns.push(output.typeof_function);
+                    output.variant
+                })
+                .chain([unknown])
+                .collect::<Vec<_>>();
+            let adt = vcx.mk_adt(vir::ViperIdent::new("Type"), &[], vcx.alloc_slice(&constructors));
+            program.add_adt(adt);
+            let domain = vcx.mk_domain(vir::ViperIdent::new("TypeOf"), &[], &[], vcx.alloc_slice(&typeof_fns));
+            program.add_domain(domain);
         })
     }
 }
