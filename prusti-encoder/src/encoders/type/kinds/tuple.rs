@@ -2,7 +2,7 @@ use crate::encoders::{
     domain::{
         AdtBuilder, DomainDataStruct, DomainEnc, DomainEncOutputRef, DomainEncSpecifics, FieldTy, PureTypeBuilder, PureTypeCommon
     },
-    lifted::ty::{EncodeGenericsAsParamTy, LiftedTyEnc},
+    lifted::ty::{EncodeGenericsAsLifted, EncodeGenericsAsParamTy, LiftedTyEnc},
     predicate::{PredicateBuilder, PredicateEncData, PredicateEncDataStruct},
     rust_ty_predicates::RustTyPredicatesEnc,
     snapshot::SnapshotEncOutput,
@@ -28,7 +28,7 @@ pub(crate) fn domain<'vir>(
     let generics = params
         .iter()
         .map(|ty| {
-            deps.require_local::<LiftedTyEnc<EncodeGenericsAsParamTy>>(ty)
+            deps.require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(ty)
                 .unwrap()
                 .expect_generic()
         })
@@ -39,13 +39,14 @@ pub(crate) fn domain<'vir>(
         .map(|ty| FieldTy::from_ty(deps, ty))
         .collect::<Result<Vec<_>, _>>()?;
 
-    let (field_snaps_to_snap, field_access) = super::structlike::domain(
-        "", &fields, &mut builder, None,
+    let (field_snaps_to_snap, field_access, ty_param_accessors) = super::structlike::domain(
+        "", &fields, &generics, &mut builder, None,
     );
 
     Ok((DomainEncSpecifics::StructLike(DomainDataStruct {
         field_snaps_to_snap,
         field_access,
+        ty_param_accessors,
     }), Ok(builder)))
 
     /*

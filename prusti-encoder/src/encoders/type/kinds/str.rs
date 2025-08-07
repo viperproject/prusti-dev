@@ -18,11 +18,12 @@ pub(crate) fn domain<'vir>(
     let ty_kind = ty.kind();
     assert_eq!(*ty_kind, ty::TyKind::Str);
 
-    let dummy_cons_ident = builder.function("cons", &[][..], builder.self_type());
+    let dummy_cons_ident = builder.function("cons", (&[][..], &[][..]), builder.self_type());
 
     Ok((DomainEncSpecifics::StructLike(DomainDataStruct {
         field_snaps_to_snap: dummy_cons_ident,
         field_access: &[],
+        ty_param_accessors: &[],
     }), Err(builder)))
 }
 
