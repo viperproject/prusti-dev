@@ -1,7 +1,8 @@
 use std::fmt::Debug;
 
 use crate::{
-    data::*, debug_info::{DebugInfo, DEBUGINFO_NONE}, genrefs::*, refs::*, spans::VirSpan, typecheck_error, with_vcx, CastType, CompType
+    data::*, debug_info::{DebugInfo, DEBUGINFO_NONE}, genrefs::*, refs::*, spans::VirSpan, typecheck_error, with_vcx, CastType,
+    CompType, Dyn,
 };
 
 use vir_proc_macro::*;
@@ -242,10 +243,10 @@ pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
     Lazy(LazyGen<'vir, Curr, Next>),
 
     // Adt ops
-    AdtDestructor(ExprGenCSnap<'vir, Curr, Next>, AdtDestructorDyn<'vir>),
+    AdtDestructor(ExprGenDyn<'vir, Curr, Next>, AdtDestructor<'vir, Dyn, Dyn>),
     AdtConstructor(FuncAppGen<'vir, Curr, Next>),
     // TODO: make this not a &str
-    AdtDiscriminator(ExprGenCSnap<'vir, Curr, Next>, &'vir str),
+    AdtDiscriminator(ExprGenDyn<'vir, Curr, Next>, &'vir str),
 
     Todo(&'vir str),
 }

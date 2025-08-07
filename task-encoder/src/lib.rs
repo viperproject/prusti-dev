@@ -11,6 +11,73 @@ pub use cache::*;
 pub use dependencies::*;
 pub use result::*;
 
+#[derive(Debug, Default)]
+pub struct Program<'vir> {
+    fields: Vec<vir::FieldDyn<'vir>>,
+    adts: Vec<vir::Adt<'vir>>,
+    domains: Vec<vir::Domain<'vir>>,
+    predicates: Vec<vir::Predicate<'vir>>,
+    functions: Vec<vir::Function<'vir>>,
+    methods: Vec<vir::Method<'vir>>,
+
+    code: String,
+}
+
+impl<'vir> Program<'vir> {
+    pub fn header(&mut self, title: &str) {
+        self.code.push_str("// -----------------------------\n");
+        self.code.push_str(&format!("// {title}\n"));
+        self.code.push_str("// -----------------------------\n");
+    }
+
+    pub fn add_field(&mut self, field: vir::FieldDyn<'vir>) {
+        self.fields.push(field);
+        self.code.push_str(&format!("{field:?}\n"));
+    }
+
+    pub fn add_adt(&mut self, adt: vir::Adt<'vir>) {
+        self.adts.push(adt);
+        self.code.push_str(&format!("{adt:?}\n"));
+    }
+
+    pub fn add_domain(&mut self, domain: vir::Domain<'vir>) {
+        self.domains.push(domain);
+        self.code.push_str(&format!("{domain:?}\n"));
+    }
+
+    pub fn add_predicate(&mut self, predicate: vir::Predicate<'vir>) {
+        self.predicates.push(predicate);
+        self.code.push_str(&format!("{predicate:?}\n"));
+    }
+
+    pub fn add_function(&mut self, function: vir::Function<'vir>) {
+        self.functions.push(function);
+        self.code.push_str(&format!("{function:?}\n"));
+    }
+
+    pub fn add_method(&mut self, method: vir::Method<'vir>) {
+        self.methods.push(method);
+        self.code.push_str(&format!("{method:?}\n"));
+    }
+
+    pub fn code(&self) -> &str {
+        &self.code
+    }
+
+    pub fn mk_program(self) -> vir::Program<'vir> {
+        vir::with_vcx(|vcx| {
+            vcx.mk_program(
+                vcx.alloc_slice(&self.fields),
+                vcx.alloc_slice(&self.adts),
+                vcx.alloc_slice(&self.domains),
+                vcx.alloc_slice(&self.predicates),
+                vcx.alloc_slice(&self.functions),
+                vcx.alloc_slice(&self.methods),
+            )
+        })
+    }
+}
+
 pub trait OutputRefAny {}
 impl OutputRefAny for () {}
 
@@ -375,7 +442,7 @@ pub trait TaskEncoder {
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self>;
 
-    fn all_outputs<'vir>() -> Vec<Self::OutputFullLocal<'vir>>
+    fn all_outputs_local<'vir>() -> Vec<Self::OutputFullLocal<'vir>>
     where
         Self: 'vir,
     {
@@ -383,15 +450,17 @@ pub trait TaskEncoder {
             cache
                 .borrow()
                 .iter()
-                .flat_map(|(_, cache_state)| {
+                .map(|(_, cache_state)| {
                     if let TaskEncoderCacheState::Encoded { output_local, .. } = cache_state {
-                        Some(output_local)
+                        output_local
                     } else {
-                        None
+                        panic!("task encoder not completed")
                     }
                 })
                 .cloned()
                 .collect()
         })
     }
+
+    fn emit_outputs<'vir>(_program: &mut Program<'vir>) {}
 }

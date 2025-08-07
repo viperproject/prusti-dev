@@ -349,6 +349,14 @@ impl TaskEncoder for CastersEnc<CastTypePure> {
             Ok((vcx.alloc_slice(&[make_generic, make_concrete]), ()))
         })
     }
+
+    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
+        for output in Self::all_outputs_local() {
+            for function in output {
+                program.add_function(function);
+            }
+        }
+    }
 }
 
 impl TaskEncoder for CastersEnc<CastTypeImpure> {
@@ -456,5 +464,13 @@ impl TaskEncoder for CastersEnc<CastTypeImpure> {
             );
             Ok((vcx.alloc_slice(&[make_generic, make_concrete]), ()))
         })
+    }
+
+    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
+        for output in Self::all_outputs_local() {
+            for method in output {
+                program.add_method(method);
+            }
+        }
     }
 }
