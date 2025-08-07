@@ -193,13 +193,20 @@ pub struct FieldData<'vir, T: CompType> {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
-pub struct AdtDestructorData<'vir, T: CompType> {
+pub struct AdtDestructorData<'vir, T: CompType, R: CompType> {
     #[serde(with = "crate::serde::serde_str")]
     pub name: &'vir str, // TODO: identifiers
     #[serde(with = "crate::serde::serde_ref")]
-    pub input: TypeCSnap<'vir>,
+    pub input: Type<'vir, T>,
     #[serde(with = "crate::serde::serde_ref")]
-    pub ty: Type<'vir, T>,
+    pub ty: Type<'vir, R>,
+}
+
+impl<'vir, T: CompType, R: CompType> AdtDestructorData<'vir, T, R> {
+    pub fn as_dyn(&self) -> &AdtDestructorData<'vir, crate::Dyn, crate::Dyn> {
+        let ptr = self as *const Self as *const AdtDestructorData<'vir, crate::Dyn, crate::Dyn>;
+        unsafe { &*ptr }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]

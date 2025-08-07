@@ -23,7 +23,6 @@ impl<'vir> task_encoder::OutputRefAny for GenericEncOutputRef<'vir> {}
 
 #[derive(Clone, Debug)]
 pub struct GenericEncOutput<'vir> {
-    pub type_snapshot: vir::Domain<'vir>,
     pub ref_to_pred: vir::Predicate<'vir>,
     pub param_snapshot: vir::Domain<'vir>,
     pub ref_to_snap: vir::Function<'vir>,
@@ -107,12 +106,24 @@ impl TaskEncoder for GenericEnc {
                         }
                     },
                     ref_to_pred: vir::vir_predicate! { vcx; predicate p_Param(self_p: Ref, t: Type) },
-                    type_snapshot: vir::vir_domain! { vcx; domain Type { } },
                     ref_to_snap,
                     unreachable_to_snap,
                 },
                 (),
             ))
         })
+    }
+
+    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
+        for output in Self::all_outputs_local() {
+            program.add_domain(output.param_snapshot);
+            /* TODO: it's rather strange that it's the predicate encoder that
+               adds the following 3 to the program and not this encoder. This
+               probably shouldn't be an encoder in that case (or at least should
+               not generate the following three fields). */
+            // program.add_predicate(output.ref_to_pred);
+            // program.add_function(output.ref_to_snap);
+            // program.add_function(output.unreachable_to_snap);
+        }
     }
 }

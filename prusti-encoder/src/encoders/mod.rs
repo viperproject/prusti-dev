@@ -21,7 +21,7 @@ cfg_if::cfg_if! {
     }
 }
 
-pub use domain::all_outputs as DomainEnc_all_outputs;
+pub use domain::emit_outputs as DomainEnc_emit_outputs;
 pub use generic::GenericEnc;
 pub use impure::fn_wand::{WandEnc, WandEncOutput, WandEncTask};
 pub use local_def::*;

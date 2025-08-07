@@ -15,7 +15,7 @@ pub fn domain<'vir>(
     discr: Option<vir::ExprCSnap<'vir>>,
 ) -> (
     FunctionIdn<'vir, vir::ManySnap, vir::CSnap>,
-    &'vir [vir::AdtDestructorSnap<'vir>],
+    &'vir [vir::AdtDestructor<'vir, vir::CSnap, vir::Snap>],
 ) {
     let field_tys = builder.vcx.alloc_slice(&fields.iter().map(|f| f.ty).collect::<Vec<_>>());
     let (cons, des) = builder.constructor(prefix, field_tys, discr);

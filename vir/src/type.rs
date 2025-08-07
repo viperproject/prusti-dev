@@ -149,8 +149,8 @@ mod private {
     }
 
     macro_rules! impl_unsafe_cast {
-        ($($name:ident$(<$($g:ident),+>)?);+) => {
-            $(impl<'a, 'vir: 'a$($(, $g)*)?, T: CompType> UnsafeCastType<'a, 'vir, T> for $crate::$name<'vir$($(, $g)*)?, T> {
+        ($($name:ident$(<$($g:ident$(: $bound:ident)?),+>)?);+) => {
+            $(impl<'a, 'vir: 'a$($(, $g$(: $bound)?)*)?, T: CompType> UnsafeCastType<'a, 'vir, T> for $crate::$name<'vir$($(, $g)*)?, T> {
                 type Output<U: CompType> = crate::$name<'vir$($(, $g)*)?, U>;
                 fn check<U: CompType>(&self) {
                     U::check(self.ty());
@@ -165,7 +165,7 @@ mod private {
             })*
         };
     }
-    impl_unsafe_cast!(LocalData; LocalDeclData; FieldData; AdtDestructorData; ExprGenData<Curr, Next>; TypeData);
+    impl_unsafe_cast!(LocalData; LocalDeclData; FieldData; AdtDestructorData<I: CompType>; ExprGenData<Curr, Next>; TypeData);
 }
 
 pub trait HasType<'vir, T: CompType> {
@@ -176,8 +176,8 @@ pub trait HasType<'vir, T: CompType> {
 }
 
 macro_rules! impl_has_type {
-    ($($name:ident$(<$($g:ident),+>)?$(.$t0:tt)?$(($t1:tt))?);+) => {
-        $(impl<'vir$($(, $g)*)?, T: CompType> HasType<'vir, T> for $crate::$name<'vir$($(, $g)*)?, T> {
+    ($($name:ident$(<$($g:ident$(: $bound:ident)?),+>)?$(.$t0:tt)?$(($t1:tt))?);+) => {
+        $(impl<'vir$($(, $g$(: $bound)?)*)?, T: CompType> HasType<'vir, T> for $crate::$name<'vir$($(, $g)*)?, T> {
             fn ty(&'vir self) -> $crate::Type<'vir, T> {
                 self$(.$t0)?$(.$t1())?
             }
@@ -185,4 +185,4 @@ macro_rules! impl_has_type {
     };
 }
 
-impl_has_type!(LocalData.ty; LocalDeclData.ty; FieldData.ty; AdtDestructorData.ty; ExprGenData<Curr, Next>(ty); TypeData);
+impl_has_type!(LocalData.ty; LocalDeclData.ty; FieldData.ty; AdtDestructorData<I: CompType>.ty; ExprGenData<Curr, Next>(ty); TypeData);

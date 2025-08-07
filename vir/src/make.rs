@@ -456,11 +456,11 @@ impl<'tcx> VirCtxt<'tcx> {
         ))
     }
 
-    pub(crate) fn mk_adt_destructor_expr<'vir, Curr, Next, T: CompType>(
+    pub(crate) fn mk_adt_destructor_expr<'vir, Curr, Next, T: CompType, R: CompType>(
         &'vir self,
-        recv: ExprGenCSnap<'vir, Curr, Next>,
-        destr: AdtDestructor<'vir, T>,
-    ) -> ExprGen<'vir, Curr, Next, T> {
+        recv: ExprGen<'vir, Curr, Next, T>,
+        destr: AdtDestructor<'vir, T, R>,
+    ) -> ExprGen<'vir, Curr, Next, R> {
         if recv.ty() != destr.input {
             typecheck_error!(
                 "Unexpected type for adt field {}. Expected: {:?}, Actual: {:?}",
@@ -470,17 +470,17 @@ impl<'tcx> VirCtxt<'tcx> {
             );
         }
         self.alloc(ExprGenData::new(
-            self.alloc(ExprKindGenData::AdtDestructor(recv, destr.as_dyn())),
+            self.alloc(ExprKindGenData::AdtDestructor(recv.as_dyn(), destr.as_dyn())),
         ))
     }
 
-    pub fn mk_adt_discriminator_expr<'vir, Curr, Next>(
+    pub fn mk_adt_discriminator_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        recv: ExprGenCSnap<'vir, Curr, Next>,
+        recv: ExprGen<'vir, Curr, Next, T>,
         discr: &'vir str,
     ) -> ExprGenBool<'vir, Curr, Next> {
         self.alloc(ExprGenData::new(
-            self.alloc(ExprKindGenData::AdtDiscriminator(recv, discr)),
+            self.alloc(ExprKindGenData::AdtDiscriminator(recv.as_dyn(), discr)),
         ))
     }
 
@@ -549,12 +549,12 @@ impl<'tcx> VirCtxt<'tcx> {
         self.alloc(FieldData { name, ty })
     }
 
-    pub fn mk_adt_destructor<'vir, T: CompType>(
+    pub fn mk_adt_destructor<'vir, T: CompType, R: CompType>(
         &'vir self,
         name: &'vir str,
-        input: TypeCSnap<'vir>,
-        ty: Type<'vir, T>,
-    ) -> AdtDestructor<'vir, T> {
+        input: Type<'vir, T>,
+        ty: Type<'vir, R>,
+    ) -> AdtDestructor<'vir, T, R> {
         self.alloc(AdtDestructorData { name, input, ty })
     }
 

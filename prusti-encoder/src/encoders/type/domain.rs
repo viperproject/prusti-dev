@@ -11,7 +11,7 @@ use prusti_rustc_interface::{
 };
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{
-    AdtDestructorPSnap, AdtDestructorRef, Arity, CallableIdn, CastType, CompType, DomainAxiomData, DomainIdnCSnap, FunctionIdn, Type
+    AdtDestructor, Arity, CallableIdn, CastType, CompType, DomainAxiomData, DomainIdnCSnap, FunctionIdn, Type
 };
 
 use super::{
@@ -37,18 +37,18 @@ pub struct DomainDataImmRef<'vir> {
     /// Construct domain from a `Ref` value.
     pub prim_to_snap: FunctionIdn<'vir, (vir::Ref, vir::PSnap), vir::CSnap>,
     /// Function to access the referee.
-    pub deref_access: AdtDestructorRef<'vir>,
+    pub deref_access: AdtDestructor<'vir, vir::CSnap, vir::Ref>,
     /// Function to access the snapshot value.
-    pub value_access: AdtDestructorPSnap<'vir>,
+    pub value_access: AdtDestructor<'vir, vir::CSnap, vir::PSnap>,
 }
 #[derive(Clone, Copy, Debug)]
 pub struct DomainDataMutRef<'vir> {
     /// Construct domain from a `Ref` value.
     pub prim_to_snap: FunctionIdn<'vir, (vir::Ref, vir::PSnap), vir::CSnap>,
     /// Function to access the referee.
-    pub deref_access: AdtDestructorRef<'vir>,
+    pub deref_access: AdtDestructor<'vir, vir::CSnap, vir::Ref>,
     /// Function to access the snapshot value.
-    pub value_access: AdtDestructorPSnap<'vir>,
+    pub value_access: AdtDestructor<'vir, vir::CSnap, vir::PSnap>,
 }
 #[derive(Clone, Copy, Debug)]
 pub struct DomainDataStruct<'vir> {
@@ -56,7 +56,7 @@ pub struct DomainDataStruct<'vir> {
     /// from the single Viper primitive value.
     pub field_snaps_to_snap: FunctionIdn<'vir, vir::ManySnap, vir::CSnap>,
     /// Functions to access the fields.
-    pub field_access: &'vir [vir::AdtDestructorSnap<'vir>],
+    pub field_access: &'vir [AdtDestructor<'vir, vir::CSnap, vir::Snap>],
 }
 #[derive(Clone, Copy, Debug)]
 pub struct DomainDataEnum<'vir> {
@@ -104,20 +104,19 @@ pub struct DomainEncOutputRef<'vir> {
 
 impl<'vir> task_encoder::OutputRefAny for DomainEncOutputRef<'vir> {}
 
-pub fn all_outputs<'vir>() -> (
-    Vec<vir::Domain<'vir>>,
-    Vec<(vir::Adt<'vir>, Option<vir::Function<'vir>>)>,
-) {
-    let mut domains = Vec::new();
-    let mut adts = Vec::new();
-    for output in DomainEnc::all_outputs() {
+pub fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
+    for output in DomainEnc::all_outputs_local() {
         match output {
-            DomainEncOutput::Domain(domain) => domains.push(domain),
-            DomainEncOutput::Adt { adt, discr_fn } => adts.push((adt, discr_fn)),
+            DomainEncOutput::Domain(domain) => program.add_domain(domain),
+            DomainEncOutput::Adt { adt, discr_fn } => {
+                program.add_adt(adt);
+                if let Some(discr_fn) = discr_fn {
+                    program.add_function(discr_fn);
+                }
+            }
             DomainEncOutput::None => {}
         }
     }
-    (domains, adts)
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -339,7 +338,7 @@ impl<'vir> AdtBuilder<'vir> {
         discr: Option<vir::ExprCSnap<'vir>>,
     ) -> (
         FunctionIdn<'vir, A, vir::CSnap>,
-        Vec<vir::AdtDestructorDyn<'vir>>,
+        Vec<vir::AdtDestructor<'vir, vir::CSnap, vir::Dyn>>,
     ) {
         let name = format!("{prefix}cons");
         let self_ty = self.self_type();

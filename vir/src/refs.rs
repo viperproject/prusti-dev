@@ -7,10 +7,7 @@ macro_rules! typed {
 pub type AccField<'vir> = &'vir crate::data::AccFieldData<'vir>;
 pub type Adt<'vir> = &'vir crate::data::AdtData<'vir>;
 pub type AdtConstructor<'vir> = &'vir crate::data::AdtConstructorData<'vir>;
-typed!(AdtDestructorData; Bool => AdtDestructorBool, Int => AdtDestructorInt, Perm => AdtDestructorPerm, Ref => AdtDestructorRef);
-typed!(AdtDestructorData; CSnap => AdtDestructorCSnap, PSnap => AdtDestructorPSnap, TyVal => AdtDestructorTyVal);
-typed!(AdtDestructorData; Prim => AdtDestructorPrim, Snap => AdtDestructorSnap, Dyn => AdtDestructorDyn);
-pub type AdtDestructor<'vir, T> = &'vir crate::data::AdtDestructorData<'vir, T>;
+pub type AdtDestructor<'vir, T, R> = &'vir crate::data::AdtDestructorData<'vir, T, R>;
 pub type BinOp<'vir> = &'vir crate::data::BinOpData<'vir>;
 pub type CfgBlock<'vir> = &'vir crate::data::CfgBlockData<'vir>;
 pub type CfgLabel<'vir> = &'vir crate::data::CfgLabelData<'vir>;

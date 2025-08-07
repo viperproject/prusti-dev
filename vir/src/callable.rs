@@ -80,17 +80,17 @@ impl<'a, 'vir, T: CompType, R: CompType> FnOnce<(&'a [crate::Type<'vir, T>],)>
 
 // An Adt destructor
 
-pub struct AdtDestructorWrapper<'vir, T: CompType>(AdtDestructor<'vir, T>);
+pub struct AdtDestructorWrapper<'vir, T: CompType, R: CompType>(AdtDestructor<'vir, T, R>);
 
-impl<'vir, T: CompType> crate::AdtDestructorData<'vir, T> {
-    pub fn call(&'vir self) -> AdtDestructorWrapper<'vir, T> {
+impl<'vir, T: CompType, R: CompType> crate::AdtDestructorData<'vir, T, R> {
+    pub fn call(&'vir self) -> AdtDestructorWrapper<'vir, T, R> {
         AdtDestructorWrapper(self)
     }
 }
 
-impl<'a, 'vir, Curr, Next, T: CompType> FnOnce<(crate::ExprGenCSnap<'vir, Curr, Next>,)> for AdtDestructorWrapper<'vir, T> {
-    type Output = crate::ExprGen<'vir, Curr, Next, T>;
-    extern "rust-call" fn call_once(self, args: (crate::ExprGenCSnap<'vir, Curr, Next>,)) -> Self::Output {
+impl<'a, 'vir, Curr, Next, T: CompType, R: CompType> FnOnce<(crate::ExprGen<'vir, Curr, Next, T>,)> for AdtDestructorWrapper<'vir, T, R> {
+    type Output = crate::ExprGen<'vir, Curr, Next, R>;
+    extern "rust-call" fn call_once(self, args: (crate::ExprGen<'vir, Curr, Next, T>,)) -> Self::Output {
         with_vcx(|vcx| {
             vcx.mk_adt_destructor_expr(args.0, self.0)
         })
