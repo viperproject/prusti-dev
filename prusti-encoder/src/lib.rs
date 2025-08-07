@@ -61,127 +61,46 @@ pub fn test_entrypoint<'tcx>(
             }
         }
     }
-
-    fn header(code: &mut String, title: &str) {
-        code.push_str("// -----------------------------\n");
-        code.push_str(&format!("// {}\n", title));
-        code.push_str("// -----------------------------\n");
-    }
-    let mut viper_code = String::new();
-
-    let mut program_fields = vec![];
-    let mut program_adts = vec![];
-    let mut program_domains = vec![];
-    let mut program_predicates = vec![];
-    let mut program_functions = vec![];
-    let mut program_methods = vec![];
+    
+    let mut program = task_encoder::Program::default();
 
     // We output results from both monomorphic and polymorphic encoding of
     // functions, because even when Prusti is configured to use the monomorphic
     // it will still use `MirPolyImpureEnc` directly sometimes (see usages
     // earlier in this file).
-    header(&mut viper_code, "methods");
-    for output in crate::encoders::MirMonoImpureEnc::all_outputs() {
-        viper_code.push_str(&format!("{:?}\n", output.method));
-        program_methods.push(output.method);
-    }
-    for output in crate::encoders::MirPolyImpureEnc::all_outputs() {
-        viper_code.push_str(&format!("{:?}\n", output.method));
-        program_methods.push(output.method);
-    }
+    program.header("user methods");
+    crate::encoders::MirMonoImpureEnc::emit_outputs(&mut program);
+    crate::encoders::MirPolyImpureEnc::emit_outputs(&mut program);
+    
+    program.header("user functions");
+    crate::encoders::PureFunctionEnc::emit_outputs(&mut program);
 
-    header(&mut viper_code, "functions");
-    for output in crate::encoders::PureFunctionEnc::all_outputs() {
-        viper_code.push_str(&format!("{:?}\n", output.function));
-        program_functions.push(output.function);
-    }
+    program.header("MIR builtins");
+    crate::encoders::MirBuiltinEnc::emit_outputs(&mut program);
 
-    header(&mut viper_code, "MIR builtins");
-    for output in crate::encoders::MirBuiltinEnc::all_outputs() {
-        viper_code.push_str(&format!("{:?}\n", output.function));
-        program_functions.push(output.function);
-    }
+    program.header("generics");
+    crate::encoders::GenericEnc::emit_outputs(&mut program);
 
-    header(&mut viper_code, "generics");
-    for output in crate::encoders::GenericEnc::all_outputs() {
-        viper_code.push_str(&format!("{:?}\n", output.type_snapshot));
-        viper_code.push_str(&format!("{:?}\n", output.param_snapshot));
-        program_domains.push(output.type_snapshot);
-        program_domains.push(output.param_snapshot);
-    }
+    program.header("pure generic casts");
+    CastersEnc::<CastTypePure>::emit_outputs(&mut program);
 
-    header(&mut viper_code, "pure generic casts");
-    for cast_functions in CastersEnc::<CastTypePure>::all_outputs() {
-        for cast_function in cast_functions {
-            viper_code.push_str(&format!("{:?}\n", cast_function));
-            program_functions.push(cast_function);
-        }
-    }
+    program.header("impure generic casts");
+    CastersEnc::<CastTypeImpure>::emit_outputs(&mut program);
+    
+    program.header("snapshots");
+    crate::encoders::DomainEnc_emit_outputs(&mut program);
 
-    header(&mut viper_code, "impure generic casts");
-    for cast_methods in CastersEnc::<CastTypeImpure>::all_outputs() {
-        for cast_method in cast_methods {
-            viper_code.push_str(&format!("{:?}\n", cast_method));
-            program_methods.push(cast_method);
-        }
-    }
+    program.header("type constructors");
+    TyConstructorEnc::emit_outputs(&mut program);
 
-    header(&mut viper_code, "snapshots");
-    let (domains, adts) = crate::encoders::DomainEnc_all_outputs();
-    for (output, discr_fn) in adts {
-        viper_code.push_str(&format!("{:?}\n", output));
-        program_adts.push(output);
-        if let Some(discr_fn) = discr_fn {
-            program_functions.push(discr_fn);
-        }
-    }
-    for output in domains {
-        viper_code.push_str(&format!("{:?}\n", output));
-        program_domains.push(output);
-    }
-
-    header(&mut viper_code, "type constructors");
-    for output in TyConstructorEnc::all_outputs() {
-        viper_code.push_str(&format!("{:?}\n", output.domain));
-        program_domains.push(output.domain);
-    }
-
-    header(&mut viper_code, "types");
-    for output in crate::encoders::PredicateEnc::all_outputs() {
-        for field in output.fields {
-            viper_code.push_str(&format!("{:?}", field));
-            program_fields.push(field);
-        }
-        for field_projection in output.ref_to_field_refs {
-            viper_code.push_str(&format!("{:?}", field_projection));
-            program_functions.push(field_projection);
-        }
-        viper_code.push_str(&format!("{:?}\n", output.unreachable_to_snap));
-        program_functions.push(output.unreachable_to_snap);
-        viper_code.push_str(&format!("{:?}\n", output.function_snap));
-        program_functions.push(output.function_snap);
-        for pred in output.predicates {
-            viper_code.push_str(&format!("{:?}\n", pred));
-            program_predicates.push(pred);
-        }
-        viper_code.push_str(&format!("{:?}\n", output.method_assign));
-        program_methods.push(output.method_assign);
-    }
+    program.header("types");
+    crate::encoders::PredicateEnc::emit_outputs(&mut program);
 
     if std::env::var("LOCAL_TESTING").is_ok() {
-        std::fs::write("local-testing/simple.vpr", viper_code).unwrap();
+        std::fs::write("local-testing/simple.vpr", program.code()).unwrap();
     }
 
-    let program = vir::with_vcx(|vcx| {
-        vcx.mk_program(
-            vcx.alloc_slice(&program_fields),
-            vcx.alloc_slice(&program_adts),
-            vcx.alloc_slice(&program_domains),
-            vcx.alloc_slice(&program_predicates),
-            vcx.alloc_slice(&program_functions),
-            vcx.alloc_slice(&program_methods),
-        )
-    });
+    let program = program.mk_program();
 
     /*
     let source_path = std::path::Path::new("source/path"); // TODO: env.name.source_path();

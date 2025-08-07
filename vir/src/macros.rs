@@ -345,11 +345,11 @@ impl<'vir, Ty: CompType> ExprApply<'vir, (crate::ExprRef<'vir>,), Ty> for crate:
         self.call_once(args)
     }
 }
-impl<'vir, Ty: CompType> ExprApply<'vir, (crate::ExprCSnap<'vir>,), Ty> for crate::AdtDestructor<'vir, Ty> {
+impl<'vir, I: CompType, Ty: CompType> ExprApply<'vir, (crate::Expr<'vir, I>,), Ty> for crate::AdtDestructor<'vir, I, Ty> {
     fn expr_apply(
         self,
         _vcx: &'vir crate::VirCtxt,
-        args: (crate::ExprCSnap<'vir>,),
+        args: (crate::Expr<'vir, I>,),
     ) -> crate::Expr<'vir, Ty> {
         self.call().call_once(args)
     }

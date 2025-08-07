@@ -61,4 +61,10 @@ impl TaskEncoder for MirMonoImpureEnc {
     ) -> EncodeFullResult<'vir, Self> {
         <Self as ImpureFunctionEnc>::encode(*task_key, deps).map(|r| (r, ()))
     }
+
+    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
+        for output in Self::all_outputs_local() {
+            program.add_method(output.method);
+        }
+    }
 }

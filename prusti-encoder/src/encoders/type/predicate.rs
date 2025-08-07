@@ -661,6 +661,23 @@ impl TaskEncoder for PredicateEnc {
             unsupported_type => todo!("type not supported: {unsupported_type:?}"),
         }
     }
+
+    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
+        for output in Self::all_outputs_local() {
+            for field in output.fields {
+                program.add_field(field);
+            }
+            for field_projection in output.ref_to_field_refs {
+                program.add_function(field_projection);
+            }
+            program.add_function(output.unreachable_to_snap);
+            program.add_function(output.function_snap);
+            for pred in output.predicates {
+                program.add_predicate(pred);
+            }
+            program.add_method(output.method_assign);
+        }
+    }
 }
 
 fn mk_method_assign<'vir>(
