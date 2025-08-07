@@ -14,6 +14,8 @@ use vir::{
     AdtDestructor, Arity, CallableIdn, CastType, CompType, DomainAxiomData, DomainIdnCSnap, FunctionIdn, Type
 };
 
+use crate::encoders::lifted::generic::LiftedGeneric;
+
 use super::{
     most_generic_ty::{extract_type_params, get_vir_base_name_kind, MostGenericTy},
     rust_ty_snapshots::RustTySnapshotsEnc,
@@ -54,9 +56,11 @@ pub struct DomainDataMutRef<'vir> {
 pub struct DomainDataStruct<'vir> {
     /// Construct domain from snapshots of fields or for primitive types
     /// from the single Viper primitive value.
-    pub field_snaps_to_snap: FunctionIdn<'vir, vir::ManySnap, vir::CSnap>,
+    pub field_snaps_to_snap: FunctionIdn<'vir, (vir::ManySnap, vir::ManyTyVal), vir::CSnap>,
     /// Functions to access the fields.
     pub field_access: &'vir [AdtDestructor<'vir, vir::CSnap, vir::Snap>],
+    /// Functions to access the type parameters.
+    pub ty_param_accessors: &'vir [AdtDestructor<'vir, vir::CSnap, vir::TyVal>],
 }
 #[derive(Clone, Copy, Debug)]
 pub struct DomainDataEnum<'vir> {
