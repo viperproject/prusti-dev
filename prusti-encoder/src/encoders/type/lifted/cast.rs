@@ -28,7 +28,7 @@ impl<'tcx> CastArgs<'tcx> {
 
 /// Holds the necessary information to cast to a generic or concrete
 /// version.
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct Cast<'vir, T> {
     /// Either a function or method identifier that can be applied to perform
     /// the cast
@@ -73,7 +73,7 @@ impl<'vir> PureCast<'vir> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum GenericCastOutputRef<'vir, T> {
     NoCast,
     Cast(Cast<'vir, T>),
