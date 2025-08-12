@@ -172,7 +172,7 @@ where
 #[allow(type_alias_bounds)]
 pub type Casters<'vir, T: CastType> = CastersEncOutputRef<T::ToGeneric<'vir>, T::ToConcrete<'vir>>;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum CastersEncOutputRef<G, C> {
     Casters { make_generic: G, make_concrete: C },
     AlreadyGeneric,

@@ -637,17 +637,18 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 // a shared reference, it happens immediately.
                 let mut place_ty = mir::PlaceTy::from_ty(self.local_decls[place.local].ty);
                 let mut encoded_place = mir::Place::from(place.local);
-                let (mut crossed_ref, mut result) =
-                    if matches!(place_ty.ty.kind(), TyKind::Ref(_, _, ty::Mutability::Not)) {
+                let mut crossed_ref = matches!(place_ty.ty.kind(), TyKind::Ref(_, _, ty::Mutability::Not));
+                let mut result =
+                    if crossed_ref {
                         let ty_out = self
                             .deps
                             .require_ref::<RustTyPredicatesEnc>(place_ty.ty)
                             .unwrap();
                         let snap_val = ty_out
                             .ref_to_snap(self.vcx, self.local_defs[place.local].local_ex);
-                        (true, snap_val.as_dyn())
+                        snap_val.as_dyn()
                     } else {
-                        (false, self.local_defs[place.local].local_ex.as_dyn())
+                        self.local_defs[place.local].local_ex.as_dyn()
                     };
                 for elem in place.projection {
                     if crossed_ref {
@@ -1194,7 +1195,8 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                         match rvalue_ty.kind() {
                             TyKind::Ref(_, inner_ty, ty::Mutability::Not) => {
                                 let e_rvalue_ty = self.deps.require_ref::<RustTyPredicatesEnc>(rvalue_ty).unwrap();
-                                let place_expr = self.encode_place(Place::from(*place)).expr;
+                                let ep = self.encode_place(Place::from(*place));
+                                debug_assert_eq!(ep.ty.ty, *inner_ty);
                                 let cast = self
                                     .deps
                                     .require_local::<RustTyCastersEnc<CastTypePure>>(*inner_ty)
@@ -1206,7 +1208,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                                 let snap = self.encode_operand_snap(&mir::Operand::Copy(*place));
                                 let snap = cast.cast_to_generic_if_necessary(self.vcx, snap);
                                 let inner = e_rvalue_ty.generic_predicate.expect_immref();
-                                (inner.snap_data.prim_to_snap)(place_expr, snap).upcast_ty()
+                                (inner.snap_data.prim_to_snap)(ep.expr, snap).upcast_ty()
                             }
                             TyKind::Ref(_, inner_ty, ty::Mutability::Mut) => {
                                 let e_rvalue_ty = self.deps.require_ref::<RustTyPredicatesEnc>(rvalue_ty).unwrap();

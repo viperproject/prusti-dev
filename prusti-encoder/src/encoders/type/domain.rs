@@ -393,9 +393,8 @@ impl<'vir> AdtBuilder<'vir> {
         &mut self,
         ty: vir::TypeCSnap<'vir>,
     ) -> vir::FunctionIdn<'vir, vir::CSnap, vir::CSnap> {
-        let Some(DiscrFnBuilder::Building { param, acc, .. }) = self.discr_fn else {
-            panic!("discriminant function not started or already built");
-        };
+        let self_ty = self.self_type();
+        let param = self.vcx.mk_local_decl("self", self_ty);
         let ident = FunctionIdn::new(
             vir::ViperIdent::new(vir::vir_format!(
                 self.vcx,
@@ -405,13 +404,31 @@ impl<'vir> AdtBuilder<'vir> {
             param.ty,
             ty,
         );
+        let (expr, posts) = if let Some(df) = self.discr_fn {
+            let DiscrFnBuilder::Building { acc, .. } = df else {
+                panic!("discriminant function already built");
+            };
+            (Some(acc), &[][..])
+        } else {
+            // We get here if we didn't add any constructors to the ADT (i.e.
+            // this is an empty enum = uninhabitable type). Viper forbids this
+            // (see silver#693, silver#696), so here we will just add a dummy
+            // constructor that won't actually be used by the encoders. Instead
+            // we encode the uninhabitability by adding an `ensures false` to
+            // the discriminant function.
+            // TODO: https://github.com/Aurel300/prusti-dev/pull/89#discussion_r2263306839
+            let self_name = self.name.expect("name should be set");
+            let name = vir::vir_format!(self.vcx, "{self_name}_DummyConstructor",);
+            self.constructors.push(self.vcx.mk_adt_constructor::<(), !, vir::Dyn>(name, &[]));
+            (None, self.vcx.alloc_slice(&[self.vcx.mk_bool::<false>()]))
+        };
         let built_fn = self.vcx.mk_function(
             ident,
             (param,),
             &[],
-            &[],
+            posts,
             None,
-            Some(acc),
+            expr,
         );
         self.discr_fn = Some(DiscrFnBuilder::Built(built_fn));
         ident

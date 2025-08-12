@@ -22,7 +22,7 @@ use super::{
 /// [`CastTypePure`] or [`CastTypeImpure`].
 pub struct RustTyCastersEnc<T>(PhantomData<T>);
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct RustTyGenericCastEncOutput<'vir, T> {
     pub cast: T,
     // Type arguments required by the cast function

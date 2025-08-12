@@ -193,9 +193,16 @@ impl<'tcx> crate::VirCtxt<'tcx> {
 
     pub const fn mk_int<'vir, const VALUE: i128>(&'vir self) -> ExprInt<'vir> {
         if VALUE < 0 {
+            // Hack to get a const-promoted absolute value, otherwise rustc
+            // would complain that `VALUE.unsigned_abs()` does not have a static
+            // lifetime.
+            struct Math<const V: i128>;
+            impl<const V: i128> Math<V> {
+                const ABS: u128 = V.unsigned_abs();
+            }
             const_expr!(&ExprKindGenData::UnOp(&UnOpData {
                 kind: UnOpKind::Neg,
-                expr: const_expr!(&ExprKindGenData::Const(&ConstData::Int((-VALUE) as u128)), Int => TypePrim),
+                expr: const_expr!(&ExprKindGenData::Const(&ConstData::Int(Math::<VALUE>::ABS)), Int => TypePrim),
             }), Int => TypeInt)
         } else {
             const_expr!(&ExprKindGenData::<(), !>::Const(&ConstData::Int(VALUE as u128)), Int => TypeInt)
