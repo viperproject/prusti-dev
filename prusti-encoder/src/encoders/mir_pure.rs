@@ -1293,6 +1293,11 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
                     let proj_app = proj.call()(expr);
                     let place_ref =
                         place_ref.map(|pr| struct_like.ref_to_field_refs[0].call()(pr, &[]));
+                    // The result will be a generic s_Param, cast to concrete
+                    let new_ty = place_ty.projection_ty(vcx.tcx(), elem).ty;
+                    let proj_app = deps.require_local::<RustTyCastersEnc<CastTypePure>>(new_ty)
+                        .unwrap()
+                        .cast_to_concrete_if_possible(vcx, proj_app);
                     (proj_app, place_ref)
                 }
                 TyKind::Ref(_, inner_ty, ty::Mutability::Not) => {
