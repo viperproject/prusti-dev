@@ -17,8 +17,7 @@ pub struct LiftedFuncAppTyParamsEnc;
 
 impl TaskEncoder for LiftedFuncAppTyParamsEnc {
     task_encoder::encoder_cache!(LiftedFuncAppTyParamsEnc);
-    // 1st: true iff we are monomorphizing
-    type TaskDescription<'tcx> = (bool, GenericArgsRef<'tcx>);
+    type TaskDescription<'tcx> = GenericArgsRef<'tcx>;
 
     type OutputFullLocal<'vir> = &'vir [LiftedTy<'vir, LiftedGeneric<'vir>>];
 
@@ -34,14 +33,10 @@ impl TaskEncoder for LiftedFuncAppTyParamsEnc {
     ) -> EncodeFullResult<'vir, Self> {
         deps.emit_output_ref(*task_key, ())?;
         vir::with_vcx(|vcx| {
-            let (monomorphize, substs) = task_key;
+            let substs = task_key;
             let tys = substs.iter().filter_map(|arg| arg.as_type());
 
-            let ty_args: Vec<_> = if *monomorphize {
-                unique(tys.flat_map(extract_ty_params)).collect()
-            } else {
-                tys.collect()
-            };
+            let ty_args: Vec<_> = tys.collect();
             let ty_args = ty_args
                 .iter()
                 .map(|ty| {

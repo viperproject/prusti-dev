@@ -7,7 +7,7 @@ use prusti_rustc_interface::{
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, Reify};
 
-use crate::encoders::{mir_pure::PureKind, rust_ty_predicates::RustTyPredicatesEnc, MirPureEnc};
+use crate::encoders::{mir_pure::PureKind, ty_impure::TyImpureEnc, MirPureEnc, TyPureEnc};
 pub struct MirSpecEnc;
 
 #[derive(Clone)]
@@ -63,7 +63,7 @@ impl TaskEncoder for MirSpecEnc {
                 let result_ty = local_defs[mir::RETURN_PLACE].ty;
                 local_iter
                     .map(|local| vcx.mk_local_ex_local(local_defs[local].local_snap))
-                    .chain([vcx.mk_result(result_ty.snapshot)])
+                    .chain([vcx.mk_result(result_ty.snapshot())])
                     .collect()
             } else {
                 local_iter
@@ -78,9 +78,8 @@ impl TaskEncoder for MirSpecEnc {
             };
 
             let to_bool = deps
-                .require_ref::<RustTyPredicatesEnc>(vcx.tcx().types.bool)?
-                .generic_predicate
-                .expect_prim()
+                .require_local::<TyPureEnc>(vcx.tcx().types.bool)?
+                .expect_primitive()
                 .snap_to_prim;
 
             let substs = find_trait_method_substs(vcx.tcx(), def_id, substs)
@@ -160,7 +159,7 @@ impl TaskEncoder for MirSpecEnc {
                     .map(|arg| vcx.mk_old_expr(arg))
                     // TODO: this looks a bit hardcoded...
                     .chain([
-                        vcx.mk_local_ex("_0s", local_defs[mir::RETURN_PLACE].ty.snapshot)
+                        vcx.mk_local_ex("_0s", local_defs[mir::RETURN_PLACE].ty.snapshot())
                     ])
                     .collect::<Vec<_>>(),
             );
