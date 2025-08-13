@@ -9,9 +9,9 @@ use task_encoder::{TaskEncoder, TaskEncoderDependencies};
 
 use crate::encoders::{
     lifted::{
-        cast::{CastArgs, CastToEnc},
-        casters::CastTypePure,
-        func_app_ty_params::LiftedFuncAppTyParamsEnc,
+        CastArgs, CastToEnc,
+        CastTypePure,
+        LiftedFuncAppTyParamsEnc,
     },
     FunctionCallTaskDescription, PureFunctionEnc,
 };
@@ -33,9 +33,6 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
     /// The type of the data source that can provide local declarations; this is used
     /// when getting the type of the function.
     type LocalDeclsSrc: ?Sized + HasLocalDecls<'vir>;
-
-    // Are we monomorphizing functions?
-    fn monomorphize(&self) -> bool;
 
     /// Task encoder dependencies are required for encoding Viper casts between
     /// generic and concrete types.
@@ -78,7 +75,6 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
         Vec<vir::ExprGenTyVal<'vir, Self::Curr, Self::Next>>,
         Vec<vir::ExprGenSnap<'vir, Self::Curr, Self::Next>>,
     ) {
-        let mono = self.monomorphize();
         let fn_arg_tys = sig
             .inputs()
             .iter()
@@ -87,7 +83,7 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
             .collect::<Vec<_>>();
         let encoded_ty_args = self
             .deps()
-            .require_local::<LiftedFuncAppTyParamsEnc>((mono, substs))
+            .require_local::<LiftedFuncAppTyParamsEnc>(substs)
             .unwrap();
 
         // Initial arguments are lifted type parameters

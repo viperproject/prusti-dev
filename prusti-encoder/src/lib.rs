@@ -16,8 +16,8 @@ use task_encoder::TaskEncoder;
 
 use crate::encoders::{
     lifted::{
-        casters::{CastTypeImpure, CastTypePure, CastersEnc},
-        ty_constructor::TyConstructorEnc,
+        CastTypeImpure, CastTypePure, CastersEnc,
+        TyConstructorEnc, TypeOfEnc,
     },
     MirPolyImpureEnc,
 };
@@ -69,17 +69,13 @@ pub fn test_entrypoint<'tcx>(
     // it will still use `MirPolyImpureEnc` directly sometimes (see usages
     // earlier in this file).
     program.header("user methods");
-    crate::encoders::MirMonoImpureEnc::emit_outputs(&mut program);
     crate::encoders::MirPolyImpureEnc::emit_outputs(&mut program);
-    
+
     program.header("user functions");
     crate::encoders::PureFunctionEnc::emit_outputs(&mut program);
 
     program.header("MIR builtins");
     crate::encoders::MirBuiltinEnc::emit_outputs(&mut program);
-
-    program.header("generics");
-    crate::encoders::GenericEnc::emit_outputs(&mut program);
 
     program.header("pure generic casts");
     CastersEnc::<CastTypePure>::emit_outputs(&mut program);
@@ -88,13 +84,14 @@ pub fn test_entrypoint<'tcx>(
     CastersEnc::<CastTypeImpure>::emit_outputs(&mut program);
     
     program.header("snapshots");
-    crate::encoders::DomainEnc_emit_outputs(&mut program);
+    crate::encoders::TyPureEnc::emit_outputs(&mut program);
+
+    program.header("predicates");
+    crate::encoders::TyImpureEnc::emit_outputs(&mut program);
 
     program.header("type constructors");
     TyConstructorEnc::emit_outputs(&mut program);
-
-    program.header("types");
-    crate::encoders::PredicateEnc::emit_outputs(&mut program);
+    TypeOfEnc::emit_outputs(&mut program);
 
     if std::env::var("LOCAL_TESTING").is_ok() {
         std::fs::write("local-testing/simple.vpr", program.code()).unwrap();

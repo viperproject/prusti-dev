@@ -1,9 +1,6 @@
 use crate::encoders::{
-    domain::{AdtBuilder, DomainDataMutRef, DomainEnc, DomainEncSpecifics, PureTypeBuilder, PureTypeCommon},
-    predicate::{PredicateBuilder, PredicateEncData, PredicateEncDataMutRef, RefToIndirectPred},
-    rust_ty_snapshots::RustTySnapshotsEnc,
-    snapshot::SnapshotEncOutput,
-    PredicateEnc,
+    domain::{AdtBuilder, DomainDataMutRef, DomainEnc, DomainEncOutput, DomainEncSpecifics, PureTypeBuilder, PureTypeCommon},
+    predicate::{PredicateBuilder, PredicateEnc, PredicateEncData, PredicateEncDataMutRef, RefToIndirectPred}, TyPureEnc,
 };
 use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
@@ -21,8 +18,8 @@ pub(crate) fn domain<'vir>(
         unreachable!();
     };
 
-    let inner_ty_out = deps.require_ref::<RustTySnapshotsEnc>(*inner_ty)?;
-    let inner_type = inner_ty_out.generic_snapshot.snapshot.downcast_ty();
+    let inner_ty_out = deps.require_ref::<TyPureEnc>(*inner_ty)?;
+    let inner_type = inner_ty_out.snapshot.downcast_ty();
     let (field_snaps_to_snap, field_access) = builder.constructor("", (vir::TYPE_REF, inner_type), None);
 
     Ok((DomainEncSpecifics::MutRef(DomainDataMutRef {
@@ -34,7 +31,7 @@ pub(crate) fn domain<'vir>(
 
 pub(crate) fn predicate<'vir>(
     _task_key: <PredicateEnc as TaskEncoder>::TaskKey<'vir>,
-    snap: SnapshotEncOutput<'vir>,
+    snap: DomainEncOutput<'vir>,
     _deps: &mut TaskEncoderDependencies<'vir, PredicateEnc>,
     builder: &mut PredicateBuilder<'vir>,
 ) -> Result<
@@ -45,7 +42,7 @@ pub(crate) fn predicate<'vir>(
     //let ty_kind = ty.kind();
     //let ty::TyKind::Ref(_, _, _) = ty_kind else { unreachable!(); };
 
-    let snap_type = snap.snapshot;
+    let snap_type = (snap.domain)();
 
     let ref_self = builder.vcx.mk_local("self", vir::TYPE_REF);
     let ref_self_decl = builder.vcx.mk_local_decl_local(ref_self);

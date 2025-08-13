@@ -1,10 +1,14 @@
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 
+use crate::encoders::most_generic_ty::extract_type_params;
+
 use super::{
     domain::{DomainEnc, DomainEncSpecifics},
     lifted::generic::{LiftedGeneric, LiftedGenericEnc},
     most_generic_ty::MostGenericTy,
 };
+
+use prusti_rustc_interface::middle::ty;
 
 /// Takes a Rust `Ty` and returns a Viper `Type`. The returned type is always a
 /// domain type. To get specifics such as constructors for the domain, use the
@@ -14,6 +18,8 @@ pub struct SnapshotEnc;
 #[derive(Clone, Debug)]
 pub struct SnapshotEncOutputRef<'vir> {
     pub snapshot: vir::TypeSnap<'vir>,
+    /// Returns the Viper representation of the type of a snapshot-encoded value
+    pub typeof_function: vir::FunctionIdn<'vir, vir::Snap, vir::TyVal>,
 }
 impl<'vir> task_encoder::OutputRefAny for SnapshotEncOutputRef<'vir> {}
 
@@ -28,7 +34,7 @@ pub struct SnapshotEncOutput<'vir> {
 impl TaskEncoder for SnapshotEnc {
     task_encoder::encoder_cache!(SnapshotEnc);
 
-    type TaskDescription<'tcx> = MostGenericTy<'tcx>;
+    type TaskDescription<'tcx> = ty::Ty<'tcx>;
     type OutputRef<'vir> = SnapshotEncOutputRef<'vir>;
     type OutputFullLocal<'vir> = SnapshotEncOutput<'vir>;
     type EncodingError = ();
@@ -38,14 +44,15 @@ impl TaskEncoder for SnapshotEnc {
     }
 
     fn do_encode_full<'vir>(
-        ty: &Self::TaskKey<'vir>,
+        task_key: &Self::TaskKey<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
         vir::with_vcx(|vcx| {
-            let out = deps.require_ref::<DomainEnc>(*ty)?;
+            let (ty, generics) = extract_type_params(vcx.tcx(), *task_key);
+            let out = deps.require_ref::<DomainEnc>(ty)?;
             let snapshot = (out.domain)();
-            deps.emit_output_ref(*ty, SnapshotEncOutputRef { snapshot })?;
-            let specifics = deps.require_dep::<DomainEnc>(*ty)?;
+            deps.emit_output_ref(*task_key, SnapshotEncOutputRef { snapshot, typeof_function: out.typeof_function })?;
+            let specifics = deps.require_dep::<DomainEnc>(ty)?;
             let generics = vcx.alloc_slice(
                 &ty.generics()
                     .into_iter()
