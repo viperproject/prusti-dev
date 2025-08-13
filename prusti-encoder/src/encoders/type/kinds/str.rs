@@ -1,8 +1,6 @@
 use crate::encoders::{
-    domain::{DomainBuilder, DomainDataStruct, DomainEnc, DomainEncSpecifics, PureTypeBuilder, PureTypeCommon},
-    predicate::{PredicateBuilder, PredicateEncData, PredicateEncDataStruct},
-    snapshot::SnapshotEncOutput,
-    PredicateEnc,
+    domain::{DomainBuilder, DomainDataStruct, DomainEnc, DomainEncOutput, DomainEncSpecifics, PureTypeBuilder, PureTypeCommon},
+    predicate::{PredicateBuilder, PredicateEnc, PredicateEncData, PredicateEncDataStruct},
 };
 use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
@@ -20,15 +18,15 @@ pub(crate) fn domain<'vir>(
 
     let dummy_cons_ident = builder.function("cons", &[][..], builder.self_type());
 
-    Ok((DomainEncSpecifics::StructLike(DomainDataStruct {
-        field_snaps_to_snap: dummy_cons_ident,
-        field_access: &[],
-    }), Err(builder)))
+    Ok((DomainEncSpecifics::StructLike(DomainDataStruct::new(
+        dummy_cons_ident,
+        &[],
+    )), Err(builder)))
 }
 
 pub(crate) fn predicate<'vir>(
     task_key: <PredicateEnc as TaskEncoder>::TaskKey<'vir>,
-    snap: SnapshotEncOutput<'vir>,
+    snap: DomainEncOutput<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, PredicateEnc>,
     builder: &mut PredicateBuilder<'vir>,
 ) -> Result<PredicateEncData<'vir>, EncodeFullError<'vir, PredicateEnc>> {
@@ -36,7 +34,7 @@ pub(crate) fn predicate<'vir>(
     // let ty_kind = ty.kind();
     // let ty::TyKind::Str = ty_kind else { unreachable!(); };
 
-    let snap_type = snap.snapshot.downcast_ty::<vir::CSnap>();
+    let snap_type = (snap.domain)().downcast_ty::<vir::CSnap>();
     let snap_data = snap.specifics.expect_structlike();
 
     let ref_self = builder.vcx.mk_local("self", vir::TYPE_REF);
@@ -48,10 +46,8 @@ pub(crate) fn predicate<'vir>(
         &[],
         task_key,
         &snap,
-        snap_data.field_snaps_to_snap,
+        snap_data,
         deps,
-        &[],
-        &[],
         builder,
     )?;
 

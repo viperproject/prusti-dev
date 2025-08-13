@@ -2,7 +2,9 @@ use prusti_rustc_interface::middle::ty::{self};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, Reify};
 
-use super::{rust_ty_predicates::RustTyPredicatesEnc, rust_ty_snapshots::RustTySnapshotsEnc};
+use crate::encoders::lifted::{casters::CastTypePure, rust_ty_cast::RustTyCastersEnc};
+
+use super::{ty_impure::TyImpureEnc, ty_pure::TyPureEnc};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum IndirectKey {
@@ -74,16 +76,16 @@ impl TaskEncoder for IndirectPredicatesEnc {
     ) -> EncodeFullResult<'vir, Self> {
         vir::with_vcx(|vcx| {
             let (ty, proj_region) = task_key;
-            let self_ty_enc = deps.require_local::<RustTySnapshotsEnc>(*ty)?;
+            let self_ty_enc = deps.require_local::<TyPureEnc>(*ty)?;
             let mut covariant = Vec::<ExprOutput<'vir>>::new();
             let mut contravariant = Vec::<ExprOutput<'vir>>::new();
             match ty.kind() {
                 ty::TyKind::Ref(ref_region, inner_ty, ty::Mutability::Mut) => {
-                    let ref_domain = self_ty_enc.generic_snapshot.specifics.expect_mutref();
+                    let ref_domain = self_ty_enc.expect_mutref();
                     if IndirectKey::from_region(*ref_region)
                         .is_some_and(|indirect| &indirect == proj_region)
                     {
-                        let inner_ty_enc = deps.require_ref::<RustTyPredicatesEnc>(*inner_ty)?;
+                        let inner_ty_enc = deps.require_ref::<TyImpureEnc>(*inner_ty)?;
                         covariant.push(vcx.mk_lazy_expr(
                             "ref_indirect",
                             vir::TYPE_BOOL,
@@ -91,7 +93,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                                 inner_ty_enc
                                     .ref_to_pred(
                                         vcx,
-                                        ref_domain.deref_access.call()(self_expr.downcast_ty()),
+                                        ref_domain.deref_access(self_expr.downcast_ty()),
                                         None,
                                     )
                                     .kind
@@ -113,8 +115,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                                     inner_expr
                                         .reify(
                                             vcx,
-                                            ref_domain.value_access.call()(self_expr.downcast_ty())
-                                                .upcast_ty(),
+                                            ref_domain.value_access(self_expr.downcast_ty())
                                         )
                                         .kind
                                 }),
@@ -125,19 +126,16 @@ impl TaskEncoder for IndirectPredicatesEnc {
                     contravariant.extend(inner);
                 }
                 ty::TyKind::Tuple(params) => {
-                    let field_accessors = self_ty_enc
-                        .generic_snapshot
-                        .specifics
-                        .expect_structlike()
-                        .field_access;
-                    for (field_ty, accessor) in params.into_iter().zip(field_accessors) {
+                    let structlike = self_ty_enc
+                        .expect_structlike();
+                    for (field_ty, accessor) in params.into_iter().zip(structlike.fields()) {
                         let project = |inner_expr: ExprOutput<'vir>| {
                             vcx.mk_lazy_expr(
                                 "ref_inner_indirect",
                                 vir::TYPE_BOOL,
                                 Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
                                     inner_expr
-                                        .reify(vcx, accessor.call()(self_expr.downcast_ty()))
+                                        .reify(vcx, accessor.read(self_expr.downcast_ty()))
                                         .kind
                                 }),
                             )

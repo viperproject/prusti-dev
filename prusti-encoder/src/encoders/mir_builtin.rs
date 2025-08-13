@@ -45,11 +45,7 @@ pub struct MirBuiltinEncOutput<'vir> {
     pub function: vir::Function<'vir>,
 }
 
-use crate::encoders::lifted::aggregate_cast::{
-    AggregateSnapArgsCastEnc, AggregateSnapArgsCastEncTask, AggregateType,
-};
-
-use super::rust_ty_snapshots::RustTySnapshotsEnc;
+use super::ty_pure::TyPureEnc;
 
 impl TaskEncoder for MirBuiltinEnc {
     task_encoder::encoder_cache!(MirBuiltinEnc);
@@ -114,15 +110,14 @@ impl MirBuiltinEnc {
         ty: ty::Ty<'vir>,
     ) -> Result<vir::Function<'vir>, EncodeFullError<'vir, Self>> {
         let e_ty = deps
-            .require_local::<RustTySnapshotsEnc>(ty)?
-            .generic_snapshot;
+            .require_local::<TyPureEnc>(ty)?;
 
         let name = vir::vir_format_identifier!(vcx, "mir_unop_{op:?}_{}", int_name(ty));
         let e_ty_snap = e_ty.snapshot.downcast_ty();
         let function = FunctionIdn::new(name, e_ty_snap, e_ty_snap);
         deps.emit_output_ref(key, MirBuiltinEncOutputRef::UnOp(function))?;
 
-        let prim_res_ty = e_ty.specifics.expect_primitive();
+        let prim_res_ty = e_ty.expect_primitive();
         let snap_arg = vcx.mk_local_ex("arg", e_ty_snap);
         let prim_arg = (prim_res_ty.snap_to_prim)(snap_arg);
         let mut val =
@@ -161,17 +156,14 @@ impl MirBuiltinEnc {
     ) -> Result<vir::Function<'vir>, EncodeFullError<'vir, Self>> {
         use mir::BinOp::*;
         let e_l_ty = deps
-            .require_local::<RustTySnapshotsEnc>(l_ty)?
-            .generic_snapshot;
+            .require_local::<TyPureEnc>(l_ty)?;
         let e_r_ty = deps
-            .require_local::<RustTySnapshotsEnc>(r_ty)?
-            .generic_snapshot;
+            .require_local::<TyPureEnc>(r_ty)?;
         let e_res_ty = deps
-            .require_local::<RustTySnapshotsEnc>(res_ty)?
-            .generic_snapshot;
-        let prim_l_ty = e_l_ty.specifics.expect_primitive();
-        let prim_r_ty = e_r_ty.specifics.expect_primitive();
-        let prim_res_ty = e_res_ty.specifics.expect_primitive();
+            .require_local::<TyPureEnc>(res_ty)?;
+        let prim_l_ty = e_l_ty.expect_primitive();
+        let prim_r_ty = e_r_ty.expect_primitive();
+        let prim_res_ty = e_res_ty.expect_primitive();
         let e_l_ty_snap = e_l_ty.snapshot.downcast_ty();
         let e_r_ty_snap = e_r_ty.snapshot.downcast_ty();
         let e_res_ty_snap = e_res_ty.snapshot.downcast_ty();
@@ -358,11 +350,9 @@ impl MirBuiltinEnc {
                 | mir::BinOp::MulWithOverflow
         ));
         let e_l_ty = deps
-            .require_local::<RustTySnapshotsEnc>(l_ty)?
-            .generic_snapshot;
+            .require_local::<TyPureEnc>(l_ty)?;
         let e_r_ty = deps
-            .require_local::<RustTySnapshotsEnc>(r_ty)?
-            .generic_snapshot;
+            .require_local::<TyPureEnc>(r_ty)?;
         let e_l_ty_snap = e_l_ty.snapshot.downcast_ty();
         let e_r_ty_snap = e_r_ty.snapshot.downcast_ty();
 
@@ -373,16 +363,13 @@ impl MirBuiltinEnc {
             int_name(r_ty)
         );
         let e_res_ty = deps
-            .require_local::<RustTySnapshotsEnc>(res_ty)
-            .unwrap()
-            .generic_snapshot;
+            .require_local::<TyPureEnc>(res_ty)?;
         let e_res_ty_snap = e_res_ty.snapshot.downcast_ty();
         let function = FunctionIdn::new(name, (e_l_ty_snap, e_r_ty_snap), e_res_ty_snap);
         deps.emit_output_ref(key, MirBuiltinEncOutputRef::BinOp(function))?;
 
         let e_res_ty = deps
-            .require_local::<RustTySnapshotsEnc>(res_ty)?
-            .generic_snapshot;
+            .require_local::<TyPureEnc>(res_ty)?;
         // The result of a checked add will always be `(T, bool)`, get the `T`
         // type
         let rvalue_pure_ty = res_ty.tuple_fields()[0];
@@ -390,16 +377,13 @@ impl MirBuiltinEnc {
         assert!(bool_ty.is_bool());
 
         let e_rvalue_pure_ty = deps
-            .require_local::<RustTySnapshotsEnc>(rvalue_pure_ty)?
-            .generic_snapshot;
-        let e_rvalue_pure_ty = e_rvalue_pure_ty.specifics.expect_primitive();
+            .require_local::<TyPureEnc>(rvalue_pure_ty)?;
+        let e_rvalue_pure_ty = e_rvalue_pure_ty.expect_primitive();
         assert_eq!(vir::TYPE_INT.upcast_ty(), e_rvalue_pure_ty.prim_type);
         let prim_type = e_rvalue_pure_ty.prim_type.downcast_ty::<vir::Int>();
         let e_bool = deps
-            .require_local::<RustTySnapshotsEnc>(bool_ty)?
-            .generic_snapshot;
+            .require_local::<TyPureEnc>(bool_ty)?;
         let bool_cons = e_bool
-            .specifics
             .expect_primitive()
             .prim_to_snap
             .cast_args::<vir::Bool>(vir::TYPE_BOOL);
@@ -407,10 +391,10 @@ impl MirBuiltinEnc {
         // Unbounded value
         let val_exp = vcx.mk_bin_op_expr(
             vir::BinOpKind::from(op),
-            (e_l_ty.specifics.expect_primitive().snap_to_prim)(
+            (e_l_ty.expect_primitive().snap_to_prim)(
                 vcx.mk_local_ex("arg1", e_l_ty_snap),
             ),
-            (e_r_ty.specifics.expect_primitive().snap_to_prim)(
+            (e_r_ty.expect_primitive().snap_to_prim)(
                 vcx.mk_local_ex("arg2", e_r_ty_snap),
             ),
         );
@@ -430,16 +414,10 @@ impl MirBuiltinEnc {
         };
         let overflowed_snap = bool_cons(overflowed);
         // `tuple(prim_to_snap(wrapped_val), wrapped_val != val)`
-        let ty_caster =
-            deps.require_local::<AggregateSnapArgsCastEnc>(AggregateSnapArgsCastEncTask {
-                tys: vec![rvalue_pure_ty, bool_ty],
-                aggregate_type: AggregateType::Tuple,
-            })?;
         let tuple =
-            (e_res_ty.specifics.expect_structlike().field_snaps_to_snap)(&ty_caster.apply_casts(
-                vcx,
-                [wrapped_val_snap.upcast_ty(), overflowed_snap.upcast_ty()].into_iter(),
-            ));
+            e_res_ty.expect_structlike().field_snaps_to_snap(
+                vec![wrapped_val_snap.upcast_ty(), overflowed_snap.upcast_ty()],
+            );
         // `let wrapped_val == (val ..) in $tuple`
         let inner_let = vcx.mk_let_expr(wrapped_val_str, wrapped_val_exp, tuple);
 

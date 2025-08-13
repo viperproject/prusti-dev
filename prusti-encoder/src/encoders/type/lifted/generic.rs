@@ -2,14 +2,12 @@ use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder};
 use vir::with_vcx;
 
-use crate::encoders::GenericEnc;
-
 /// Lifting of a Rust type parameter in a function to a Viper value of type
 /// `Type`. This is represented as a [`vir::LocalDecl`], because unsubstituted generic
 /// parameters will always correspond to a method or function parameter in the
 /// Viper encoding.
 #[derive(Clone, Copy, Debug)]
-pub struct LiftedGeneric<'vir>(pub vir::LocalDeclTyVal<'vir>);
+pub struct LiftedGeneric<'vir>(vir::LocalDeclTyVal<'vir>);
 
 impl<'vir> LiftedGeneric<'vir> {
     pub fn decl(&self) -> vir::LocalDeclTyVal<'vir> {
@@ -54,7 +52,7 @@ impl TaskEncoder for LiftedGenericEnc {
         with_vcx(|vcx| {
             let output_ref = vcx.mk_local_decl(
                 vcx.alloc_str(task_key.name.as_str()),
-                deps.require_ref::<GenericEnc>(())?.type_snapshot,
+                vir::TYPE_TYVAL,
             );
             deps.emit_output_ref(*task_key, LiftedGeneric(output_ref))?;
             Ok(((), ()))

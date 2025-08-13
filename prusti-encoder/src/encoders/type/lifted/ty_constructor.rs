@@ -2,9 +2,7 @@ use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder};
 use vir::{vir_format_identifier, Arity, CallableIdn, CastType, FunctionIdn};
 
 use crate::encoders::{
-    domain::DomainEnc,
-    most_generic_ty::{extract_type_params, MostGenericTy},
-    GenericEnc,
+    domain::DomainEnc, lifted::r#typeof::{TypeOfEnc, TypeOfEncOutputRef}, most_generic_ty::{extract_type_params, MostGenericTy}
 };
 
 #[derive(Clone)]
@@ -18,8 +16,7 @@ pub struct TyConstructorEncOutputRef<'vir> {
     /// this list returns the `i`th argument to the type constructor.
     pub ty_param_accessors: &'vir [vir::AdtDestructor<'vir, vir::TyVal, vir::TyVal>],
 
-    /// Returns the Viper representation of the type of a snapshot-encoded value
-    pub typeof_function: vir::FunctionIdn<'vir, vir::CSnap, vir::TyVal>,
+    pub typeof_data: TypeOfEncOutputRef<'vir>,
 }
 
 impl<'vir> TyConstructorEncOutputRef<'vir> {
@@ -39,17 +36,13 @@ impl<'vir> TyConstructorEncOutputRef<'vir> {
         idx: usize,
         snap: vir::ExprCSnap<'vir>,
     ) -> vir::ExprTyVal<'vir> {
-        self.ty_param_accessors[idx].call()((self.typeof_function)(snap))
+        self.ty_param_accessors[idx].call()((self.typeof_data.typeof_function)(snap.upcast_ty()))
     }
 }
 
 impl<'vir> OutputRefAny for TyConstructorEncOutputRef<'vir> {}
 
-#[derive(Clone)]
-pub struct TyConstructorEncOutput<'vir> {
-    pub variant: vir::AdtConstructor<'vir>,
-    pub typeof_function: vir::DomainFunction<'vir>,
-}
+pub type TyConstructorEncOutput<'vir> = vir::AdtConstructor<'vir>;
 
 /// Encodes the lifted representation of a Rust type constructor (e.g. Option,
 /// Vec, user-defined ADTs).
@@ -76,16 +69,15 @@ impl TaskEncoder for TyConstructorEnc {
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
         assert!(!task_key.is_generic());
-        let generic_ref = deps.require_ref::<GenericEnc>(())?;
         vir::with_vcx(|vcx| {
             let (ty_constructor, _) = extract_type_params(vcx.tcx(), task_key.ty());
             let base_name = ty_constructor.get_vir_base_name(vcx);
             let args = ty_constructor.generics();
-            let type_function_args = vcx.alloc_slice(&vec![generic_ref.type_snapshot; args.len()]);
+            let type_function_args = vcx.alloc_slice(&vec![vir::TYPE_TYVAL; args.len()]);
             let type_function_ident = FunctionIdn::new(
                 vir::vir_format_identifier!(vcx, "s_{base_name}_type",),
                 type_function_args,
-                generic_ref.type_snapshot,
+                vir::TYPE_TYVAL,
             );
 
             let ty_accessor_functions = args
@@ -93,23 +85,17 @@ impl TaskEncoder for TyConstructorEnc {
                 .map(|arg| {
                     vcx.mk_adt_destructor(
                         vir::vir_format!(vcx, "s_{base_name}_typaram_{}", arg.name),
-                        generic_ref.type_snapshot,
-                        generic_ref.type_snapshot,
+                        vir::TYPE_TYVAL,
+                        vir::TYPE_TYVAL,
                     )
                 })
                 .collect::<Vec<_>>();
 
-            let domain = deps.require_ref::<DomainEnc>(*task_key)?;
-            let snap = (domain.domain)().downcast_ty();
-            let typeof_function = FunctionIdn::new(
-                vir::vir_format_identifier!(vcx, "s_{base_name}_typeof"),
-                snap,
-                generic_ref.type_snapshot,
-            );
+            let typeof_data = deps.require_ref::<TypeOfEnc>(*task_key)?;
             deps.emit_output_ref(
                 *task_key,
                 TyConstructorEncOutputRef {
-                    typeof_function,
+                    typeof_data,
                     ty_constructor: type_function_ident,
                     ty_param_accessors: vcx.alloc_slice(&ty_accessor_functions),
                 },
@@ -119,33 +105,18 @@ impl TaskEncoder for TyConstructorEnc {
                 vcx.mk_local_decl(d.name, d.ty)
             ).collect::<Vec<_>>();
             let variant = vcx.mk_adt_constructor(type_function_ident.name().to_str(), vcx.alloc_slice(&args));
-            let typeof_function = vcx.mk_domain_function(typeof_function, false);
-            let result = TyConstructorEncOutput {
-                variant,
-                typeof_function,
-            };
-            Ok((result, ()))
+            Ok((variant, ()))
         })
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let all = Self::all_outputs_local();
+        let mut constructors = Self::all_outputs_local();
         vir::with_vcx(|vcx| {
-            let mut typeof_fns = Vec::new();
             let args = vcx.alloc_array(&[vcx.mk_local_decl("non_unit", vir::TYPE_INT)]);
             let unknown = vcx.mk_adt_constructor("Unknown_type", args);
-            let constructors = all
-                .into_iter()
-                .map(|output| {
-                    typeof_fns.push(output.typeof_function);
-                    output.variant
-                })
-                .chain([unknown])
-                .collect::<Vec<_>>();
+            constructors.push(unknown);
             let adt = vcx.mk_adt(vir::ViperIdent::new("Type"), &[], vcx.alloc_slice(&constructors));
             program.add_adt(adt);
-            let domain = vcx.mk_domain(vir::ViperIdent::new("TypeOf"), &[], &[], vcx.alloc_slice(&typeof_fns));
-            program.add_domain(domain);
         })
     }
 }

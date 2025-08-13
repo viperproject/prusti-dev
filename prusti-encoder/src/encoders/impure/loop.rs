@@ -14,7 +14,7 @@ use vir::{CastType, Reify};
 
 use crate::encoders::{
     indirect::{IndirectKey, IndirectPredicatesEnc},
-    rust_ty_predicates::{RustTyPredicatesEnc, RustTyPredicatesEncOutputRef},
+    ty_impure::{TyImpureEnc, TyImpureEncOutputRef},
     ImpureEncVisitor,
 };
 
@@ -48,7 +48,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 }
                 let (place_res, snap, _, _) = self.encode_place_snap(*place);
                 let ty = (*place).ty(self.pcg_ctxt());
-                let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(ty.ty).unwrap();
+                let ty_out = self.deps.require_ref::<TyImpureEnc>(ty.ty).unwrap();
                 let pred = ty_out.ref_to_pred(self.vcx, place_res.expr, None);
                 inv.push(pred);
 
@@ -110,7 +110,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             PCGNode::Place(place @ MaybeRemotePlace::Local(_)) => {
                 let p = Self::get_place(*place);
                 let ty = (*p).ty(self.local_decls, self.vcx.tcx());
-                let ty_out = self.deps.require_ref::<RustTyPredicatesEnc>(ty.ty).unwrap();
+                let ty_out = self.deps.require_ref::<TyImpureEnc>(ty.ty).unwrap();
                 let p = self.encode_place(p);
                 let p = self.configure_old(*place, p.expr, old_outer);
 
@@ -170,7 +170,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     ) -> (
         vir::ExprSnap<'vir>,
         mir::PlaceTy<'vir>,
-        RustTyPredicatesEncOutputRef<'vir>,
+        TyImpureEncOutputRef<'vir>,
     ) {
         let p = Self::get_place(place);
         let (_, place_snap, ty, ty_out) = self.encode_place_snap(p);

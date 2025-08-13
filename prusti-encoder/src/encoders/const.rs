@@ -17,8 +17,7 @@ pub struct ConstEnc;
 use crate::encoders::{mir_pure::PureKind, MirPureEnc, MirPureEncTask};
 
 use super::{
-    lifted::{casters::CastTypePure, rust_ty_cast::RustTyCastersEnc},
-    rust_ty_snapshots::RustTySnapshotsEnc,
+    ty_pure::TyPureEnc,
 };
 
 impl TaskEncoder for ConstEnc {
@@ -45,9 +44,7 @@ impl TaskEncoder for ConstEnc {
         let res = match const_ {
             mir::Const::Val(val, ty) => {
                 let kind = deps
-                    .require_local::<RustTySnapshotsEnc>(ty)?
-                    .generic_snapshot
-                    .specifics;
+                    .require_local::<TyPureEnc>(ty)?;
                 match val {
                     ConstValue::Scalar(Scalar::Int(int)) => {
                         let prim = kind.expect_primitive();
@@ -71,8 +68,7 @@ impl TaskEncoder for ConstEnc {
                     }),
                     ConstValue::ZeroSized => {
                         let s = kind.expect_structlike();
-                        assert_eq!(s.field_snaps_to_snap.arity().len(), 0);
-                        (s.field_snaps_to_snap)(&[])
+                        s.field_snaps_to_snap(Vec::new())
                     }
                     // Encode `&str` constants to an opaque domain. If we ever want to perform string reasoning
                     // we will need to revisit this encoding, but for the moment this allows assertions to avoid
@@ -81,18 +77,13 @@ impl TaskEncoder for ConstEnc {
                         let ref_ty = kind.expect_immref();
                         let str_ty = ty.peel_refs();
                         let str_snap = deps
-                            .require_local::<RustTySnapshotsEnc>(str_ty)?
-                            .generic_snapshot
-                            .specifics
-                            .expect_structlike();
-                        let cast = deps.require_local::<RustTyCastersEnc<CastTypePure>>(str_ty)?;
+                            .require_local::<TyPureEnc>(str_ty)?;
+                        let str_snap = str_snap.expect_structlike();
                         vir::with_vcx(|vcx| {
                             // first, we create a string snapshot
-                            let snap = (str_snap.field_snaps_to_snap)(&[]);
-                            // upcast it to a param
-                            let snap = cast.cast_to_generic_if_necessary(vcx, snap.upcast_ty());
+                            let snap = str_snap.field_snaps_to_snap(Vec::new()).upcast_ty();
                             // wrap it in a ref
-                            (ref_ty.prim_to_snap)(vcx.mk_null(), snap)
+                            ref_ty.prim_to_snap(vcx.mk_null(), snap)
                         })
                     }
                     ConstValue::Slice { .. } => todo!("ConstValue::Slice : {:?}", const_.ty()),

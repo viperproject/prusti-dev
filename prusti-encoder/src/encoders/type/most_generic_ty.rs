@@ -73,14 +73,8 @@ impl<'tcx> MostGenericTy<'tcx> {
         self.0.kind()
     }
 
-    pub fn tuple(arity: usize) -> Self {
-        let tuple = vir::with_vcx(|vcx| {
-            let new_tys = vcx.tcx().mk_type_list_from_iter(
-                (0..arity).map(|index| to_placeholder(vcx.tcx(), Some(index))),
-            );
-            vcx.tcx().mk_ty_from_kind(ty::TyKind::Tuple(new_tys))
-        });
-        MostGenericTy(tuple)
+    pub fn param() -> Self {
+        vir::with_vcx(|vcx| MostGenericTy(to_placeholder(vcx.tcx(), None)))
     }
 
     pub fn ty(&self) -> ty::Ty<'tcx> {
@@ -124,6 +118,33 @@ impl<'tcx> MostGenericTy<'tcx> {
             | TyKind::FnPtr(..) => Vec::new(),
             other => todo!("generics for {:?}", other),
         }
+    }
+
+    fn generic_locals<'a, 'vir>(&self, vcx: &'vir vir::VirCtxt<'a>) -> impl Iterator<Item = vir::LocalTyVal<'vir>> + use<'vir, 'tcx, 'a> {
+        self.generics()
+            .into_iter()
+            .map(|ty| vcx.mk_local(
+                vcx.alloc_str(ty.name.as_str()),
+                vir::TYPE_TYVAL,
+            ))
+    }
+
+    pub fn generic_decls<'vir>(&self, vcx: &'vir vir::VirCtxt) -> Vec<vir::LocalDeclTyVal<'vir>> {
+        self.generic_locals(vcx)
+            .map(|local| vcx.mk_local_decl_local(local))
+            .collect::<Vec<_>>()
+    }
+
+    pub fn generic_exprs<'vir>(&self, vcx: &'vir vir::VirCtxt) -> Vec<vir::ExprTyVal<'vir>> {
+        self.generic_locals(vcx)
+            .map(|local| vcx.mk_local_ex_local(local))
+            .collect::<Vec<_>>()
+    }
+
+    pub fn generic_tys<'vir>(&self, vcx: &'vir vir::VirCtxt) -> Vec<vir::TypeTyVal<'vir>> {
+        self.generic_locals(vcx)
+            .map(|local| local.ty)
+            .collect::<Vec<_>>()
     }
 }
 

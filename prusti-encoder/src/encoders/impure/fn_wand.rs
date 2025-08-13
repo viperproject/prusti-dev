@@ -100,7 +100,7 @@ impl<'vir> WandEncOutput<'vir> {
                         let name = vir::vir_format!(vcx, "wand{:?}", i);
                         (
                             name,
-                            vcx.mk_local_ex(name, local_defs[i].ty.snapshot),
+                            vcx.mk_local_ex(name, local_defs[i].ty.snapshot()),
                         )
                     })
                     .1

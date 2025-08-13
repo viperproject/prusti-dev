@@ -1,11 +1,6 @@
 use crate::encoders::{
-    domain::{AdtBuilder, DomainDataImmRef, DomainEnc, DomainEncOutputRef, DomainEncSpecifics, PureTypeBuilder, PureTypeCommon},
-    predicate::{PredicateBuilder, PredicateEncData, PredicateEncDataImmRef, RefToIndirectPred},
-    rust_ty_snapshots::RustTySnapshotsEnc,
-    snapshot::SnapshotEncOutput,
-    GenericEnc, PredicateEnc,
+    domain::{AdtBuilder, DomainDataImmRef, DomainEnc, DomainEncOutput, DomainEncOutputRef, DomainEncSpecifics, PureTypeBuilder, PureTypeCommon}, lifted::TypeOfEnc, predicate::{PredicateBuilder, PredicateEnc, PredicateEncData, PredicateEncDataImmRef, RefToIndirectPred}
 };
-use crate::TyConstructorEnc;
 use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, HasType};
@@ -23,8 +18,7 @@ pub(crate) fn domain<'vir>(
         unreachable!();
     };
 
-    let inner_ty_out = deps.require_ref::<RustTySnapshotsEnc>(*inner_ty)?;
-    let inner_type = inner_ty_out.generic_snapshot.snapshot.downcast_ty();
+    let inner_type = vir::TYPE_PSNAP;
     let (field_snaps_to_snap, field_access) = builder.constructor("", (vir::TYPE_REF, inner_type), None);
 
     Ok((DomainEncSpecifics::ImmRef(DomainDataImmRef {
@@ -36,10 +30,8 @@ pub(crate) fn domain<'vir>(
 
 pub(crate) fn predicate<'vir>(
     task_key: <PredicateEnc as TaskEncoder>::TaskKey<'vir>,
-    snap: SnapshotEncOutput<'vir>,
+    snap: DomainEncOutput<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, PredicateEnc>,
-    generic_decls: &[vir::LocalDeclTyVal<'vir>],
-    generic_exprs: &[vir::ExprTyVal<'vir>],
     builder: &mut PredicateBuilder<'vir>,
 ) -> Result<
     (PredicateEncData<'vir>, Option<RefToIndirectPred<'vir>>),
@@ -51,59 +43,52 @@ pub(crate) fn predicate<'vir>(
         unreachable!();
     };
 
-    let snap_type = snap.snapshot.downcast_ty::<vir::CSnap>();
+    let snap_type = (snap.domain)().downcast_ty::<vir::CSnap>();
 
     let ref_self = builder.vcx.mk_local("self", vir::TYPE_REF);
     let ref_self_decl = builder.vcx.mk_local_decl_local(ref_self);
     //let ref_self_ex = builder.vcx.mk_local_ex_local(ref_self);
 
     let snap_data = snap.specifics.expect_immref();
-    let generic = deps.require_ref::<GenericEnc>(())?;
+    let generic_typeof = TypeOfEnc::generic_typeof(deps);
 
     // fields
     let ref_field = builder.field("val", snap_type);
 
-    let generic_tys = generic_decls
-        .iter()
-        .copied()
-        .map(vir::LocalDeclData::ty)
-        .collect::<Vec<_>>();
-    let generic_tys = builder.vcx.alloc_slice(&generic_tys);
-
     // main predicate
-    let self_pred = builder.predicate::<(vir::Ref, vir::ManyTyVal)>(
+    let self_pred = builder.inner.predicate::<(vir::Ref, vir::ManyTyVal)>(
         "",
-        (ref_self_decl.ty(), generic_tys),
-    (ref_self_decl, generic_decls),
+        (ref_self_decl.ty(), builder.generic_tys),
+    (ref_self_decl, &builder.generic_decls),
         Some(vir::expr! {
             (acc((ref_self).[ref_field]))
-            && (([generic.param_type_function]([snap_data.value_access]([ref_field](ref_self)))) == ([generic_exprs[0]]))
+            && (([generic_typeof]([snap_data.value_access]([ref_field](ref_self)))) == ([builder.generic_exprs[0]]))
         }), // TODO: use generic args?
     );
 
     // Ref-to-snap
     builder.function_snap = Some(builder.mk_function::<(vir::Ref, vir::ManyTyVal), _>(
         "snap",
-        (ref_self_decl.ty(), generic_tys),
+        (ref_self_decl.ty(), builder.generic_tys),
         snap_type,
-        (ref_self_decl, generic_decls),
-        &[vir::expr! { acc([self_pred](ref_self, ..[generic_exprs])) }],
-        &[vir::expr! { ([generic.param_type_function]([snap_data.value_access](result: [snap_type]))) == ([generic_exprs[0]]) }],
+        (ref_self_decl, &builder.generic_decls),
+        &[vir::expr! { acc([self_pred](ref_self, ..[&builder.generic_exprs])) }],
+        &[vir::expr! { ([generic_typeof]([snap_data.value_access](result: [snap_type]))) == ([builder.generic_exprs[0]]) }],
         Some(vir::expr! {
-            unfolding ([self_pred](ref_self, ..[generic_exprs])) in ([ref_field](ref_self))
+            unfolding ([self_pred](ref_self, ..[&builder.generic_exprs])) in ([ref_field](ref_self))
         }),
     ).1);
 
     // Ref-to-Ref
-    let deref_func = builder.function::<(vir::Ref, vir::ManyTyVal), _>(
+    let deref_func = builder.inner.function::<(vir::Ref, vir::ManyTyVal), _>(
         "deref",
-        (ref_self_decl.ty(), generic_tys),
+        (ref_self_decl.ty(), builder.generic_tys),
         vir::TYPE_REF,
-        (ref_self_decl, generic_decls),
-        &[vir::expr! { acc([self_pred](ref_self, ..[generic_exprs])) }],
+        (ref_self_decl, &builder.generic_decls),
+        &[vir::expr! { acc([self_pred](ref_self, ..[&builder.generic_exprs])) }],
         &[],
         Some(vir::expr! {
-            unfolding ([self_pred](ref_self, ..[generic_exprs])) in ([snap_data.deref_access]([ref_field](ref_self)))
+            unfolding ([self_pred](ref_self, ..[&builder.generic_exprs])) in ([snap_data.deref_access]([ref_field](ref_self)))
         }),
     );
 

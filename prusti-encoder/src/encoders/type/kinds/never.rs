@@ -3,10 +3,8 @@ use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::HasType;
 
 use crate::encoders::{
-    domain::{DomainBuilder, DomainEnc, DomainEncSpecifics, PureTypeBuilder, PureTypeCommon},
-    predicate::{PredicateBuilder, PredicateEncData},
-    snapshot::SnapshotEncOutput,
-    PredicateEnc,
+    domain::{DomainBuilder, DomainEnc, DomainEncOutput, DomainEncSpecifics, PureTypeBuilder, PureTypeCommon},
+    predicate::{PredicateBuilder, PredicateEnc, PredicateEncData},
 };
 
 pub(crate) fn domain<'vir>(
@@ -20,14 +18,14 @@ pub(crate) fn domain<'vir>(
 
 pub(crate) fn predicate<'vir>(
     _task_key: <PredicateEnc as TaskEncoder>::TaskKey<'vir>,
-    snap: SnapshotEncOutput<'vir>,
+    snap: DomainEncOutput<'vir>,
     _deps: &mut TaskEncoderDependencies<'vir, PredicateEnc>,
     builder: &mut PredicateBuilder<'vir>,
 ) -> Result<PredicateEncData<'vir>, EncodeFullError<'vir, PredicateEnc>> {
     // let ty = task_key.ty();
     // let ty_kind = ty.kind();
 
-    let snap_type = snap.snapshot;
+    let snap_type = (snap.domain)();
 
     let ref_self = builder.vcx.mk_local("self", vir::TYPE_REF);
     let ref_self_decl = builder.vcx.mk_local_decl_local(ref_self);

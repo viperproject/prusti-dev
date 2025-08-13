@@ -10,11 +10,14 @@ use super::{
     cast::Cast,
     casters::{
         CastFunctionsOutputRef, CastMethodsOutputRef, CastType, CastTypeImpure, CastTypePure,
-        Casters, CastersEnc, ImpureCastStmts, MakeGenericCastFunction,
+        Casters, CastersEnc, MakeGenericCastFunction,
     },
     generic::LiftedGeneric,
     ty::{EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc},
 };
+
+pub type GenericCasterPure<'vir> = RustTyGenericCastEncOutput<'vir, CastFunctionsOutputRef<'vir>>;
+pub type GenericCasterImpure<'vir> = RustTyGenericCastEncOutput<'vir, CastMethodsOutputRef<'vir>>;
 
 /// Generates Viper functions to cast between generic and non-generic Viper
 /// representations of a Rust value. See [`CastersEnc`] for more details. The
@@ -22,7 +25,7 @@ use super::{
 /// [`CastTypePure`] or [`CastTypeImpure`].
 pub struct RustTyCastersEnc<T>(PhantomData<T>);
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct RustTyGenericCastEncOutput<'vir, T> {
     pub cast: T,
     // Type arguments required by the cast function
@@ -44,9 +47,17 @@ impl<'vir> RustTyGenericCastEncOutput<'vir, CastMethodsOutputRef<'vir>> {
     pub fn cast_to_concrete_if_possible<'tcx, Curr, Next>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
-        snap: vir::ExprGenRef<'vir, Curr, Next>,
-    ) -> Option<ImpureCastStmts<'vir, Curr, Next>> {
-        CastTypeImpure::cast_to_concrete_if_possible(&self.cast, vcx, snap, self.ty_args)
+        e_ref: vir::ExprGenRef<'vir, Curr, Next>,
+    ) -> Option<vir::StmtGen<'vir, Curr, Next>> {
+        CastTypeImpure::cast_to_concrete_if_possible(&self.cast, vcx, e_ref, self.ty_args)
+    }
+
+    pub fn cast_to_generic_if_necessary<'tcx, Curr, Next>(
+        &self,
+        vcx: &'vir vir::VirCtxt<'tcx>,
+        e_ref: vir::ExprGenRef<'vir, Curr, Next>,
+    ) -> Option<vir::StmtGen<'vir, Curr, Next>> {
+        CastTypeImpure::cast_to_generic_if_necessary(&self.cast, vcx, e_ref, self.ty_args)
     }
 }
 
@@ -106,7 +117,7 @@ impl TaskEncoder for RustTyCastersEnc<CastTypePure> {
 
     type TaskDescription<'vir> = ty::Ty<'vir>;
 
-    type OutputFullLocal<'vir> = RustTyGenericCastEncOutput<'vir, CastFunctionsOutputRef<'vir>>;
+    type OutputFullLocal<'vir> = GenericCasterPure<'vir>;
 
     type TaskKey<'tcx> = Self::TaskDescription<'tcx>;
 

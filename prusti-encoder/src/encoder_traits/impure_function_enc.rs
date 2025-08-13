@@ -7,7 +7,7 @@ use vir::{MethodIdn, ViperIdent};
 
 use crate::{
     encoders::{
-        lifted::func_def_ty_params::LiftedTyParamsEnc, ImpureEncVisitor, MirImpureEnc,
+        lifted::LiftedTyParamsEnc, ImpureEncVisitor, MirImpureEnc,
         MirLocalDefEnc, MirSpecEnc, WandEnc, WandEncTask,
     },
     trait_support::is_function_with_body,
@@ -164,7 +164,6 @@ where
 
                 deps.check_cycle()?;
                 let mut visitor = ImpureEncVisitor {
-                    monomorphize: MirImpureEnc::monomorphize(),
                     vcx,
                     deps,
                     def_id,

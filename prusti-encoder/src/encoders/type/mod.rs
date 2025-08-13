@@ -1,10 +1,12 @@
 pub mod domain;
 pub mod indirect;
 pub mod predicate;
-pub mod snapshot;
+// pub mod pure;
+// pub mod impure;
 pub mod kinds;
-pub mod lifted;
 pub mod most_generic_ty;
-pub mod rust_ty_predicates;
-pub mod rust_ty_snapshots;
+pub mod ty_impure;
+pub mod ty_pure;
 pub mod viper_tuple;
+
+pub mod lifted;
