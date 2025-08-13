@@ -10,8 +10,7 @@ use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 
 use crate::{
     encoders::{
-        rust_ty_predicates::{RustTyPredicatesEnc, RustTyPredicatesEncOutputRef},
-        PredicateEncOutputRef,
+        ty_impure::{TyImpureEnc, TyImpureEncOutputRef}, ty_pure::TyPureEncOutputRef, PredicateEncOutputRef
     },
     trait_support::is_function_with_body,
 };
@@ -31,7 +30,7 @@ pub struct LocalDef<'vir> {
     pub local_ex: vir::ExprRef<'vir>,
     pub impure_snap: vir::ExprSnap<'vir>,
     pub impure_pred: vir::ExprBool<'vir>,
-    pub ty: &'vir PredicateEncOutputRef<'vir>,
+    pub ty: &'vir TyImpureEncOutputRef<'vir>,
 }
 
 impl TaskEncoder for MirLocalDefEnc {
@@ -61,7 +60,7 @@ impl TaskEncoder for MirLocalDefEnc {
         fn mk_local_def<'vir>(
             vcx: &'vir vir::VirCtxt<'vir>,
             name: &'vir str,
-            ty: RustTyPredicatesEncOutputRef<'vir>,
+            ty: TyImpureEncOutputRef<'vir>,
         ) -> LocalDef<'vir> {
             let local = vcx.mk_local(name, vir::TYPE_REF);
             let local_snap = vcx.mk_local(name, ty.snapshot());
@@ -74,7 +73,7 @@ impl TaskEncoder for MirLocalDefEnc {
                 local_ex,
                 impure_snap,
                 impure_pred,
-                ty: vcx.alloc(ty.generic_predicate),
+                ty: vcx.alloc(ty),
             }
         }
 
@@ -91,7 +90,7 @@ impl TaskEncoder for MirLocalDefEnc {
                     |arg: mir::Local| {
                         let local = vir::vir_format!(vcx, "_{}p", arg.index());
                         let ty = deps
-                            .require_ref::<RustTyPredicatesEnc>(body.local_decls[arg].ty)
+                            .require_ref::<TyImpureEnc>(body.local_decls[arg].ty)
                             .unwrap();
                         mk_local_def(vcx, local, ty)
                     },
@@ -119,7 +118,7 @@ impl TaskEncoder for MirLocalDefEnc {
                         } else {
                             sig.inputs()[arg.index() - 1]
                         };
-                        let ty = deps.require_ref::<RustTyPredicatesEnc>(ty).unwrap();
+                        let ty = deps.require_ref::<TyImpureEnc>(ty).unwrap();
                         mk_local_def(vcx, local, ty)
                     },
                     sig.inputs_and_output.len(),

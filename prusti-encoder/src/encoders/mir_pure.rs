@@ -14,19 +14,12 @@ use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{add_debug_note, CastType, CompType};
 // TODO: replace uses of `PredicateEnc` with `SnapshotEnc`
 use super::{
-    lifted::{
-        aggregate_cast::{AggregateSnapArgsCastEnc, AggregateSnapArgsCastEncTask},
-        casters::CastTypePure,
-        rust_ty_cast::RustTyCastersEnc,
-    },
-    rust_ty_predicates::RustTyPredicatesEnc,
-    rust_ty_snapshots::RustTySnapshotsEnc,
-    GenericEnc,
+    ty_impure::TyImpureEnc,
+    ty_pure::TyPureEnc,
 };
 use crate::{
     encoder_traits::pure_func_app_enc::PureFuncAppEnc,
     encoders::{
-        lifted::cast::{CastArgs, CastToEnc},
         ConstEnc, MirBuiltinEnc, ViperTupleEnc,
     },
 };
@@ -134,7 +127,6 @@ impl TaskEncoder for MirPureEnc {
 
             let expr_inner = Enc::new(
                 vcx,
-                cfg!(feature = "mono_function_encoding"),
                 task_key.0,
                 def_id,
                 &body,
@@ -147,8 +139,7 @@ impl TaskEncoder for MirPureEnc {
             // only the type system.
             let expr = vcx.mk_lazy_expr(
                 vir::vir_format!(vcx, "pure body {def_id:?}"),
-                deps.require_ref::<RustTySnapshotsEnc>(body.return_ty())?
-                    .generic_snapshot
+                deps.require_ref::<TyPureEnc>(body.return_ty())?
                     .snapshot,
                 Box::new(move |vcx, lctx: ExprInput<'_>| {
                     // check: are we actually providing arguments for the
@@ -213,7 +204,6 @@ impl<'vir> Update<'vir> {
 }
 
 struct Enc<'vir: 'enc, 'enc> {
-    monomorphize: bool,
     vcx: &'vir vir::VirCtxt<'vir>,
     encoding_depth: usize,
     def_id: DefId,
@@ -257,16 +247,11 @@ impl<'vir, 'enc> PureFuncAppEnc<'vir, MirPureEnc> for Enc<'vir, 'enc> {
     ) -> vir::ExprGenSnap<'vir, Self::Curr, Self::Next> {
         self.encode_operand(args, operand)
     }
-
-    fn monomorphize(&self) -> bool {
-        self.monomorphize
-    }
 }
 
 impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     fn new(
         vcx: &'vir vir::VirCtxt<'vir>,
-        monomorphize: bool,
         encoding_depth: usize,
         def_id: DefId,
         body: &'enc mir::Body<'vir>,
@@ -278,7 +263,6 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         );
         let rev_doms = rev_doms::ReverseDominators::new(&body.basic_blocks);
         Self {
-            monomorphize,
             vcx,
             encoding_depth,
             def_id,
@@ -308,9 +292,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     fn get_ty_for_local(&mut self, local: mir::Local) -> vir::TypeSnap<'vir> {
         let ty = self.body.local_decls[local].ty;
         self.deps
-            .require_ref::<RustTySnapshotsEnc>(ty)
+            .require_ref::<TyPureEnc>(ty)
             .unwrap()
-            .generic_snapshot
             .snapshot
     }
 
@@ -331,21 +314,13 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         elem_idx: usize,
         _ty: vir::Type<'vir, T>,
     ) -> ExprRet<'vir> {
-        let local_ty = self.body.local_decls[local].ty;
-        let cast = self
-            .deps
-            .require_local::<RustTyCastersEnc<CastTypePure>>(local_ty)
-            .unwrap();
-        cast.cast_to_concrete_if_possible(
+        tuple_ref.mk_elem(
             self.vcx,
-            tuple_ref.mk_elem(
-                self.vcx,
-                self.vcx.mk_local_ex(
-                    self.mk_phi(version),
-                    tuple_ref.snapshot(),
-                ),
-                elem_idx,
+            self.vcx.mk_local_ex(
+                self.mk_phi(version),
+                tuple_ref.snapshot(),
             ),
+            elem_idx
         )
     }
 
@@ -385,14 +360,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             let tuple_args = mod_locals
                 .iter()
                 .map(|local| {
-                    let local_ty = self.body.local_decls[*local].ty;
-                    let cast = self
-                        .deps
-                        .require_local::<RustTyCastersEnc<CastTypePure>>(local_ty)
-                        .unwrap();
-                    cast.cast_to_generic_if_necessary(
-                        self.vcx,
-                        self.mk_local_ex(
+                    let snap = self.mk_local_ex(
                             *local,
                             update.versions.get(local).copied().unwrap_or_else(|| {
                                 // TODO: remove (debug)
@@ -402,11 +370,11 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                                 }
                                 curr_ver[local]
                             }),
-                        ),
-                    ).upcast_ty()
+                        );
+                    snap
                 })
                 .collect::<Vec<_>>();
-            self.reify_binds(update, tuple_ref.mk_cons(self.vcx, &tuple_args))
+            self.reify_binds(update, tuple_ref.mk_cons(self.vcx, tuple_args))
         }).unwrap_or_else(|| tuple_ref.mk_unreachable(self.vcx))
     }
 
@@ -486,10 +454,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 let discr_ty = discr.ty(self.body, self.vcx.tcx());
                 let discr_ty_out = self
                     .deps
-                    .require_local::<RustTySnapshotsEnc>(discr_ty)
+                    .require_local::<TyPureEnc>(discr_ty)
                     .unwrap()
-                    .generic_snapshot
-                    .specifics
                     .expect_primitive();
 
                 // walk `curr` -> `targets[i]` -> `join` for each target. The
@@ -513,11 +479,12 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .collect::<Vec<_>>();
                 mod_locals.sort();
                 mod_locals.dedup();
+                let mod_tys = mod_locals.iter().map(|l| self.body.local_decls[*l].ty).collect();
 
                 // for each branch, create a Viper tuple of the updated locals
                 let tuple_ref = self
                     .deps
-                    .require_local::<ViperTupleEnc>(mod_locals.len())
+                    .require_local::<ViperTupleEnc>(mod_tys)
                     .unwrap();
                 let otherwise_update = updates.pop().unwrap();
                 let phi_expr = targets.iter().zip(updates).fold(
@@ -588,15 +555,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     )
                     .unwrap_or_default();
                     let sig = self.vcx().tcx().fn_sig(def_id);
-                    let sig = if self.monomorphize {
-                        let typing_env =
-                            ty::TypingEnv::post_analysis(self.vcx().tcx(), self.def_id);
-                        self.vcx()
-                            .tcx()
-                            .instantiate_and_normalize_erasing_regions(arg_tys, typing_env, sig)
-                    } else {
-                        sig.instantiate_identity()
-                    };
+                    let sig = sig.instantiate_identity();
                     if is_pure {
                         self.encode_pure_func_app(
                             def_id,
@@ -665,22 +624,12 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             mir::Rvalue::Ref(_, kind, place) => {
                 let rvalue_snapshot_encoding = self
                     .deps
-                    .require_local::<RustTySnapshotsEnc>(rvalue_ty)
-                    .unwrap()
-                    .generic_snapshot;
-                let (snap, place_ref) = self.encode_place_with_ref(curr_ver, place);
-                let place_ty = place.ty(self.body, self.vcx.tcx()).ty;
-                let cast = self
-                    .deps
-                    .require_local::<RustTyCastersEnc<CastTypePure>>(place_ty)
+                    .require_local::<TyPureEnc>(rvalue_ty)
                     .unwrap();
-                // The snapshot of the referenced value should be encoded as a generic `Param`
-                let snap = cast.cast_to_generic_if_necessary(self.vcx, snap);
+                let (snap, place_ref) = self.encode_place_with_ref(curr_ver, place);
                 if kind.mutability().is_mut() {
                     let e_rvalue_ty = rvalue_snapshot_encoding
-                        .specifics
-                        .expect_mutref()
-                        .prim_to_snap;
+                        .expect_mutref();
                     // We want to distinguish if `place` is a value that lives
                     // in pure code or not. If it lives in impure (the only way
                     // that this can happen is that we have a `&mut` argument)
@@ -691,16 +640,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     // a re-borrow of created-in-pure reference then it will be
                     // field projections of `null` which is also `null`.
                     let place_ref = place_ref.unwrap_or_else(|| self.vcx.mk_null().lazy());
-                    e_rvalue_ty.call()(place_ref, snap).upcast_ty()
+                    e_rvalue_ty.prim_to_snap(place_ref, snap).upcast_ty()
                 } else {
                     let e_rvalue_ty = rvalue_snapshot_encoding
-                        .specifics
-                        .expect_immref()
-                        .prim_to_snap;
+                        .expect_immref();
                     // For shared borrows we want to use just the snapshot
                     // without the reference so that snapshot equality compares
                     // only values.
-                    e_rvalue_ty.call()(self.vcx.mk_null().lazy(), snap).upcast_ty()
+                    e_rvalue_ty.prim_to_snap(self.vcx.mk_null().lazy(), snap).upcast_ty()
                 }
             }
             // ThreadLocalRef
@@ -749,31 +696,19 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 | mir::AggregateKind::Closure(..) => {
                     let e_rvalue_ty = self
                         .deps
-                        .require_ref::<RustTyPredicatesEnc>(rvalue_ty)
+                        .require_local::<TyPureEnc>(rvalue_ty)
                         .unwrap();
                     let sl = match kind {
                         mir::AggregateKind::Adt(_, vidx, _, _, _) => {
-                            e_rvalue_ty.generic_predicate.get_variant_any(*vidx)
+                            e_rvalue_ty.get_variant_any(*vidx)
                         }
-                        _ => e_rvalue_ty.generic_predicate.expect_structlike(),
+                        _ => e_rvalue_ty.expect_structlike(),
                     };
-                    let field_tys = fields
-                        .iter()
-                        .map(|field| field.ty(&self.body.local_decls, self.vcx.tcx()))
-                        .collect::<Vec<_>>();
-                    let ty_caster = self
-                        .deps
-                        .require_local::<AggregateSnapArgsCastEnc>(AggregateSnapArgsCastEncTask {
-                            tys: field_tys,
-                            aggregate_type: kind.into(),
-                        })
-                        .unwrap();
                     let cons_args = fields
                         .iter()
                         .map(|field| self.encode_operand(curr_ver, field))
                         .collect::<Vec<_>>();
-                    let casted_args = ty_caster.apply_casts(self.vcx, cons_args.into_iter());
-                    sl.snap_data.field_snaps_to_snap.call()(&casted_args).upcast_ty()
+                    sl.field_snaps_to_snap(cons_args).upcast_ty()
                 }
                 _ => todo!("Unsupported Rvalue::AggregateKind: {kind:?}"),
             },
@@ -781,24 +716,20 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 let place_ty = place.ty(self.body, self.vcx.tcx());
                 let ty = self
                     .deps
-                    .require_local::<RustTySnapshotsEnc>(place_ty.ty)
-                    .unwrap()
-                    .generic_snapshot
-                    .specifics;
+                    .require_local::<TyPureEnc>(place_ty.ty)
+                    .unwrap();
                 let discr = match ty
                     .get_enumlike()
                     .filter(|_| place_ty.variant_index.is_none())
                 {
-                    Some(ty) => ty.unwrap().snap_to_discr_snap.call()(
+                    Some(ty) => ty.snap_to_discr_snap(
                         self.encode_place(curr_ver, place).downcast_ty(),
                     ),
                     None => {
                         let e_rvalue_ty = self
                             .deps
-                            .require_local::<RustTySnapshotsEnc>(rvalue_ty)
+                            .require_local::<TyPureEnc>(rvalue_ty)
                             .unwrap()
-                            .generic_snapshot
-                            .specifics
                             .expect_primitive();
                         // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
                         let zero = self.vcx.mk_uint::<0>();
@@ -961,10 +892,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
         let bool = self
             .deps
-            .require_local::<RustTySnapshotsEnc>(self.vcx.tcx().types.bool)
-            .unwrap()
-            .generic_snapshot
-            .specifics;
+            .require_local::<TyPureEnc>(self.vcx.tcx().types.bool)
+            .unwrap();
         let bool = bool.expect_primitive();
 
         let prim = match builtin {
@@ -1009,7 +938,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         .map(|(idx, qvar_ty)| {
                             let ty_out = self
                                 .deps
-                                .require_ref::<RustTySnapshotsEnc>(qvar_ty)
+                                .require_ref::<TyPureEnc>(qvar_ty)
                                 .unwrap();
                             self.vcx
                                 .mk_local_decl(
@@ -1018,7 +947,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                                         "qvar_{}_{idx}",
                                         self.encoding_depth
                                     ),
-                                    ty_out.generic_snapshot.snapshot,
+                                    ty_out.snapshot,
                                 )
                         })
                         .collect::<Vec<_>>(),
@@ -1283,49 +1212,36 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
             assert!(place_ty.variant_index.is_none());
             match place_ty.ty.kind() {
                 TyKind::Adt(adt, _) if adt.is_box() => {
-                    let e_ty = deps
-                        .require_ref::<RustTyPredicatesEnc>(place_ty.ty)
+                    let e_ty_impure = deps
+                        .require_ref::<TyImpureEnc>(place_ty.ty)
                         .unwrap();
-                    let struct_like = e_ty
-                        .generic_predicate
+                    let struct_like = e_ty_impure
                         .expect_variant_opt(place_ty.variant_index);
-                    let proj = struct_like.snap_data.field_access[0];
-                    let proj_app = proj.call()(expr);
+                    let e_ty_pure = deps
+                        .require_local::<TyPureEnc>(place_ty.ty)
+                        .unwrap();
+                    let proj = e_ty_pure.get_variant_opt(place_ty.variant_index).field(abi::FieldIdx::ZERO);
+                    let proj_app = proj.read(expr);
                     let place_ref =
-                        place_ref.map(|pr| struct_like.ref_to_field_refs[0].call()(pr, &[]));
-                    // The result will be a generic s_Param, cast to concrete
-                    let new_ty = place_ty.projection_ty(vcx.tcx(), elem).ty;
-                    let proj_app = deps.require_local::<RustTyCastersEnc<CastTypePure>>(new_ty)
-                        .unwrap()
-                        .cast_to_concrete_if_possible(vcx, proj_app);
+                        place_ref.map(|pr| struct_like.field(abi::FieldIdx::ZERO, pr));
                     (proj_app, place_ref)
                 }
-                TyKind::Ref(_, inner_ty, ty::Mutability::Not) => {
+                TyKind::Ref(.., ty::Mutability::Not) => {
                     let e_ty = deps
-                        .require_local::<RustTySnapshotsEnc>(place_ty.ty)
+                        .require_local::<TyPureEnc>(place_ty.ty)
                         .unwrap()
-                        .generic_snapshot
-                        .specifics
                         .expect_immref();
-                    let val_expr = e_ty.value_access.call()(expr);
-                    // Since the `expr` is the target of a reference, it is encoded as a `Param`.
-                    // If it is not a type parameter, we cast it to its concrete Snapshot.
-                    let cast = deps
-                        .require_local::<RustTyCastersEnc<CastTypePure>>(*inner_ty)
-                        .unwrap();
-                    let val_expr = cast.cast_to_concrete_if_possible(vcx, val_expr.upcast_ty());
+                    let val_expr = e_ty.value_access(expr);
                     (val_expr, place_ref)
                 }
                 TyKind::Ref(_, inner_ty, ty::Mutability::Mut) => {
                     let e_ty = deps
-                        .require_local::<RustTySnapshotsEnc>(place_ty.ty)
+                        .require_local::<TyPureEnc>(place_ty.ty)
                         .unwrap()
-                        .generic_snapshot
-                        .specifics
                         .expect_mutref();
-                    let inner_ty_out = deps.require_ref::<RustTyPredicatesEnc>(*inner_ty).unwrap();
+                    let inner_ty_out = deps.require_ref::<TyImpureEnc>(*inner_ty).unwrap();
                     //let ref_expr = Some(e_ty.deref_access.apply(vcx, [expr]));
-                    let ref_expr = e_ty.deref_access.call()(expr);
+                    let ref_expr = e_ty.deref_access(expr);
                     // let val_expr = e_ty.value_access.apply(vcx, [expr]);
                     // let place_ty = place_ty.projection_ty(vcx.tcx(), elem);
                     // Since the `expr` is the target of a reference, it is encoded as a `Param`.
@@ -1344,38 +1260,18 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
             }
         }
         mir::ProjectionElem::Field(field_idx, ty) => {
-            let tykind = place_ty.ty.kind();
             let e_ty = deps
-                .require_ref::<RustTyPredicatesEnc>(place_ty.ty)
+                .require_ref::<TyImpureEnc>(place_ty.ty)
                 .unwrap();
             let struct_like = e_ty
-                .generic_predicate
                 .expect_variant_opt(place_ty.variant_index);
-            let proj = struct_like.snap_data.field_access[field_idx.as_usize()];
-            let proj_app = proj.call()(expr);
-            let proj_app = if let TyKind::Adt(def, _) = tykind {
-                // The ADT type for the field might be generic, concretize if necessary
-                let variant = def.variant(place_ty.variant_index.unwrap_or(abi::FIRST_VARIANT));
-                let generic_field_ty = variant.fields[field_idx].ty(
-                    vcx.tcx(),
-                    GenericArgs::identity_for_item(vcx.tcx(), def.did()),
-                );
-                let cast_args = CastArgs {
-                    expected: ty,
-                    actual: generic_field_ty,
-                };
-                deps.require_ref::<CastToEnc<CastTypePure>>(cast_args)
-                    .unwrap()
-                    .apply_cast_if_necessary(vcx, proj_app)
-            } else if let TyKind::Tuple(_) = tykind {
-                deps.require_local::<RustTyCastersEnc<CastTypePure>>(ty)
-                    .unwrap()
-                    .cast_to_concrete_if_possible(vcx, proj_app)
-            } else {
-                proj_app
-            };
+            let e_ty_pure = deps
+                .require_local::<TyPureEnc>(place_ty.ty)
+                .unwrap();
+            let proj = e_ty_pure.get_variant_opt(place_ty.variant_index).field(field_idx);
+            let proj_app = proj.read(expr);
             let place_ref = place_ref
-                .map(|pr| struct_like.ref_to_field_refs[field_idx.as_usize()].call()(pr, &[]));
+                .map(|pr| struct_like.field(field_idx, pr));
             (proj_app, place_ref)
         }
         mir::ProjectionElem::Downcast(..) => (expr.upcast_ty(), place_ref),
