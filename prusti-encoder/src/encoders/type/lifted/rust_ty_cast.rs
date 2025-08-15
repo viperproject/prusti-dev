@@ -13,7 +13,7 @@ use super::{
         Casters, CastersEnc, MakeGenericCastFunction,
     },
     generic::LiftedGeneric,
-    ty::{EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc},
+    ty::{EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc, LiftedTyEncTask},
 };
 
 pub type GenericCasterPure<'vir> = RustTyGenericCastEncOutput<'vir, CastFunctionsOutputRef<'vir>>;
@@ -100,7 +100,7 @@ where
             let ty_args = args
                 .iter()
                 .map(|a| {
-                    deps.require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(*a)
+                    deps.require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(LiftedTyEncTask::Ty(*a))
                         .unwrap()
                 })
                 .collect::<Vec<_>>();

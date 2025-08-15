@@ -2,7 +2,7 @@ use prusti_rustc_interface::middle::ty::{self, ParamTy, Ty, TyKind};
 use std::collections::HashSet;
 use task_encoder::{EncodeFullResult, TaskEncoder};
 
-use super::generic::{LiftedGeneric, LiftedGenericEnc};
+use super::generic::{LiftedGeneric, LiftedGenericEnc, LiftedGenericEncTask};
 
 /// Encodes the type parameters of a (possibly monomorphised) function
 /// definition. It takes as input a type substitution and returns the list of
@@ -36,9 +36,17 @@ impl TaskEncoder for LiftedTyParamsEnc {
                 .filter_map(|arg| arg.as_type())
                 .flat_map(extract_ty_params);
             let ty_args = unique(ty_args)
-                .map(|ty| deps.require_ref::<LiftedGenericEnc>(ty).unwrap())
+                .map(|ty| deps.require_ref::<LiftedGenericEnc>(LiftedGenericEncTask::Param(ty)))
+                .collect::<Result<Vec<_>, _>>()?;
+            let const_args = task_key
+                .iter()
+                .filter_map(|arg| arg.as_const())
+                .map(|c| deps.require_ref::<LiftedGenericEnc>(LiftedGenericEncTask::Const(c)))
+                .collect::<Result<Vec<_>, _>>()?;
+            let all_args = ty_args.into_iter()
+                .chain(const_args)
                 .collect::<Vec<_>>();
-            Ok((vcx.alloc_slice(&ty_args), ()))
+            Ok((vcx.alloc_slice(&all_args), ()))
         })
     }
 }

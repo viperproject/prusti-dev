@@ -5,14 +5,14 @@ use prusti_rustc_interface::{
     },
 };
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
-use vir::{CastType, ExprGenBool, ExprGenSnap, FunctionIdn, Reify, ViperIdent};
+use vir::{ExprGenBool, ExprGenSnap, FunctionIdn, Reify, ViperIdent};
 
 use crate::encoders::{
     lifted::{
-        EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc, LiftedTyParamsEnc, TyConstructorEnc, TypeOfEnc
+        EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc, LiftedTyEncTask, LiftedTyParamsEnc, TypeOfEnc,
     },
     most_generic_ty::extract_type_params,
-    MirLocalDefEnc, MirPureEnc, MirPureEncTask, MirSpecEnc, PureKind, TyPureEnc,
+    MirLocalDefEnc, MirPureEnc, MirPureEncTask, MirSpecEnc, PureKind,
 };
 
 use super::function_enc::FunctionEnc;
@@ -62,7 +62,7 @@ where
         let typeof_call = typeof_ref.typeof_function.call()(arg);
 
         let lifted_ty = deps
-            .require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(ty)
+            .require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(LiftedTyEncTask::Ty(ty))
             .unwrap();
         let expected = match lifted_ty {
             LiftedTy::Generic(generic) => generic.expr(vcx),
