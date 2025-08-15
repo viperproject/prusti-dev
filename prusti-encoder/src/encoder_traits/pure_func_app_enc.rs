@@ -67,6 +67,7 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
     /// are inserted to convert from/to generic and concrete arguments as necessary.
     fn encode_fn_args(
         &mut self,
+        def_id: DefId,
         sig: Binder<'vir, FnSig<'vir>>,
         substs: &'vir List<GenericArg<'vir>>,
         args: &[Spanned<mir::Operand<'vir>>],
@@ -83,7 +84,7 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
             .collect::<Vec<_>>();
         let encoded_ty_args = self
             .deps()
-            .require_local::<LiftedFuncAppTyParamsEnc>(substs)
+            .require_local::<LiftedFuncAppTyParamsEnc>((def_id, substs))
             .unwrap();
 
         // Initial arguments are lifted type parameters
@@ -136,7 +137,7 @@ pub trait PureFuncAppEnc<'vir, E: TaskEncoder + 'vir + ?Sized> {
             ))
             .unwrap()
             .function_ref;
-        let (ty_args, snap_args) = self.encode_fn_args(sig, substs, args, encode_operand_args);
+        let (ty_args, snap_args) = self.encode_fn_args(def_id, sig, substs, args, encode_operand_args);
         let call = pure_func.call()(ty_args.as_slice(), snap_args.as_slice());
         let expected_ty = destination.ty(self.local_decls_src(), vcx.tcx()).ty;
         let result_cast = self
