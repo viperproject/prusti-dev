@@ -4,7 +4,7 @@ use prusti_rustc_interface::{
 };
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 
-use crate::encoders::{lifted::{casters::{CastTypeImpure, CastTypePure}, rust_ty_cast::{GenericCasterImpure, GenericCasterPure, RustTyCastersEnc}}, predicate::{PredicateEnc, PredicateEncDataEnum, PredicateEncDataImmRef, PredicateEncDataMutRef, PredicateEncDataStruct}, PredicateEncOutput, PredicateEncOutputRef};
+use crate::encoders::{lifted::{casters::{CastTypeImpure, CastTypePure}, rust_ty_cast::{GenericCasterImpure, GenericCasterPure, RustTyCastersEnc}, LiftedTyEncTask}, predicate::{PredicateEnc, PredicateEncDataEnum, PredicateEncDataImmRef, PredicateEncDataMutRef, PredicateEncDataStruct}, PredicateEncOutput, PredicateEncOutputRef};
 
 use super::{
     lifted::{
@@ -277,7 +277,7 @@ impl TaskEncoder for TyImpureEnc {
                 None
             };
             */
-            let ty = deps.require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(*task_key)?;
+            let ty = deps.require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(LiftedTyEncTask::Ty(*task_key))?;
             let f_ty = deps.require_local::<RustTyCastersEnc<CastTypePure>>(*task_key)?;
             let params = args
                         .iter()

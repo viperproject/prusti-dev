@@ -2,15 +2,15 @@ use std::marker::PhantomData;
 
 use prusti_rustc_interface::middle::ty::{self, ParamTy, TyKind};
 use task_encoder::{EncodeFullResult, TaskEncoder};
-use vir::{with_vcx, FunctionIdn};
+use vir::{with_vcx, FunctionIdn, CastType};
 
 use crate::encoders::{
-    lifted::{
-        generic::{LiftedGeneric, LiftedGenericEnc},
-        ty_constructor::TyConstructorEnc,
-    },
-    most_generic_ty::extract_type_params,
+    r#const::ConstEncTask, lifted::{
+        generic::{LiftedGeneric, LiftedGenericEnc}, ty_constructor::TyConstructorEnc, LiftedConstEnc
+    }, most_generic_ty::extract_type_params, ConstEnc,
 };
+
+use super::generic::LiftedGenericEncTask;
 
 /// Representation of a Rust type as a Viper expression. Generics are
 /// represented with values of type `T`. In the usual case `T` should be
@@ -29,6 +29,9 @@ pub enum LiftedTy<'vir, T> {
         /// Arguments to the type constructor e.g. `T` in `Option<T>`
         args: &'vir [LiftedTy<'vir, T>],
     },
+
+    /// An arbitrary expression, used to represent const generics.
+    Expr(vir::ExprTyVal<'vir>),
 }
 
 impl<'vir, 'tcx, T: Copy> LiftedTy<'vir, T> {
@@ -50,6 +53,7 @@ impl<'vir, 'tcx, T: Copy> LiftedTy<'vir, T> {
                 }
             }
             LiftedTy::Generic(g) => LiftedTy::Generic(f(*g)),
+            LiftedTy::Expr(e) => LiftedTy::Expr(e),
         }
     }
 
@@ -69,6 +73,7 @@ impl<'vir, 'tcx, Curr, Next> LiftedTy<'vir, vir::ExprGenTyVal<'vir, Curr, Next>>
         match self {
             LiftedTy::Generic(g) => vec![*g],
             LiftedTy::Instantiated { args, .. } => args.iter().map(|a| a.expr(vcx)).collect(),
+            LiftedTy::Expr(..) => Vec::new(),
         }
     }
 
@@ -79,6 +84,7 @@ impl<'vir, 'tcx, Curr, Next> LiftedTy<'vir, vir::ExprGenTyVal<'vir, Curr, Next>>
                 ty_constructor,
                 args,
             } => ty_constructor.call()(&args.iter().map(|a| a.expr(vcx)).collect::<Vec<_>>()),
+            LiftedTy::Expr(e) => unsafe { std::mem::transmute(e.lift::<!>()) }, // TODO: should not need a transmute for this (the problem is that we don't know whether `Curr` in this context is or isn't `!`)
         }
     }
 }
@@ -102,6 +108,12 @@ impl<'vir, 'tcx> LiftedTy<'vir, LiftedGeneric<'vir>> {
 pub struct EncodeGenericsAsLifted;
 pub struct EncodeGenericsAsParamTy;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum LiftedTyEncTask<'vir> {
+    Ty(ty::Ty<'vir>),
+    Const(ty::Const<'vir>, ty::Ty<'vir>),
+}
+
 /// Encodes the Viper representation of a Rust type ([`LiftedTy`]). The type
 /// parameter `T` determines how Rust generic types are encoded; different
 /// encoder implementations are used for different types of generic types. The
@@ -115,7 +127,7 @@ pub struct LiftedTyEnc<T>(PhantomData<T>);
 impl TaskEncoder for LiftedTyEnc<EncodeGenericsAsLifted> {
     task_encoder::encoder_cache!(LiftedTyEnc<EncodeGenericsAsLifted>);
 
-    type TaskDescription<'tcx> = ty::Ty<'tcx>;
+    type TaskDescription<'tcx> = LiftedTyEncTask<'tcx>;
 
     type TaskKey<'tcx> = Self::TaskDescription<'tcx>;
 
@@ -135,7 +147,7 @@ impl TaskEncoder for LiftedTyEnc<EncodeGenericsAsLifted> {
         with_vcx(|vcx| {
             let result = deps.require_local::<LiftedTyEnc<EncodeGenericsAsParamTy>>(*task_key)?;
             let result = result.map(vcx, &mut |g| {
-                deps.require_ref::<LiftedGenericEnc>(g).unwrap()
+                deps.require_ref::<LiftedGenericEnc>(LiftedGenericEncTask::Param(g)).unwrap()
             });
             Ok((result, ()))
         })
@@ -147,7 +159,7 @@ impl TaskEncoder for LiftedTyEnc<EncodeGenericsAsLifted> {
 impl TaskEncoder for LiftedTyEnc<EncodeGenericsAsParamTy> {
     task_encoder::encoder_cache!(LiftedTyEnc<EncodeGenericsAsParamTy>);
 
-    type TaskDescription<'tcx> = ty::Ty<'tcx>;
+    type TaskDescription<'tcx> = LiftedTyEncTask<'tcx>;
 
     type TaskKey<'tcx> = Self::TaskDescription<'tcx>;
 
@@ -164,23 +176,32 @@ impl TaskEncoder for LiftedTyEnc<EncodeGenericsAsParamTy> {
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
         deps.emit_output_ref(*task_key, ())?;
-        with_vcx(|vcx| {
-            if let TyKind::Param(p) = task_key.kind() {
-                return Ok((LiftedTy::Generic(*p), ()));
+        with_vcx(|vcx| match task_key {
+            LiftedTyEncTask::Ty(ty) => {
+                if let TyKind::Param(p) = ty.kind() {
+                    return Ok((LiftedTy::Generic(*p), ()));
+                }
+                let (ty_constructor, args) = extract_type_params(vcx.tcx(), *ty);
+                let ty_constructor = deps
+                    .require_ref::<TyConstructorEnc>(ty_constructor)?
+                    .ty_constructor;
+                let args = args
+                    .into_iter()
+                    .map(|ty| deps.require_local::<Self>(LiftedTyEncTask::Ty(ty)).unwrap())
+                    .collect::<Vec<_>>();
+                Ok((LiftedTy::Instantiated {
+                    ty_constructor,
+                    args: vcx.alloc_slice(&args),
+                }, ()))
             }
-            let (ty_constructor, args) = extract_type_params(vcx.tcx(), *task_key);
-            let ty_constructor = deps
-                .require_ref::<TyConstructorEnc>(ty_constructor)?
-                .ty_constructor;
-            let args = args
-                .into_iter()
-                .map(|ty| deps.require_local::<Self>(ty).unwrap())
-                .collect::<Vec<_>>();
-            let result = LiftedTy::Instantiated {
-                ty_constructor,
-                args: vcx.alloc_slice(&args),
-            };
-            Ok((result, ()))
+            LiftedTyEncTask::Const(const_, ty) => {
+                let snap = deps.require_local::<ConstEnc>(ConstEncTask::Ty {
+                    const_: *const_,
+                    ty: *ty,
+                })?;
+                let lifted_const = deps.require_ref::<LiftedConstEnc>(*ty)?;
+                Ok((LiftedTy::Expr((lifted_const.const_type_function)(snap.upcast_ty())), ()))
+            }
         })
     }
 }
