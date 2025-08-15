@@ -4,7 +4,7 @@ use prusti_rustc_interface::{
     index::IndexVec,
     middle::{
         mir::{self, Body},
-        ty::{self, Binder, FnSig, GenericArgs, TyKind},
+        ty::{self, Binder, FnSig, TyKind},
     },
     span::{def_id::DefId, source_map::Spanned},
     abi,
@@ -16,6 +16,7 @@ use vir::{add_debug_note, CastType, CompType};
 use super::{
     ty_impure::TyImpureEnc,
     ty_pure::TyPureEnc,
+    r#const::ConstEncTask,
 };
 use crate::{
     encoder_traits::pure_func_app_enc::PureFuncAppEnc,
@@ -758,7 +759,11 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             }
             mir::Operand::Constant(box constant) => self
                 .deps
-                .require_local::<ConstEnc>((constant.const_, self.encoding_depth, self.def_id))
+                .require_local::<ConstEnc>(ConstEncTask::Mir {
+                    const_: constant.const_,
+                    encoding_depth: self.encoding_depth,
+                    def_id: self.def_id,
+                })
                 .unwrap()
                 .upcast_ty()
                 .lift(),
@@ -906,7 +911,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             PrustiBuiltin::Forall => {
                 assert_eq!(arg_tys.len(), 3);
 
-                let (ty_args, encoded_args) = self.encode_fn_args(sig, arg_tys, args, curr_ver);
+                let (ty_args, encoded_args) = self.encode_fn_args(def_id, sig, arg_tys, args, curr_ver);
                 // TODO: for now, let's expect this to give us these four:
                 //   - type of the trigger param (unit unless triggers provided)
                 //   - type of the closure args (a tuple type)

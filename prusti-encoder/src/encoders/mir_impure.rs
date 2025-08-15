@@ -21,7 +21,7 @@ use prusti_rustc_interface::{
     data_structures::fx::FxHashMap,
     middle::{
         mir,
-        ty::{self, GenericArgs, TyKind},
+        ty::{self, TyKind},
     },
     span::def_id::DefId,
     abi,
@@ -36,9 +36,7 @@ use crate::{
         pure_func_app_enc::PureFuncAppEnc,
     },
     encoders::{
-        self, lifted::{
-            LiftedFuncAppTyParamsEnc,
-        }, FunctionCallTaskDescription, MirBuiltinEnc, TyPureEnc, WandEnc, WandEncTask
+        self, r#const::ConstEncTask, lifted::LiftedFuncAppTyParamsEnc, FunctionCallTaskDescription, MirBuiltinEnc, TyPureEnc, WandEnc, WandEncTask
     },
 };
 
@@ -46,7 +44,6 @@ use super::{
     lifted::{
         CastArgs, CastToEnc,
         CastTypeImpure,
-        EncodeGenericsAsLifted, LiftedTyEnc,
     },
     ty_impure::{TyImpureEnc, TyImpureEncOutputRef},
     ConstEnc, MirPolyImpureEnc, WandEncOutput,
@@ -660,7 +657,11 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
     fn encode_constant(&mut self, constant: &mir::ConstOperand<'vir>) -> vir::ExprCSnap<'vir> {
         self.deps
-            .require_local::<ConstEnc>((constant.const_, 0, self.def_id))
+            .require_local::<ConstEnc>(ConstEncTask::Mir {
+                const_: constant.const_,
+                encoding_depth: 0,
+                def_id: self.def_id,
+            })
             .unwrap()
     }
 
@@ -1333,7 +1334,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     let method_args = std::iter::once(dest).chain(method_in).collect::<Vec<_>>();
                     let ty_args = self
                         .deps()
-                        .require_local::<LiftedFuncAppTyParamsEnc>(caller_substs)
+                        .require_local::<LiftedFuncAppTyParamsEnc>((func_def_id, caller_substs))
                         .unwrap()
                         .iter()
                         .map(|ty| ty.expr(self.vcx()))

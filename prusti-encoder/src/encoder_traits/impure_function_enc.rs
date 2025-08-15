@@ -7,7 +7,7 @@ use vir::{MethodIdn, ViperIdent};
 
 use crate::{
     encoders::{
-        lifted::LiftedTyParamsEnc, ImpureEncVisitor, MirImpureEnc,
+        lifted::LiftedTyParamsEnc, ImpureEncVisitor,
         MirLocalDefEnc, MirSpecEnc, WandEnc, WandEncTask,
     },
     trait_support::is_function_with_body,

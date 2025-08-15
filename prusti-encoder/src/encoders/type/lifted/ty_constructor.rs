@@ -29,7 +29,7 @@ impl<'vir> TyConstructorEncOutputRef<'vir> {
     }
 
     /// Takes as input a snapshot encoding of a rust value, and returns
-    /// the `idx`th type parameter of it's type.
+    /// the `idx`th type parameter of its type.
     pub fn ty_param_from_snap(
         &self,
         vcx: &'vir vir::VirCtxt,

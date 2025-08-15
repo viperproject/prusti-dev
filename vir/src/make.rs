@@ -569,6 +569,32 @@ impl<'tcx> VirCtxt<'tcx> {
         })
     }
 
+    pub fn mk_domain_axiom_inverse<'vir, T: CompType, U: CompType>(
+        &'vir self,
+        a: FunctionIdn<'vir, T, U>,
+        b: FunctionIdn<'vir, U, T>,
+    ) -> DomainAxiomGen<'vir, (), !> {
+        let val = self.mk_local("val", b.arity().ty());
+        let val_ex = self.mk_local_ex_local(val);
+        let inner = b(val_ex);
+        let expr = self.mk_forall_expr(
+            self.alloc_slice(&[self.mk_local_decl_local(val)]),
+            self.alloc_slice(&[self.mk_trigger(self.alloc_slice(&[inner]))]),
+            self.mk_eq_expr(
+                a(inner),
+                val_ex,
+            ),
+        );
+        self.alloc(DomainAxiomGenData {
+            name: self.alloc_str(&format!(
+                "ax_inverse_{}_{}",
+                a.name(),
+                b.name(),
+            )),
+            expr,
+        })
+    }
+
     pub fn mk_domain_function<'vir, A: Arity>(
         &'vir self,
         ident: FunctionIdn<'vir, A, impl CompType>,

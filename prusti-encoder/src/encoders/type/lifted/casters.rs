@@ -4,11 +4,10 @@ use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CallableIdn, FunctionIdn, MethodIdn};
 
 use crate::encoders::{
-    domain::DomainEnc, lifted::{generic::LiftedGenericEnc, ty_constructor::TyConstructorEnc, TypeOfEnc}, most_generic_ty::MostGenericTy, predicate::PredicateEnc
+    domain::DomainEnc, lifted::{generic::{LiftedGeneric, LiftedGenericEnc, LiftedGenericEncTask}, ty_constructor::TyConstructorEnc, TypeOfEnc}, most_generic_ty::MostGenericTy, predicate::PredicateEnc
 };
 
 use super::{
-    generic::{LiftedGeneric},
     ty::LiftedTy,
 };
 
@@ -255,7 +254,7 @@ impl TaskEncoder for CastersEnc<CastTypePure> {
             let ty_params = ty
                 .generics()
                 .into_iter()
-                .map(|g| deps.require_ref::<LiftedGenericEnc>(*g))
+                .map(|g| deps.require_ref::<LiftedGenericEnc>(LiftedGenericEncTask::Param(*g)))
                 .collect::<Result<Vec<_>, _>>()?;
 
             let arg_tys = ty_params.iter().map(|t| t.ty()).collect::<Vec<_>>();

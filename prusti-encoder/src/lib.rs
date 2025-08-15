@@ -16,8 +16,7 @@ use task_encoder::TaskEncoder;
 
 use crate::encoders::{
     lifted::{
-        CastTypeImpure, CastTypePure, CastersEnc,
-        TyConstructorEnc, TypeOfEnc,
+        CastTypeImpure, CastTypePure, CastersEnc, LiftedConstEnc, TyConstructorEnc, TypeOfEnc
     },
     MirPolyImpureEnc,
 };
@@ -92,6 +91,9 @@ pub fn test_entrypoint<'tcx>(
     program.header("type constructors");
     TyConstructorEnc::emit_outputs(&mut program);
     TypeOfEnc::emit_outputs(&mut program);
+
+    program.header("const generics");
+    LiftedConstEnc::emit_outputs(&mut program);
 
     if std::env::var("LOCAL_TESTING").is_ok() {
         std::fs::write("local-testing/simple.vpr", program.code()).unwrap();
