@@ -219,14 +219,13 @@ impl TaskEncoder for DomainEnc {
                 TyKind::Bool
                 | TyKind::Char
                 | TyKind::Int(_)
-                | TyKind::Uint(_)
-                | TyKind::Float(_) => {
+                | TyKind::Uint(_) => {
                     super::kinds::primitive::domain(*task_key, deps, builder)?
                 }
                 TyKind::Closure(..) => {
                     super::kinds::closure::domain(*task_key, &output_ref, deps, builder)?
                 }
-                TyKind::Adt(..) => {
+                TyKind::Adt(adt, _) if !adt.is_union() => {
                     super::kinds::adt::domain(*task_key, &output_ref, deps, builder)?
                 }
                 TyKind::Tuple(..) => {
