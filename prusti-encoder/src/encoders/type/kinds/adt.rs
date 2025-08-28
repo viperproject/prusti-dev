@@ -151,7 +151,7 @@ pub(crate) fn domain<'vir>(
             Ok((Some(enc.finalize(task_key)), specifics))
             */
         }
-        ty::AdtKind::Union => todo!(),
+        ty::AdtKind::Union => unreachable!(),
     }
 }
 
@@ -443,6 +443,6 @@ pub(crate) fn predicate<'vir>(
                 None,
             ))
         }
-        ty::AdtKind::Union => todo!(),
+        ty::AdtKind::Union => unreachable!(),
     }
 }
