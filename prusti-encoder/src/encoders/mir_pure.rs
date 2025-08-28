@@ -690,7 +690,6 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 unop_function.call()(self.encode_operand(curr_ver, operand).downcast_ty())
                     .upcast_ty()
             }
-            // Discriminant
             mir::Rvalue::Aggregate(box kind, fields) => match kind {
                 mir::AggregateKind::Adt(..)
                 | mir::AggregateKind::Tuple
@@ -711,7 +710,16 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         .collect::<Vec<_>>();
                     sl.field_snaps_to_snap(cons_args).upcast_ty()
                 }
-                _ => todo!("Unsupported Rvalue::AggregateKind: {kind:?}"),
+                _k => {
+                    // TODO: attach kind of aggregate to the unreachable
+                    //   expression in case it is reached
+                    self
+                        .deps
+                        .require_local::<TyPureEnc>(rvalue_ty)
+                        .unwrap()
+                        .unreachable_to_snap()
+                        .call()()
+                }
             },
             mir::Rvalue::Discriminant(place) => {
                 let place_ty = place.ty(self.body, self.vcx.tcx());
@@ -741,9 +749,15 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             }
             // ShallowInitBox
             // CopyForDeref
-            k => {
-                //dbg!(self.body);
-                todo!("rvalue {k:?}")
+            _k => {
+                // TODO: attach kind of rvalue to the unreachable expression
+                //   in case it is reached
+                self
+                    .deps
+                    .require_local::<TyPureEnc>(rvalue_ty)
+                    .unwrap()
+                    .unreachable_to_snap()
+                    .call()()
             }
         }
     }

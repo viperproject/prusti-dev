@@ -813,7 +813,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     &[],
                     &[],
                     self.vcx
-                        .mk_dummy_stmt(vir::vir_format!(self.vcx, "cleanup block",)),
+                        .mk_dummy_stmt(vir::vir_format!(self.vcx, "cleanup block")),
                 ),
             );
             return;
@@ -917,6 +917,8 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 _ => {}
             }
         }
+
+        let span = statement.source_info.span;
 
         match &statement.kind {
             mir::StatementKind::Assign(box (dest, rvalue)) => {
@@ -1079,20 +1081,33 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 self.stmt(method_assign_app);
             }
 
-            // no-ops ?
-            mir::StatementKind::StorageLive(..)
-            | mir::StatementKind::StorageDead(..) => {}
-
             // no-ops
-            mir::StatementKind::FakeRead(_)
-            | mir::StatementKind::Retag(..)
+            mir::StatementKind::StorageLive(..)
+            | mir::StatementKind::StorageDead(..)
+            | mir::StatementKind::FakeRead(_)
             | mir::StatementKind::PlaceMention(_)
             | mir::StatementKind::AscribeUserType(..)
             | mir::StatementKind::Coverage(_)
-            //| mir::StatementKind::ConstEvalCounter
-            | mir::StatementKind::Nop => {}
+            | mir::StatementKind::ConstEvalCounter
+            | mir::StatementKind::Nop
+            | mir::StatementKind::BackwardIncompatibleDropHint { .. } => {}
 
-            k => todo!("statement {k:?}"),
+            mir::StatementKind::Intrinsic(intrinsic_kind) => {
+                let intrinsic_kind = intrinsic_kind.clone();
+                self.vcx.with_span(span, |vcx| {
+                    vcx.handle_error("exhale.failed:assertion.false", move |_| {
+                        Some(vec![PrustiError::verification(
+                            format!("unsupported intrinsic statement {intrinsic_kind:?} might be reached"),
+                            span.into(),
+                        )])
+                    });
+                    self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
+                });
+            },
+
+            mir::StatementKind::Retag(..)
+            | mir::StatementKind::SetDiscriminant { .. }
+            | mir::StatementKind::Deinit(..) => unreachable!("the statement kind {:?} is not allowed in the MIR analysis phase", statement.kind),
         }
         self.new_after_label(location);
     }
@@ -1457,7 +1472,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 expected,
                 msg,
                 target,
-                unwind,
+                ..
             } => {
                 const REAL_TARGET_SUCC_IDX: usize = 0;
                 // Ensure that the terminator succ that we use for the repacks is the correct one
@@ -1515,34 +1530,12 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     });
                     self.stmt(self.vcx.mk_exhale_stmt(assert));
                 });
-
+                let set_flag = self.set_from_to_flag(location.block, *target);
+                self.stmt(set_flag);
                 let target_bb = self
                     .vcx
                     .alloc(vir::CfgBlockLabelData::BasicBlock(target.as_usize()));
-                let otherwise_statement;
-                let otherwise = match unwind {
-                    mir::UnwindAction::Cleanup(bb) => {
-                        otherwise_statement = self.set_from_to_flag(location.block, *bb);
-                        self
-                            .vcx
-                            .alloc(vir::CfgBlockLabelData::BasicBlock(bb.as_usize()))
-                    }
-                    _ => todo!(),
-                };
-
-                let statements = self.set_from_to_flag(location.block, *target);
-                let statements = self.vcx.alloc_slice(&[statements]);
-
-                self.vcx.mk_goto_if_stmt(
-                    enc.as_dyn(),
-                    self.vcx.alloc_slice(&[self.vcx.mk_goto_if_target(
-                        expected.as_dyn(),
-                        target_bb,
-                        statements,
-                    )]),
-                    otherwise,
-                    self.vcx.alloc_slice(&[otherwise_statement]),
-                )
+                self.vcx.mk_goto_stmt(target_bb)
             }
             mir::TerminatorKind::Unreachable => self.vcx().with_span(span, |vcx| {
                 vcx.handle_error("exhale.failed:assertion.false", move |_| {
@@ -1564,10 +1557,58 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 )
             }
 
-            unsupported_kind => self.vcx.mk_dummy_stmt(vir::vir_format!(
-                self.vcx,
-                "terminator {unsupported_kind:?}"
-            )),
+            mir::TerminatorKind::UnwindResume
+            | mir::TerminatorKind::UnwindTerminate(..) => self.vcx().with_span(span, |vcx| {
+                vcx.handle_error("exhale.failed:assertion.false", move |_| {
+                    Some(vec![PrustiError::unsupported(
+                        "unwind paths are not supported",
+                        span.into(),
+                    )])
+                });
+                self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
+                self.vcx.mk_assume_false_stmt()
+            }),
+
+            mir::TerminatorKind::TailCall { .. } => self.vcx().with_span(span, |vcx| {
+                vcx.handle_error("exhale.failed:assertion.false", move |_| {
+                    Some(vec![PrustiError::unsupported(
+                        "tail calls are not supported",
+                        span.into(),
+                    )])
+                });
+                self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
+                self.vcx.mk_assume_false_stmt()
+            }),
+            mir::TerminatorKind::Yield { .. } => self.vcx().with_span(span, |vcx| {
+                vcx.handle_error("exhale.failed:assertion.false", move |_| {
+                    Some(vec![PrustiError::unsupported(
+                        "yield statements are not supported",
+                        span.into(),
+                    )])
+                });
+                self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
+                self.vcx.mk_assume_false_stmt()
+            }),
+            mir::TerminatorKind::CoroutineDrop => self.vcx().with_span(span, |vcx| {
+                vcx.handle_error("exhale.failed:assertion.false", move |_| {
+                    Some(vec![PrustiError::unsupported(
+                        "coroutines are not supported",
+                        span.into(),
+                    )])
+                });
+                self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
+                self.vcx.mk_assume_false_stmt()
+            }),
+            mir::TerminatorKind::InlineAsm { .. } => self.vcx().with_span(span, |vcx| {
+                vcx.handle_error("exhale.failed:assertion.false", move |_| {
+                    Some(vec![PrustiError::unsupported(
+                        "inline assembly is not supported",
+                        span.into(),
+                    )])
+                });
+                self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
+                self.vcx.mk_assume_false_stmt()
+            }),
         };
         self.new_after_label(location);
         assert!(self.current_terminator.replace(terminator).is_none());

@@ -17,7 +17,6 @@ pub(crate) fn domain<'vir>(
     let prim_type: vir::TypePrim<'vir> = match ty_kind {
         ty::TyKind::Bool => vir::TYPE_BOOL.upcast_ty(),
         ty::TyKind::Char | ty::TyKind::Int(_) | ty::TyKind::Uint(_) => vir::TYPE_INT.upcast_ty(),
-        ty::TyKind::Float(_) => todo!(),
         _ => unreachable!(),
     };
 
