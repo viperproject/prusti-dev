@@ -4,7 +4,7 @@ use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderError};
 use vir::with_vcx;
 
-use crate::encoders::most_generic_ty::{extract_type_params, MostGenericTy};
+use crate::encoders::most_generic_ty::{MostGenericTy, MostGenericTyEnc};
 
 use super::{
     cast::Cast,
@@ -95,7 +95,7 @@ where
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
     ) -> RustTyGenericCastEncOutput<'vir, Casters<'vir, T>> {
         with_vcx(|vcx| {
-            let (generic_ty, args) = extract_type_params(vcx.tcx(), *task_key);
+            let (generic_ty, args) = deps.require_local::<MostGenericTyEnc>(*task_key).unwrap();
             let cast = deps.require_ref::<CastersEnc<T>>(generic_ty).unwrap();
             let ty_args = args
                 .iter()
