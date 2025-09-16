@@ -1,5 +1,5 @@
 // ignore-test flaky on mac, sometimes crosses timeout
-// compile-flags: -Pverification_deadline=500
+//@ compile-flags: -Pverification_deadline=500
 
 use prusti_contracts::*;
 

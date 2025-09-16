@@ -1,4 +1,4 @@
-// compile-flags: -Punsafe_core_proof=true -Pcounterexample=true -Pprint_counterexample_if_model_is_present=true
+//@ compile-flags: -Punsafe_core_proof=true -Pcounterexample=true -Pprint_counterexample_if_model_is_present=true
 
 use prusti_contracts::*;
 

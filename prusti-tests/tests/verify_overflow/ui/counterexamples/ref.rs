@@ -1,4 +1,4 @@
-// compile-flags: -Punsafe_core_proof=true -Pcounterexample=true -Pcheck_overflows=false
+//@ compile-flags: -Punsafe_core_proof=true -Pcounterexample=true -Pcheck_overflows=false
 
 use prusti_contracts::*;
 
