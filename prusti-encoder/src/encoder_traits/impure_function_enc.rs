@@ -1,6 +1,6 @@
 use std::alloc::Global;
 
-use pcg::{borrow_checker::r#impl::BorrowCheckerImpl, r#loop::LoopAnalysis};
+use pcg::{borrow_checker::r#impl::{BorrowCheckerImpl, NllBorrowCheckerImpl}, r#loop::LoopAnalysis};
 use prusti_rustc_interface::middle::mir;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{MethodIdn, ViperIdent};
@@ -128,9 +128,9 @@ where
                 let body = &body_with_facts.body;
 
                 let loop_analysis = LoopAnalysis::find_loops(&body);
-                let bc = BorrowCheckerImpl::new(vcx.tcx(), &body_with_facts);
+                let bc = NllBorrowCheckerImpl::new(vcx.tcx(), &body_with_facts);
                 let pcg_ctxt = pcg::PcgCtxt::new(&body_with_facts.body, vcx.tcx(), &bc);
-                let fpcs_analysis = pcg::run_pcg(&pcg_ctxt, Global, None);
+                let fpcs_analysis = pcg::run_pcg(&pcg_ctxt, None);
 
                 let block_count = body.basic_blocks.len();
 

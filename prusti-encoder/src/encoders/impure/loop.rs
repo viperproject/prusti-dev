@@ -1,11 +1,13 @@
 use pcg::{
     borrow_pcg::region_projection::{
-        MaybeRemoteRegionProjectionBase, RegionProjection, RegionProjectionBaseLike,
+        LifetimeProjection, PcgLifetimeProjectionBase, PcgLifetimeProjectionBaseLike,
     },
-    free_pcs::PcgBasicBlock,
-    pcg::{EvalStmtPhase, PCGNode},
     r#loop::LoopId,
-    utils::{maybe_old::MaybeOldPlace, maybe_remote::MaybeRemotePlace, Place, SnapshotLocation},
+    pcg::{EvalStmtPhase, PcgNode},
+    results::PcgBasicBlock,
+    utils::{
+        Place, SnapshotLocation, maybe_old::MaybeLabelledPlace, maybe_remote::MaybeRemotePlace,
+    },
 };
 use prusti_rustc_interface::middle::mir;
 
@@ -37,13 +39,13 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         // self.stmt(self.vcx.mk_comment_stmt(
         //     vir::vir_format!(self.vcx, "_borrows: {:#?}", borrows),
         // ));
-        for cap_local in state.owned_pcg().locals().iter() {
+        for cap_local in state.owned_pcg().iter() {
             if cap_local.is_unallocated() {
                 continue;
             }
             let cap = cap_local.get_allocated();
-            for place in cap.leaves(self.pcg_ctxt()).iter() {
-                if !state.capabilities().is_exclusive(*place) {
+            for place in cap.leaf_places(self.pcg_ctxt()).iter() {
+                if !state.capabilities().is_exclusive(*place, self.pcg_ctxt()) {
                     continue;
                 }
                 let (place_res, snap, _, _) = self.encode_place_snap(*place);
@@ -67,7 +69,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 }
             }
         }
-        for (_edge, inputs, outputs) in Self::get_abstraction_edges(state.borrow_pcg().graph()) {
+        for (inputs, outputs) in self.get_abstraction_edges(state.borrow_pcg().graph()) {
             let mut let_bind = WandOldOuter::LetBind(Vec::new());
             let mut wand_rhs = Vec::new();
             for i in inputs {
@@ -76,8 +78,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             let mut wand_lhs = Vec::new();
             for i in outputs {
                 let i = match *i {
-                    PCGNode::RegionProjection(region_projection) => region_projection,
-                    PCGNode::Place(_) => unreachable!(),
+                    PcgNode::LifetimeProjection(region_projection) => region_projection,
+                    PcgNode::Place(_) => unreachable!(),
                 };
                 let exprs = self.encode_region_projection(i, &mut let_bind);
                 wand_lhs.extend(exprs);
@@ -99,15 +101,15 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         self.vcx.alloc_slice(&inv)
     }
 
-    pub(super) fn encode_pcg_node<T: RegionProjectionBaseLike<'vir>>(
+    pub(super) fn encode_pcg_node<T: PcgLifetimeProjectionBaseLike<'vir>>(
         &mut self,
-        node: &PCGNode<'vir, MaybeRemotePlace<'vir>, T>,
+        node: &PcgNode<'vir, MaybeRemotePlace<'vir>, T>,
         wand_rhs: &mut Vec<vir::ExprBool<'vir>>,
         old_outer: &mut WandOldOuter<'vir>,
     ) {
         match node {
-            PCGNode::Place(MaybeRemotePlace::Remote(_)) => unreachable!(),
-            PCGNode::Place(place @ MaybeRemotePlace::Local(_)) => {
+            PcgNode::Place(MaybeRemotePlace::Remote(_)) => unreachable!(),
+            PcgNode::Place(place @ MaybeRemotePlace::Local(_)) => {
                 let p = Self::get_place(*place);
                 let ty = (*p).ty(self.local_decls, self.vcx.tcx());
                 let ty_out = self.deps.require_ref::<TyImpureEnc>(ty.ty).unwrap();
@@ -117,24 +119,24 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 let pred = ty_out.ref_to_pred(self.vcx, p, None);
                 wand_rhs.push(pred);
             }
-            PCGNode::RegionProjection(r) => {
+            PcgNode::LifetimeProjection(r) => {
                 let exprs = self.encode_region_projection(*r, old_outer);
                 wand_rhs.extend(exprs);
             }
         }
     }
 
-    pub(super) fn encode_region_projection<T: RegionProjectionBaseLike<'vir>>(
+    pub(super) fn encode_region_projection<T: PcgLifetimeProjectionBaseLike<'vir>>(
         &mut self,
-        r: RegionProjection<'vir, T>,
+        r: LifetimeProjection<'vir, T>,
         old_outer: &mut WandOldOuter<'vir>,
     ) -> Vec<vir::ExprBool<'vir>> {
-        let place = r.place().to_maybe_remote_region_projection_base();
+        let place = r.place().to_pcg_lifetime_projection_base();
         let (place_snap, ty, _) = match place {
-            MaybeRemoteRegionProjectionBase::Place(p) => {
+            PcgLifetimeProjectionBase::Place(p) => {
                 self.encode_maybe_remote_place_snap(p, old_outer)
             }
-            MaybeRemoteRegionProjectionBase::Const(c) => todo!("{c:?}"),
+            PcgLifetimeProjectionBase::Const(c) => todo!("{c:?}"),
         };
         let mut regions = ty.ty.walk().flat_map(IndirectKey::from_generic_arg);
         let region = regions.next().unwrap();
@@ -157,8 +159,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
     fn get_place(place: MaybeRemotePlace<'vir>) -> Place<'vir> {
         match place {
-            MaybeRemotePlace::Local(MaybeOldPlace::Current { place }) => place,
-            MaybeRemotePlace::Local(MaybeOldPlace::OldPlace(place)) => place.place(),
+            MaybeRemotePlace::Local(MaybeLabelledPlace::Current(place)) => place,
+            MaybeRemotePlace::Local(MaybeLabelledPlace::Labelled(place)) => place.place(),
             MaybeRemotePlace::Remote(r) => r.assigned_local().into(),
         }
     }
@@ -185,10 +187,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         old_outer: &mut WandOldOuter<'vir>,
     ) -> vir::Expr<'vir, T> {
         match place {
-            MaybeRemotePlace::Local(MaybeOldPlace::Current { .. }) => {
+            MaybeRemotePlace::Local(MaybeLabelledPlace::Current { .. }) => {
                 self.mk_wand_outer(expr, old_outer)
             }
-            MaybeRemotePlace::Local(MaybeOldPlace::OldPlace(place)) => {
+            MaybeRemotePlace::Local(MaybeLabelledPlace::Labelled(place)) => {
                 let label = Self::get_location_label(self.vcx, place.at());
                 self.vcx.mk_old(expr, label)
             }
@@ -200,17 +202,14 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         vcx: &'vir vir::VirCtxt<'vir>,
         at: SnapshotLocation,
     ) -> vir::OldLabel<'vir> {
-        if let SnapshotLocation::Start(bb) | SnapshotLocation::Loop(bb) = at {
+        if let SnapshotLocation::BeforeJoin(bb) | SnapshotLocation::Loop(bb) = at {
             return vir::OldLabel::Block(vir::CfgBlockLabelData::BasicBlock(bb.as_usize()));
         }
         let label_identifier = match at {
-            SnapshotLocation::Start(_) => "start",
-            SnapshotLocation::Prepare(_) => "prepare",
-            SnapshotLocation::BeforeCollapse(_) => "before_collapse",
-            SnapshotLocation::Mid(_) => "mid",
-            SnapshotLocation::After(_) => "after",
-            SnapshotLocation::Loop(_) => "loop",
-            SnapshotLocation::BeforeRefReassignment(_) => "before_ref_reassignment",
+            SnapshotLocation::Before(analysis_location) => "before",
+            SnapshotLocation::After(basic_block) => "after",
+            SnapshotLocation::BeforeRefReassignment(location) => "before_ref_reassignment",
+            SnapshotLocation::Loop(_) | SnapshotLocation::BeforeJoin(_) => unreachable!(),
         };
         let location = at.location();
         let label = vir::vir_format!(

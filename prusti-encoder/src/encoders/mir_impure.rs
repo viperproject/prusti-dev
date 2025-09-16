@@ -1,30 +1,31 @@
 use std::alloc::Global;
 
 use pcg::{
+    PcgOutput,
     action::{BorrowPcgAction, PcgAction, PcgActions},
     borrow_pcg::{
         action::BorrowPcgActionKind,
         borrow_pcg_edge::BorrowPcgEdge,
         borrow_pcg_expansion::BorrowPcgExpansion,
-        edge::{abstraction::AbstractionType, kind::BorrowPcgEdgeKind},
+        edge::{abstraction::AbstractionEdge, kind::BorrowPcgEdgeKind},
         state::BorrowsState,
         unblock_graph::BorrowPcgUnblockAction,
     },
-    free_pcs::{CapabilityKind, PcgBasicBlock, RepackOp},
-    pcg::{EvalStmtPhase, PCGNode, Pcg, PcgSuccessor},
+    free_pcs::{CapabilityKind, RepackOp},
     r#loop::LoopAnalysis,
-    utils::{maybe_old::MaybeOldPlace, CompilerCtxt, HasPlace, Place},
-    PcgOutput,
+    pcg::{EvalStmtPhase, Pcg, PcgNode, PcgSuccessor},
+    results::PcgBasicBlock,
+    utils::{CompilerCtxt, HasPlace, Place, maybe_old::MaybeLabelledPlace},
 };
-use prusti_interface::{specs::specifications::SpecQuery, PrustiError};
+use prusti_interface::{PrustiError, specs::specifications::SpecQuery};
 use prusti_rustc_interface::{
+    abi,
     data_structures::fx::FxHashMap,
     middle::{
         mir,
         ty::{self, TyKind},
     },
     span::def_id::DefId,
-    abi,
 };
 use prusti_utils::config;
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
@@ -91,7 +92,7 @@ where
     pub deps: &'enc mut TaskEncoderDependencies<'vir, E>,
     pub def_id: DefId,
     pub local_decls: &'enc mir::LocalDecls<'vir>,
-    pub fpcs_analysis: PcgOutput<'enc, 'vir, Global>,
+    pub fpcs_analysis: PcgOutput<'enc, 'vir>,
     pub local_defs: crate::encoders::MirLocalDefEncOutput<'vir>,
     pub body: &'enc mir::Body<'vir>,
 
@@ -247,13 +248,13 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             return;
         }
         let base = expansion.base();
-        let PCGNode::Place(base) = base else {
+        let PcgNode::Place(base) = base else {
             // Ignore expansions of region projections
             return;
         };
         let (place, old) = match base {
-            MaybeOldPlace::Current { place } => (place, None),
-            MaybeOldPlace::OldPlace(snap) => {
+            MaybeLabelledPlace::Current(place) => (place, None),
+            MaybeLabelledPlace::Labelled(snap) => {
                 // We shouldn't be unfolding old places?
                 debug_assert!(!unfold);
                 (
@@ -356,7 +357,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             BorrowPcgEdgeKind::BorrowPcgExpansion(expansion) => {
                 self.pcs_borrow_expansion(expansion.clone(), add, label);
             }
-            BorrowPcgEdgeKind::Abstraction(AbstractionType::FunctionCall(call)) => {
+            BorrowPcgEdgeKind::Abstraction(AbstractionEdge::FunctionCall(call)) => {
                 if add {
                     // The wand will be introduced by the method call itself.
                     return;
@@ -397,8 +398,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     _ => unreachable!(),
                 }
             }
-            BorrowPcgEdgeKind::Abstraction(at @ AbstractionType::Loop(_)) => {
-                self.pcs_handle_wand(borrows_state, add, at, label, edge_to_loop);
+            BorrowPcgEdgeKind::Abstraction(at @ AbstractionEdge::Loop(_)) => {
+                self.pcs_handle_wand(borrows_state, add, &at.to_hyper_edge(), label, edge_to_loop);
             }
             _ => comment!(self, "(ignoring)"),
         }
@@ -461,8 +462,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 &mut to_skip,
             ),
             //RenamePlace {
-            //    old: MaybeOldPlace<'tcx>,
-            //    new: MaybeOldPlace<'tcx>,
+            //    old: MaybeLabelledPlace<'tcx>,
+            //    new: MaybeLabelledPlace<'tcx>,
             //},
             _ => comment!(self, "(ignoring)"),
         }

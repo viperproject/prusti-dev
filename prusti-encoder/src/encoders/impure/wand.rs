@@ -1,13 +1,16 @@
 use pcg::{
     borrow_pcg::{
+        AbstractionInputTarget, AbstractionOutputTarget,
         borrow_pcg_edge::{BorrowPcgEdgeLike, BorrowPcgEdgeRef},
-        edge::{abstraction::AbstractionType, kind::BorrowPcgEdgeKind},
-        graph::BorrowsGraph,
+        edge::{abstraction::AbstractionEdge, kind::BorrowPcgEdgeKind},
+        graph::{
+            BorrowsGraph,
+            coupling::{PcgCoupledEdge, PcgCoupledEdges},
+        },
         state::BorrowsState,
         unblock_graph::UnblockGraph,
-        AbstractionInputTarget, AbstractionOutputTarget,
     },
-    pcg::PCGNode,
+    pcg::PcgNode,
     utils::maybe_remote::MaybeRemotePlace,
 };
 use task_encoder::TaskEncoder;
@@ -16,18 +19,18 @@ use crate::encoders::ImpureEncVisitor;
 
 use super::r#loop::WandOldOuter;
 
-type Inputs<'a> = Vec<AbstractionInputTarget<'a>>;
-type Outputs<'a> = Vec<AbstractionOutputTarget<'a>>;
+type Input<'a> = AbstractionInputTarget<'a>;
+type Output<'a> = AbstractionOutputTarget<'a>;
+type Inputs<'a> = Vec<Input<'a>>;
+type Outputs<'a> = Vec<Output<'a>>;
 
 impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
-    pub(crate) fn ignore_abstraction_edge(
-        at: &AbstractionType<'vir>,
+    pub(crate) fn without_remote_places(
+        &self,
+        at: &PcgCoupledEdge<'vir>,
     ) -> Option<(Inputs<'vir>, Outputs<'vir>)> {
-        let inputs: Inputs<'vir> = at.inputs();
-        let skip = inputs
-            .iter()
-            .any(|i| matches!(**i, PCGNode::Place(MaybeRemotePlace::Remote(_))));
-        if skip {
+        let inputs = at.inputs(self.pcg_ctxt());
+        if inputs.iter().any(|input| input.is_remote_place()) {
             None
         } else {
             Some((inputs, at.outputs()))
@@ -35,21 +38,20 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     }
 
     pub(super) fn get_abstraction_edges<'a>(
+        &self,
         g: &'a BorrowsGraph<'vir>,
-    ) -> impl Iterator<Item = (BorrowPcgEdgeRef<'vir, 'a>, Inputs<'vir>, Outputs<'vir>)> + 'a {
-        g.edges().filter_map(|edge| match edge.kind() {
-            BorrowPcgEdgeKind::Abstraction(at) => {
-                Self::ignore_abstraction_edge(at).map(|(inputs, outputs)| (edge, inputs, outputs))
-            }
-            _ => None,
-        })
+    ) -> Vec<(Inputs<'vir>, Outputs<'vir>)> {
+        g.coupled_edges()
+            .into_iter()
+            .filter_map(|edge| self.without_remote_places(&edge))
+            .collect()
     }
 
     pub(crate) fn pcs_handle_wand(
         &mut self,
         borrows_state: &BorrowsState<'vir>,
         package: bool,
-        edge: &AbstractionType<'vir>,
+        edge: &PcgCoupledEdge<'vir>,
         label: Option<&'vir str>,
         edge_to_loop: bool,
     ) {
@@ -57,7 +59,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         if package && !edge_to_loop {
             return;
         }
-        let Some((inputs, outputs)) = Self::ignore_abstraction_edge(edge) else {
+        let Some((inputs, outputs)) = self.without_remote_places(edge) else {
             return;
         };
         let mut old_outer = WandOldOuter::Label(label);
@@ -71,10 +73,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         }
         let mut wand_lhs = Vec::new();
         for i in outputs {
-            let i = match *i {
-                PCGNode::Place(_) => unreachable!(),
-                PCGNode::RegionProjection(region_projection) => region_projection,
-            };
+            let i = i.expect_lifetime_projection();
             let exprs = self.encode_region_projection(i, &mut old_outer);
             wand_lhs.extend(exprs);
         }
@@ -93,7 +92,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn create_package_script(
         &mut self,
         borrows_state: &BorrowsState<'vir>,
-        rhs: impl Into<PCGNode<'vir>>,
+        rhs: impl Into<PcgNode<'vir>>,
         old_outer: &mut WandOldOuter<'vir>,
     ) -> Vec<vir::Stmt<'vir>> {
         let ug = UnblockGraph::for_node(rhs, borrows_state, self.pcg_ctxt());
