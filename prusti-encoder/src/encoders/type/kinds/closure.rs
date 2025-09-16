@@ -85,7 +85,7 @@ pub(crate) fn predicate<'vir>(
     let fields = cl_args
         .upvar_tys()
         .iter()
-        .map(|ty| deps.require_ref::<TyImpureEnc>(ty))
+        .map(|ty| deps.require_local::<TyImpureEnc>(ty))
         .collect::<Result<Vec<_>, _>>()?;
 
     let (field_accessors, self_pred, snap_expr) = super::structlike::predicate(

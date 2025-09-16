@@ -84,7 +84,7 @@ impl TaskEncoder for MirBuiltinEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for output in Self::all_outputs_local() {
+        for output in Self::all_outputs_local_no_errors() {
             program.add_function(output.function);
         }
     }

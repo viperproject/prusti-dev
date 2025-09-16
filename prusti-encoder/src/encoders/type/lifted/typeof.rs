@@ -1,9 +1,9 @@
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies};
-use vir::{vir_format_identifier, Arity, CallableIdn, CastType, FunctionIdn};
+use vir::{CallableIdn, CastType, FunctionIdn};
 
 use crate::encoders::{
     domain::DomainEnc,
-    most_generic_ty::{extract_type_params, MostGenericTy},
+    most_generic_ty::{MostGenericTy, MostGenericTyEnc},
 };
 
 #[derive(Clone)]
@@ -46,8 +46,8 @@ impl TaskEncoder for TypeOfEnc {
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
         vir::with_vcx(|vcx| {
-            let (ty_constructor, _) = extract_type_params(vcx.tcx(), task_key.ty());
-            let base_name = ty_constructor.get_vir_base_name(vcx);
+            let (generic_ty, args) = deps.require_local::<MostGenericTyEnc>(task_key.ty())?;
+            let base_name = generic_ty.get_vir_base_name(vcx);
 
             let domain = deps.require_ref::<DomainEnc>(*task_key)?;
             let snap = (domain.domain)();
@@ -69,7 +69,7 @@ impl TaskEncoder for TypeOfEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let typeof_fns = Self::all_outputs_local();
+        let typeof_fns = Self::all_outputs_local_no_errors();
         vir::with_vcx(|vcx| {
             let domain = vcx.mk_domain(vir::ViperIdent::new("TypeOf"), &[], &[], vcx.alloc_slice(&typeof_fns));
             program.add_domain(domain);

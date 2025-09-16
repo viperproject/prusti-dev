@@ -522,6 +522,7 @@ impl<'vir> Debug for TypeKind<'vir> {
             Self::Ref => write!(f, "Ref"),
             Self::Perm => write!(f, "Perm"),
             Self::Unsupported(u) => u.fmt(f),
+            Self::Err => write!(f, "Err"),
         }
     }
 }

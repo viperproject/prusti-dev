@@ -5,9 +5,9 @@ use task_encoder::{EncodeFullResult, TaskEncoder};
 use vir::{with_vcx, FunctionIdn, CastType};
 
 use crate::encoders::{
-    r#const::ConstEncTask, lifted::{
-        generic::{LiftedGeneric, LiftedGenericEnc}, ty_constructor::TyConstructorEnc, LiftedConstEnc
-    }, most_generic_ty::extract_type_params, ConstEnc,
+    ConstEnc, r#const::ConstEncTask, lifted::{
+        LiftedConstEnc, generic::{LiftedGeneric, LiftedGenericEnc}, ty_constructor::TyConstructorEnc
+    }, most_generic_ty::MostGenericTyEnc,
 };
 
 use super::generic::LiftedGenericEncTask;
@@ -181,9 +181,9 @@ impl TaskEncoder for LiftedTyEnc<EncodeGenericsAsParamTy> {
                 if let TyKind::Param(p) = ty.kind() {
                     return Ok((LiftedTy::Generic(*p), ()));
                 }
-                let (ty_constructor, args) = extract_type_params(vcx.tcx(), *ty);
+                let (generic_ty, args) = deps.require_local::<MostGenericTyEnc>(*ty)?;
                 let ty_constructor = deps
-                    .require_ref::<TyConstructorEnc>(ty_constructor)?
+                    .require_ref::<TyConstructorEnc>(generic_ty)?
                     .ty_constructor;
                 let args = args
                     .into_iter()

@@ -65,6 +65,8 @@ pub struct VirSpanManager<'vir> {
     stack: Vec<&'vir crate::spans::VirSpan<'vir>>,
 
     handlers: HashMap<usize, VirSpanHandler<'vir>>,
+
+    early_errors: Vec<PrustiError>,
 }
 
 impl<'tcx> VirCtxt<'tcx> {
@@ -110,9 +112,22 @@ impl<'tcx> VirCtxt<'tcx> {
         );
     }
 
+    pub fn emit_early_error(
+        &'tcx self,
+        error: PrustiError,
+    ) {
+        let mut manager = self.spans.borrow_mut();
+        manager.early_errors.push(error);
+    }
+
     // TODO: eventually, this should not be an Option
     pub fn top_span(&'tcx self) -> Option<&'tcx VirSpan<'tcx>> {
         self.spans.borrow().stack.last().copied()
+    }
+
+    /// Return all early (pre-verification) emitted errors.
+    pub fn early_errors(&'tcx self) -> Vec<PrustiError> {
+        self.spans.borrow().early_errors.clone()
     }
 
     /// Attempt to backtranslate the given error at the given position.
