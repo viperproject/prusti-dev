@@ -1,4 +1,4 @@
-// compile-flags: -Punsafe_core_proof=true -Puse_smt_wrapper=true -Psmt_unique_triggers_bound=30 -Passert_timeout=60000
+//@ compile-flags: -Punsafe_core_proof=true -Puse_smt_wrapper=true -Psmt_unique_triggers_bound=30 -Passert_timeout=60000
 
 use prusti_contracts::*;
 

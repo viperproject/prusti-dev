@@ -1,4 +1,4 @@
-// compile-flags: -Punsafe_core_proof=true -Pverify_types=false
+//@ compile-flags: -Punsafe_core_proof=true -Pverify_types=false
 
 use prusti_contracts::*;
 

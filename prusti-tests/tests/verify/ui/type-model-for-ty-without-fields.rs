@@ -1,4 +1,4 @@
-// compile-flags: --deny warnings
+//@ compile-flags: --deny warnings
 use prusti_contracts::*;
 
 use std::io::Empty; // An external type which has no fields

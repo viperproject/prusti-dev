@@ -1,4 +1,4 @@
-// compile-flags: -Pcounterexample=true
+//@ compile-flags: -Pcounterexample=true
 
 use prusti_contracts::*;
 

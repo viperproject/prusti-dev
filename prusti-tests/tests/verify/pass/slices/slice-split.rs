@@ -1,4 +1,4 @@
-// compile-flags: -Pverification_deadline=25
+//@ compile-flags: -Pverification_deadline=25
 
 use prusti_contracts::*;
 

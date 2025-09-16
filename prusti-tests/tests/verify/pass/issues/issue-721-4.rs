@@ -1,4 +1,4 @@
-// compile-flags: -Pverification_deadline=5
+//@ compile-flags: -Pverification_deadline=5
 
 fn main() {
     const SIZE: usize = 1_000_000;

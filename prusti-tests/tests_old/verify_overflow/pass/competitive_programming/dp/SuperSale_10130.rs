@@ -1,4 +1,4 @@
-// compile-flags: -Zdisable_more_complete_exhale
+//@ compile-flags: -Zdisable_more_complete_exhale
 // https://onlinejudge.org/external/101/10130.pdf
 //
 // Original PR: https://github.com/viperproject/prusti-dev/pull/313

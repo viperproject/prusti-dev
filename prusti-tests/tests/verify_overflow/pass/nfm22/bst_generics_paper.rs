@@ -1,4 +1,4 @@
-// compile-flags: -Penable_type_invariants=true
+//@ compile-flags: -Penable_type_invariants=true
 use prusti_contracts::*;
 use std::cmp::{Ord, Ordering::{self, Equal, Less, Greater}};
 
