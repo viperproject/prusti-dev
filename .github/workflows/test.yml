@@ -19,6 +19,28 @@ env:
   PRUSTI_ASSERT_TIMEOUT: 60000
 
 jobs:
+  # Try to compile
+  compile-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Set up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '15'
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "shared"
+      - name: Compile
+        run: |
+          python ./x.py build --all
+
   # Check formatting
   fmt-check:
     runs-on: ubuntu-latest
@@ -117,7 +139,7 @@ jobs:
 
   # Run all the tests.
   all-tests:
-    needs: [check-deps, smir-check] # , quick-tests]
+    needs: [compile-check, check-deps, smir-check] # , quick-tests]
     strategy:
       matrix:
         os: [ubuntu-latest] # , windows-latest, macos-latest]
