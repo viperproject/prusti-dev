@@ -466,7 +466,8 @@ impl TaskEncoder for WandEnc {
                     todo!("region bound pair: {pred:?}");
                 };
                 let Some(a) = IndirectKey::from_region(pred.1) else {
-                    todo!("region bound pair: {pred:?}");
+                    // TODO: handle unexpected todo!("region bound pair: {pred:?}");
+                    continue;
                 };
                 // This edge may be skipped, see TODO in `WandEncEdges::edge`.
                 insert_edge(a, IndirectKey::Param(b));

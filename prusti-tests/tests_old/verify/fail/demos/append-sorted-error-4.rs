@@ -1,4 +1,4 @@
-#![feature(box_patterns, box_syntax)]
+#![feature(box_patterns)]
 use prusti_contracts::*;
 
 struct List {
@@ -48,10 +48,10 @@ fn append(a: &mut List, v: i32) {
     if let Some(box ref mut tail) = a.next {
         append(tail, v);
     } else {
-        a.next = Some(box List {
+        a.next = Some(Box::new(List {
             val: v,
             next: None
-        });
+        }));
     }
 }
 

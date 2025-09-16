@@ -1,5 +1,3 @@
-#![feature(box_syntax)]
-
 use prusti_contracts::*;
 
 struct Point {
@@ -9,9 +7,10 @@ struct Point {
 #[ensures(old((*p).x + s) == (*result).x)]
 #[ensures(old((*p).y) == (*result).y)]
 fn shift_x(p: Box<Point>, s:i32) -> Box<Point> {
-  box Point { x: (*p).x + s, y: (*p).y }
+  Box::new(Point { x: (*p).x + s, y: (*p).y })
 }
 
+#[requires((*segm.0).x < 0x7FFFFFFF)]
 fn compress(mut segm: (Box<Point>, Box<Point>))
                     -> (Box<Point>, Box<Point>) {
   let mut end = segm.1; // move assignment

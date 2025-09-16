@@ -1,5 +1,4 @@
 #![feature(box_patterns)]
-#![feature(box_syntax)]
 
 fn use_box(v: i32) -> Box<i32> {
     let x = Box::new(v);
