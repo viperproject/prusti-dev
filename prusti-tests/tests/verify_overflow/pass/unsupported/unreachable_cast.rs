@@ -1,4 +1,4 @@
-// compile-flags: -Pallow_unreachable_unsupported_code=true
+//@ compile-flags: -Pallow_unreachable_unsupported_code=true
 
 pub fn main() {
     if false {

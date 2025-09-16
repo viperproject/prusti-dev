@@ -1,4 +1,4 @@
-// compile-flags: -Punsafe_core_proof=true -Pcounterexample=true
+//@ compile-flags: -Punsafe_core_proof=true -Pcounterexample=true
 
 #![allow(unused)]
 

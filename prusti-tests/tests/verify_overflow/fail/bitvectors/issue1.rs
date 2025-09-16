@@ -1,4 +1,4 @@
-// compile-flags: -Pencode_bitvectors=true
+//@ compile-flags: -Pencode_bitvectors=true
 
 pub mod m {
 

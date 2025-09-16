@@ -1,4 +1,4 @@
-// compile-flags: -Penable_type_invariants=true
+//@ compile-flags: -Penable_type_invariants=true
 use std::collections::BTreeSet;
 
 // No invariants are used here, but the encoding of the `union` operation
