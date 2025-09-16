@@ -1,4 +1,4 @@
-// compile-flags: -Popt_in_verification=false
+//@ compile-flags: -Popt_in_verification=false
 use prusti_contracts::*;
 
 fn main() {}

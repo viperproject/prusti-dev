@@ -1,6 +1,6 @@
 // FIXME performance issue, see https://github.com/viperproject/prusti-dev/issues/819
 // disabled `fix_quantifiers` and `optimize_folding` optimizations for now:
-// compile-flags: -Poptimizations=inline_constant_functions,delete_unused_predicates,remove_empty_if,purify_vars,remove_unused_vars,remove_trivial_assertions,clean_cfg -Pverification_deadline=180
+//@ compile-flags: -Poptimizations=inline_constant_functions,delete_unused_predicates,remove_empty_if,purify_vars,remove_unused_vars,remove_trivial_assertions,clean_cfg -Pverification_deadline=180
 
 use prusti_contracts::*;
 

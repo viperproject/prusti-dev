@@ -1,4 +1,4 @@
-// compile-flags: -Pcounterexample=true
+//@ compile-flags: -Pcounterexample=true
 
 // ignore-test
 // TODO: the counterexample for `has_money` should show an account with a
