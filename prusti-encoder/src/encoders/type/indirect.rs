@@ -85,7 +85,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                     if IndirectKey::from_region(*ref_region)
                         .is_some_and(|indirect| &indirect == proj_region)
                     {
-                        let inner_ty_enc = deps.require_ref::<TyImpureEnc>(*inner_ty)?;
+                        let inner_ty_enc = deps.require_local::<TyImpureEnc>(*inner_ty)?;
                         covariant.push(vcx.mk_lazy_expr(
                             "ref_indirect",
                             vir::TYPE_BOOL,

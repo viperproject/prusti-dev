@@ -69,6 +69,6 @@ impl TaskEncoder for LiftedFuncAppTyParamsEnc {
     }
 
     fn emit_outputs<'vir>(_program: &mut Program<'vir>) {
-        let _outputs = Self::all_outputs_local();
+        let _outputs = Self::all_outputs_local_no_errors();
     }
 }

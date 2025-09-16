@@ -1,8 +1,8 @@
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder};
-use vir::{vir_format_identifier, Arity, CallableIdn, CastType, FunctionIdn};
+use vir::{Arity, CallableIdn, CastType, FunctionIdn};
 
 use crate::encoders::{
-    domain::DomainEnc, lifted::r#typeof::{TypeOfEnc, TypeOfEncOutputRef}, most_generic_ty::{extract_type_params, MostGenericTy}
+    lifted::r#typeof::{TypeOfEnc, TypeOfEncOutputRef}, most_generic_ty::{MostGenericTy, MostGenericTyEnc}
 };
 
 #[derive(Clone)]
@@ -70,9 +70,9 @@ impl TaskEncoder for TyConstructorEnc {
     ) -> EncodeFullResult<'vir, Self> {
         assert!(!task_key.is_generic());
         vir::with_vcx(|vcx| {
-            let (ty_constructor, _) = extract_type_params(vcx.tcx(), task_key.ty());
-            let base_name = ty_constructor.get_vir_base_name(vcx);
-            let args = ty_constructor.generics();
+            let (generic_ty, _) = deps.require_local::<MostGenericTyEnc>(task_key.ty())?;
+            let base_name = generic_ty.get_vir_base_name(vcx);
+            let args = generic_ty.generics();
             let type_function_args = vcx.alloc_slice(&vec![vir::TYPE_TYVAL; args.len()]);
             let type_function_ident = FunctionIdn::new(
                 vir::vir_format_identifier!(vcx, "s_{base_name}_type",),
@@ -110,7 +110,7 @@ impl TaskEncoder for TyConstructorEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let mut constructors = Self::all_outputs_local();
+        let mut constructors = Self::all_outputs_local_no_errors();
         vir::with_vcx(|vcx| {
             let args = vcx.alloc_array(&[vcx.mk_local_decl("non_unit", vir::TYPE_INT)]);
             let unknown = vcx.mk_adt_constructor("Unknown_type", args);

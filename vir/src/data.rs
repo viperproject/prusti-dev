@@ -168,6 +168,7 @@ pub enum TypeKind<'vir> {
     Ref, // TODO: typed references ?
     Perm,
     Unsupported(UnsupportedType<'vir>),
+    Err,
 }
 
 #[derive(PartialEq, Eq, Clone, Ord, PartialOrd, Serialize, Deserialize, Hash)]

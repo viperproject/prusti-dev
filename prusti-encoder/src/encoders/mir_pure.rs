@@ -1232,7 +1232,7 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
             match place_ty.ty.kind() {
                 TyKind::Adt(adt, _) if adt.is_box() => {
                     let e_ty_impure = deps
-                        .require_ref::<TyImpureEnc>(place_ty.ty)
+                        .require_local::<TyImpureEnc>(place_ty.ty)
                         .unwrap();
                     let struct_like = e_ty_impure
                         .expect_variant_opt(place_ty.variant_index);
@@ -1258,7 +1258,7 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
                         .require_local::<TyPureEnc>(place_ty.ty)
                         .unwrap()
                         .expect_mutref();
-                    let inner_ty_out = deps.require_ref::<TyImpureEnc>(*inner_ty).unwrap();
+                    let inner_ty_out = deps.require_local::<TyImpureEnc>(*inner_ty).unwrap();
                     //let ref_expr = Some(e_ty.deref_access.apply(vcx, [expr]));
                     let ref_expr = e_ty.deref_access(expr);
                     // let val_expr = e_ty.value_access.apply(vcx, [expr]);
@@ -1280,7 +1280,7 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
         }
         mir::ProjectionElem::Field(field_idx, ty) => {
             let e_ty = deps
-                .require_ref::<TyImpureEnc>(place_ty.ty)
+                .require_local::<TyImpureEnc>(place_ty.ty)
                 .unwrap();
             let struct_like = e_ty
                 .expect_variant_opt(place_ty.variant_index);

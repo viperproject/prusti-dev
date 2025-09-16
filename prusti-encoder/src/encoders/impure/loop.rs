@@ -50,7 +50,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 }
                 let (place_res, snap, _, _) = self.encode_place_snap(*place);
                 let ty = (*place).ty(self.pcg_ctxt());
-                let ty_out = self.deps.require_ref::<TyImpureEnc>(ty.ty).unwrap();
+                let ty_out = self.deps.require_local::<TyImpureEnc>(ty.ty).unwrap();
                 let pred = ty_out.ref_to_pred(self.vcx, place_res.expr, None);
                 inv.push(pred);
 
@@ -112,7 +112,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             PcgNode::Place(place @ MaybeRemotePlace::Local(_)) => {
                 let p = Self::get_place(*place);
                 let ty = (*p).ty(self.local_decls, self.vcx.tcx());
-                let ty_out = self.deps.require_ref::<TyImpureEnc>(ty.ty).unwrap();
+                let ty_out = self.deps.require_local::<TyImpureEnc>(ty.ty).unwrap();
                 let p = self.encode_place(p);
                 let p = self.configure_old(*place, p.expr, old_outer);
 

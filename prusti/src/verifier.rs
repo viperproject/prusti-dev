@@ -43,6 +43,12 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
         //   which is constructed further inside `prusti_server`)
         let request = prusti_encoder::test_entrypoint(env.tcx(), env.body, def_spec);
         let program = request.program;
+        let mut success = true;
+
+        for prusti_error in prusti_encoder::early_errors() {
+            success = false;
+            prusti_error.emit(&env.diagnostic);
+        }
 
         let mut results = prusti_server::verify_programs(vec![program]);
         assert_eq!(results.len(), 1); // TODO: eventually verify separate methods as separate programs again?
@@ -51,7 +57,7 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
         if std::env::var("LOCAL_TESTING").is_ok() {
             println!("raw result: {result:?}");
         }
-        let success = match result {
+        success &= match result {
             viper::VerificationResult::Success => true,
             viper::VerificationResult::JavaException(_e) => false,
             viper::VerificationResult::ConsistencyErrors(_e) => false,
