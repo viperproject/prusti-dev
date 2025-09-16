@@ -10,7 +10,7 @@ struct Point {
 
 #[requires(u32::MAX - *a >= b)]
 #[ensures(*result == old(*a) + old(b))]
-fn add(a: Box<u32>, b: u32) -> Box<u32> { Box::new(*a + b) }
+fn add(a: Box<u32>, b: u32) -> Box<u32> { Box::new((*a + b)) }
 
 #[requires(u32::MAX - *p.x >= s)]
 #[ensures(*result.x == old(*p.x) + old(s))]
@@ -23,4 +23,4 @@ fn shift_x(p: Point, s: u32) -> Point {
     pp
 }
 
-fn main() {}
+fn main(){}

@@ -1,4 +1,4 @@
-#![feature(box_patterns, box_syntax)]
+#![feature(box_patterns)]
 
 use prusti_contracts::*;
 
@@ -30,10 +30,10 @@ fn append(list: &mut List, elem: Triple) {
         Some(box ref mut tail) => append(tail, elem),
         None => {
             list.next = Some(
-                box List {
+                Box::new(List {
                     next: None,
                     elem: elem
-                }
+                })
             )
         }
     }

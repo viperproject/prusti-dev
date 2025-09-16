@@ -6,7 +6,7 @@ enum List {
     Nil,
     Const {
         val: i32,
-        next: Box<List>,
+        next: Box<List>
     },
 }
 
@@ -48,14 +48,14 @@ fn empty_list(val: i32) -> List {
 fn singleton_list(val: i32) -> List {
     List::Const {
         val,
-        next: Box::new(List::Nil),
+        next: Box::new(List::Nil)
     }
 }
 
 fn prepend(val: i32, list: List) -> List {
     List::Const {
         val,
-        next: Box::new(list),
+        next: Box::new(list)
     }
 }
 
@@ -63,11 +63,11 @@ fn append(new_val: i32, list: List) -> List {
     match list {
         List::Nil => List::Const {
             val: new_val,
-            next: Box::new(List::Nil),
+            next: Box::new(List::Nil)
         },
         List::Const { val, box next } => List::Const {
             val: val,
-            next: Box::new(append(new_val, next)),
+            next: Box::new(append(new_val, next))
         },
     }
 }

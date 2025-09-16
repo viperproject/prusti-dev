@@ -154,6 +154,7 @@ where
                 .map(|i| i.skip_binder())
                 .copied()
                 .collect::<Vec<_>>();
+            // TODO: type preconditions do not currently work
             let type_preconditions = input_tys.iter().enumerate().filter_map(|(idx, ty)| {
                 let vir_arg = local_defs[mir::Local::from(idx + 1)];
                 let vir_arg = vcx.mk_local_ex(vir_arg.local.name, vir_arg.ty.snapshot());
@@ -163,13 +164,14 @@ where
             tracing::debug!("finished {def_id:?}");
 
             let mut type_preconditions: Vec<_> = type_preconditions.collect();
-            let pres = if type_preconditions.is_empty() {
+            let pres = if true || type_preconditions.is_empty() {
                 spec.pres
             } else {
                 type_preconditions.extend(spec.pres);
                 type_preconditions
             };
 
+            // TODO: type postcondition do not currently work
             let type_postcondition = Self::mk_type_assertion(
                 vcx,
                 deps,
@@ -178,7 +180,9 @@ where
             );
             let mut posts = spec.posts;
             if let Some(pc) = type_postcondition {
-                posts.insert(0, pc);
+                if false {
+                    posts.insert(0, pc);
+                }
             }
 
             Ok(MirFunctionEncOutput {
