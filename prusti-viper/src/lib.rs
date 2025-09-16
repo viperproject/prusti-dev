@@ -860,7 +860,9 @@ impl<'vir, 'v> ToViperVec<'vir, 'v> for vir::TerminatorStmt<'vir> {
     ) {
         match self {
             vir::TerminatorStmtGenData::AssumeFalse => {
-                vec.push(ctx.ast.inhale(ctx.ast.false_lit_with_pos(pos), pos))
+                vec.push(ctx.ast.inhale(ctx.ast.false_lit_with_pos(pos), pos));
+                let goto_end = &vir::TerminatorStmtGenData::Goto(&vir::CfgBlockLabelData::End);
+                goto_end.to_viper_extend(vec, ctx, pos);
             }
             vir::TerminatorStmtGenData::Goto(label) => vec.push(ctx.ast.goto(&label.name())),
             vir::TerminatorStmtGenData::GotoIf(v) => v.to_viper_extend_no_pos(vec, ctx),

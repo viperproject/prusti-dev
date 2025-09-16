@@ -4,7 +4,6 @@
 // Original PR: https://github.com/viperproject/prusti-dev/pull/342
 
 #![feature(box_patterns)]
-#![feature(box_syntax)]
 
 use prusti_contracts::*;
 use std::ptr;

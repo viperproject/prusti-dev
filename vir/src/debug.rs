@@ -432,7 +432,11 @@ impl<'vir, Curr, Next> Debug for TerminatorStmtGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let indent = f.width().unwrap_or_default();
         match self {
-            Self::AssumeFalse => write!(f, "assume false"),
+            Self::AssumeFalse => {
+                writeln!(f, "assume false")?;
+                f.pad("")?;
+                write!(f, "{:?}", Self::Goto(&CfgBlockLabelData::End))
+            }
             Self::Goto(target) => write!(f, "goto {:?}", target),
             Self::GotoIf(data) => {
                 if data.targets.is_empty() {
