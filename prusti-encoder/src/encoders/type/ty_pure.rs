@@ -8,11 +8,7 @@ use prusti_rustc_interface::{
     abi,
 };
 
-use crate::encoders::{domain::{DomainDataEnum, DomainDataField, DomainDataImmRef, DomainDataMutRef, DomainDataPrim, DomainDataStruct, DomainEnc, DomainEncOutput, DomainEncOutputRef, DomainEncSpecifics}, lifted::{casters::{CastFunctionsOutputRef, CastTypePure}, rust_ty_cast::{GenericCasterPure, RustTyCastersEnc}}};
-
-use super::{
-    most_generic_ty::extract_type_params,
-};
+use crate::encoders::{domain::{DomainDataEnum, DomainDataField, DomainDataImmRef, DomainDataMutRef, DomainDataPrim, DomainDataStruct, DomainEnc, DomainEncOutput, DomainEncOutputRef}, lifted::{casters::CastTypePure, rust_ty_cast::{GenericCasterPure, RustTyCastersEnc}}, most_generic_ty::MostGenericTyEnc};
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyPureDataImmRef<'vir> {
@@ -82,6 +78,8 @@ impl TaskEncoder for TyPureEnc {
 
     type EncodingError = ();
 
+    const ENCODER_NAME: &'static str = "pure type encoder";
+
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task
     }
@@ -91,7 +89,7 @@ impl TaskEncoder for TyPureEnc {
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
         with_vcx(|vcx| {
-            let (generic_ty, args) = extract_type_params(vcx.tcx(), *task_key);
+            let (generic_ty, args) = deps.require_local::<MostGenericTyEnc>(*task_key)?;
             let domain = deps.require_ref::<DomainEnc>(generic_ty)?;
             let snapshot = (domain.domain)();
             let inner = TyPureEncOutputRef { snapshot, domain };

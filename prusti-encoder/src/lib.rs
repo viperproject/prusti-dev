@@ -51,8 +51,7 @@ pub fn test_entrypoint<'tcx>(
                 .unwrap_or_default();
 
                 if !(is_trusted && is_pure) {
-                    let res = MirPolyImpureEnc::encode(def_id, false);
-                    assert!(res.is_ok());
+                    let _ = MirPolyImpureEnc::encode(def_id, false);
                 }
             }
             unsupported_item_kind => {
@@ -114,6 +113,10 @@ pub fn test_entrypoint<'tcx>(
     request::RequestWithContext {
         program: program.to_ref(),
     }
+}
+
+pub fn early_errors() -> Vec<PrustiError> {
+    vir::with_vcx(|vcx| vcx.early_errors())
 }
 
 pub fn backtranslate_error(

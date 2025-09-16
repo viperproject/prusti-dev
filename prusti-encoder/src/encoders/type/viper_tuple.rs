@@ -6,12 +6,9 @@ use prusti_rustc_interface::{
     abi,
 };
 
-use crate::encoders::{lifted::rust_ty_cast::GenericCasterPure, ty_pure::{TyPureDataStruct, TyPureEncOutput}};
+use crate::encoders::ty_pure::{TyPureDataStruct, TyPureEncOutput};
 
 use super::{
-    domain::{DomainDataStruct, DomainEnc},
-    predicate::PredicateEnc,
-    most_generic_ty::{MostGenericTy, extract_type_params},
     ty_pure::TyPureEnc,
 };
 

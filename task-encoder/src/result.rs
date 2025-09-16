@@ -1,3 +1,5 @@
+use prusti_rustc_interface::span::Span;
+
 use super::*;
 
 /// The result of an `encode` call.
@@ -37,7 +39,9 @@ pub enum EncodeFullError<'vir, E: TaskEncoder + 'vir + ?Sized> {
         Option<E::OutputFullDependency<'vir>>,
     ),
 
-    DependencyError,
+    DependencyError(
+        Vec<(&'static str, String, Vec<Span>)>,
+    ),
 }
 
 // Manual implementation, since neither `E` nor `E::OutputFullDependency` are
@@ -50,7 +54,7 @@ impl<'vir, E: TaskEncoder + 'vir + ?Sized> std::fmt::Debug for EncodeFullError<'
                 .debug_tuple("EncodingError")
                 .field(err) /*.field(output_dep)*/
                 .finish(),
-            Self::DependencyError => write!(f, "DependencyError"),
+            Self::DependencyError(..) => write!(f, "DependencyError"),
         }
     }
 }
@@ -58,7 +62,7 @@ impl<'vir, E: TaskEncoder + 'vir + ?Sized> std::fmt::Debug for EncodeFullError<'
 pub enum TaskEncoderError<E: TaskEncoder + ?Sized> {
     EnqueueingError(<E as TaskEncoder>::EnqueueingError),
     EncodingError(<E as TaskEncoder>::EncodingError),
-    // TODO: error of another task encoder?
+    DependencyError(Vec<(&'static str, String, Vec<Span>)>),
     CyclicError,
 }
 
@@ -71,6 +75,7 @@ where
         match self {
             Self::EncodingError(err) => helper.field("EncodingError", err),
             Self::EnqueueingError(err) => helper.field("EnqueueingError", err),
+            Self::DependencyError(..) => helper.field("DependencyError", &""),
             Self::CyclicError => helper.field("CyclicError", &""),
         };
         helper.finish()
@@ -83,6 +88,7 @@ impl<E: TaskEncoder + ?Sized> Clone for TaskEncoderError<E> {
         match self {
             Self::EncodingError(err) => Self::EncodingError(err.clone()),
             Self::EnqueueingError(err) => Self::EnqueueingError(err.clone()),
+            Self::DependencyError(stack) => Self::DependencyError(stack.clone()),
             Self::CyclicError => Self::CyclicError,
         }
     }

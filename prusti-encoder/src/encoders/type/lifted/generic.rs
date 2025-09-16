@@ -58,12 +58,12 @@ impl TaskEncoder for LiftedGenericEnc {
         with_vcx(|vcx| {
             let output_ref = LiftedGeneric(match task_key {
                 LiftedGenericEncTask::Param(param) => vcx.mk_local_decl(
-                    vcx.alloc_str(param.name.as_str()),
+                    vir::ViperIdent::sanitize(vcx, param.name.as_str().to_string()).to_str(),
                     vir::TYPE_TYVAL,
                 ),
                 LiftedGenericEncTask::Const(c) => match c.kind() {
                     ty::ConstKind::Param(param) => vcx.mk_local_decl(
-                        vcx.alloc_str(param.name.as_str()),
+                        vir::ViperIdent::sanitize(vcx, param.name.as_str().to_string()).to_str(),
                         vir::TYPE_TYVAL,
                     ),
                     _ => todo!("lifted generic const {c:?}")

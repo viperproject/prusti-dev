@@ -10,12 +10,15 @@ use prusti_rustc_interface::{
     middle::{mir, ty},
     span::{def_id::DefId, Span},
 };
-use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 
 /// Encodes the magic wands given a function signature.
 pub struct WandEnc;
 
-pub type WandEncError = ();
+#[derive(Clone, Debug)]
+pub enum WandEncError {
+    Unsupported(String),
+}
 
 type Pledges<'vir> = Vec<(
     Option<(vir::ExprBool<'vir>, Span)>,
@@ -28,6 +31,7 @@ pub struct WandEncOutput<'vir> {
     edges: WandEncEdges,
     pub generic_to_param: FxHashMap<IndirectKey, Vec<(mir::Local, ty::Ty<'vir>)>>,
     pub pledges: Pledges<'vir>,
+    wands: Vec<(Vec<IndirectKey>, Vec<IndirectKey>, Pledges<'vir>)>,
 }
 
 impl<'vir> WandEncOutput<'vir> {
@@ -321,6 +325,8 @@ impl TaskEncoder for WandEnc {
 
     type EncodingError = WandEncError;
 
+    const ENCODER_NAME: &'static str = "wand encoder";
+
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         WandEncTask {
             def_id: task.def_id,
@@ -455,7 +461,7 @@ impl TaskEncoder for WandEnc {
                     let (ty::RegionKind::ReEarlyParam(a), ty::RegionKind::ReEarlyParam(b)) =
                         (r_a.kind(), r_b.kind())
                     else {
-                        todo!("region bound pair: ({r_a:?}, {r_b:?})");
+                        return Err(EncodeFullError::EncodingError(WandEncError::Unsupported(format!("region bound pair: ({r_a:?}, {r_b:?})")), None));
                     };
                     insert_edge(IndirectKey::Early(a), IndirectKey::Early(b));
                 }
@@ -463,23 +469,75 @@ impl TaskEncoder for WandEnc {
 
             for pred in rbp {
                 let GenericKind::Param(b) = pred.0 else {
-                    todo!("region bound pair: {pred:?}");
+                    return Err(EncodeFullError::EncodingError(WandEncError::Unsupported(format!("region bound pair: {pred:?}")), None));
                 };
                 let Some(a) = IndirectKey::from_region(pred.1) else {
-                    // TODO: handle unexpected todo!("region bound pair: {pred:?}");
-                    continue;
+                    return Err(EncodeFullError::EncodingError(WandEncError::Unsupported(format!("region bound pair: {pred:?}")), None));
                 };
                 // This edge may be skipped, see TODO in `WandEncEdges::edge`.
                 insert_edge(a, IndirectKey::Param(b));
             }
 
             let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false))?;
+            let pledges = spec.pledges;
+
+            // convert edges to viper-supported wands
+
+            // Indexed by the `rhs` of wands
+            let mut edge_rhs: FxHashMap<IndirectKey, Vec<IndirectKey>> = Default::default();
+            // Indexed by the `lhs` of wands
+            let mut edge_lhs: FxHashMap<IndirectKey, Vec<IndirectKey>> = Default::default();
+            let mut wands: Vec<(Vec<IndirectKey>, Vec<IndirectKey>, Pledges<'vir>)> =
+                Default::default();
+
+            for (lhs, rhs) in edges.edges.iter().copied() {
+                edge_lhs.entry(lhs).or_default().push(rhs);
+                edge_rhs.entry(rhs).or_default().push(lhs);
+            }
+
+            let mut skip = FxHashSet::default();
+            for rhs in edges.inputs.iter().copied() {
+                if !skip.insert(rhs) {
+                    continue;
+                }
+                let Some(lhss) = edge_rhs.get(&rhs) else {
+                    wands.push((vec![], vec![rhs], vec![]));
+                    continue;
+                };
+                let lhs = lhss.first().unwrap();
+                let rhss = &edge_lhs[lhs];
+                for lhs_other in lhss {
+                    let rhss_other = &edge_lhs[lhs_other];
+                    if rhss != rhss_other {
+                        return Err(EncodeFullError::EncodingError(WandEncError::Unsupported(format!("two outputs do not block the same set of inputs: {lhs:?} blocks {rhss:?}, {lhs_other:?} blocks {rhss_other:?}")), None));
+                    }
+                }
+                for rhs_other in rhss {
+                    let lhss_other = &edge_rhs[rhs_other];
+                    if lhss != lhss_other {
+                        return Err(EncodeFullError::EncodingError(WandEncError::Unsupported(format!("two inputs are not blocked by the same set of outputs: {rhs:?} blocked by {lhss:?}, {rhs_other:?} blocked by {lhss_other:?}")), None));
+                    }
+                }
+                wands.push((lhss.clone(), rhss.clone(), vec![]));
+                skip.extend(rhss);
+            }
+            if !pledges.is_empty() {
+                let mut actual_wands = wands.iter_mut().filter(|(lhs, ..)| !lhs.is_empty());
+                let wand = actual_wands.next();
+                assert!(wand.is_some(), "pledge for function with no wands");
+                assert!(
+                    actual_wands.next().is_none(),
+                    "pledge for function with multiple wands"
+                );
+                wand.unwrap().2 = pledges.clone();
+            }
 
             Ok((
                 WandEncOutput {
                     edges,
                     generic_to_param,
-                    pledges: spec.pledges,
+                    pledges,
+                    wands,
                 },
                 (),
             ))
@@ -500,52 +558,7 @@ impl<'vir> WandEncOutput<'vir> {
         self.edges.edges.iter().copied()
     }
 
-    /// convert edges to viper-supported wands
     pub fn viper_wands(&self) -> Vec<(Vec<IndirectKey>, Vec<IndirectKey>, Pledges<'vir>)> {
-        // Indexed by the `rhs` of wands
-        let mut edge_rhs: FxHashMap<IndirectKey, Vec<IndirectKey>> = Default::default();
-        // Indexed by the `lhs` of wands
-        let mut edge_lhs: FxHashMap<IndirectKey, Vec<IndirectKey>> = Default::default();
-        let mut wands: Vec<(Vec<IndirectKey>, Vec<IndirectKey>, Pledges<'vir>)> =
-            Default::default();
-
-        for (lhs, rhs) in self.edges() {
-            edge_lhs.entry(lhs).or_default().push(rhs);
-            edge_rhs.entry(rhs).or_default().push(lhs);
-        }
-
-        let mut skip = FxHashSet::default();
-        for rhs in self.inputs() {
-            if !skip.insert(rhs) {
-                continue;
-            }
-            let Some(lhss) = edge_rhs.get(&rhs) else {
-                wands.push((vec![], vec![rhs], vec![]));
-                continue;
-            };
-            let lhs = lhss.first().unwrap();
-            let rhss = &edge_lhs[lhs];
-            for lhs_other in lhss {
-                let rhss_other = &edge_lhs[lhs_other];
-                assert_eq!(rhss, rhss_other, "two outputs do not block the same set of inputs: {lhs:?} blocks {rhss:?}, {lhs_other:?} blocks {rhss_other:?}");
-            }
-            for rhs_other in rhss {
-                let lhss_other = &edge_rhs[rhs_other];
-                assert_eq!(lhss, lhss_other, "two inputs are not blocked by the same set of outputs: {rhs:?} blocked by {lhss:?}, {rhs_other:?} blocked by {lhss_other:?}");
-            }
-            wands.push((lhss.clone(), rhss.clone(), vec![]));
-            skip.extend(rhss);
-        }
-        if !self.pledges.is_empty() {
-            let mut actual_wands = wands.iter_mut().filter(|(lhs, ..)| !lhs.is_empty());
-            let wand = actual_wands.next();
-            assert!(wand.is_some(), "pledge for function with no wands");
-            assert!(
-                actual_wands.next().is_none(),
-                "pledge for function with multiple wands"
-            );
-            wand.unwrap().2 = self.pledges.clone();
-        }
-        wands
+        self.wands.clone()
     }
 }

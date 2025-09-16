@@ -53,6 +53,7 @@ impl TaskEncoder for MirSpecEnc {
             def_id,
             substs,
             caller_def_id,
+            true,
         ))?;
         let specs = deps
             .require_local::<crate::encoders::SpecEnc>(crate::encoders::SpecEncTask { def_id })?;

@@ -11,13 +11,13 @@ use prusti_rustc_interface::{
 };
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{
-    AdtDestructor, Arity, CallableIdn, CastType, CompType, DomainAxiomData, DomainIdnCSnap, DomainIdnSnap, FunctionIdn, Type
+    AdtDestructor, Arity, CastType, CompType, DomainAxiomData, DomainIdnSnap, FunctionIdn, Type
 };
 
-use crate::encoders::lifted::{ty_constructor::TyConstructorEnc, TypeOfEnc};
+use crate::encoders::{most_generic_ty::MostGenericTyEnc};
 
 use super::{
-    most_generic_ty::{extract_type_params, get_vir_base_name_kind, MostGenericTy},
+    most_generic_ty::{get_vir_base_name_kind, MostGenericTy},
 };
 
 /// You probably never want to use this, use `TyPureEnc` instead.
@@ -247,7 +247,7 @@ impl TaskEncoder for DomainEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for output in DomainEnc::all_outputs_local() {
+        for output in Self::all_outputs_local_no_errors() {
             program.add_function(output.unreachable_to_snap);
             match output.kind {
                 DomainEncLocalKind::Domain {
@@ -677,10 +677,10 @@ impl<'vir> FieldTy<'vir> {
         deps: &mut TaskEncoderDependencies<'vir, T>,
         ty: ty::Ty<'vir>,
     ) -> Result<FieldTy<'vir>, EncodeFullError<'vir, T>> {
-        let gen_ty = vir::with_vcx(|vcx| extract_type_params(vcx.tcx(), ty).0);
-        let fd = deps.require_ref::<DomainEnc>(gen_ty)?;
+        let (generic_ty, _) = deps.require_local::<MostGenericTyEnc>(ty)?;
+        let fd = deps.require_ref::<DomainEnc>(generic_ty)?;
         let vir_ty = (fd.domain)();
-        // let fd = deps.require_ref::<TyConstructorEnc>(gen_ty)?;
+        // let fd = deps.require_ref::<TyConstructorEnc>(generic_ty)?;
         // let typeof_function = fd.typeof_function;
         // let lifted_ty = deps.require_local::<LiftedTyEnc<EncodeGenericsAsParamTy>>(ty)?;
         Ok(FieldTy {

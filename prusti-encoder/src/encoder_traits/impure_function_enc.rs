@@ -21,6 +21,7 @@ pub struct ImpureFunctionEncError;
 #[derive(Clone, Debug)]
 pub struct ImpureFunctionEncOutputRef<'vir> {
     pub method_ref: MethodIdn<'vir, (vir::ManyRef, vir::ManyTyVal)>,
+    pub should_be_verified: bool,
 }
 impl<'vir> task_encoder::OutputRefAny for ImpureFunctionEncOutputRef<'vir> {}
 
@@ -54,11 +55,12 @@ where
         vir::with_vcx(|vcx| {
             use mir::visit::Visitor;
 
+            let span = vcx.tcx().def_span(def_id);
             let substs = Self::get_substs(vcx, &task_key);
             let trusted = crate::encoders::is_function_trusted(def_id, substs);
 
-            let local_defs =
-                deps.require_local::<MirLocalDefEnc>((def_id, substs, caller_def_id))?;
+            let arg_defs =
+                deps.require_ref_spanned::<MirLocalDefEnc>((def_id, substs, caller_def_id, false), span)?;
 
             // Argument count for the Viper method:
             // - one (`Ref`) for the return place;
@@ -71,14 +73,14 @@ where
             //
             // TODO: type parameters: for generic methods we will want to pass
             //   values of type `Type` as well`
-            let arg_count = local_defs.arg_count + 1;
+            let arg_count = arg_defs.arg_count + 1;
 
             // Create the identifier and use it as an output ref. This is what
             // is used when other methods call this one.
             let method_name = Self::mk_method_ident(vcx, &task_key);
             let ref_args = vcx.alloc_slice(&vec![vir::TYPE_REF; arg_count]);
             let param_ty_decls = deps
-                .require_local::<LiftedTyParamsEnc>(substs)?
+                .require_local_spanned::<LiftedTyParamsEnc>(substs, span)?
                 .iter()
                 .map(|g| g.decl())
                 .collect::<Vec<_>>();
@@ -89,15 +91,28 @@ where
                     .collect::<Vec<_>>(),
             );
             let method_ref = MethodIdn::new(method_name, (ref_args, ty_args));
-            deps.emit_output_ref(task_key, ImpureFunctionEncOutputRef { method_ref })?;
+
+            // Do not encode the method body if it is external, trusted, just
+            // a call stub, or a trait function without a default implementation
+            let local_def_id = def_id
+                .as_local()
+                .filter(|_| !trusted && is_function_with_body(vcx.tcx(), def_id));
+
+            deps.emit_output_ref(task_key, ImpureFunctionEncOutputRef {
+                method_ref,
+                should_be_verified: local_def_id.is_some(),
+            })?;
+
+            let arg_defs =
+                deps.require_local_spanned::<MirLocalDefEnc>((def_id, substs, caller_def_id, false), span)?;
 
             // Method contract. We will need to emit pre- and postconditions for
             // the permissions, the functional spec, and (in the postcondition)
             // wands in case of a reborrowing function.
             let mut pres = Vec::new();
             let mut posts = Vec::new();
-            let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false))?;
-            let wands = deps.require_local::<WandEnc>(WandEncTask { def_id })?;
+            let spec = deps.require_local_spanned::<MirSpecEnc>((def_id, substs, None, false), span)?;
+            let wands = deps.require_local_spanned::<WandEnc>(WandEncTask { def_id }, span)?;
 
             // Add direct resources for inputs and outputs to the pre- and
             // postconditions, respectively. "Direct" here refers to owned
@@ -105,27 +120,24 @@ where
             // without going through any dereferences.
             let mut args = Vec::with_capacity(arg_count + substs.len());
             for arg_idx in (0..arg_count).map(mir::Local::from) {
-                let name_p = local_defs[arg_idx].local.name;
+                let name_p = arg_defs[arg_idx].local.name;
                 args.push(vir::vir_local_decl! { vcx; [name_p] : Ref });
                 if arg_idx != mir::RETURN_PLACE {
-                    pres.push(local_defs[arg_idx].impure_pred);
+                    pres.push(arg_defs[arg_idx].impure_pred);
                 }
             }
-            posts.push(local_defs[mir::RETURN_PLACE].impure_pred);
+            posts.push(arg_defs[mir::RETURN_PLACE].impure_pred);
 
             // ..
-            pres.extend(wands.indirect_pres(vcx, &local_defs, deps));
-            posts.extend(wands.indirect_posts(vcx, &local_defs, deps));
-            posts.extend(wands.wand_posts(vcx, &local_defs, deps));
+            pres.extend(wands.indirect_pres(vcx, &arg_defs, deps));
+            posts.extend(wands.indirect_posts(vcx, &arg_defs, deps));
+            posts.extend(wands.wand_posts(vcx, &arg_defs, deps));
 
-            // Do not encode the method body if it is external, trusted, just
-            // a call stub, or a trait function without a default implementation
-            let local_def_id = def_id
-                .as_local()
-                .filter(|_| !trusted && is_function_with_body(vcx.tcx(), def_id));
             let blocks = if let Some(local_def_id) = local_def_id {
                 let body_with_facts = vcx.body_mut().get_impure_fn_body_with_facts(local_def_id);
                 let body = &body_with_facts.body;
+                let local_defs =
+                    deps.require_local_spanned::<MirLocalDefEnc>((def_id, substs, caller_def_id, true), span)?;
 
                 let loop_analysis = LoopAnalysis::find_loops(&body);
                 let bc = NllBorrowCheckerImpl::new(vcx.tcx(), &body_with_facts);

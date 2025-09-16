@@ -8,11 +8,9 @@ use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{ExprGenBool, ExprGenSnap, FunctionIdn, Reify, ViperIdent};
 
 use crate::encoders::{
-    lifted::{
+    MirLocalDefEnc, MirPureEnc, MirPureEncTask, MirSpecEnc, PureKind, lifted::{
         EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc, LiftedTyEncTask, LiftedTyParamsEnc, TypeOfEnc,
-    },
-    most_generic_ty::extract_type_params,
-    MirLocalDefEnc, MirPureEnc, MirPureEncTask, MirSpecEnc, PureKind,
+    }, most_generic_ty::MostGenericTyEnc,
 };
 
 use super::function_enc::FunctionEnc;
@@ -55,7 +53,7 @@ where
         arg: ExprGenSnap<'vir, Curr, Next>, // Snapshot encoded argument
         ty: Ty<'vir>,
     ) -> Option<ExprGenBool<'vir, Curr, Next>> {
-        let generic_ty = extract_type_params(vcx.tcx(), ty).0;
+        let (generic_ty, _) = deps.require_local::<MostGenericTyEnc>(ty).unwrap();
         let typeof_ref = deps
             .require_ref::<TypeOfEnc>(generic_ty)
             .unwrap();
@@ -90,7 +88,7 @@ where
             let substs = Self::get_substs(vcx, &task_key);
             let trusted = crate::encoders::is_function_trusted(def_id, substs);
             let local_defs = deps
-                .require_local::<MirLocalDefEnc>((def_id, substs, caller_def_id))
+                .require_local::<MirLocalDefEnc>((def_id, substs, caller_def_id, true))
                 .unwrap();
 
             tracing::debug!("encoding {def_id:?}");

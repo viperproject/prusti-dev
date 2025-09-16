@@ -169,7 +169,8 @@ impl<'vir, Curr: 'vir, Next: 'vir, T: CompType> ExprGenData<'vir, Curr, Next, T>
     }
 
     pub(crate) fn new_inner(kind: ExprKindGen<'vir, Curr, Next>, debug_info: DebugInfo<'vir>, span: Option<&'vir VirSpan<'vir>>, ty: Type<'vir, T>) -> Self {
-        if kind.ty() != ty.as_dyn() {
+        if kind.ty() != ty.as_dyn()
+            && !matches!(kind.ty().kind(), crate::TypeKind::Err) {
             typecheck_error!(
                 "ExprGenData new_inner: kind {:?} has type {:?}, but trying to create with type {:?}",
                 kind,
@@ -284,7 +285,7 @@ impl<'vir, Curr, Next> ExprKindGenData<'vir, Curr, Next> {
             ExprKindGenData::AdtDestructor(_, destr) => destr.ty,
             ExprKindGenData::AdtConstructor(a) => a.result_ty,
             ExprKindGenData::AdtDiscriminator(_, _) => crate::TYPE_BOOL.as_dyn(),
-            ExprKindGenData::Todo(msg) => panic!("{msg}"),
+            ExprKindGenData::Todo(_msg) => crate::TYPE_ERR.as_dyn(), // panic!("{msg}"),
         }
     }
 }

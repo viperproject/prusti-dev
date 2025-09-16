@@ -4,14 +4,13 @@ use prusti_rustc_interface::{
 };
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 
-use crate::encoders::{lifted::{casters::{CastTypeImpure, CastTypePure}, rust_ty_cast::{GenericCasterImpure, GenericCasterPure, RustTyCastersEnc}, LiftedTyEncTask}, predicate::{PredicateEnc, PredicateEncDataEnum, PredicateEncDataImmRef, PredicateEncDataMutRef, PredicateEncDataStruct}, PredicateEncOutput, PredicateEncOutputRef};
+use crate::encoders::{PredicateEncOutputRef, lifted::{LiftedTyEncTask, casters::{CastTypeImpure, CastTypePure}, rust_ty_cast::{GenericCasterImpure, GenericCasterPure, RustTyCastersEnc}}, most_generic_ty::MostGenericTyEnc, predicate::{PredicateEnc, PredicateEncDataEnum, PredicateEncDataImmRef, PredicateEncDataMutRef, PredicateEncDataStruct}};
 
 use super::{
     lifted::{
         generic::LiftedGeneric,
         ty::{EncodeGenericsAsLifted, LiftedTy, LiftedTyEnc},
     },
-    most_generic_ty::extract_type_params,
 };
 
 /// Encodes a type into the predicate representation. Takes an arbitrary Rust
@@ -246,63 +245,60 @@ impl TaskEncoder for TyImpureEnc {
 
     type TaskDescription<'vir> = ty::Ty<'vir>;
 
-    type OutputRef<'vir> = TyImpureEncOutputRef<'vir>;
-    type OutputFullLocal<'vir> = ();
+    type OutputRef<'vir> = ();
+    type OutputFullLocal<'vir> = TyImpureEncOutputRef<'vir>;
+
+    type TaskKey<'tcx> = Self::TaskDescription<'tcx>;
+
+    type EncodingError = ();
+
+    const ENCODER_NAME: &'static str = "impure type encoder";
 
     fn do_encode_full<'vir>(
         task_key: &Self::TaskKey<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
-        vir::with_vcx(|vcx| {
-            let (generic_ty, args) = extract_type_params(vcx.tcx(), *task_key);
-            let generic_predicate = deps.require_ref::<PredicateEnc>(generic_ty)?;
-            /*
-            let indirect_predicate = if let ty::TyKind::Ref(_, inner_ty, _) = task_key.kind() {
-                let inner_ty_enc = deps.require_ref::<TyImpureEnc>(*inner_ty).unwrap();
-                let deref_access = generic_predicate.expect_ref().deref_func;
-                let inner_ty_enc_c = inner_ty_enc.clone();
-                Some((
-                    vcx.mk_lazy_expr("ref_indirect", Box::new(move |vcx, self_expr| inner_ty_enc.ref_to_pred(
-                        vcx,
-                        deref_access.apply(vcx, [self_expr]),
-                        None,
-                    ).kind)),
-                    vcx.mk_lazy_expr("ref_indirect_post", Box::new(move |vcx, self_expr| inner_ty_enc_c.ref_to_pred(
-                        vcx,
-                        vcx.mk_old_expr(deref_access.apply(vcx, [self_expr])),
-                        None,
-                    ).kind)),
-                ))
-            } else {
-                None
-            };
-            */
-            let ty = deps.require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(LiftedTyEncTask::Ty(*task_key))?;
-            let f_ty = deps.require_local::<RustTyCastersEnc<CastTypePure>>(*task_key)?;
-            let params = args
-                        .iter()
-                        .map(|arg| {
-                            deps.require_local::<RustTyCastersEnc<CastTypeImpure>>(*arg)
-                                .unwrap()
-                        })
-                        .collect();
-            deps.emit_output_ref(
-                *task_key,
-                TyImpureEncOutputRef {
-                    generic_predicate,
-                    indirect_predicate: None,
-                    ty,
-                    f_ty,
-                    params,
-                },
-            )?;
-            Ok(((), ()))
-        })
+        deps.emit_output_ref(*task_key, ())?;
+        let (generic_ty, args) = deps.require_local::<MostGenericTyEnc>(*task_key)?;
+        let generic_predicate = deps.require_ref::<PredicateEnc>(generic_ty)?;
+        /*
+        let indirect_predicate = if let ty::TyKind::Ref(_, inner_ty, _) = task_key.kind() {
+            let inner_ty_enc = deps.require_ref::<TyImpureEnc>(*inner_ty).unwrap();
+            let deref_access = generic_predicate.expect_ref().deref_func;
+            let inner_ty_enc_c = inner_ty_enc.clone();
+            Some((
+                vcx.mk_lazy_expr("ref_indirect", Box::new(move |vcx, self_expr| inner_ty_enc.ref_to_pred(
+                    vcx,
+                    deref_access.apply(vcx, [self_expr]),
+                    None,
+                ).kind)),
+                vcx.mk_lazy_expr("ref_indirect_post", Box::new(move |vcx, self_expr| inner_ty_enc_c.ref_to_pred(
+                    vcx,
+                    vcx.mk_old_expr(deref_access.apply(vcx, [self_expr])),
+                    None,
+                ).kind)),
+            ))
+        } else {
+            None
+        };
+        */
+        let ty = deps.require_local::<LiftedTyEnc<EncodeGenericsAsLifted>>(LiftedTyEncTask::Ty(*task_key))?;
+        let f_ty = deps.require_local::<RustTyCastersEnc<CastTypePure>>(*task_key)?;
+        let params = args
+                    .iter()
+                    .map(|arg| {
+                        deps.require_local::<RustTyCastersEnc<CastTypeImpure>>(*arg)
+                            .unwrap()
+                    })
+                    .collect();
+        Ok((TyImpureEncOutputRef {
+            generic_predicate,
+            indirect_predicate: None,
+            ty,
+            f_ty,
+            params,
+        }, ()))
     }
-
-    type TaskKey<'tcx> = Self::TaskDescription<'tcx>;
-
-    type EncodingError = ();
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task

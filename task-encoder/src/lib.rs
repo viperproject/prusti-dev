@@ -1,7 +1,9 @@
+#![feature(rustc_private)]
 #![feature(associated_type_defaults)]
 
 use hashlink::LinkedHashMap;
 use std::cell::RefCell;
+use prusti_rustc_interface::span::Span;
 
 mod cache;
 mod dependencies;
@@ -119,6 +121,17 @@ pub trait TaskEncoder {
     type EnqueueingError: Clone + std::fmt::Debug = ();
     type EncodingError: Clone + std::fmt::Debug;
 
+    /// User-presentable name of this encoder.
+    const ENCODER_NAME: &'static str = "<untitled encoder>";
+
+    fn describe_task<'vir>(task: Self::TaskDescription<'vir>) -> String {
+        format!("{task:?}")
+    }
+
+    fn describe_error<'vir>(error: Self::EncodingError) -> String {
+        format!("{error:?}")
+    }
+
     /// Enters the given function with a reference to the cache for this
     /// encoder.
     fn with_cache<'vir, F, R>(f: F) -> R
@@ -179,7 +192,12 @@ pub trait TaskEncoder {
         // same task was (recursively) requested from the same encoder, before
         // its first invocation reached a call to `emit_output_ref`.
         // TODO: we should still make sure that *some* progress is done, because an actual cyclic dependency could cause a stack overflow?
-        Self::encode(task, false)?;
+        let encode_res = Self::encode(task, false);
+        match encode_res {
+            Ok(_)
+            | Err(TaskEncoderError::DependencyError(..)) => (), // pass, check for output ref
+            Err(err) => return Err(err),
+        }
 
         let task_key_clone = task_key.clone();
         if let Some(output_ref) =
@@ -312,7 +330,23 @@ pub trait TaskEncoder {
                     }
                 })
             }
-            Err(EncodeFullError::DependencyError) => todo!(),
+            Err(EncodeFullError::DependencyError(stack)) => {
+                let owned_stack = std::iter::once((Self::ENCODER_NAME, Self::describe_task(task), Vec::new())).chain(stack.into_iter()
+                    .map(|(encoder, task, spans)| (encoder, task, spans.clone())))
+                    .collect::<Vec<_>>();
+                Self::with_cache(|cache| {
+                    cache.borrow_mut().insert(
+                        task_key,
+                        TaskEncoderCacheState::ErrorEncode {
+                            output_ref: output_ref.clone(),
+                            deps,
+                            error: TaskEncoderError::DependencyError(owned_stack.clone()),
+                            output_dep: None,
+                        },
+                    )
+                });
+                Err(TaskEncoderError::DependencyError(owned_stack))
+            }
             Err(EncodeFullError::EncodingError(err, maybe_output_dep)) => {
                 Self::with_cache(|cache| {
                     cache.borrow_mut().insert(
@@ -442,23 +476,38 @@ pub trait TaskEncoder {
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self>;
 
-    fn all_outputs_local<'vir>() -> Vec<Self::OutputFullLocal<'vir>>
+    #[track_caller]
+    fn all_outputs_local_no_errors<'vir>() -> Vec<Self::OutputFullLocal<'vir>>
+    where
+        Self: 'vir,
+    {
+        let (outputs, errored) = Self::all_outputs_local();
+        assert!(errored.is_empty());
+        outputs
+    }
+
+    fn all_outputs_local<'vir>() -> (
+        Vec<Self::OutputFullLocal<'vir>>,
+        Vec<(Self::TaskKey<'vir>, Self::OutputRef<'vir>, TaskEncoderError<Self>)>,
+    )
     where
         Self: 'vir,
     {
         Self::with_cache(|cache| {
-            cache
-                .borrow()
-                .iter()
-                .map(|(_, cache_state)| {
-                    if let TaskEncoderCacheState::Encoded { output_local, .. } = cache_state {
-                        output_local
-                    } else {
-                        panic!("task encoder not completed")
+            let mut outputs = Vec::new();
+            let mut errored = Vec::new();
+            for (key, cache_state) in cache.borrow().iter() {
+                match cache_state {
+                    TaskEncoderCacheState::Encoded { output_local, .. } => {
+                        outputs.push(output_local.clone());
                     }
-                })
-                .cloned()
-                .collect()
+                    TaskEncoderCacheState::ErrorEncode { output_ref, error, .. } => {
+                        errored.push((key.clone(), output_ref.clone(), error.clone()));
+                    },
+                    _ => panic!("task encoder not completed: {key:?}"),
+                }
+            }
+            (outputs, errored)
         })
     }
 

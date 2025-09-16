@@ -48,7 +48,7 @@ impl TaskEncoder for SnapshotEnc {
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
         vir::with_vcx(|vcx| {
-            let (ty, generics) = extract_type_params(vcx.tcx(), *task_key);
+            let (ty, generics) = extract_type_params(vcx.tcx(), *task_key).unwrap();
             let out = deps.require_ref::<DomainEnc>(ty)?;
             let snapshot = (out.domain)();
             deps.emit_output_ref(*task_key, SnapshotEncOutputRef { snapshot, typeof_function: out.typeof_function })?;

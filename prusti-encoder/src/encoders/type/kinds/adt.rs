@@ -183,12 +183,12 @@ pub(crate) fn predicate<'vir>(
             //let fields = variant
             //    .fields
             //    .iter()
-            //    .map(|f| deps.require_ref::<TyImpureEnc>(f.ty(builder.vcx.tcx(), params)).unwrap())
+            //    .map(|f| deps.require_local::<TyImpureEnc>(f.ty(builder.vcx.tcx(), params)).unwrap())
             //    .collect::<Vec<_>>();
 
             let (field_accessors, self_pred, snap_expr) = super::structlike::predicate(
                 "",
-                &[deps.require_ref::<TyImpureEnc>(params[0].expect_ty())?],
+                &[deps.require_local::<TyImpureEnc>(params[0].expect_ty())?],
                 task_key,
                 &snap,
                 snap_data,
@@ -255,7 +255,7 @@ pub(crate) fn predicate<'vir>(
                 .fields
                 .iter()
                 .map(|f| {
-                    deps.require_ref::<TyImpureEnc>(f.ty(builder.vcx.tcx(), params))
+                    deps.require_local::<TyImpureEnc>(f.ty(builder.vcx.tcx(), params))
                         .unwrap()
                 })
                 .collect::<Vec<_>>();
@@ -301,7 +301,7 @@ pub(crate) fn predicate<'vir>(
                                     if *field_reg != reg {
                                         return None;
                                     }
-                                    let inner_ty_enc = deps.require_ref::<TyImpureEnc>(*inner_ty).unwrap();
+                                    let inner_ty_enc = deps.require_local::<TyImpureEnc>(*inner_ty).unwrap();
                                     Some(inner_ty_enc.ref_to_pred(
                                         builder.vcx,
                                         field.generic_predicate.expect_ref().snap_data.deref_access.apply(builder.vcx, [
@@ -332,7 +332,7 @@ pub(crate) fn predicate<'vir>(
             let discr_ty = ty.discriminant_ty(builder.vcx.tcx());
             let discr_ty_snap = deps.require_local::<TyPureEnc>(discr_ty)?;
             let discr_ty_snap_prim = discr_ty_snap.expect_primitive();
-            let discr_ty_out = deps.require_ref::<TyImpureEnc>(discr_ty)?;
+            let discr_ty_out = deps.require_local::<TyImpureEnc>(discr_ty)?;
 
             // Ref-to-Ref function for the discriminant field
             let fdisc_func = builder.function(
@@ -355,7 +355,7 @@ pub(crate) fn predicate<'vir>(
                     let fields = variant
                         .fields
                         .iter()
-                        .map(|f| deps.require_ref::<TyImpureEnc>(f.ty(builder.vcx.tcx(), params)).unwrap())
+                        .map(|f| deps.require_local::<TyImpureEnc>(f.ty(builder.vcx.tcx(), params)).unwrap())
                         .collect::<Vec<_>>();
 
                     let (

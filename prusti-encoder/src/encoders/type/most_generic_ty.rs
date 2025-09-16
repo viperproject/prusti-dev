@@ -3,23 +3,139 @@ use prusti_rustc_interface::{
     middle::ty::{self, TyKind},
     span::symbol,
 };
+use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+
+
+pub struct MostGenericTyEnc;
 
 /// The "most generic" version of a type is one that uses "identity
 /// substitutions" for all type parameters. For example, the most generic
 /// version of `Vec<u32>` is `Vec<T>`, the most generic version of
 /// `Option<Vec<U>>` is `Option<T>`, etc.
-///
-/// To construct an instance, use [`extract_type_params`].
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct MostGenericTy<'tcx>(ty::Ty<'tcx>);
 
-impl<'tcx: 'vir, 'vir> MostGenericTy<'tcx> {
-    pub fn get_vir_domain_ident(
-        &self,
-        vcx: &'vir vir::VirCtxt<'tcx>,
-    ) -> vir::DomainIdn<'vir, vir::Snap> {
-        let base_name = self.get_vir_base_name(vcx);
-        vir::DomainIdn::new(vir::vir_format_identifier!(vcx, "s_{base_name}"))
+pub type MostGenericTyEncError = ();
+
+impl TaskEncoder for MostGenericTyEnc {
+    task_encoder::encoder_cache!(MostGenericTyEnc);
+
+    type TaskDescription<'vir> = ty::Ty<'vir>;
+
+    type OutputFullLocal<'vir> = (MostGenericTy<'vir>, Vec<ty::Ty<'vir>>);
+
+    type EncodingError = MostGenericTyEncError;
+
+    fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
+        vir::with_vcx(|vcx| {
+            vcx.tcx().erase_regions(*task)
+        })
+    }
+
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
+        deps.emit_output_ref(*task_key, ())?;
+        vir::with_vcx(|vcx| {
+            Ok((Self::extract_type_params(vcx.tcx(), *task_key).ok_or(EncodeFullError::EncodingError((), None))?, ()))
+        })
+    }
+}
+
+impl MostGenericTyEnc {
+    pub fn extract_type_params<'tcx>(
+        tcx: ty::TyCtxt<'tcx>,
+        ty: ty::Ty<'tcx>,
+    ) -> Option<(MostGenericTy<'tcx>, Vec<ty::Ty<'tcx>>)> {
+        Some(match *ty.kind() {
+            TyKind::Adt(adt, args) => {
+                let id = ty::List::identity_for_item(tcx, adt.did()).iter();
+                let id = tcx.mk_args_from_iter(id);
+                let ty = tcx.mk_ty_from_kind(TyKind::Adt(adt, id));
+                (
+                    MostGenericTy(ty),
+                    args.into_iter().flat_map(ty::GenericArg::as_type).collect(),
+                )
+            }
+            TyKind::Tuple(tys) => {
+                let new_tys = tcx.mk_type_list_from_iter(
+                    (0..tys.len()).map(|index| to_placeholder(tcx, Some(index))),
+                );
+                let ty = tcx.mk_ty_from_kind(TyKind::Tuple(new_tys));
+                (MostGenericTy(ty), tys.to_vec())
+            }
+            TyKind::Array(inner, val) => {
+                let ty = to_placeholder(tcx, None);
+                let ty = tcx.mk_ty_from_kind(TyKind::Array(ty, val));
+                (MostGenericTy(ty), vec![inner])
+            }
+            TyKind::Slice(inner) => {
+                let ty = to_placeholder(tcx, None);
+                let ty = tcx.mk_ty_from_kind(TyKind::Slice(ty));
+                (MostGenericTy(ty), vec![inner])
+            }
+            TyKind::Ref(_, inner, ty::Mutability::Not) => {
+                let ty = to_placeholder(tcx, None);
+                let ty = tcx.mk_ty_from_kind(TyKind::Ref(
+                    tcx.lifetimes.re_erased,
+                    ty,
+                    ty::Mutability::Not,
+                ));
+                (MostGenericTy(ty), vec![inner])
+            }
+            TyKind::Ref(_, _, ty::Mutability::Mut) => {
+                let ty = to_placeholder(tcx, None);
+                let ty = tcx.mk_ty_from_kind(TyKind::Ref(
+                    tcx.lifetimes.re_erased,
+                    ty,
+                    ty::Mutability::Mut,
+                ));
+                (MostGenericTy(ty), vec![]) // vec![inner])
+            }
+            TyKind::RawPtr(inner, m) => {
+                let ty = to_placeholder(tcx, None);
+                let ty = tcx.mk_ty_from_kind(TyKind::RawPtr(ty, m));
+                (MostGenericTy(ty), vec![inner])
+            }
+            TyKind::Param(_) => (MostGenericTy(to_placeholder(tcx, None)), Vec::new()),
+            TyKind::Closure(_, args) => {
+                let args = args.as_closure()
+                    .parent_args()
+                    .iter()
+                    .copied()
+                    .filter_map(ty::GenericArg::as_type)
+                    .collect();
+                (MostGenericTy(ty), args)
+            }
+            TyKind::Bool
+            | TyKind::Char
+            | TyKind::Int(_)
+            | TyKind::Uint(_)
+            | TyKind::Float(_)
+            | TyKind::Never
+            | TyKind::Str
+            | TyKind::FnPtr(..) => (MostGenericTy(ty), Vec::new()),
+
+            // `extern type`s will probably not have generics, but this will be
+            // resolved in https://github.com/rust-lang/rust/issues/43467.
+            TyKind::Foreign(..) => (MostGenericTy(ty), Vec::new()),
+
+            TyKind::Pat(base_ty, _) => return Self::extract_type_params(tcx, base_ty),
+
+            TyKind::FnDef(..) => return None,
+            TyKind::UnsafeBinder(..) => return None,
+            TyKind::Dynamic(..) => return None,
+            TyKind::Coroutine(..) => return None,
+            TyKind::CoroutineClosure(..) => return None,
+            TyKind::CoroutineWitness(..) => return None,
+            TyKind::Alias(..) => return None,
+
+            kind @ (TyKind::Placeholder(..)
+            | TyKind::Error(..)
+            | TyKind::Infer(..)
+            | TyKind::Bound(..)) => unreachable!("found unexpected type kind {kind:?} (should not appear in Prusti-consumed MIR)"),
+        })
     }
 }
 
@@ -57,6 +173,16 @@ pub fn get_vir_base_name_kind<'tcx>(kind: &ty::TyKind<'tcx>, vcx: &vir::VirCtxt<
         }
         TyKind::FnPtr(..) => String::from("FnPtr"),
         other => unimplemented!("get_vir_base_name for {:?}", other),
+    }
+}
+
+impl<'tcx: 'vir, 'vir> MostGenericTy<'tcx> {
+    pub fn get_vir_domain_ident(
+        &self,
+        vcx: &'vir vir::VirCtxt<'tcx>,
+    ) -> vir::DomainIdn<'vir, vir::Snap> {
+        let base_name = self.get_vir_base_name(vcx);
+        vir::DomainIdn::new(vir::vir_format_identifier!(vcx, "s_{base_name}"))
     }
 }
 
@@ -162,80 +288,4 @@ fn to_placeholder(tcx: ty::TyCtxt<'_>, idx: Option<usize>) -> ty::Ty<'_> {
         index: idx.unwrap_or_default() as u32,
         name: symbol::Symbol::intern(&name),
     }))
-}
-
-pub fn extract_type_params<'tcx>(
-    tcx: ty::TyCtxt<'tcx>,
-    ty: ty::Ty<'tcx>,
-) -> (MostGenericTy<'tcx>, Vec<ty::Ty<'tcx>>) {
-    match *ty.kind() {
-        TyKind::Adt(adt, args) => {
-            let id = ty::List::identity_for_item(tcx, adt.did()).iter();
-            let id = tcx.mk_args_from_iter(id);
-            let ty = tcx.mk_ty_from_kind(TyKind::Adt(adt, id));
-            (
-                MostGenericTy(ty),
-                args.into_iter().flat_map(ty::GenericArg::as_type).collect(),
-            )
-        }
-        TyKind::Tuple(tys) => {
-            let new_tys = tcx.mk_type_list_from_iter(
-                (0..tys.len()).map(|index| to_placeholder(tcx, Some(index))),
-            );
-            let ty = tcx.mk_ty_from_kind(TyKind::Tuple(new_tys));
-            (MostGenericTy(ty), tys.to_vec())
-        }
-        TyKind::Array(inner, val) => {
-            let ty = to_placeholder(tcx, None);
-            let ty = tcx.mk_ty_from_kind(TyKind::Array(ty, val));
-            (MostGenericTy(ty), vec![inner])
-        }
-        TyKind::Slice(inner) => {
-            let ty = to_placeholder(tcx, None);
-            let ty = tcx.mk_ty_from_kind(TyKind::Slice(ty));
-            (MostGenericTy(ty), vec![inner])
-        }
-        TyKind::Ref(_, inner, ty::Mutability::Not) => {
-            let ty = to_placeholder(tcx, None);
-            let ty = tcx.mk_ty_from_kind(TyKind::Ref(
-                tcx.lifetimes.re_erased,
-                ty,
-                ty::Mutability::Not,
-            ));
-            (MostGenericTy(ty), vec![inner])
-        }
-        TyKind::Ref(_, _, ty::Mutability::Mut) => {
-            let ty = to_placeholder(tcx, None);
-            let ty = tcx.mk_ty_from_kind(TyKind::Ref(
-                tcx.lifetimes.re_erased,
-                ty,
-                ty::Mutability::Mut,
-            ));
-            (MostGenericTy(ty), vec![]) // vec![inner])
-        }
-        TyKind::RawPtr(inner, m) => {
-            let ty = to_placeholder(tcx, None);
-            let ty = tcx.mk_ty_from_kind(TyKind::RawPtr(ty, m));
-            (MostGenericTy(ty), vec![inner])
-        }
-        TyKind::Param(_) => (MostGenericTy(to_placeholder(tcx, None)), Vec::new()),
-        TyKind::Closure(_, args) => {
-            let args = args.as_closure()
-                .parent_args()
-                .iter()
-                .copied()
-                .filter_map(ty::GenericArg::as_type)
-                .collect();
-            (MostGenericTy(ty), args)
-        }
-        TyKind::Bool
-        | TyKind::Char
-        | TyKind::Int(_)
-        | TyKind::Uint(_)
-        | TyKind::Float(_)
-        | TyKind::Never
-        | TyKind::Str
-        | TyKind::FnPtr(..) => (MostGenericTy(ty), Vec::new()),
-        _ => todo!("extract_type_params for {:?}", ty),
-    }
 }
