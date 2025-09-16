@@ -1,5 +1,4 @@
 #![feature(box_patterns)]
-#![feature(box_syntax)]
 
 struct InfiniteList1 {
     next: Box<InfiniteList1>

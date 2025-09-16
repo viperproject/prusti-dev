@@ -1,4 +1,3 @@
-#![feature(box_syntax)]
 
 fn random() -> u32 {
     unimplemented!()

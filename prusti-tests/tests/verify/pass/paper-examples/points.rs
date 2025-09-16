@@ -10,6 +10,7 @@ fn shift_x(p: &mut Point, s: i32) {
   p.x = p.x + s
 }
 
+#[requires((*segm.0).x < 0x7FFFFFFF)]
 fn compress(mut segm: (Box<Point>, Box<Point>))
                     -> (Box<Point>, Box<Point>) {
   let diff = (*segm.0).x - (*segm.1).x + 1;

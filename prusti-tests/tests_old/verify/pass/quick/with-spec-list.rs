@@ -1,6 +1,5 @@
 #![feature(nll)]
 #![feature(box_patterns)]
-#![feature(box_syntax)]
 
 use prusti_contracts::*;
 
@@ -76,10 +75,10 @@ impl List {
             Some(_) => unreachable!(),
             None => {},
         }
-        last.next = Some(box List {
+        last.next = Some(Box::new(List {
             next: None,
             value: value,
-        });
+        }));
         let old_last_value = last.value;
         assert!(last.lookup(1) == value);
         assert!(last.lookup(0) == old_last_value);
