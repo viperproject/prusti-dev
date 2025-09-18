@@ -19,8 +19,8 @@ impl<'vir> ViperIdent<'vir> {
         ViperIdent(ident)
     }
 
-    pub fn sanitize(vcx: &'vir VirCtxt<'_>, ident: String) -> ViperIdent<'vir> {
-        let ident = sanitize_str(&ident);
+    pub fn sanitize(vcx: &'vir VirCtxt<'_>, ident: &str) -> ViperIdent<'vir> {
+        let ident = sanitize_str(ident);
         // Just a sanity check, if this fails there is a problem in `sanitize`
         assert!(is_valid_identifier(ident.as_str()));
         ViperIdent(vcx.alloc_str(&ident))

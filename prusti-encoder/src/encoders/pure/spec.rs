@@ -5,9 +5,9 @@ use prusti_rustc_interface::{
 };
 
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CastType, Reify};
+use vir::{CastType, HasType, Reify};
 
-use crate::encoders::{mir_pure::PureKind, ty_impure::TyImpureEnc, MirPureEnc, TyPureEnc};
+use crate::encoders::{mir_pure::PureKind, ty::{use_pure::TyUsePureEnc, RustTyDecomposition}, MirPureEnc};
 pub struct MirSpecEnc;
 
 #[derive(Clone)]
@@ -34,7 +34,7 @@ impl TaskEncoder for MirSpecEnc {
         bool,                     // If to encode as pure or not
     );
 
-    type OutputFullLocal<'vir> = MirSpecEncOutput<'vir>;
+    type OutputFullDependency<'vir> = MirSpecEncOutput<'vir>;
 
     type EncodingError = <MirPureEnc as TaskEncoder>::EncodingError;
 
@@ -49,22 +49,20 @@ impl TaskEncoder for MirSpecEnc {
         let (def_id, substs, caller_def_id, pure) = *task_key;
         deps.emit_output_ref(*task_key, ())?;
 
-        let local_defs = deps.require_local::<crate::encoders::local_def::MirLocalDefEnc>((
+        let local_defs = deps.require_dep::<crate::encoders::local_def::MirLocalDefEnc>((
             def_id,
-            substs,
-            caller_def_id,
-            true,
+            false,
         ))?;
         let specs = deps
-            .require_local::<crate::encoders::SpecEnc>(crate::encoders::SpecEncTask { def_id })?;
+            .require_dep::<crate::encoders::SpecEnc>(crate::encoders::SpecEncTask { def_id })?;
 
         vir::with_vcx(|vcx| {
             let local_iter = (1..=local_defs.arg_count).map(mir::Local::from);
             let all_args: Vec<vir::ExprSnap<'vir>> = if pure {
-                let result_ty = local_defs[mir::RETURN_PLACE].ty;
+                let result_ty = local_defs[mir::RETURN_PLACE].local_snap.ty();
                 local_iter
-                    .map(|local| vcx.mk_local_ex_local(local_defs[local].local_snap))
-                    .chain([vcx.mk_result(result_ty.snapshot())])
+                    .map(|local| vcx.mk_local_ex(local_defs[local].local_snap))
+                    .chain([vcx.mk_result(result_ty)])
                     .collect()
             } else {
                 local_iter
@@ -79,7 +77,7 @@ impl TaskEncoder for MirSpecEnc {
             };
 
             let to_bool = deps
-                .require_local::<TyPureEnc>(vcx.tcx().types.bool)?
+                .require_dep::<TyUsePureEnc>(RustTyDecomposition::from_prim_ty(vcx.tcx().types.bool))?
                 .expect_primitive()
                 .snap_to_prim;
 
@@ -92,7 +90,7 @@ impl TaskEncoder for MirSpecEnc {
                 .iter()
                 .map(|spec_def_id| {
                     let expr = deps
-                        .require_local::<crate::encoders::MirPureEnc>(
+                        .require_dep::<crate::encoders::MirPureEnc>(
                             crate::encoders::MirPureEncTask {
                                 encoding_depth: 0,
                                 kind: PureKind::Spec,
@@ -135,7 +133,7 @@ impl TaskEncoder for MirSpecEnc {
                             )])
                         });
                         let expr = deps
-                            .require_local::<crate::encoders::MirPureEnc>(
+                            .require_dep::<crate::encoders::MirPureEnc>(
                                 crate::encoders::MirPureEncTask {
                                     encoding_depth: 0,
                                     kind: PureKind::Spec,
@@ -158,9 +156,8 @@ impl TaskEncoder for MirSpecEnc {
                 &pre_args
                     .iter()
                     .map(|arg| vcx.mk_old_expr(arg))
-                    // TODO: this looks a bit hardcoded...
                     .chain([
-                        vcx.mk_local_ex("_0s", local_defs[mir::RETURN_PLACE].ty.snapshot())
+                        local_defs[mir::RETURN_PLACE].impure_snap
                     ])
                     .collect::<Vec<_>>(),
             );
@@ -170,7 +167,7 @@ impl TaskEncoder for MirSpecEnc {
                 .map(|(lhs_def_id, rhs_def_id)| {
                     // TODO: report error locations
                     let lhs_expr = lhs_def_id.map(|lhs_def_id| {
-                        deps.require_local::<crate::encoders::MirPureEnc>(
+                        deps.require_dep::<crate::encoders::MirPureEnc>(
                             crate::encoders::MirPureEncTask {
                                 encoding_depth: 0,
                                 kind: PureKind::Spec,
@@ -186,7 +183,7 @@ impl TaskEncoder for MirSpecEnc {
                         .downcast_ty()
                     });
                     let rhs_expr = deps
-                        .require_local::<crate::encoders::MirPureEnc>(
+                        .require_dep::<crate::encoders::MirPureEnc>(
                             crate::encoders::MirPureEncTask {
                                 encoding_depth: 0,
                                 kind: PureKind::Spec,
@@ -232,7 +229,7 @@ impl TaskEncoder for MirSpecEnc {
                 pre_args,
                 post_args,
             };
-            Ok((data, ()))
+            Ok(((), data))
         })
     }
 }

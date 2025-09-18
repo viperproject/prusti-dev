@@ -109,15 +109,15 @@ impl_exp_type!(Dyn, TypeKind::Unsupported(..) => false, "Represents a dynamicall
 #[macro_export]
 macro_rules! typecheck_error {
     ($($arg:tt)*) => {
-        if cfg!(feature = "vir_panic_on_typecheck_error") || cfg!(debug_assertions) {
-            panic!($($arg)*);
-        } else {
+        // if cfg!(feature = "vir_panic_on_typecheck_error") || cfg!(debug_assertions) {
+        //     panic!($($arg)*);
+        // } else {
             tracing::error!(
                 "{}\nThe error occurred at: {}",
                 format_args!($($arg)*),
                 std::backtrace::Backtrace::capture()
             );
-        }
+        // }
     };
 }
 

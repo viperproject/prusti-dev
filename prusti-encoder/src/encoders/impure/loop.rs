@@ -15,13 +15,11 @@ use task_encoder::TaskEncoder;
 use vir::{CastType, Reify};
 
 use crate::encoders::{
-    indirect::{IndirectKey, IndirectPredicatesEnc},
-    ty_impure::{TyImpureEnc, TyImpureEncOutputRef},
-    ImpureEncVisitor,
+    ty::{generics::GParams, indirect::{IndirectKey, IndirectPredicatesEnc}, use_impure::TyUseImpure, RustTyDecomposition}, ImpureEncVisitor, TyUseImpureEnc,
 };
 
 pub(super) enum WandOldOuter<'vir> {
-    LetBind(Vec<(&'vir str, Result<vir::ExprSnap<'vir>, vir::ExprRef<'vir>>)>),
+    LetBind(Vec<LetBind<'vir>>),
     Label(Option<&'vir str>),
 }
 
@@ -50,15 +48,17 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 }
                 let (place_res, snap, _, _) = self.encode_place_snap(*place);
                 let ty = (*place).ty(self.pcg_ctxt());
-                let ty_out = self.deps.require_local::<TyImpureEnc>(ty.ty).unwrap();
+                let task = RustTyDecomposition::from_ty(ty.ty, self.def_id);
+                let ty_out = self.deps.require_dep::<TyUseImpureEnc>(task).unwrap();
                 let pred = ty_out.ref_to_pred(self.vcx, place_res.expr, None);
                 inv.push(pred);
 
                 let regions = ty.ty.walk().flat_map(IndirectKey::from_generic_arg);
                 for region in regions {
+                    let ty_task = RustTyDecomposition::from_ty(ty.ty, self.def_id);
                     let indirect = self
                         .deps
-                        .require_ref::<IndirectPredicatesEnc>((ty.ty, region))
+                        .require_dep::<IndirectPredicatesEnc>((ty_task, region))
                         .unwrap();
                     inv.extend(
                         indirect
@@ -92,9 +92,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             let WandOldOuter::LetBind(let_bind) = let_bind else {
                 unreachable!()
             };
-            for (ident, expr) in let_bind {
-                let expr = expr.map_or_else(|e| e.as_dyn(), |e| e.as_dyn());
-                wand = self.vcx.mk_let_expr(ident, expr, wand);
+            for lb in let_bind {
+                wand = lb.map_or_else(|(d, e)| self.vcx.mk_let_expr(d, e, wand), |(d, e)| self.vcx.mk_let_expr(d, e, wand));
             }
             inv.push(wand);
         }
@@ -112,7 +111,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             PcgNode::Place(place @ MaybeRemotePlace::Local(_)) => {
                 let p = Self::get_place(*place);
                 let ty = (*p).ty(self.local_decls, self.vcx.tcx());
-                let ty_out = self.deps.require_local::<TyImpureEnc>(ty.ty).unwrap();
+                let task = RustTyDecomposition::from_ty(ty.ty, self.def_id);
+                let ty_out = self.deps.require_dep::<TyUseImpureEnc>(task).unwrap();
                 let p = self.encode_place(p);
                 let p = self.configure_old(*place, p.expr, old_outer);
 
@@ -146,9 +146,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             "multiple regions in a type not supported ({:?})",
             ty.ty
         );
+        let ty_task = RustTyDecomposition::from_ty(ty.ty, self.def_id);
         let indirect = self
             .deps
-            .require_ref::<IndirectPredicatesEnc>((ty.ty, region))
+            .require_dep::<IndirectPredicatesEnc>((ty_task, region))
             .unwrap();
         indirect
             .covariant
@@ -172,7 +173,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     ) -> (
         vir::ExprSnap<'vir>,
         mir::PlaceTy<'vir>,
-        TyImpureEncOutputRef<'vir>,
+        TyUseImpure<'vir>,
     ) {
         let p = Self::get_place(place);
         let (_, place_snap, ty, ty_out) = self.encode_place_snap(p);
@@ -230,8 +231,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         match old_outer {
             WandOldOuter::LetBind(let_bind) => {
                 let ident = vir::vir_format!(self.vcx, "_lb{}", let_bind.len());
-                let_bind.push((ident, T::as_result(expr)));
-                self.vcx.mk_local_ex(ident, expr.ty())
+                let decl = self.vcx.mk_local_decl(ident, expr.ty());
+                let_bind.push(T::as_result(decl, expr));
+                self.vcx.mk_local_ex(decl)
             }
             WandOldOuter::Label(label) => {
                 let label = *label.get_or_insert_with(|| self.new_label("outer_package"));
@@ -241,18 +243,20 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     }
 }
 
+type LetBind<'vir> = Result<(vir::LocalDeclSnap<'vir>, vir::ExprSnap<'vir>), (vir::LocalDeclRef<'vir>, vir::ExprRef<'vir>)>;
+
 trait SnapOrRef: vir::CompType {
-    fn as_result<'vir>(e: vir::Expr<'vir, Self>) -> Result<vir::ExprSnap<'vir>, vir::ExprRef<'vir>>;
+    fn as_result<'vir>(d: vir::LocalDecl<'vir, Self>, e: vir::Expr<'vir, Self>) -> LetBind<'vir>;
 }
 
 impl SnapOrRef for vir::Snap {
-    fn as_result<'vir>(e: vir::Expr<'vir, Self>) -> Result<vir::ExprSnap<'vir>, vir::ExprRef<'vir>> {
-        Ok(e)
+    fn as_result<'vir>(d: vir::LocalDecl<'vir, Self>, e: vir::Expr<'vir, Self>) -> LetBind<'vir> {
+        Ok((d, e))
     }
 }
 
 impl SnapOrRef for vir::Ref {
-    fn as_result<'vir>(e: vir::Expr<'vir, Self>) -> Result<vir::ExprSnap<'vir>, vir::ExprRef<'vir>> {
-        Err(e)
+    fn as_result<'vir>(d: vir::LocalDecl<'vir, Self>, e: vir::Expr<'vir, Self>) -> LetBind<'vir> {
+        Err((d, e))
     }
 }

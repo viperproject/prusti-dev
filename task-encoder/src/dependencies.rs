@@ -24,8 +24,7 @@ impl<'vir, E: TaskEncoder + 'vir + ?Sized> TaskEncoderDependencies<'vir, E> {
                 matches!(
                     cache.borrow().get(task_key),
                     Some(
-                        TaskEncoderCacheState::Encoded { .. }
-                            | TaskEncoderCacheState::ErrorEncode { .. }
+                        TaskEncoderCacheState::ErrorEncode { .. }
                             | TaskEncoderCacheState::ErrorEnqueue { .. }
                     ),
                 )

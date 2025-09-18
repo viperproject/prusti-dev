@@ -6,7 +6,6 @@
 #![allow(clippy::needless_lifetimes)]
 
 mod encoders;
-mod encoder_traits;
 mod trait_support;
 pub mod request;
 
@@ -15,10 +14,9 @@ use prusti_rustc_interface::{hir, middle::ty};
 use task_encoder::TaskEncoder;
 
 use crate::encoders::{
-    lifted::{
-        CastTypeImpure, CastTypePure, CastersEnc, LiftedConstEnc, TyConstructorEnc, TypeOfEnc
-    },
-    MirPolyImpureEnc,
+    ty::{generics::GArgsCastEnc, lifted::{
+        TyConstructorEnc, TypeOfEnc,
+    }}, Impure, Pure
 };
 
 pub fn test_entrypoint<'tcx>(
@@ -30,36 +28,8 @@ pub fn test_entrypoint<'tcx>(
 
     // TODO: this should be a "crate" encoder, which will deps.require all the methods in the crate
 
-    for def_id in tcx.hir_body_owners() {
-        tracing::debug!("test_entrypoint item: {def_id:?}");
-        let kind = tcx.def_kind(def_id);
-        match kind {
-            hir::def::DefKind::Fn | hir::def::DefKind::AssocFn => {
-                let def_id = def_id.to_def_id();
-                if prusti_interface::specs::is_spec_fn(tcx, def_id) {
-                    continue;
-                }
+    crate::encoders::encode_all_in_crate(tcx);
 
-                let (is_pure, is_trusted) = crate::encoders::with_proc_spec(
-                    SpecQuery::GetProcKind(def_id, ty::List::identity_for_item(tcx, def_id)),
-                    |proc_spec| {
-                        let is_pure = proc_spec.kind.is_pure().unwrap_or_default();
-                        let is_trusted = proc_spec.trusted.extract_inherit().unwrap_or_default();
-                        (is_pure, is_trusted)
-                    },
-                )
-                .unwrap_or_default();
-
-                if !(is_trusted && is_pure) {
-                    let _ = MirPolyImpureEnc::encode(def_id, false);
-                }
-            }
-            unsupported_item_kind => {
-                tracing::debug!("unsupported item: {unsupported_item_kind:?}");
-            }
-        }
-    }
-    
     let mut program = task_encoder::Program::default();
 
     // We output results from both monomorphic and polymorphic encoding of
@@ -67,32 +37,29 @@ pub fn test_entrypoint<'tcx>(
     // it will still use `MirPolyImpureEnc` directly sometimes (see usages
     // earlier in this file).
     program.header("user methods");
-    crate::encoders::MirPolyImpureEnc::emit_outputs(&mut program);
+    crate::encoders::FunctionCallEnc::emit_outputs(&mut program);
 
     program.header("user functions");
-    crate::encoders::PureFunctionEnc::emit_outputs(&mut program);
+    crate::encoders::MethodCallEnc::emit_outputs(&mut program);
 
     program.header("MIR builtins");
     crate::encoders::MirBuiltinEnc::emit_outputs(&mut program);
 
     program.header("pure generic casts");
-    CastersEnc::<CastTypePure>::emit_outputs(&mut program);
+    GArgsCastEnc::<Pure>::emit_outputs(&mut program);
 
     program.header("impure generic casts");
-    CastersEnc::<CastTypeImpure>::emit_outputs(&mut program);
+    GArgsCastEnc::<Impure>::emit_outputs(&mut program);
     
     program.header("snapshots");
-    crate::encoders::TyPureEnc::emit_outputs(&mut program);
+    crate::encoders::TyUsePureEnc::emit_outputs(&mut program);
 
     program.header("predicates");
-    crate::encoders::TyImpureEnc::emit_outputs(&mut program);
+    crate::encoders::TyUseImpureEnc::emit_outputs(&mut program);
 
     program.header("type constructors");
     TyConstructorEnc::emit_outputs(&mut program);
     TypeOfEnc::emit_outputs(&mut program);
-
-    program.header("const generics");
-    LiftedConstEnc::emit_outputs(&mut program);
 
     if std::env::var("LOCAL_TESTING").is_ok() {
         std::fs::write("local-testing/simple.vpr", program.code()).unwrap();
