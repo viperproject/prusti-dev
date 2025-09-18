@@ -138,7 +138,7 @@ macro_rules! vir_format {
 
 #[macro_export]
 macro_rules! vir_format_identifier {
-    ($vcx:expr, $($arg:tt)*) => { $crate::ViperIdent::sanitize($vcx, format!($($arg)*)) };
+    ($vcx:expr, $($arg:tt)*) => { $crate::ViperIdent::sanitize($vcx, &format!($($arg)*)) };
 }
 
 #[macro_export]
@@ -247,9 +247,9 @@ impl<'vir, Ty: CompType> ExprQuote<'vir, Ty> for crate::Expr<'vir, Ty> {
         self
     }
 }
-impl<'vir, Ty: CompType> ExprQuote<'vir, Ty> for crate::Local<'vir, Ty> {
+impl<'vir, Ty: CompType> ExprQuote<'vir, Ty> for crate::LocalDecl<'vir, Ty> {
     fn expr(&self, vcx: &'vir crate::VirCtxt) -> crate::Expr<'vir, Ty> {
-        vcx.mk_local_ex_local(self)
+        vcx.mk_local_ex(self)
     }
 }
 
@@ -334,7 +334,7 @@ macro_rules! expr_inner {
     (@expr_one; $($tokens:tt)*) => { compile_error!(concat!("VIR malformed expression: `" , stringify!($($tokens)*), "`")) };
 
     (@expr_tuple; ( $($inner:tt)+ )) => { $crate::expr_inner!(@expr_one; $($inner)*) };
-    (@expr_tuple; [ $($inner:tt)* ]) => { &$crate::expr_inner!(@expr_list; $($inner)*) };
+    (@expr_tuple; [ $($inner:tt)* ]) => { $crate::expr_inner!(@expr_list; $($inner)*) };
     // This case lets us use `[fn](..[&args_vec])` instead of `[fn]([..[&args_vec]])`
     (@expr_tuple; ..[ $args:expr ]) => {
         $args
@@ -373,9 +373,9 @@ macro_rules! expr_inner {
         compile_error!(concat!("VIR malformed arg: `" , stringify!($($tokens)*), "`. Expected `ident/(...)` for single arg or `[...]` for many args"))
     };
 
-    (@expr_list; ) => { Vec::<$crate::Expr<_>>::new() };
+    (@expr_list; ) => { Vec::<$crate::Expr<_>>::new().as_slice() };
     (@expr_list; $($args:tt)+ ) => {
-        $crate::expr_inner!(@expr_iter; , $($args)*).collect::<Vec<$crate::Expr<_>>>()
+        $crate::expr_inner!(@expr_iter; , $($args)*).collect::<Vec<$crate::Expr<_>>>().as_slice()
     };
 
     (@expr_iter; ) => { [].into_iter() };
@@ -389,7 +389,7 @@ macro_rules! expr_inner {
         vcx!().alloc_slice($qvars.as_slice()),
         vcx!().alloc_slice(
             [$($crate::expr_inner!(@expr_list; $($triggers)*)),*].into_iter()
-                .map(|e: Vec<$crate::Expr<_>>| vcx!().mk_trigger(&e))
+                .map(|e: &[$crate::Expr<_>]| vcx!().mk_trigger(e))
                 .collect::<Vec<_>>().as_slice()
         ),
         $crate::expr_inner!(@expr_one; $($tokens)*),
@@ -402,9 +402,9 @@ macro_rules! expr_inner {
         $crate::expr_inner!(@forall_qvars($qvars); $($tokens)*)
     } };
     (@forall_qvars($qvars:ident); , $qvar:ident : $qtype:tt $($tokens:tt)* ) => { {
-        let local = vcx!().mk_local(stringify!($qvar), $crate::vir_type!(vcx!(); $qtype));
-        $qvars.push($crate::CastType::as_dyn(vcx!().mk_local_decl_local(local)));
-        let $qvar: $crate::Expr<_> = vcx!().mk_local_ex_local(local);
+        let local = vcx!().mk_local_decl(stringify!($qvar), $crate::vir_type!(vcx!(); $qtype));
+        $qvars.push($crate::CastType::as_dyn(local));
+        let $qvar: $crate::Expr<_> = vcx!().mk_local_ex(local);
         $crate::expr_inner!(@forall_qvars($qvars); $($tokens)*)
     } };
     (@forall_qvars($qvars:ident); $($tokens:tt)*) => { compile_error!(concat!("VIR malformed quantifier: `" , stringify!($($tokens)*), "`")) };

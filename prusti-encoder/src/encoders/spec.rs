@@ -47,7 +47,8 @@ where
     })
 }
 
-pub fn is_function_trusted(def_id: DefId, substs: ty::GenericArgsRef<'_>) -> bool {
+pub fn is_function_trusted(def_id: DefId) -> bool {
+    let substs = ty::GenericArgs::identity_for_item(vir::with_vcx(|vcx| vcx.tcx()), def_id);
     with_proc_spec(
         SpecQuery::GetProcKind(def_id, substs),
         |proc_spec: &ProcedureSpecification| {
@@ -84,7 +85,7 @@ impl TaskEncoder for SpecEnc {
         DefId, // ID of the function
     );
 
-    type OutputFullLocal<'vir> = SpecEncOutput<'vir>;
+    type OutputFullDependency<'vir> = SpecEncOutput<'vir>;
 
     type EncodingError = SpecEncError;
 
@@ -115,19 +116,13 @@ impl TaskEncoder for SpecEnc {
                 },
             )
             .unwrap_or((&[], &[], &[]));
-            Ok((
-                SpecEncOutput {
-                    pres,
-                    posts,
-                    pledges: vcx.alloc_slice(
-                        &pledges
-                            .iter()
-                            .map(|pledge| (pledge.lhs, pledge.rhs))
-                            .collect::<Vec<_>>(),
-                    ),
-                },
-                (),
-            ))
+            let pledges = vcx.alloc_slice(
+                &pledges
+                    .iter()
+                    .map(|pledge| (pledge.lhs, pledge.rhs))
+                    .collect::<Vec<_>>(),
+            );
+            Ok(((), SpecEncOutput { pres, posts, pledges }))
         })
     }
 }
