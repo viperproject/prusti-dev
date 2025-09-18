@@ -182,18 +182,6 @@ cfg_if! {
 }
 
 impl<'tcx> VirCtxt<'tcx> {
-    pub fn mk_local<'vir, T: CompType>(
-        &'vir self,
-        name: &'vir str,
-        ty: Type<'vir, T>,
-    ) -> Local<'vir, T> {
-        self.alloc(LocalData {
-            name,
-            ty,
-            debug_info: DebugInfo::new(self),
-        })
-    }
-
     pub fn mk_local_decl<'vir, T: CompType>(
         &'vir self,
         name: &'vir str,
@@ -202,31 +190,24 @@ impl<'tcx> VirCtxt<'tcx> {
         self.alloc(LocalDeclData { name, ty })
     }
 
-    pub fn mk_local_decl_local<'vir, T: CompType>(
+    fn mk_local<'vir, T: CompType>(
         &'vir self,
-        local: Local<'vir, T>,
-    ) -> LocalDecl<'vir, T> {
-        self.alloc(LocalDeclData {
-            name: local.name,
-            ty: local.ty,
+        decl: LocalDecl<'vir, T>,
+    ) -> Local<'vir, T> {
+        self.alloc(LocalData {
+            name: decl.name,
+            ty: decl.ty,
+            debug_info: DebugInfo::new(self),
         })
-    }
-
-    pub fn mk_local_ex_local<'vir, Curr, Next, T: CompType>(
-        &'vir self,
-        local: Local<'vir, T>,
-    ) -> ExprGen<'vir, Curr, Next, T> {
-        self.alloc(ExprGenData::new(
-            self.alloc(ExprKindGenData::Local(local.as_dyn())),
-        ))
     }
 
     pub fn mk_local_ex<'vir, Curr, Next, T: CompType>(
         &'vir self,
-        name: &'vir str,
-        ty: Type<'vir, T>,
+        decl: LocalDecl<'vir, T>,
     ) -> ExprGen<'vir, Curr, Next, T> {
-        self.mk_local_ex_local(self.mk_local(name, ty))
+        self.alloc(ExprGenData::new(
+            self.alloc(ExprKindGenData::Local(self.mk_local(decl.as_dyn())))
+        ))
     }
 
     pub(crate) fn mk_func_app<'vir, Curr, Next, R: CompType>(
@@ -367,13 +348,21 @@ impl<'tcx> VirCtxt<'tcx> {
 
     pub fn mk_let_expr<'vir, Curr, Next, V: CompType, T: CompType>(
         &'vir self,
-        name: &'vir str,
+        decl: LocalDecl<'vir, V>,
         val: ExprGen<'vir, Curr, Next, V>,
         expr: ExprGen<'vir, Curr, Next, T>,
     ) -> ExprGen<'vir, Curr, Next, T> {
+        if decl.ty != val.ty() {
+            typecheck_error!(
+                "Type mismatch in let-binding for {}. Expected: {:?}, Actual: {:?}",
+                decl.name,
+                decl.ty,
+                val.ty()
+            );
+        }
         let let_expr: ExprGen<'vir, Curr, Next, T> = self.alloc(ExprGenData::new(self.alloc(
             ExprKindGenData::Let(self.alloc(LetGenData {
-                name,
+                name: decl.name,
                 val: val.as_dyn(),
                 expr: expr.as_dyn(),
             })),
@@ -574,11 +563,11 @@ impl<'tcx> VirCtxt<'tcx> {
         a: FunctionIdn<'vir, T, U>,
         b: FunctionIdn<'vir, U, T>,
     ) -> DomainAxiomGen<'vir, (), !> {
-        let val = self.mk_local("val", b.arity().ty());
-        let val_ex = self.mk_local_ex_local(val);
+        let val = self.mk_local_decl("val", b.arity().ty());
+        let val_ex = self.mk_local_ex(val);
         let inner = b(val_ex);
         let expr = self.mk_forall_expr(
-            self.alloc_slice(&[self.mk_local_decl_local(val)]),
+            self.alloc_slice(&[val]),
             self.alloc_slice(&[self.mk_trigger(self.alloc_slice(&[inner]))]),
             self.mk_eq_expr(
                 a(inner),

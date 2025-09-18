@@ -1,5 +1,5 @@
 use crate::encoders::{
-    indirect::{IndirectKey, IndirectPredicatesEnc},
+    ty::{generics::GParams, indirect::{IndirectKey, IndirectPredicatesEnc}, RustTyDecomposition},
     ImpureEncVisitor, MirLocalDefEncOutput, MirSpecEnc,
 };
 use pcg::borrow_pcg::{state::BorrowsState, unblock_graph::UnblockGraph};
@@ -11,6 +11,7 @@ use prusti_rustc_interface::{
     span::{def_id::DefId, Span},
 };
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+use vir::HasType;
 
 /// Encodes the magic wands given a function signature.
 pub struct WandEnc;
@@ -20,19 +21,92 @@ pub enum WandEncError {
     Unsupported(String),
 }
 
-type Pledges<'vir> = Vec<(
-    Option<(vir::ExprBool<'vir>, Span)>,
-    vir::ExprBool<'vir>,
-    Span,
-)>;
+impl<'vir, E: TaskEncoder> ImpureEncVisitor<'vir, '_, E> {
+    pub fn package_wands(
+        &mut self,
+        final_borrow_state: &BorrowsState<'vir>,
+    ) -> Vec<vir::Stmt<'vir>> {
+        let mut wand_packages = Vec::new();
+        let vcx = self.vcx;
+        let label = self.new_label("package_post");
+        let snap_lhs = |l| {
+            let ld: crate::encoders::LocalDef<'vir> = self.local_defs.locals[l];
+            if l == mir::RETURN_PLACE {
+                vcx.mk_local_labelled_old_expr(ld.impure_snap, label)
+            } else {
+                vcx.mk_old_expr(ld.impure_snap)
+            }
+        };
+        let snap_rhs = |l| {
+            let ld: crate::encoders::LocalDef<'vir> = self.local_defs.locals[l];
+            vcx.mk_old_expr(ld.impure_snap)
+        };
 
-#[derive(Clone, Debug, Default)]
+        for (lhs, rhs, pledge) in self.wands.viper_wands() {
+            if lhs.is_empty() {
+                continue;
+            }
+            let wand = self
+                .wands
+                .mk_wand(&lhs, &rhs, &pledge, snap_lhs, snap_rhs, vcx, self.deps)
+                .unwrap();
+            let mut package_script = Vec::new();
+            let generic_to_param = self.wands.generic_to_param.clone();
+            for (rhs, _) in rhs
+                .iter()
+                .filter(|g| generic_to_param.contains_key(g))
+                .flat_map(|g| &generic_to_param[g])
+            {
+                if *rhs == mir::RETURN_PLACE {
+                    continue;
+                }
+                let ug = UnblockGraph::for_node(
+                    mir::Place::from(*rhs),
+                    final_borrow_state,
+                    self.pcg_ctxt(),
+                );
+                let actions = ug.actions(self.pcg_ctxt()).unwrap();
+                let unblock = self.block(|visitor| {
+                    visitor.pcs_unblock_actions(final_borrow_state, &actions, Some(label));
+                });
+                package_script.extend(unblock);
+            }
+
+            for &(_, spec, span) in pledge.iter() {
+                self.vcx.with_span(span, |vcx| {
+                    vcx.handle_error("exhale.failed:assertion.false", move |_| {
+                        Some(vec![PrustiError::verification(
+                            "pledge postcondition might not hold",
+                            span.into(),
+                        )])
+                    });
+                    package_script.push(vcx.mk_exhale_stmt(spec));
+                });
+            }
+            wand_packages.push(
+                self
+                    .vcx
+                    .mk_package_stmt(wand, self.vcx.alloc_slice(&package_script)),
+            );
+        }
+        wand_packages
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct WandEncOutput<'vir> {
+    context: GParams<'vir>,
     edges: WandEncEdges,
     pub generic_to_param: FxHashMap<IndirectKey, Vec<(mir::Local, ty::Ty<'vir>)>>,
     pub pledges: Pledges<'vir>,
     wands: Vec<(Vec<IndirectKey>, Vec<IndirectKey>, Pledges<'vir>)>,
 }
+
+type Pledges<'vir> = Vec<(
+    Option<(vir::ExprBool<'vir>, Span)>,
+    vir::ExprBool<'vir>,
+    Span,
+)>;
 
 impl<'vir> WandEncOutput<'vir> {
     fn encode_generic(
@@ -52,7 +126,8 @@ impl<'vir> WandEncOutput<'vir> {
             .iter()
             .filter(|i| !(input && i.0 == mir::RETURN_PLACE))
             .flat_map(move |(i, ty)| {
-                let indirect = deps.require_ref::<IndirectPredicatesEnc>((*ty, g)).unwrap();
+                let ty_task = RustTyDecomposition::from_ty(*ty, self.context);
+                let indirect = deps.require_dep::<IndirectPredicatesEnc>((ty_task, g)).unwrap();
                 let indirect = if input == (*i == mir::RETURN_PLACE) {
                     indirect.contravariant
                 } else {
@@ -102,9 +177,10 @@ impl<'vir> WandEncOutput<'vir> {
                     .entry(i)
                     .or_insert_with(|| {
                         let name = vir::vir_format!(vcx, "wand{:?}", i);
+                        let decl = vcx.mk_local_decl(name, local_defs[i].local_snap.ty());
                         (
-                            name,
-                            vcx.mk_local_ex(name, local_defs[i].ty.snapshot()),
+                            decl,
+                            vcx.mk_local_ex(decl),
                         )
                     })
                     .1
@@ -149,75 +225,6 @@ impl<'vir> WandEncOutput<'vir> {
                 .unwrap();
             visitor.stmt(visitor.vcx.mk_apply_stmt(wand));
         }
-    }
-
-    pub fn package_wands<E: TaskEncoder>(
-        &self,
-        final_borrow_state: &BorrowsState<'vir>,
-        visitor: &mut ImpureEncVisitor<'vir, '_, E>,
-    ) -> Vec<vir::Stmt<'vir>> {
-        let mut wand_packages = Vec::new();
-        let vcx = visitor.vcx;
-        let label = visitor.new_label("package_post");
-        let snap_lhs = |l| {
-            let ld: crate::encoders::LocalDef<'vir> = visitor.local_defs.locals[l];
-            if l == mir::RETURN_PLACE {
-                vcx.mk_local_labelled_old_expr(ld.impure_snap, label)
-            } else {
-                vcx.mk_old_expr(ld.impure_snap)
-            }
-        };
-        let snap_rhs = |l| {
-            let ld: crate::encoders::LocalDef<'vir> = visitor.local_defs.locals[l];
-            vcx.mk_old_expr(ld.impure_snap)
-        };
-
-        for (lhs, rhs, pledge) in self.viper_wands() {
-            if lhs.is_empty() {
-                continue;
-            }
-            let wand = self
-                .mk_wand(&lhs, &rhs, &pledge, snap_lhs, snap_rhs, vcx, visitor.deps)
-                .unwrap();
-            let mut package_script = Vec::new();
-            for (rhs, _) in rhs
-                .iter()
-                .filter(|g| self.generic_to_param.contains_key(g))
-                .flat_map(|g| &self.generic_to_param[g])
-            {
-                if *rhs == mir::RETURN_PLACE {
-                    continue;
-                }
-                let ug = UnblockGraph::for_node(
-                    mir::Place::from(*rhs),
-                    final_borrow_state,
-                    visitor.pcg_ctxt(),
-                );
-                let actions = ug.actions(visitor.pcg_ctxt()).unwrap();
-                let unblock = visitor.block(|visitor| {
-                    visitor.pcs_unblock_actions(final_borrow_state, &actions, Some(label));
-                });
-                package_script.extend(unblock);
-            }
-
-            for &(_, spec, span) in pledge.iter() {
-                visitor.vcx.with_span(span, |vcx| {
-                    vcx.handle_error("exhale.failed:assertion.false", move |_| {
-                        Some(vec![PrustiError::verification(
-                            "pledge postcondition might not hold",
-                            span.into(),
-                        )])
-                    });
-                    package_script.push(vcx.mk_exhale_stmt(spec));
-                });
-            }
-            wand_packages.push(
-                visitor
-                    .vcx
-                    .mk_package_stmt(wand, visitor.vcx.alloc_slice(&package_script)),
-            );
-        }
-        wand_packages
     }
 
     fn mk_wand<'a, E: TaskEncoder>(
@@ -321,7 +328,7 @@ impl TaskEncoder for WandEnc {
 
     type TaskKey<'vir> = WandEncTask;
 
-    type OutputFullLocal<'vir> = WandEncOutput<'vir>;
+    type OutputFullDependency<'vir> = WandEncOutput<'vir>;
 
     type EncodingError = WandEncError;
 
@@ -478,7 +485,7 @@ impl TaskEncoder for WandEnc {
                 insert_edge(a, IndirectKey::Param(b));
             }
 
-            let spec = deps.require_local::<MirSpecEnc>((def_id, substs, None, false))?;
+            let spec = deps.require_dep::<MirSpecEnc>((def_id, substs, None, false))?;
             let pledges = spec.pledges;
 
             // convert edges to viper-supported wands
@@ -533,13 +540,14 @@ impl TaskEncoder for WandEnc {
             }
 
             Ok((
+                (),
                 WandEncOutput {
+                    context: GParams::from(def_id),
                     edges,
                     generic_to_param,
                     pledges,
                     wands,
                 },
-                (),
             ))
         })
     }
