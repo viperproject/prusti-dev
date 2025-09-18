@@ -80,6 +80,9 @@ impl<'vir> Program<'vir> {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum NeverError {}
+
 pub trait OutputRefAny {}
 impl OutputRefAny for () {}
 
@@ -107,6 +110,7 @@ pub trait TaskEncoder {
     /// dependencies (such as methods), this output should only be emitted in
     /// one Viper program.
     type OutputFullLocal<'vir>: Clone
+        = ()
     where
         Self: 'vir;
 
@@ -118,8 +122,8 @@ pub trait TaskEncoder {
     where
         Self: 'vir;
 
-    type EnqueueingError: Clone + std::fmt::Debug = ();
-    type EncodingError: Clone + std::fmt::Debug;
+    type EnqueueingError: Clone + std::fmt::Debug = NeverError;
+    type EncodingError: Clone + std::fmt::Debug = NeverError;
 
     /// User-presentable name of this encoder.
     const ENCODER_NAME: &'static str = "<untitled encoder>";

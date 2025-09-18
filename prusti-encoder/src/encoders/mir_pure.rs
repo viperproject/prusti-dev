@@ -3,7 +3,7 @@ use prusti_rustc_interface::{
     data_structures::graph,
     index::IndexVec,
     middle::{
-        mir::{self, Body},
+        mir,
         ty::{self, Binder, FnSig, TyKind},
     },
     span::{def_id::DefId, source_map::Spanned},
@@ -12,17 +12,8 @@ use prusti_rustc_interface::{
 use std::{collections::HashMap, fmt};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{add_debug_note, CastType, CompType};
-// TODO: replace uses of `PredicateEnc` with `SnapshotEnc`
-use super::{
-    ty_impure::TyImpureEnc,
-    ty_pure::TyPureEnc,
-    r#const::ConstEncTask,
-};
-use crate::{
-    encoder_traits::pure_func_app_enc::PureFuncAppEnc,
-    encoders::{
-        ConstEnc, MirBuiltinEnc, ViperTupleEnc,
-    },
+use crate::encoders::{
+    r#const::ConstEncTask, mir_fn::{CallTaskDescription, RustSignature}, ty::{generics::GParams, use_pure::{TyUsePure, TyUsePureEnc}, RustTyDecomposition}, ConstEnc, FunctionCallEnc, MirBuiltinEnc, TyUseImpureEnc, ViperTupleEnc
 };
 
 pub struct MirPureEnc;
@@ -87,7 +78,7 @@ impl TaskEncoder for MirPureEnc {
         Option<DefId>,            // Caller/Use DefID
     );
 
-    type OutputFullLocal<'vir> = MirPureEncOutput<'vir>;
+    type OutputFullDependency<'vir> = MirPureEncOutput<'vir>;
 
     type EncodingError = MirPureEncError;
 
@@ -138,9 +129,10 @@ impl TaskEncoder for MirPureEnc {
             // We wrap the expression with an additional lazy that will perform
             // some sanity checks. These requirements cannot be expressed using
             // only the type system.
+            let ret = RustTyDecomposition::from_ty(body.return_ty(), def_id);
             let expr = vcx.mk_lazy_expr(
                 vir::vir_format!(vcx, "pure body {def_id:?}"),
-                deps.require_ref::<TyPureEnc>(body.return_ty())?
+                deps.require_ref::<TyUsePureEnc>(ret)?
                     .snapshot,
                 Box::new(move |vcx, lctx: ExprInput<'_>| {
                     // check: are we actually providing arguments for the
@@ -159,20 +151,20 @@ impl TaskEncoder for MirPureEnc {
         })?;
         tracing::debug!("finished {def_id:?}");
 
-        Ok((MirPureEncOutput { expr }, ()))
+        Ok(((), MirPureEncOutput { expr }))
     }
 }
 
 #[derive(Debug, Default)]
 struct Update<'vir> {
     binds: Vec<UpdateBind<'vir>>,
-    versions: HashMap<mir::Local, Version>,
+    versions: HashMap<mir::Local, Version<'vir>>,
 }
 
 #[derive(Debug)]
 enum UpdateBind<'vir> {
-    Local(mir::Local, Version, ExprRet<'vir>),
-    Phi(Version, ExprRet<'vir>),
+    Local(mir::Local, Version<'vir>, ExprRet<'vir>),
+    Phi(Version<'vir>, ExprRet<'vir>),
 }
 
 impl<'vir> Update<'vir> {
@@ -180,8 +172,19 @@ impl<'vir> Update<'vir> {
         Self::default()
     }
 
-    fn assign(&mut self, local: mir::Local, mut version: Version, expr: ExprRet<'vir>) {
-        version.initialised = true;
+    fn mk_local(vcx: &'vir vir::VirCtxt<'vir>, encoding_depth: usize, local: mir::Local, version: Version<'vir>) -> &'vir str {
+        vir::vir_format!(
+            vcx,
+            "_{}_{}s_{}",
+            encoding_depth,
+            local.as_usize(),
+            version
+        )
+    }
+
+    fn assign(&mut self, vcx: &'vir vir::VirCtxt<'vir>, encoding_depth: usize, local: mir::Local, mut version: Version<'vir>, expr: ExprRet<'vir>) {
+        let decl = vcx.mk_local_decl(Self::mk_local(vcx, encoding_depth, local, version), expr.ty());
+        version.initialised = Some(decl);
         self.binds.push(UpdateBind::Local(local, version, expr));
         self.versions.insert(local, version);
     }
@@ -197,7 +200,7 @@ impl<'vir> Update<'vir> {
         }
     }
 
-    fn add_to_map(&self, curr_ver: &mut HashMap<mir::Local, Version>) {
+    fn add_to_map(&self, curr_ver: &mut HashMap<mir::Local, Version<'vir>>) {
         for (local, ver) in &self.versions {
             curr_ver.insert(*local, *ver);
         }
@@ -218,36 +221,6 @@ struct Enc<'vir: 'enc, 'enc> {
     rel0_mode: bool,
     rel1_mode: bool,
     before_expiry_mode: bool,
-}
-
-impl<'vir, 'enc> PureFuncAppEnc<'vir, MirPureEnc> for Enc<'vir, 'enc> {
-    fn vcx(&self) -> &'vir vir::VirCtxt<'vir> {
-        self.vcx
-    }
-
-    type EncodeOperandArgs = HashMap<mir::Local, Version>;
-
-    type Curr = ExprInput<'vir>;
-
-    type Next = vir::ExprKind<'vir>;
-
-    type LocalDeclsSrc = Body<'vir>;
-
-    fn deps(&mut self) -> &mut TaskEncoderDependencies<'vir, MirPureEnc> {
-        self.deps
-    }
-
-    fn local_decls_src(&self) -> &Self::LocalDeclsSrc {
-        self.body
-    }
-
-    fn encode_operand(
-        &mut self,
-        args: &Self::EncodeOperandArgs,
-        operand: &mir::Operand<'vir>,
-    ) -> vir::ExprGenSnap<'vir, Self::Curr, Self::Next> {
-        self.encode_operand(args, operand)
-    }
 }
 
 impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
@@ -280,47 +253,35 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         }
     }
 
-    fn mk_local(&self, local: mir::Local, version: Version) -> &'vir str {
-        vir::vir_format!(
-            self.vcx,
-            "_{}_{}s_{}",
-            self.encoding_depth,
-            local.as_usize(),
-            version
-        )
+    fn ty_use(&mut self, ty: ty::Ty<'vir>) -> TyUsePure<'vir> {
+        let ty_task = RustTyDecomposition::from_ty(ty, self.def_id);
+        self.deps.require_dep::<TyUsePureEnc>(ty_task).unwrap()
     }
 
     fn get_ty_for_local(&mut self, local: mir::Local) -> vir::TypeSnap<'vir> {
         let ty = self.body.local_decls[local].ty;
-        self.deps
-            .require_ref::<TyPureEnc>(ty)
-            .unwrap()
-            .snapshot
+        let ty_task = RustTyDecomposition::from_ty(ty, self.def_id);
+        self.deps.require_ref::<TyUsePureEnc>(ty_task).unwrap().snapshot
     }
 
-    fn mk_local_ex(&mut self, local: mir::Local, version: Version) -> ExprRet<'vir> {
-        let ty = self.get_ty_for_local(local);
-        self.vcx.mk_local_ex(self.mk_local(local, version), ty)
+    fn mk_local_ex(&mut self, _local: mir::Local, version: Version<'vir>) -> ExprRet<'vir> {
+        self.vcx.mk_local_ex(version.initialised.unwrap())
     }
 
-    fn mk_phi(&self, version: Version) -> &'vir str {
+    fn mk_phi(&self, version: Version<'vir>) -> &'vir str {
         vir::vir_format!(self.vcx, "_{}_phi_{}", self.encoding_depth, version)
     }
 
     fn mk_phi_acc<T: vir::CompType>(
         &mut self,
-        local: mir::Local,
-        tuple_ref: crate::encoders::ViperTupleEncOutput<'vir>,
-        version: Version,
+        tuple_ref: &crate::encoders::ViperTupleEncOutput<'vir>,
+        phi_idx: Version<'vir>,
         elem_idx: usize,
         _ty: vir::Type<'vir, T>,
     ) -> ExprRet<'vir> {
         tuple_ref.mk_elem(
             self.vcx,
-            self.vcx.mk_local_ex(
-                self.mk_phi(version),
-                tuple_ref.snapshot(),
-            ),
+            self.vcx.mk_local_ex(phi_idx.initialised.unwrap()),
             elem_idx
         )
     }
@@ -328,13 +289,13 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     fn bump_version(&mut self, update: &mut Update<'vir>, local: mir::Local, expr: ExprRet<'vir>, location: mir::Location) {
         let new_version = self.bump_version_no_assign(local, location);
         // check that `local` and `expr` type correspond
-        update.assign(local, new_version, expr);
+        update.assign(self.vcx, self.encoding_depth, local, new_version, expr);
     }
 
-    fn bump_version_no_assign(&mut self, local: mir::Local, location: mir::Location) -> Version {
+    fn bump_version_no_assign(&mut self, local: mir::Local, location: mir::Location) -> Version<'vir> {
         let index = self.version_ctr[local];
         self.version_ctr[local] += 1;
-        Version { index, location, initialised: false }
+        Version { index, location, initialised: None }
     }
 
     fn reify_binds<T: CompType>(
@@ -343,10 +304,10 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         expr: ExprRetAny<'vir, T>,
     ) -> ExprRetAny<'vir, T> {
         update.binds.iter().rfold(expr, |expr, bind| match bind {
-            UpdateBind::Local(local, ver, val) => {
-                self.vcx.mk_let_expr(self.mk_local(*local, *ver), val, expr)
+            UpdateBind::Local(_, version, val) => {
+                self.vcx.mk_let_expr(version.initialised.unwrap(), val, expr)
             }
-            UpdateBind::Phi(idx, val) => self.vcx.mk_let_expr(self.mk_phi(*idx), val, expr),
+            UpdateBind::Phi(version, val) => self.vcx.mk_let_expr(version.initialised.unwrap(), val, expr),
         })
     }
 
@@ -354,24 +315,25 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         &mut self,
         tuple_ref: &crate::encoders::ViperTupleEncOutput<'vir>,
         mod_locals: &[mir::Local],
-        curr_ver: &HashMap<mir::Local, Version>,
+        curr_ver: &HashMap<mir::Local, Version<'vir>>,
         update: Option<Update<'vir>>,
     ) -> ExprRet<'vir> {
         update.map(|update| {
             let tuple_args = mod_locals
                 .iter()
                 .map(|local| {
+                    let version = update.versions.get(local).copied().unwrap_or_else(|| {
+                        // TODO: remove (debug)
+                        if !curr_ver.contains_key(local) {
+                            tracing::error!("unknown version of local! {}", local.as_usize());
+                            return Version { index: 0xff, ..Default::default() };
+                        }
+                        curr_ver[local]
+                    });
                     let snap = self.mk_local_ex(
-                            *local,
-                            update.versions.get(local).copied().unwrap_or_else(|| {
-                                // TODO: remove (debug)
-                                if !curr_ver.contains_key(local) {
-                                    tracing::error!("unknown version of local! {}", local.as_usize());
-                                    return Version { index: 0xff, ..Default::default() };
-                                }
-                                curr_ver[local]
-                            }),
-                        );
+                        *local,
+                        version,
+                    );
                     snap
                 })
                 .collect::<Vec<_>>();
@@ -406,7 +368,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
     fn encode_cfg(
         &mut self,
-        curr_ver: &HashMap<mir::Local, Version>,
+        curr_ver: &HashMap<mir::Local, Version<'vir>>,
         curr: mir::BasicBlock,
         join_point: mir::BasicBlock,
     ) -> Option<Update<'vir>> {
@@ -453,11 +415,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 // encode the discriminant operand
                 let discr_expr = self.encode_operand(&new_curr_ver, discr).downcast_ty();
                 let discr_ty = discr.ty(self.body, self.vcx.tcx());
-                let discr_ty_out = self
-                    .deps
-                    .require_local::<TyPureEnc>(discr_ty)
-                    .unwrap()
-                    .expect_primitive();
+                let discr_ty_out = self.ty_use(discr_ty).expect_primitive();
 
                 // walk `curr` -> `targets[i]` -> `join` for each target. The
                 // join point the bb which is an immediate reverse dominator of
@@ -485,7 +443,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 // for each branch, create a Viper tuple of the updated locals
                 let tuple_ref = self
                     .deps
-                    .require_local::<ViperTupleEnc>(mod_tys)
+                    .require_dep::<ViperTupleEnc>((self.def_id, mod_tys))
                     .unwrap();
                 let otherwise_update = updates.pop().unwrap();
                 let phi_expr = targets.iter().zip(updates).fold(
@@ -508,7 +466,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 );
 
                 // assign tuple into a `phi` variable
-                let phi_idx = Version { index: self.phi_ctr, location, initialised: true };
+                let mut phi_idx = Version { index: self.phi_ctr, location, initialised: None };
+                phi_idx.initialised = Some(self.vcx.mk_local_decl(self.mk_phi(phi_idx), tuple_ref.snapshot()));
                 self.phi_ctr += 1;
                 let mut phi_update = Update::new();
                 phi_update.binds.push(UpdateBind::Phi(phi_idx, phi_expr));
@@ -518,7 +477,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 //   access directly instead of the locals going forward?
                 for (elem_idx, local) in mod_locals.iter().enumerate() {
                     let ty = self.get_ty_for_local(*local);
-                    let expr = self.mk_phi_acc(*local, tuple_ref.clone(), phi_idx, elem_idx, ty);
+                    let expr = self.mk_phi_acc(&tuple_ref, phi_idx, elem_idx, ty);
                     self.bump_version(&mut phi_update, *local, expr, location);
                     new_curr_ver.insert(*local, phi_update.versions[local]);
                 }
@@ -542,7 +501,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 target,
                 ..
             } => {
-                let (def_id, arg_tys) = self.get_def_id_and_caller_substs(func);
+                let func_ty = func.ty(self.body, self.vcx.tcx());
+                let (def_id, arg_tys) = RustSignature::get_def_id_and_caller_substs(func_ty);
                 let expr = {
                     // A fn call in pure can only be one of two kinds: a
                     // call to another pure function, or a call to a prusti
@@ -550,24 +510,27 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     let is_pure = crate::encoders::with_proc_spec(
                         SpecQuery::GetProcKind(
                             def_id,
-                            ty::List::identity_for_item(self.vcx().tcx(), def_id),
+                            ty::List::identity_for_item(self.vcx.tcx(), def_id),
                         ),
                         |def_spec| def_spec.kind.is_pure().unwrap_or_default(),
                     )
                     .unwrap_or_default();
-                    let sig = self.vcx().tcx().fn_sig(def_id);
-                    let sig = sig.instantiate_identity();
                     if is_pure {
-                        self.encode_pure_func_app(
-                            def_id,
-                            sig,
-                            arg_tys,
-                            args,
-                            destination,
-                            self.def_id,
-                            &new_curr_ver,
-                        )
+                        let pure_func = self
+                            .deps
+                            .require_dep::<FunctionCallEnc>(CallTaskDescription::new(
+                                self.def_id,
+                                arg_tys,
+                                def_id,
+                            ))
+                            .unwrap();
+                        let snap_args = args.iter()
+                            .map(|arg| self.encode_operand(&new_curr_ver, &arg.node))
+                            .collect::<Vec<_>>();
+                        pure_func.call(snap_args)
                     } else {
+                        let sig = self.vcx.tcx().fn_sig(def_id);
+                        let sig = sig.instantiate_identity();
                         self.encode_prusti_builtin(def_id, sig, arg_tys, args, &new_curr_ver)
                     }
                 };
@@ -589,7 +552,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
     fn encode_stmt(
         &mut self,
-        curr_ver: &HashMap<mir::Local, Version>,
+        curr_ver: &HashMap<mir::Local, Version<'vir>>,
         stmt: &mir::Statement<'vir>,
         location: mir::Location,
     ) -> Update<'vir> {
@@ -615,7 +578,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
     fn encode_rvalue(
         &mut self,
-        curr_ver: &HashMap<mir::Local, Version>,
+        curr_ver: &HashMap<mir::Local, Version<'vir>>,
         rvalue: &mir::Rvalue<'vir>,
     ) -> ExprRet<'vir> {
         let rvalue_ty = rvalue.ty(self.body, self.vcx.tcx());
@@ -623,10 +586,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             mir::Rvalue::Use(op) => self.encode_operand(curr_ver, op),
             // Repeat
             mir::Rvalue::Ref(_, kind, place) => {
-                let rvalue_snapshot_encoding = self
-                    .deps
-                    .require_local::<TyPureEnc>(rvalue_ty)
-                    .unwrap();
+                let rvalue_snapshot_encoding = self.ty_use(rvalue_ty);
                 let (snap, place_ref) = self.encode_place_with_ref(curr_ver, place);
                 if kind.mutability().is_mut() {
                     let e_rvalue_ty = rvalue_snapshot_encoding
@@ -694,10 +654,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 mir::AggregateKind::Adt(..)
                 | mir::AggregateKind::Tuple
                 | mir::AggregateKind::Closure(..) => {
-                    let e_rvalue_ty = self
-                        .deps
-                        .require_local::<TyPureEnc>(rvalue_ty)
-                        .unwrap();
+                    let e_rvalue_ty = self.ty_use(rvalue_ty);
                     let sl = match kind {
                         mir::AggregateKind::Adt(_, vidx, _, _, _) => {
                             e_rvalue_ty.get_variant_any(*vidx)
@@ -713,20 +670,12 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 _k => {
                     // TODO: attach kind of aggregate to the unreachable
                     //   expression in case it is reached
-                    self
-                        .deps
-                        .require_local::<TyPureEnc>(rvalue_ty)
-                        .unwrap()
-                        .unreachable_to_snap()
-                        .call()()
+                    self.ty_use(rvalue_ty).unreachable_to_snap()
                 }
             },
             mir::Rvalue::Discriminant(place) => {
                 let place_ty = place.ty(self.body, self.vcx.tcx());
-                let ty = self
-                    .deps
-                    .require_local::<TyPureEnc>(place_ty.ty)
-                    .unwrap();
+                let ty = self.ty_use(place_ty.ty);
                 let discr = match ty
                     .get_enumlike()
                     .filter(|_| place_ty.variant_index.is_none())
@@ -735,11 +684,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         self.encode_place(curr_ver, place).downcast_ty(),
                     ),
                     None => {
-                        let e_rvalue_ty = self
-                            .deps
-                            .require_local::<TyPureEnc>(rvalue_ty)
-                            .unwrap()
-                            .expect_primitive();
+                        let e_rvalue_ty = self.ty_use(rvalue_ty).expect_primitive();
                         // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
                         let zero = self.vcx.mk_uint::<0>();
                         e_rvalue_ty.prim_to_snap.call()(zero.upcast_ty()).lift()
@@ -752,19 +697,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             _k => {
                 // TODO: attach kind of rvalue to the unreachable expression
                 //   in case it is reached
-                self
-                    .deps
-                    .require_local::<TyPureEnc>(rvalue_ty)
-                    .unwrap()
-                    .unreachable_to_snap()
-                    .call()()
+                self.ty_use(rvalue_ty).unreachable_to_snap()
             }
         }
     }
 
     fn encode_operand(
         &mut self,
-        curr_ver: &HashMap<mir::Local, Version>,
+        curr_ver: &HashMap<mir::Local, Version<'vir>>,
         operand: &mir::Operand<'vir>,
     ) -> ExprRet<'vir> {
         match operand {
@@ -773,7 +713,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             }
             mir::Operand::Constant(box constant) => self
                 .deps
-                .require_local::<ConstEnc>(ConstEncTask::Mir {
+                .require_dep::<ConstEnc>(ConstEncTask::Mir {
                     const_: constant.const_,
                     encoding_depth: self.encoding_depth,
                     def_id: self.def_id,
@@ -786,7 +726,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
     fn encode_place(
         &mut self,
-        curr_ver: &HashMap<mir::Local, Version>,
+        curr_ver: &HashMap<mir::Local, Version<'vir>>,
         place: &mir::Place<'vir>,
     ) -> ExprRet<'vir> {
         self.encode_place_with_ref(curr_ver, place).0
@@ -794,7 +734,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
     fn encode_place_with_ref(
         &mut self,
-        curr_ver: &HashMap<mir::Local, Version>,
+        curr_ver: &HashMap<mir::Local, Version<'vir>>,
         place: &mir::Place<'vir>,
     ) -> (ExprRet<'vir>, Option<ExprRetRef<'vir>>) {
         // TODO: remove (debug)
@@ -855,7 +795,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         expr: ExprCRet<'vir>,
         place_ref: Option<ExprRetRef<'vir>>,
     ) -> (ExprRet<'vir>, Option<ExprRetRef<'vir>>) {
-        encode_place_element(self.vcx, self.deps, place_ty, elem, expr, place_ref)
+        encode_place_element(self.vcx, self.deps, self.def_id, place_ty, elem, expr, place_ref)
     }
 
     fn encode_prusti_builtin(
@@ -864,7 +804,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         sig: Binder<'vir, FnSig<'vir>>,
         arg_tys: ty::GenericArgsRef<'vir>,
         args: &[Spanned<mir::Operand<'vir>>],
-        curr_ver: &HashMap<mir::Local, Version>,
+        curr_ver: &HashMap<mir::Local, Version<'vir>>,
     ) -> ExprRet<'vir> {
         #[derive(Debug)]
         enum PrustiBuiltin {
@@ -909,10 +849,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             other => panic!("illegal prusti::builtin ({other})"),
         };
 
-        let bool = self
-            .deps
-            .require_local::<TyPureEnc>(self.vcx.tcx().types.bool)
-            .unwrap();
+        let bool = self.ty_use(self.vcx.tcx().types.bool);
         let bool = bool.expect_primitive();
 
         let prim = match builtin {
@@ -925,14 +862,10 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             PrustiBuiltin::Forall => {
                 assert_eq!(arg_tys.len(), 3);
 
-                let (ty_args, encoded_args) = self.encode_fn_args(def_id, sig, arg_tys, args, curr_ver);
-                // TODO: for now, let's expect this to give us these four:
-                //   - type of the trigger param (unit unless triggers provided)
-                //   - type of the closure args (a tuple type)
-                //   - type of the body param (a closure type)
+                let encoded_args = args.iter().map(|oper| self.encode_operand(curr_ver, &oper.node)).collect::<Vec<_>>();
+                // TODO: for now, let's expect this to give us these two:
                 //   - expression for the triggers
                 //   - expression for the body
-                assert_eq!(ty_args.len(), 3);
                 assert_eq!(encoded_args.len(), 2);
 
                 let closure_ty = arg_tys[2].expect_ty();
@@ -955,10 +888,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         .iter()
                         .enumerate()
                         .map(|(idx, qvar_ty)| {
-                            let ty_out = self
-                                .deps
-                                .require_ref::<TyPureEnc>(qvar_ty)
-                                .unwrap();
+                            let ty_out = self.ty_use(qvar_ty);
                             self.vcx
                                 .mk_local_decl(
                                     vir::vir_format!(
@@ -994,7 +924,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 reify_args.extend(
                     qvars
                         .iter()
-                        .map(|qvar| self.vcx.mk_local_ex(qvar.name, qvar.ty)),
+                        .map(|qvar| self.vcx.mk_local_ex(qvar)),
                 );
 
                 // TODO: recursively invoke MirPure encoder to encode
@@ -1004,7 +934,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 use vir::Reify;
                 let body = self
                     .deps
-                    .require_local::<MirPureEnc>(MirPureEncTask {
+                    .require_dep::<MirPureEnc>(MirPureEncTask {
                         encoding_depth: self.encoding_depth + 1,
                         kind: PureKind::Closure,
                         parent_def_id: cl_def_id,
@@ -1221,33 +1151,35 @@ fn encode_place_with_ref<'vir, 'enc>(
 pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
     vcx: &'vir vir::VirCtxt<'vir>,
     deps: &'enc mut TaskEncoderDependencies<'vir, T>,
+    def_id: DefId,
     place_ty: mir::PlaceTy<'vir>,
     elem: mir::PlaceElem<'vir>,
     expr: ExprCRet<'vir>,
     place_ref: Option<ExprRetRef<'vir>>,
 ) -> (ExprRet<'vir>, Option<ExprRetRef<'vir>>) {
+    let ty_task = RustTyDecomposition::from_ty(place_ty.ty, def_id);
     match elem {
         mir::ProjectionElem::Deref => {
             assert!(place_ty.variant_index.is_none());
             match place_ty.ty.kind() {
                 TyKind::Adt(adt, _) if adt.is_box() => {
                     let e_ty_impure = deps
-                        .require_local::<TyImpureEnc>(place_ty.ty)
+                        .require_dep::<TyUseImpureEnc>(ty_task)
                         .unwrap();
                     let struct_like = e_ty_impure
                         .expect_variant_opt(place_ty.variant_index);
                     let e_ty_pure = deps
-                        .require_local::<TyPureEnc>(place_ty.ty)
+                        .require_dep::<TyUsePureEnc>(ty_task)
                         .unwrap();
-                    let proj = e_ty_pure.get_variant_opt(place_ty.variant_index).field(abi::FieldIdx::ZERO);
+                    let proj = e_ty_pure.expect_variant_opt(place_ty.variant_index)[abi::FieldIdx::ZERO];
                     let proj_app = proj.read(expr);
                     let place_ref =
-                        place_ref.map(|pr| struct_like.field(abi::FieldIdx::ZERO, pr));
+                        place_ref.map(|pr| struct_like[abi::FieldIdx::ZERO].field_ref(pr));
                     (proj_app, place_ref)
                 }
                 TyKind::Ref(.., ty::Mutability::Not) => {
                     let e_ty = deps
-                        .require_local::<TyPureEnc>(place_ty.ty)
+                        .require_dep::<TyUsePureEnc>(ty_task)
                         .unwrap()
                         .expect_immref();
                     let val_expr = e_ty.value_access(expr);
@@ -1255,24 +1187,14 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
                 }
                 TyKind::Ref(_, inner_ty, ty::Mutability::Mut) => {
                     let e_ty = deps
-                        .require_local::<TyPureEnc>(place_ty.ty)
+                        .require_dep::<TyUsePureEnc>(ty_task)
                         .unwrap()
                         .expect_mutref();
-                    let inner_ty_out = deps.require_local::<TyImpureEnc>(*inner_ty).unwrap();
-                    //let ref_expr = Some(e_ty.deref_access.apply(vcx, [expr]));
+                    let inner_ty = RustTyDecomposition::from_ty(*inner_ty, def_id);
+                    let inner_ty_out = deps.require_dep::<TyUseImpureEnc>(inner_ty).unwrap();
                     let ref_expr = e_ty.deref_access(expr);
-                    // let val_expr = e_ty.value_access.apply(vcx, [expr]);
-                    // let place_ty = place_ty.projection_ty(vcx.tcx(), elem);
-                    // Since the `expr` is the target of a reference, it is encoded as a `Param`.
-                    // If it is not a type parameter, we cast it to its concrete Snapshot.
-                    //let cast = self
-                    //    .deps
-                    //    .require_local::<RustTyCastersEnc<CastTypePure>>(place_ty.ty)
-                    //    .unwrap();
-                    //let val_expr = cast.cast_to_concrete_if_possible(vcx, val_expr);
-                    //(val_expr, place_ref)
                     let ref_val_expr =
-                        inner_ty_out.ref_to_snap(vcx, unsafe { std::mem::transmute(ref_expr) }); // TODO: hack...
+                        inner_ty_out.ref_to_snap(unsafe { std::mem::transmute(ref_expr) }); // TODO: hack...
                     (ref_val_expr.lift(), place_ref)
                 }
                 _ => unreachable!(),
@@ -1280,17 +1202,17 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
         }
         mir::ProjectionElem::Field(field_idx, ty) => {
             let e_ty = deps
-                .require_local::<TyImpureEnc>(place_ty.ty)
+                .require_dep::<TyUseImpureEnc>(ty_task)
                 .unwrap();
             let struct_like = e_ty
                 .expect_variant_opt(place_ty.variant_index);
             let e_ty_pure = deps
-                .require_local::<TyPureEnc>(place_ty.ty)
+                .require_dep::<TyUsePureEnc>(ty_task)
                 .unwrap();
-            let proj = e_ty_pure.get_variant_opt(place_ty.variant_index).field(field_idx);
+            let proj = e_ty_pure.expect_variant_opt(place_ty.variant_index)[field_idx];
             let proj_app = proj.read(expr);
             let place_ref = place_ref
-                .map(|pr| struct_like.field(field_idx, pr));
+                .map(|pr| struct_like[field_idx].field_ref(pr));
             (proj_app, place_ref)
         }
         mir::ProjectionElem::Downcast(..) => (expr.upcast_ty(), place_ref),
@@ -1298,27 +1220,26 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct Version {
+#[derive(Debug, Clone, Copy)]
+struct Version<'vir> {
     index: usize,
     location: mir::Location,
-    initialised: bool,
+    initialised: Option<vir::LocalDeclSnap<'vir>>,
 }
 
-impl Default for Version {
+impl<'vir> Default for Version<'vir> {
     fn default() -> Self {
         Self {
             index: 0,
             location: mir::Location::START,
-            initialised: false,
+            initialised: None,
         }
     }
 }
 
-impl fmt::Display for Version {
+impl<'vir> fmt::Display for Version<'vir> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if cfg!(debug_assertions) {
-            assert!(self.initialised);
             write!(f, "{:?}_s{}_i{}", self.location.block, self.location.statement_index, self.index)
         } else {
             write!(f, "{}", self.index)

@@ -505,11 +505,11 @@ pub trait Arity:
                 args.len()
             );
         }
-        for (i, param) in params.iter().enumerate() {
-            if param.kind() != args[i].ty().kind() {
+        for (i, (param, arg)) in params.iter().zip(args).enumerate() {
+            if param.kind() != arg.ty().kind() {
                 crate::typecheck_error!(
                     "Argument {i} has type {:?}, expected {:?}, Debug info: {debug_info}",
-                    args[i].ty().ty(),
+                    arg.ty().ty(),
                     param,
                 );
             }
