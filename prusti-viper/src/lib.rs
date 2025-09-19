@@ -79,7 +79,7 @@ impl<'vir> ToViperContext<'vir, '_> {
     // TODO: This signature is chosen to accommodate optional spans in
     //   expressions and statements. When a span is *always* set,then this
     //   should be changed.
-    fn span_to_pos(&self, span: Option<&'vir vir::VirSpan<'vir>>) -> Position {
+    fn span_to_pos(&self, span: Option<&'vir vir::VirSpan<'vir>>) -> Position<'_> {
         if let Some(span) = span {
             // TODO: virtual_position seems more appropriate (no need to store
             //   columns and lines which we don't use anyway), but it is not
@@ -513,7 +513,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Function<'vir> {
                 .posts
                 .iter()
                 .map(|v| v.to_viper_no_pos(ctx))
-                .chain(decreases.into_iter())
+                .chain(decreases)
                 .collect::<Vec<_>>(),
             ctx.ast.no_position(), // TODO: position (each function should have its own)
             self.expr.map(|v| v.to_viper_no_pos(ctx)),

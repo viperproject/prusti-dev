@@ -1,7 +1,7 @@
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder};
-use vir::{Arity, CallableIdn, CastType, FunctionIdn, HasType};
+use vir::{CallableIdn, CastType, FunctionIdn, HasType};
 
-use crate::encoders::ty::{generics::GenericParamsEnc, RustTy};
+use crate::encoders::ty::{RustTy, generics::GenericParamsEnc};
 
 use super::r#typeof::{TypeOfEnc, TypeOfEncOutputRef};
 
@@ -116,10 +116,12 @@ impl TaskEncoder for TyConstructorEnc {
                 },
             )?;
 
-            let args = ty_accessor_functions.iter().map(|d|
-                vcx.mk_local_decl(d.name, d.ty)
-            ).collect::<Vec<_>>();
-            let variant = vcx.mk_adt_constructor(type_function_ident.name().to_str(), vcx.alloc_slice(&args));
+            let args = ty_accessor_functions
+                .iter()
+                .map(|d| vcx.mk_local_decl(d.name, d.ty))
+                .collect::<Vec<_>>();
+            let variant =
+                vcx.mk_adt_constructor(type_function_ident.name().to_str(), vcx.alloc_slice(&args));
             Ok((variant, ()))
         })
     }
@@ -130,7 +132,11 @@ impl TaskEncoder for TyConstructorEnc {
             let args = vcx.alloc_array(&[vcx.mk_local_decl("non_unit", vir::TYPE_INT)]);
             let unknown = vcx.mk_adt_constructor("Unknown_type", args);
             constructors.push(unknown);
-            let adt = vcx.mk_adt(vir::ViperIdent::new("Type"), &[], vcx.alloc_slice(&constructors));
+            let adt = vcx.mk_adt(
+                vir::ViperIdent::new("Type"),
+                &[],
+                vcx.alloc_slice(&constructors),
+            );
             program.add_adt(adt);
         })
     }

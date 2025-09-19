@@ -9,7 +9,9 @@ use prusti_rustc_interface::{
     },
     serialize::{opaque, Decodable, Decoder},
     session::StableCrateId,
-    span::{BytePos, ByteSymbol, ExpnId, Span, SpanDecoder, StableSourceFileId, Symbol, SyntaxContext},
+    span::{
+        BytePos, ByteSymbol, ExpnId, Span, SpanDecoder, StableSourceFileId, Symbol, SyntaxContext,
+    },
 };
 use rustc_hash::FxHashMap;
 
@@ -105,7 +107,7 @@ impl<'a, 'tcx> SpanDecoder for DefSpecsDecoder<'a, 'tcx> {
     fn decode_attr_id(&mut self) -> AttrId {
         todo!()
     }
-    
+
     fn decode_byte_symbol(&mut self) -> ByteSymbol {
         let tag = self.read_u8();
 

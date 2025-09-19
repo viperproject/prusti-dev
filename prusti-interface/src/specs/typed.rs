@@ -472,10 +472,10 @@ impl SpecGraph<ProcedureSpecification> {
 
     /// Attaches the `pledge` to the base spec and all constrained specs.
     pub fn add_pledge(&mut self, pledge: Pledge) {
-        self.base_spec.pledges.push(pledge.clone());
+        self.base_spec.pledges.push(pledge);
         self.specs_with_constraints
             .values_mut()
-            .for_each(|s| s.pledges.push(pledge.clone()));
+            .for_each(|s| s.pledges.push(pledge));
     }
 
     /// Sets the trusted flag for the base spec and all constrained specs.

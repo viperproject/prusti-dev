@@ -12,10 +12,15 @@ use pcg::{
 use prusti_rustc_interface::middle::mir;
 
 use task_encoder::TaskEncoder;
-use vir::{CastType, Reify};
+use vir::Reify;
 
 use crate::encoders::{
-    ty::{generics::GParams, indirect::{IndirectKey, IndirectPredicatesEnc}, use_impure::TyUseImpure, RustTyDecomposition}, ImpureEncVisitor, TyUseImpureEnc,
+    ImpureEncVisitor, TyUseImpureEnc,
+    ty::{
+        RustTyDecomposition,
+        indirect::{IndirectKey, IndirectPredicatesEnc},
+        use_impure::TyUseImpure,
+    },
 };
 
 pub(super) enum WandOldOuter<'vir> {
@@ -93,7 +98,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 unreachable!()
             };
             for lb in let_bind {
-                wand = lb.map_or_else(|(d, e)| self.vcx.mk_let_expr(d, e, wand), |(d, e)| self.vcx.mk_let_expr(d, e, wand));
+                wand = lb.map_or_else(
+                    |(d, e)| self.vcx.mk_let_expr(d, e, wand),
+                    |(d, e)| self.vcx.mk_let_expr(d, e, wand),
+                );
             }
             inv.push(wand);
         }
@@ -170,11 +178,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         &mut self,
         place: MaybeRemotePlace<'vir>,
         old_outer: &mut WandOldOuter<'vir>,
-    ) -> (
-        vir::ExprSnap<'vir>,
-        mir::PlaceTy<'vir>,
-        TyUseImpure<'vir>,
-    ) {
+    ) -> (vir::ExprSnap<'vir>, mir::PlaceTy<'vir>, TyUseImpure<'vir>) {
         let p = Self::get_place(place);
         let (_, place_snap, ty, ty_out) = self.encode_place_snap(p);
         let place_snap = self.configure_old(place, place_snap, old_outer);
@@ -207,9 +211,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             return vir::OldLabel::Block(vir::CfgBlockLabelData::BasicBlock(bb.as_usize()));
         }
         let label_identifier = match at {
-            SnapshotLocation::Before(analysis_location) => "before",
-            SnapshotLocation::After(basic_block) => "after",
-            SnapshotLocation::BeforeRefReassignment(location) => "before_ref_reassignment",
+            SnapshotLocation::Before(..) => "before",
+            SnapshotLocation::After(..) => "after",
+            SnapshotLocation::BeforeRefReassignment(..) => "before_ref_reassignment",
             SnapshotLocation::Loop(_) | SnapshotLocation::BeforeJoin(_) => unreachable!(),
         };
         let location = at.location();
@@ -243,7 +247,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     }
 }
 
-type LetBind<'vir> = Result<(vir::LocalDeclSnap<'vir>, vir::ExprSnap<'vir>), (vir::LocalDeclRef<'vir>, vir::ExprRef<'vir>)>;
+type LetBind<'vir> = Result<
+    (vir::LocalDeclSnap<'vir>, vir::ExprSnap<'vir>),
+    (vir::LocalDeclRef<'vir>, vir::ExprRef<'vir>),
+>;
 
 trait SnapOrRef: vir::CompType {
     fn as_result<'vir>(d: vir::LocalDecl<'vir, Self>, e: vir::Expr<'vir, Self>) -> LetBind<'vir>;

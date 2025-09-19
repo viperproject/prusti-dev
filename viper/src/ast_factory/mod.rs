@@ -31,12 +31,12 @@ impl<'a> AstFactory<'a> {
 
     // === Info ===
 
-    fn no_info(&self) -> JObject {
+    fn no_info(&self) -> JObject<'_> {
         self.jni
             .unwrap_result(ast::NoInfo_object::with(self.env).singleton())
     }
 
-    fn simple_info(&self, comments: &[&str]) -> JObject {
+    fn simple_info(&self, comments: &[&str]) -> JObject<'_> {
         self.jni.unwrap_result(
             ast::SimpleInfo::with(self.env).new(
                 self.jni.new_seq(
@@ -49,7 +49,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    fn no_trafos(&self) -> JObject {
+    fn no_trafos(&self) -> JObject<'_> {
         self.jni
             .unwrap_result(ast::NoTrafos_object::with(self.env).singleton())
     }

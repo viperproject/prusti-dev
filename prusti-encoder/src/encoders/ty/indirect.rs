@@ -71,10 +71,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
         task_key: &Self::TaskKey<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
-        deps.emit_output_ref(
-            *task_key,
-            (),
-        )?;
+        deps.emit_output_ref(*task_key, ())?;
         vir::with_vcx(|vcx| {
             let (ty, proj_region) = task_key;
             let self_ty_enc = deps.require_dep::<TyUsePureEnc>(*ty)?;
@@ -132,7 +129,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                                     inner_expr
                                         .reify(
                                             vcx,
-                                            ref_domain.value_access(self_expr.downcast_ty())
+                                            ref_domain.value_access(self_expr.downcast_ty()),
                                         )
                                         .kind
                                 }),
@@ -167,10 +164,13 @@ impl TaskEncoder for IndirectPredicatesEnc {
                 }
                 TySpecifics::EnumLike(_data) => todo!(),
             }
-            Ok(((), IndirectPredicatesEncOutputRef {
-                covariant,
-                contravariant,
-            }))
+            Ok((
+                (),
+                IndirectPredicatesEncOutputRef {
+                    covariant,
+                    contravariant,
+                },
+            ))
         })
     }
 }
