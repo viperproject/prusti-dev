@@ -1,14 +1,18 @@
 use crate::encoders::{
-    ty::{generics::GParams, indirect::{IndirectKey, IndirectPredicatesEnc}, RustTyDecomposition},
     ImpureEncVisitor, MirLocalDefEncOutput, MirSpecEnc,
+    ty::{
+        RustTyDecomposition,
+        generics::GParams,
+        indirect::{IndirectKey, IndirectPredicatesEnc},
+    },
 };
 use pcg::borrow_pcg::{state::BorrowsState, unblock_graph::UnblockGraph};
-use prusti_interface::{environment::EnvQuery, PrustiError};
+use prusti_interface::{PrustiError, environment::EnvQuery};
 use prusti_rustc_interface::{
     data_structures::fx::{FxHashMap, FxHashSet},
     infer::infer::region_constraints::GenericKind,
     middle::{mir, ty},
-    span::{def_id::DefId, Span},
+    span::{Span, def_id::DefId},
 };
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::HasType;
@@ -18,7 +22,7 @@ pub struct WandEnc;
 
 #[derive(Clone, Debug)]
 pub enum WandEncError {
-    Unsupported(String),
+    Unsupported(#[allow(dead_code)] String),
 }
 
 impl<'vir, E: TaskEncoder> ImpureEncVisitor<'vir, '_, E> {
@@ -84,8 +88,7 @@ impl<'vir, E: TaskEncoder> ImpureEncVisitor<'vir, '_, E> {
                 });
             }
             wand_packages.push(
-                self
-                    .vcx
+                self.vcx
                     .mk_package_stmt(wand, self.vcx.alloc_slice(&package_script)),
             );
         }
@@ -98,6 +101,7 @@ pub struct WandEncOutput<'vir> {
     context: GParams<'vir>,
     edges: WandEncEdges,
     pub generic_to_param: FxHashMap<IndirectKey, Vec<(mir::Local, ty::Ty<'vir>)>>,
+    #[allow(dead_code)]
     pub pledges: Pledges<'vir>,
     wands: Vec<(Vec<IndirectKey>, Vec<IndirectKey>, Pledges<'vir>)>,
 }
@@ -127,7 +131,9 @@ impl<'vir> WandEncOutput<'vir> {
             .filter(|i| !(input && i.0 == mir::RETURN_PLACE))
             .flat_map(move |(i, ty)| {
                 let ty_task = RustTyDecomposition::from_ty(*ty, self.context);
-                let indirect = deps.require_dep::<IndirectPredicatesEnc>((ty_task, g)).unwrap();
+                let indirect = deps
+                    .require_dep::<IndirectPredicatesEnc>((ty_task, g))
+                    .unwrap();
                 let indirect = if input == (*i == mir::RETURN_PLACE) {
                     indirect.contravariant
                 } else {
@@ -147,9 +153,8 @@ impl<'vir> WandEncOutput<'vir> {
         local_defs: &'a MirLocalDefEncOutput<'vir>,
         deps: &'a mut TaskEncoderDependencies<'vir, E>,
     ) -> impl Iterator<Item = vir::ExprBool<'vir>> + 'a {
-        self.inputs().filter_map(|g| {
-            self.encode_generic(vcx, deps, g, true, |i| local_defs[i].impure_snap)
-        })
+        self.inputs()
+            .filter_map(|g| self.encode_generic(vcx, deps, g, true, |i| local_defs[i].impure_snap))
     }
 
     pub fn indirect_posts<'a, E: TaskEncoder>(
@@ -158,9 +163,8 @@ impl<'vir> WandEncOutput<'vir> {
         local_defs: &'a MirLocalDefEncOutput<'vir>,
         deps: &'a mut TaskEncoderDependencies<'vir, E>,
     ) -> impl Iterator<Item = vir::ExprBool<'vir>> + 'a {
-        self.outputs().filter_map(|g| {
-            self.encode_generic(vcx, deps, g, false, |i| local_defs[i].impure_snap)
-        })
+        self.outputs()
+            .filter_map(|g| self.encode_generic(vcx, deps, g, false, |i| local_defs[i].impure_snap))
     }
 
     pub fn wand_posts<'a, E: TaskEncoder>(
@@ -178,10 +182,7 @@ impl<'vir> WandEncOutput<'vir> {
                     .or_insert_with(|| {
                         let name = vir::vir_format!(vcx, "wand{:?}", i);
                         let decl = vcx.mk_local_decl(name, local_defs[i].local_snap.ty());
-                        (
-                            decl,
-                            vcx.mk_local_ex(decl),
-                        )
+                        (decl, vcx.mk_local_ex(decl))
                     })
                     .1
             };
@@ -227,6 +228,7 @@ impl<'vir> WandEncOutput<'vir> {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn mk_wand<'a, E: TaskEncoder>(
         &'a self,
         lhs: &[IndirectKey],
@@ -410,6 +412,7 @@ impl TaskEncoder for WandEnc {
                     || tcx.collect_referenced_late_bound_regions(fn_sig).is_empty()
             );
 
+            #[allow(clippy::needless_range_loop)]
             for i in 0..generics.count() {
                 let g = generics.param_at(i, tcx);
                 let key = match g.kind {
@@ -468,7 +471,12 @@ impl TaskEncoder for WandEnc {
                     let (ty::RegionKind::ReEarlyParam(a), ty::RegionKind::ReEarlyParam(b)) =
                         (r_a.kind(), r_b.kind())
                     else {
-                        return Err(EncodeFullError::EncodingError(WandEncError::Unsupported(format!("region bound pair: ({r_a:?}, {r_b:?})")), None));
+                        return Err(EncodeFullError::EncodingError(
+                            WandEncError::Unsupported(format!(
+                                "region bound pair: ({r_a:?}, {r_b:?})"
+                            )),
+                            None,
+                        ));
                     };
                     insert_edge(IndirectKey::Early(a), IndirectKey::Early(b));
                 }
@@ -476,16 +484,22 @@ impl TaskEncoder for WandEnc {
 
             for pred in rbp {
                 let GenericKind::Param(b) = pred.0 else {
-                    return Err(EncodeFullError::EncodingError(WandEncError::Unsupported(format!("region bound pair: {pred:?}")), None));
+                    return Err(EncodeFullError::EncodingError(
+                        WandEncError::Unsupported(format!("region bound pair: {pred:?}")),
+                        None,
+                    ));
                 };
                 let Some(a) = IndirectKey::from_region(pred.1) else {
-                    return Err(EncodeFullError::EncodingError(WandEncError::Unsupported(format!("region bound pair: {pred:?}")), None));
+                    return Err(EncodeFullError::EncodingError(
+                        WandEncError::Unsupported(format!("region bound pair: {pred:?}")),
+                        None,
+                    ));
                 };
                 // This edge may be skipped, see TODO in `WandEncEdges::edge`.
                 insert_edge(a, IndirectKey::Param(b));
             }
 
-            let spec = deps.require_dep::<MirSpecEnc>((def_id, substs, None, false))?;
+            let spec = deps.require_dep::<MirSpecEnc>((def_id, false))?;
             let pledges = spec.pledges;
 
             // convert edges to viper-supported wands
@@ -516,13 +530,23 @@ impl TaskEncoder for WandEnc {
                 for lhs_other in lhss {
                     let rhss_other = &edge_lhs[lhs_other];
                     if rhss != rhss_other {
-                        return Err(EncodeFullError::EncodingError(WandEncError::Unsupported(format!("two outputs do not block the same set of inputs: {lhs:?} blocks {rhss:?}, {lhs_other:?} blocks {rhss_other:?}")), None));
+                        return Err(EncodeFullError::EncodingError(
+                            WandEncError::Unsupported(format!(
+                                "two outputs do not block the same set of inputs: {lhs:?} blocks {rhss:?}, {lhs_other:?} blocks {rhss_other:?}"
+                            )),
+                            None,
+                        ));
                     }
                 }
                 for rhs_other in rhss {
                     let lhss_other = &edge_rhs[rhs_other];
                     if lhss != lhss_other {
-                        return Err(EncodeFullError::EncodingError(WandEncError::Unsupported(format!("two inputs are not blocked by the same set of outputs: {rhs:?} blocked by {lhss:?}, {rhs_other:?} blocked by {lhss_other:?}")), None));
+                        return Err(EncodeFullError::EncodingError(
+                            WandEncError::Unsupported(format!(
+                                "two inputs are not blocked by the same set of outputs: {rhs:?} blocked by {lhss:?}, {rhs_other:?} blocked by {lhss_other:?}"
+                            )),
+                            None,
+                        ));
                     }
                 }
                 wands.push((lhss.clone(), rhss.clone(), vec![]));
@@ -562,6 +586,7 @@ impl<'vir> WandEncOutput<'vir> {
         self.edges.outputs.iter().copied()
     }
 
+    #[allow(dead_code)]
     pub fn edges(&self) -> impl Iterator<Item = (IndirectKey, IndirectKey)> + '_ {
         self.edges.edges.iter().copied()
     }

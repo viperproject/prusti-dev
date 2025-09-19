@@ -10,6 +10,7 @@ mod class_name;
 pub mod errors;
 mod generators;
 mod module_tree;
+#[cfg(test)]
 mod unordered_set_eq;
 mod utils;
 mod wrapper_generator;

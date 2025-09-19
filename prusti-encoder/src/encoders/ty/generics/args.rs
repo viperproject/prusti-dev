@@ -12,7 +12,10 @@ pub struct GArgs<'tcx> {
 
 impl<'tcx> GArgs<'tcx> {
     pub fn new(context: impl Into<GParams<'tcx>>, args: &'tcx [ty::GenericArg<'tcx>]) -> Self {
-        GArgs { context: context.into(), args }
+        GArgs {
+            context: context.into(),
+            args,
+        }
     }
 
     pub(in crate::encoders::ty) fn context(self) -> GParams<'tcx> {

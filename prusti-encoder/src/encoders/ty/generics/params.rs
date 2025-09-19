@@ -1,8 +1,14 @@
-use prusti_rustc_interface::{middle::ty, span::{symbol, def_id::DefId}};
+use prusti_rustc_interface::{
+    middle::ty,
+    span::{def_id::DefId, symbol},
+};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, HasType};
 
-use crate::encoders::{ty::{data::TySpecifics, generics::GArgsTyEnc, lifted::{TyConstructorEnc, TypeOfEnc}, RustTyDecomposition}, TyUsePureEnc};
+use crate::encoders::{
+    TyUsePureEnc,
+    ty::{RustTyDecomposition, data::TySpecifics, generics::GArgsTyEnc, lifted::TyConstructorEnc},
+};
 
 /// The list of defined parameters in a given context. E.g. the type parameters
 /// `T` and `U` in the body of the function `fn foo<T, U>(t: T) -> U { ... }`
@@ -22,7 +28,11 @@ impl<'tcx> GParams<'tcx> {
     }
 
     pub fn empty_env(params: ty::GenericArgsRef<'tcx>) -> Self {
-       Self::new(params, ty::ParamEnv::empty())
+        Self::new(params, ty::ParamEnv::empty())
+    }
+
+    pub fn count(self) -> usize {
+        self.ty_params().count() + self.const_params().count()
     }
 
     pub(super) fn expect_const(self, idx: usize) -> (ty::ParamConst, ty::Ty<'tcx>) {
@@ -44,20 +54,38 @@ impl<'tcx> GParams<'tcx> {
     /// `Some` if managed to normalize (or there were no associated types), else
     /// returns None.
     pub fn try_normalize(self, ty: ty::Ty<'tcx>) -> Option<ty::Ty<'tcx>> {
-        use prusti_rustc_interface::{middle::ty, trait_selection::{infer::{InferCtxt, TyCtxtInferExt}, traits::{ObligationCause, NormalizeExt, ScrubbedTraitError, TraitEngine, TraitEngineExt}}};
+        use prusti_rustc_interface::{
+            middle::ty,
+            trait_selection::{
+                infer::{InferCtxt, TyCtxtInferExt},
+                traits::{
+                    NormalizeExt, ObligationCause, ScrubbedTraitError, TraitEngine, TraitEngineExt,
+                },
+            },
+        };
         vir::with_vcx(|vcx| {
             // Normalize associated types
             let ifctxt: InferCtxt = vcx.tcx().infer_ctxt().build(ty::TypingMode::PostAnalysis);
-            let mut fulfill_cx = <dyn TraitEngine<ScrubbedTraitError> as TraitEngineExt<ScrubbedTraitError>>::new(&ifctxt);
+            let mut fulfill_cx = <dyn TraitEngine<ScrubbedTraitError> as TraitEngineExt<
+                ScrubbedTraitError,
+            >>::new(&ifctxt);
             // TODO: is this correct?
-            let kinds = self.params.iter().map(|param| match param.kind() {
-                ty::GenericArgKind::Lifetime(_) => ty::BoundVariableKind::Region(ty::BoundRegionKind::Anon),
-                ty::GenericArgKind::Type(_) => ty::BoundVariableKind::Ty(ty::BoundTyKind::Anon),
-                ty::GenericArgKind::Const(_) => ty::BoundVariableKind::Const,
-            }).collect::<Vec<_>>();
+            let kinds = self
+                .params
+                .iter()
+                .map(|param| match param.kind() {
+                    ty::GenericArgKind::Lifetime(_) => {
+                        ty::BoundVariableKind::Region(ty::BoundRegionKind::Anon)
+                    }
+                    ty::GenericArgKind::Type(_) => ty::BoundVariableKind::Ty(ty::BoundTyKind::Anon),
+                    ty::GenericArgKind::Const(_) => ty::BoundVariableKind::Const,
+                })
+                .collect::<Vec<_>>();
             let kinds = vcx.tcx().mk_bound_variable_kinds(&kinds);
             let ty = ty::Binder::bind_with_vars(ty, kinds);
-            let nty = ifctxt.at(&ObligationCause::dummy(), self.env).deeply_normalize(ty, &mut *fulfill_cx);
+            let nty = ifctxt
+                .at(&ObligationCause::dummy(), self.env)
+                .deeply_normalize(ty, &mut *fulfill_cx);
             nty.ok().map(|nty| nty.skip_binder())
         })
     }
@@ -68,22 +96,31 @@ impl<'tcx> GParams<'tcx> {
         self.try_normalize(ty).unwrap_or(ty)
     }
 
-    fn params<T>(self, f: impl Fn(ty::GenericArg<'tcx>) -> Option<T>) -> impl Iterator<Item = (usize, T)> {
-        self.params.iter().enumerate().filter_map(move |(i, arg)| f(arg).map(|arg| (i, arg)))
+    fn params<T>(
+        self,
+        f: impl Fn(ty::GenericArg<'tcx>) -> Option<T>,
+    ) -> impl Iterator<Item = (usize, T)> {
+        self.params
+            .iter()
+            .enumerate()
+            .filter_map(move |(i, arg)| f(arg).map(|arg| (i, arg)))
     }
 
     fn ty_params(self) -> impl Iterator<Item = (usize, ty::ParamTy)> {
         self.params(ty::GenericArg::as_type).map(|(i, ty)| {
-            let ty::TyKind::Param(param) = ty.kind() else { unreachable!() };
+            let ty::TyKind::Param(param) = ty.kind() else {
+                unreachable!()
+            };
             (i, *param)
         })
     }
 
     fn const_params(self) -> impl Iterator<Item = (usize, ty::ParamConst, ty::Ty<'tcx>)> {
-        self.params(ty::GenericArg::as_const).map(move |(i, const_)| {
-            let (param, ty) = self.const_ty(const_);
-            (i, param, ty)
-        })
+        self.params(ty::GenericArg::as_const)
+            .map(move |(i, const_)| {
+                let (param, ty) = self.const_ty(const_);
+                (i, param, ty)
+            })
     }
 }
 
@@ -147,7 +184,10 @@ impl<'vir> GenericParams<'vir> {
 
     fn map_idx(&self, index: u32) -> Result<usize, usize> {
         let result = self.indicies[index as usize];
-        assert!(result.ok().is_none_or(|i| i != usize::MAX), "trying to map invalid generic param index {index} (possibly a region?)");
+        assert!(
+            result.ok().is_none_or(|i| i != usize::MAX),
+            "trying to map invalid generic param index {index} (possibly a region?)"
+        );
         result
     }
 
@@ -165,7 +205,11 @@ impl<'vir> GenericParams<'vir> {
     }
     */
 
-    pub(super) fn ty_expr<E: TaskEncoder + 'vir + ?Sized>(&self, deps: &mut TaskEncoderDependencies<'vir, E>, ty: RustTyDecomposition<'vir>) -> vir::ExprTyVal<'vir> {
+    pub(super) fn ty_expr<E: TaskEncoder + 'vir + ?Sized>(
+        &self,
+        deps: &mut TaskEncoderDependencies<'vir, E>,
+        ty: RustTyDecomposition<'vir>,
+    ) -> vir::ExprTyVal<'vir> {
         if let TySpecifics::Param(()) = &ty.ty.specifics {
             let param = ty.args.expect_param();
             return self.ty_exprs[self.map_idx(param.index).unwrap()];
@@ -194,26 +238,44 @@ impl TaskEncoder for GenericParamsEnc {
     ) -> EncodeFullResult<'vir, Self> {
         deps.emit_output_ref(*task_key, ())?;
         vir::with_vcx(|vcx| {
-            let sanitize = |name: symbol::Symbol, index: u32|
-                vir::ViperIdent::sanitize(vcx, &format!("{name}${index}")).to_str();
+            let sanitize = |name: symbol::Symbol, index: u32| {
+                vir::ViperIdent::sanitize(vcx, &format!("{name}${index}")).to_str()
+            };
 
             let mut indicies = vec![Ok(usize::MAX); task_key.params.len()];
-            let ty_decls = task_key.ty_params().enumerate().map(|(i, (gi, param))| {
-                indicies[gi] = Ok(i);
-                vcx.mk_local_decl(sanitize(param.name, param.index), vir::TYPE_TYVAL)
-            }).collect::<Vec<_>>();
+            let ty_decls = task_key
+                .ty_params()
+                .enumerate()
+                .map(|(i, (gi, param))| {
+                    indicies[gi] = Ok(i);
+                    vcx.mk_local_decl(sanitize(param.name, param.index), vir::TYPE_TYVAL)
+                })
+                .collect::<Vec<_>>();
             let ty_args = vcx.alloc_slice(&vec![vir::TYPE_TYVAL; ty_decls.len()]);
-            let ty_exprs = ty_decls.iter().map(|decl| vcx.mk_local_ex(*decl)).collect::<Vec<_>>();
+            let ty_exprs = ty_decls
+                .iter()
+                .map(|decl| vcx.mk_local_ex(*decl))
+                .collect::<Vec<_>>();
 
-            let const_decls = task_key.const_params().enumerate().map(|(i, (gi, p, ty))| {
-                indicies[gi] = Err(i);
-                let ty = RustTyDecomposition::from_ty(ty, *task_key);
-                let lifted_const = deps.require_ref::<TyUsePureEnc>(ty)?;
-                Ok(vcx.mk_local_decl(sanitize(p.name, p.index), lifted_const.snapshot.downcast_ty()))
-            }).collect::<Result<Vec<_>, _>>()?;
+            let const_decls = task_key
+                .const_params()
+                .enumerate()
+                .map(|(i, (gi, p, ty))| {
+                    indicies[gi] = Err(i);
+                    let ty = RustTyDecomposition::from_ty(ty, *task_key);
+                    let lifted_const = deps.require_ref::<TyUsePureEnc>(ty)?;
+                    Ok(vcx.mk_local_decl(
+                        sanitize(p.name, p.index),
+                        lifted_const.snapshot.downcast_ty(),
+                    ))
+                })
+                .collect::<Result<Vec<_>, _>>()?;
             let const_args = const_decls.iter().map(|decl| decl.ty()).collect::<Vec<_>>();
             let const_args = vcx.alloc_slice(&const_args);
-            let const_exprs = const_decls.iter().map(|decl| vcx.mk_local_ex(*decl)).collect::<Vec<_>>();
+            let const_exprs = const_decls
+                .iter()
+                .map(|decl| vcx.mk_local_ex(*decl))
+                .collect::<Vec<_>>();
 
             let output = GenericParams {
                 ty_args,

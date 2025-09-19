@@ -159,7 +159,7 @@ impl<'a, 'tcx> SpanEncoder for DefSpecsEncoder<'a, 'tcx> {
     fn encode_def_id(&mut self, id: DefId) {
         self.tcx.def_path_hash(id).encode(self)
     }
-    
+
     fn encode_byte_symbol(&mut self, byte_sym: ByteSymbol) {
         // if symbol preinterned, emit tag and symbol index
         if Symbol::is_predefined(byte_sym.as_u32()) {

@@ -9,14 +9,16 @@ mod encoders;
 mod trait_support;
 pub mod request;
 
-use prusti_interface::{environment::EnvBody, specs::specifications::SpecQuery, PrustiError};
-use prusti_rustc_interface::{hir, middle::ty};
+use prusti_interface::{PrustiError, environment::EnvBody};
+use prusti_rustc_interface::middle::ty;
 use task_encoder::TaskEncoder;
 
 use crate::encoders::{
-    ty::{generics::GArgsCastEnc, lifted::{
-        TyConstructorEnc, TypeOfEnc,
-    }}, Impure, Pure
+    Impure, Pure,
+    ty::{
+        generics::GArgsCastEnc,
+        lifted::{TyConstructorEnc, TypeOfEnc},
+    },
 };
 
 pub fn test_entrypoint<'tcx>(
@@ -50,7 +52,7 @@ pub fn test_entrypoint<'tcx>(
 
     program.header("impure generic casts");
     GArgsCastEnc::<Impure>::emit_outputs(&mut program);
-    
+
     program.header("snapshots");
     crate::encoders::TyUsePureEnc::emit_outputs(&mut program);
 

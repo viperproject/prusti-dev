@@ -1,12 +1,16 @@
 use std::{fmt::Debug, marker::PhantomData};
 
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CallableIdn, FunctionIdn, MethodIdn};
+use vir::{FunctionIdn, MethodIdn};
 
 use crate::encoders::{
+    Impure, Pure, Purity,
     ty::{
-    impure::TyImpureEnc, lifted::{ty_constructor::TyConstructorEnc, TypeOfEnc}, pure::TyPureEnc, RustTy, RustTyDecomposition
-}, Impure, Pure, Purity
+        RustTy,
+        impure::TyImpureEnc,
+        lifted::{TypeOfEnc, ty_constructor::TyConstructorEnc},
+        pure::TyPureEnc,
+    },
 };
 
 use super::GenericParamsEnc;
@@ -24,14 +28,16 @@ pub(super) struct GArgCasters<'vir, P: PurityCasters> {
 /// [`CastFunctions::AlreadyGeneric`].
 pub(super) struct CastersEnc<T>(PhantomData<T>);
 
-pub(super) trait PurityCasters: Purity {
+pub trait PurityCasters: Purity {
     type MakeGeneric<'vir>: Debug + Clone + Copy;
     type MakeConcrete<'vir>: Debug + Clone + Copy;
 }
 
 impl PurityCasters for Pure {
-    type MakeGeneric<'vir> = FunctionIdn<'vir, (vir::CSnap, vir::ManyTyVal, vir::ManyCSnap), vir::PSnap>;
-    type MakeConcrete<'vir> = FunctionIdn<'vir, (vir::PSnap, vir::ManyTyVal, vir::ManyCSnap), vir::CSnap>;
+    type MakeGeneric<'vir> =
+        FunctionIdn<'vir, (vir::CSnap, vir::ManyTyVal, vir::ManyCSnap), vir::PSnap>;
+    type MakeConcrete<'vir> =
+        FunctionIdn<'vir, (vir::PSnap, vir::ManyTyVal, vir::ManyCSnap), vir::CSnap>;
 }
 
 impl PurityCasters for Impure {
@@ -112,17 +118,32 @@ impl TaskEncoder for CastersEnc<Pure> {
             // applied to type arguments `args`
             let mk_type_spec = |param: vir::ExprPSnap<'vir>, ty_args, const_args| {
                 let lifted_param_snap_ty = generic_typeof(param.upcast_ty());
-                vcx.mk_eq_expr(lifted_param_snap_ty, (ty_constructor.ty_constructor)(ty_args, const_args))
+                vcx.mk_eq_expr(
+                    lifted_param_snap_ty,
+                    (ty_constructor.ty_constructor)(ty_args, const_args),
+                )
             };
 
             let make_generic = vcx.mk_function(
                 make_generic_ident,
-                (make_generic_arg, generics.ty_decls(), generics.const_decls()),
+                (
+                    make_generic_arg,
+                    generics.ty_decls(),
+                    generics.const_decls(),
+                ),
                 &[],
                 vcx.alloc_slice(&[
-                    mk_type_spec(make_generic_result, &ty_params_from_snap, &const_params_from_snap),
+                    mk_type_spec(
+                        make_generic_result,
+                        &ty_params_from_snap,
+                        &const_params_from_snap,
+                    ),
                     vcx.mk_eq_expr(
-                        make_concrete_ident(make_generic_result, &ty_params_from_snap, &const_params_from_snap),
+                        make_concrete_ident(
+                            make_generic_result,
+                            &ty_params_from_snap,
+                            &const_params_from_snap,
+                        ),
                         make_generic_expr,
                     ),
                 ]),
@@ -131,21 +152,30 @@ impl TaskEncoder for CastersEnc<Pure> {
             );
 
             let make_concrete_snap_arg_decl = vcx.mk_local_decl("snap", generic_snap);
-            let make_concrete_snap_arg_expr = vcx.mk_local_ex(
-                make_concrete_snap_arg_decl,
+            let make_concrete_snap_arg_expr = vcx.mk_local_ex(make_concrete_snap_arg_decl);
+
+            let _make_concrete_pre = mk_type_spec(
+                make_concrete_snap_arg_expr,
+                generics.ty_exprs(),
+                generics.const_exprs(),
             );
 
-            let _make_concrete_pre =
-                mk_type_spec(make_concrete_snap_arg_expr, generics.ty_exprs(), generics.const_exprs());
-
             let make_concrete_post = vcx.mk_eq_expr(
-                make_generic_ident(vcx.mk_result(self_ty), generics.ty_exprs(), generics.const_exprs()),
+                make_generic_ident(
+                    vcx.mk_result(self_ty),
+                    generics.ty_exprs(),
+                    generics.const_exprs(),
+                ),
                 make_concrete_snap_arg_expr,
             );
 
             let make_concrete = vcx.mk_function(
                 make_concrete_ident,
-                (make_concrete_snap_arg_decl, generics.ty_decls(), generics.const_decls()),
+                (
+                    make_concrete_snap_arg_decl,
+                    generics.ty_decls(),
+                    generics.const_decls(),
+                ),
                 // TODO: type preconditions do not currently work
                 // vcx.alloc_slice(&[make_concrete_pre]),
                 &[],
@@ -217,22 +247,35 @@ impl TaskEncoder for CastersEnc<Impure> {
             let self_expr = vcx.mk_local_ex(self_decl);
             let decls = (self_decl, generics.ty_decls(), generics.const_decls());
 
-            let concrete_predicate = (predicate_ref.ref_to_pred)(self_expr, generics.ty_exprs(), generics.const_exprs())(None);
+            let concrete_predicate = (predicate_ref.ref_to_pred)(
+                self_expr,
+                generics.ty_exprs(),
+                generics.const_exprs(),
+            )(None);
 
-            let concrete_snap = (predicate_ref.ref_to_snap)(self_expr, generics.ty_exprs(), generics.const_exprs()).downcast_ty();
+            let concrete_snap =
+                (predicate_ref.ref_to_snap)(self_expr, generics.ty_exprs(), generics.const_exprs())
+                    .downcast_ty();
 
             let concrete_predicate = vcx.mk_predicate_app_expr(concrete_predicate);
 
-            let lifted_ty_expr = (ty_constructor.ty_constructor)(generics.ty_exprs(), generics.const_exprs());
+            let lifted_ty_expr =
+                (ty_constructor.ty_constructor)(generics.ty_exprs(), generics.const_exprs());
 
-            let generic_predicate = (generic_ref.ref_to_pred)(self_expr, &[lifted_ty_expr], &[])(None);
+            let generic_predicate =
+                (generic_ref.ref_to_pred)(self_expr, &[lifted_ty_expr], &[])(None);
 
-            let generic_snap = (generic_ref.ref_to_snap)(self_expr, &[lifted_ty_expr], &[]).downcast_ty::<vir::PSnap>();
+            let generic_snap = (generic_ref.ref_to_snap)(self_expr, &[lifted_ty_expr], &[])
+                .downcast_ty::<vir::PSnap>();
 
             let generic_predicate = vcx.mk_predicate_app_expr(generic_predicate);
 
             let make_generic_same_snap = vcx.mk_eq_expr(
-                vcx.mk_old_expr(make_generic_pure(concrete_snap, generics.ty_exprs(), generics.const_exprs())),
+                vcx.mk_old_expr(make_generic_pure(
+                    concrete_snap,
+                    generics.ty_exprs(),
+                    generics.const_exprs(),
+                )),
                 generic_snap,
             );
 

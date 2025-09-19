@@ -13,7 +13,12 @@ impl<'vir, Curr: Copy, NextA, NextB, T: CompType> Reify<'vir, Curr>
 {
     type Next = ExprGen<'vir, NextA, NextB, T>;
     fn reify<'tcx>(&self, vcx: &'vir VirCtxt<'tcx>, lctx: Curr) -> Self::Next {
-        vcx.alloc(ExprGenData::new_inner(self.kind.reify(vcx, lctx), self.debug_info, self.span, self.ty()))
+        vcx.alloc(ExprGenData::new_inner(
+            self.kind.reify(vcx, lctx),
+            self.debug_info,
+            self.span,
+            self.ty(),
+        ))
     }
 }
 
@@ -49,11 +54,15 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
             ExprKindGenData::Result(t) => vcx.alloc(ExprKindGenData::Result(t)),
             ExprKindGenData::Lazy(v) => (v.func)(vcx, lctx),
 
-            ExprKindGenData::AdtConstructor(v) => vcx.alloc(ExprKindGenData::AdtConstructor(v.reify(vcx, lctx))),
-            ExprKindGenData::AdtDestructor(v, field) =>
-                vcx.alloc(ExprKindGenData::AdtDestructor(v.reify(vcx, lctx), *field)),
-            ExprKindGenData::AdtDiscriminator(v, cons) =>
-                vcx.alloc(ExprKindGenData::AdtDiscriminator(v.reify(vcx, lctx), *cons)),
+            ExprKindGenData::AdtConstructor(v) => {
+                vcx.alloc(ExprKindGenData::AdtConstructor(v.reify(vcx, lctx)))
+            }
+            ExprKindGenData::AdtDestructor(v, field) => {
+                vcx.alloc(ExprKindGenData::AdtDestructor(v.reify(vcx, lctx), field))
+            }
+            ExprKindGenData::AdtDiscriminator(v, cons) => {
+                vcx.alloc(ExprKindGenData::AdtDiscriminator(v.reify(vcx, lctx), cons))
+            }
 
             ExprKindGenData::Todo(v) => vcx.alloc(ExprKindGenData::Todo(v)),
         }

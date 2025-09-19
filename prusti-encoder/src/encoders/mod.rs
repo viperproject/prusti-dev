@@ -11,26 +11,29 @@ pub mod impure;
 /// Encoders for Rust functions (pure and impure)
 pub mod mir_fn;
 
+pub use r#const::ConstEnc;
 pub use impure::fn_wand::{WandEnc, WandEncOutput, WandEncTask};
 pub use local_def::*;
 pub use mir_builtin::{MirBuiltinEnc, MirBuiltinEncTask};
+pub use mir_fn::{FunctionCallEnc, MethodCallEnc, encode_all_in_crate};
 pub use mir_impure::ImpureEncVisitor;
 pub use mir_pure::{MirPureEnc, MirPureEncTask, PureKind};
 pub use pure::spec::MirSpecEnc;
-pub use r#const::ConstEnc;
+pub(super) use spec::with_proc_spec;
+pub use spec::{SpecEnc, SpecEncTask, is_function_trusted, is_type_trusted};
 pub use ty::{
-    use_pure::TyUsePureEnc,
     use_impure::TyUseImpureEnc,
+    use_pure::TyUsePureEnc,
     viper_tuple::{ViperTupleEnc, ViperTupleEncOutput},
 };
-pub(super) use spec::with_proc_spec;
-pub use spec::{is_function_trusted, is_type_trusted, SpecEnc, SpecEncTask};
-pub use mir_fn::{FunctionCallEnc, MethodCallEnc, encode_all_in_crate};
 
 /// Some encoders work for both pure and impure encodings, though might output
 /// something slightly different for the two. This allows them to be generic in
 /// that regard and reuse code.
-pub(crate) trait Purity: 'static + std::fmt::Debug + Clone + Copy + PartialEq + Eq + std::hash::Hash {}
+pub(crate) trait Purity:
+    'static + std::fmt::Debug + Clone + Copy + PartialEq + Eq + std::hash::Hash
+{
+}
 
 /// Some encoders work for both pure and impure encodings, though might output
 /// something slightly different for the two. This allows them to be generic in

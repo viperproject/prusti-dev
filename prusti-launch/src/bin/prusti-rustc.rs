@@ -79,8 +79,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
                     "Running `prusti-rustc` with the flag '{} {}' is not supported! \
                     The crate `{prusti_lib}` is an internal Prusti crate and will be linked automatically. \
                     If you encounter this error running with `cargo(-prusti)` please file a bug report.",
-                    illegal_arg[0],
-                    illegal_arg[1],
+                    illegal_arg[0], illegal_arg[1],
                 );
             }
             // These are the libraries that files compiled with prusti-rustc get

@@ -35,7 +35,10 @@ pub unsafe fn store_mir_body<'tcx>(
     // SAFETY: See the module level comment.
     let body_with_facts: BodyWithBorrowckFacts<'static> =
         unsafe { std::mem::transmute(body_with_facts) };
-    assert_eq!(body_with_facts.body.phase, mir::MirPhase::Analysis(mir::AnalysisPhase::Initial));
+    assert_eq!(
+        body_with_facts.body.phase,
+        mir::MirPhase::Analysis(mir::AnalysisPhase::Initial)
+    );
     SHARED_STATE_WITH_FACTS.with(|state| {
         let mut map = state.borrow_mut();
         assert!(map.insert(def_id, body_with_facts).is_none());
@@ -53,7 +56,7 @@ pub(crate) unsafe fn retrieve_mir_body<'tcx>(
     let body_with_facts: BodyWithBorrowckFacts<'static> = SHARED_STATE_WITH_FACTS.with(|state| {
         let mut map = state.borrow_mut();
         map.remove(&def_id).unwrap_or_else(|| {
-            panic!("No MIR body found for {:?}", def_id);
+            panic!("No MIR body found for {def_id:?}");
         })
     });
     // SAFETY: See the module level comment.
@@ -70,7 +73,10 @@ pub unsafe fn store_promoted_mir_body<'tcx>(
 ) {
     // SAFETY: See the module level comment.
     let body: mir::Body<'static> = unsafe { std::mem::transmute(body) };
-    assert_eq!(body.phase, mir::MirPhase::Analysis(mir::AnalysisPhase::Initial));
+    assert_eq!(
+        body.phase,
+        mir::MirPhase::Analysis(mir::AnalysisPhase::Initial)
+    );
     SHARED_STATE_WITHOUT_FACTS.with(|state| {
         let mut map = state.borrow_mut();
         assert!(map.insert(def_id, body).is_none());

@@ -2,7 +2,11 @@ use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies};
 use vir::{FunctionIdn, Reify};
 
-use crate::encoders::{mir_fn::{CallTaskDescription, RustSignature}, ty::{generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc}}, MirLocalDefEnc, MirPureEnc, MirPureEncTask, MirSpecEnc, Pure, PureKind};
+use crate::encoders::{
+    MirLocalDefEnc, MirPureEnc, MirPureEncTask, MirSpecEnc, Pure, PureKind,
+    mir_fn::{CallTaskDescription, RustSignature},
+    ty::generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
+};
 
 // Function wrapper
 
@@ -17,13 +21,20 @@ pub struct FunctionCallEncOutput<'vir> {
 }
 
 impl<'vir> FunctionCallEncOutput<'vir> {
-    pub fn call<Curr, Next>(&self, mut args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>) -> vir::ExprGenSnap<'vir, Curr, Next> {
+    pub fn call<Curr, Next>(
+        &self,
+        mut args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
         assert_eq!(self.inputs.len(), args.len());
         let a = args.iter_mut().zip(self.inputs.iter());
         for (arg, caster) in a {
             *arg = caster.cast_to_callee_ctx(*arg);
         }
-        let call = self.function.function_ref.call()(&args, self.ty_args.get_ty(), self.ty_args.get_const());
+        let call = self.function.function_ref.call()(
+            &args,
+            self.ty_args.get_ty(),
+            self.ty_args.get_const(),
+        );
         self.output.cast_to_caller_ctx(call)
     }
 }
@@ -45,13 +56,27 @@ impl TaskEncoder for FunctionCallEnc {
         let function_ref = deps.require_ref::<FunctionEnc>(task_key.callee)?;
         let signature = RustSignature::new(task_key.callee);
         let ty_args = deps.require_dep::<GArgsTyEnc>(task_key.gargs)?;
-        let inputs = signature.inputs.iter().map(|ty| {
-            let normalized = ty.decompose_compare_normalize(signature.gparams, task_key.gargs);
-            deps.require_dep::<GArgsCastEnc<Pure>>(normalized)
-        }).collect::<Result<Vec<_>, _>>()?;
-        let normalized = signature.output.decompose_compare_normalize(signature.gparams, task_key.gargs);
+        let inputs = signature
+            .inputs
+            .iter()
+            .map(|ty| {
+                let normalized = ty.decompose_compare_normalize(signature.gparams, task_key.gargs);
+                deps.require_dep::<GArgsCastEnc<Pure>>(normalized)
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        let normalized = signature
+            .output
+            .decompose_compare_normalize(signature.gparams, task_key.gargs);
         let output = deps.require_dep::<GArgsCastEnc<Pure>>(normalized)?;
-        Ok(((), FunctionCallEncOutput { function: function_ref, ty_args, inputs, output }))
+        Ok((
+            (),
+            FunctionCallEncOutput {
+                function: function_ref,
+                ty_args,
+                inputs,
+                output,
+            },
+        ))
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
@@ -98,22 +123,25 @@ impl TaskEncoder for FunctionEnc {
         vir::with_vcx(|vcx| {
             let def_id = *task_key;
             let trusted = crate::encoders::is_function_trusted(def_id);
-            let local_defs = deps
-                .require_dep::<MirLocalDefEnc>((def_id, true))?;
+            let local_defs = deps.require_dep::<MirLocalDefEnc>((def_id, true))?;
 
             tracing::debug!("encoding {def_id:?}");
 
-            let function_ident = vir::vir_format_identifier!(vcx, "f_{}", vcx.tcx().def_path_str(def_id));
+            let function_ident =
+                vir::vir_format_identifier!(vcx, "f_{}", vcx.tcx().def_path_str(def_id));
             let arg_types = vcx.alloc_slice(&local_defs.snap_ty_args().collect::<Vec<_>>());
             let return_type = local_defs.snap_ty_return();
             let params = GParams::from(def_id);
             let generics = deps.require_dep::<GenericParamsEnc>(params)?;
-            let function_ref =
-                FunctionIdn::new(function_ident, (arg_types, generics.ty_args(), generics.const_args()), return_type);
+            let function_ref = FunctionIdn::new(
+                function_ident,
+                (arg_types, generics.ty_args(), generics.const_args()),
+                return_type,
+            );
             deps.emit_output_ref(def_id, FunctionEncOutputRef { function_ref })?;
 
             let substs = ty::GenericArgs::identity_for_item(vcx.tcx(), def_id);
-            let spec = deps.require_dep::<MirSpecEnc>((def_id, substs, None, true))?;
+            let spec = deps.require_dep::<MirSpecEnc>((def_id, true))?;
 
             let expr = if trusted {
                 None

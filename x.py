@@ -34,32 +34,28 @@ import verify_test
 
 dry_run = False
 
-RUSTFMT_CRATES = [
-    'jni-gen',
-    'prusti',
-    'prusti-contracts/prusti-contracts',
-    'prusti-contracts/prusti-contracts-proc-macros',
-    'prusti-contracts/prusti-specs',
-    'prusti-contracts/prusti-std',
-    'prusti-contracts-build',
-    'prusti-encoder',
-    'prusti-interface',
-    'prusti-launch',
-    'prusti-rustc-interface',
-    'prusti-server',
-    'prusti-smt-solver',
-    'prusti-tests',
-    'prusti-utils',
-    'prusti-viper',
-    'smt-log-analyzer',
-    'task-encoder',
-    #'test-crates',
-    'viper',
-    'viper-sys',
-    'vir',
-    'vir-proc-macro',
+RUSTFMT_EXCLUDED_CRATES = [
+    'tracing',
+    'pcg',
+    'analysis',
+    'mir-ssa-analysis',
+    'test-crates',
+    'prusti-contracts/prusti-contracts-test'
 ]
 
+def all_crates():
+    """Return a list of all crate directories (including in `prusti-contracts`)."""
+    root_crates = all_crates_dir('.')
+    root_crates.remove('prusti-contracts')
+    return root_crates + all_crates_dir('prusti-contracts')
+
+def all_crates_dir(dir):
+    """Return a list of all crate directories in the given directory."""
+    crates = []
+    for folder in os.listdir(dir):
+        if os.path.exists(os.path.join(dir, folder, 'Cargo.toml')):
+            crates.append(os.path.join(dir, folder) if dir != '.' else folder)
+    return crates
 
 def shell(command, term_on_nzec=True):
     """Run a shell command."""
@@ -200,7 +196,9 @@ def fmt_in(cwd):
 
 def fmt_all():
     """Run rustfmt on all formatted files."""
-    for crate in RUSTFMT_CRATES:
+    for crate in all_crates():
+        if crate in RUSTFMT_EXCLUDED_CRATES:
+            continue
         fmt_in(crate)
 
 def fmt_check_in(cwd):
@@ -209,7 +207,9 @@ def fmt_check_in(cwd):
 
 def fmt_check_all():
     """Run rustfmt check on all formatted files."""
-    for crate in RUSTFMT_CRATES:
+    for crate in all_crates():
+        if crate in RUSTFMT_EXCLUDED_CRATES:
+            continue
         fmt_check_in(crate)
 
 def check_smir():

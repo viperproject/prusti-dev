@@ -39,9 +39,7 @@ pub enum EncodeFullError<'vir, E: TaskEncoder + 'vir + ?Sized> {
         Option<E::OutputFullDependency<'vir>>,
     ),
 
-    DependencyError(
-        Vec<(&'static str, String, Vec<Span>)>,
-    ),
+    DependencyError(Vec<(&'static str, String, Vec<Span>)>),
 }
 
 // Manual implementation, since neither `E` nor `E::OutputFullDependency` are

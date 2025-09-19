@@ -1,4 +1,8 @@
-use std::{fmt::Debug, hash::Hash, ops::{Deref, Index}};
+use std::{
+    fmt::Debug,
+    hash::Hash,
+    ops::{Deref, Index},
+};
 
 use prusti_rustc_interface::abi;
 
@@ -110,7 +114,10 @@ impl<'vir, D: TyDatas<'vir>> TyData<'vir, D> {
     }
 
     #[track_caller]
-    pub fn expect_opaque(&self) -> &D::OpaqueData where Self: Debug {
+    pub fn expect_opaque(&self) -> &D::OpaqueData
+    where
+        Self: Debug,
+    {
         match &self.specifics {
             TySpecifics::Opaque(data) => data,
             _ => panic!("expected opaque (was {self:?})"),
@@ -118,7 +125,10 @@ impl<'vir, D: TyDatas<'vir>> TyData<'vir, D> {
     }
 
     #[track_caller]
-    pub fn expect_primitive(&self) -> &D::PrimitiveData where Self: Debug {
+    pub fn expect_primitive(&self) -> &D::PrimitiveData
+    where
+        Self: Debug,
+    {
         match &self.specifics {
             TySpecifics::Primitive(data) => data,
             _ => panic!("expected primitive (was {self:?})"),
@@ -126,7 +136,10 @@ impl<'vir, D: TyDatas<'vir>> TyData<'vir, D> {
     }
 
     #[track_caller]
-    pub fn expect_immref(&self) -> &D::ImmRefData where Self: Debug {
+    pub fn expect_immref(&self) -> &D::ImmRefData
+    where
+        Self: Debug,
+    {
         match &self.specifics {
             TySpecifics::ImmRef(data) => data,
             _ => panic!("expected immref (was {self:?})"),
@@ -134,7 +147,10 @@ impl<'vir, D: TyDatas<'vir>> TyData<'vir, D> {
     }
 
     #[track_caller]
-    pub fn expect_mutref(&self) -> &D::MutRefData where Self: Debug {
+    pub fn expect_mutref(&self) -> &D::MutRefData
+    where
+        Self: Debug,
+    {
         match &self.specifics {
             TySpecifics::MutRef(data) => data,
             _ => panic!("expected mutref (was {self:?})"),
@@ -149,7 +165,10 @@ impl<'vir, D: TyDatas<'vir>> TyData<'vir, D> {
     }
 
     #[track_caller]
-    pub fn expect_structlike(&self) -> &StructData<'vir, D> where Self: Debug {
+    pub fn expect_structlike(&self) -> &StructData<'vir, D>
+    where
+        Self: Debug,
+    {
         match &self.specifics {
             TySpecifics::StructLike(data) => data,
             _ => panic!("expected struct-like (was {self:?})"),
@@ -164,14 +183,20 @@ impl<'vir, D: TyDatas<'vir>> TyData<'vir, D> {
     }
 
     #[track_caller]
-    pub fn expect_enumlike(&self) -> &EnumData<'vir, D> where Self: Debug {
+    pub fn expect_enumlike(&self) -> &EnumData<'vir, D>
+    where
+        Self: Debug,
+    {
         match &self.specifics {
             TySpecifics::EnumLike(data) => data,
             _ => panic!("expected enum-like (was {self:?})"),
         }
     }
 
-    pub fn get_variant_any(&self, vid: abi::VariantIdx) -> &StructData<'vir, D> where Self: Debug {
+    pub fn get_variant_any(&self, vid: abi::VariantIdx) -> &StructData<'vir, D>
+    where
+        Self: Debug,
+    {
         match &self.specifics {
             TySpecifics::StructLike(s) => {
                 assert_eq!(vid, abi::FIRST_VARIANT);
@@ -183,12 +208,18 @@ impl<'vir, D: TyDatas<'vir>> TyData<'vir, D> {
     }
 
     #[track_caller]
-    pub fn expect_variant(&self, vid: abi::VariantIdx) -> &VariantData<'vir, D> where Self: Debug {
+    pub fn expect_variant(&self, vid: abi::VariantIdx) -> &VariantData<'vir, D>
+    where
+        Self: Debug,
+    {
         &self.expect_enumlike()[vid]
     }
 
     #[track_caller]
-    pub fn get_variant_opt(&self, vid: Option<abi::VariantIdx>) -> Option<&StructData<'vir, D>> where Self: Debug {
+    pub fn get_variant_opt(&self, vid: Option<abi::VariantIdx>) -> Option<&StructData<'vir, D>>
+    where
+        Self: Debug,
+    {
         match vid {
             None => self.get_structlike(),
             Some(vid) => Some(&self.expect_variant(vid).inner),
@@ -197,23 +228,30 @@ impl<'vir, D: TyDatas<'vir>> TyData<'vir, D> {
 
     /// Get the struct specifics (or enum variant if specified), panics if not a struct.
     pub fn expect_variant_opt(&self, vid: Option<abi::VariantIdx>) -> &StructData<'vir, D> {
-        self.get_variant_opt(vid).unwrap_or_else(|| panic!("expected structlike or enumlike type (was {self:?})"))
+        self.get_variant_opt(vid)
+            .unwrap_or_else(|| panic!("expected structlike or enumlike type (was {self:?})"))
     }
 }
 
 impl<'vir, D: TyDatas<'vir>> StructData<'vir, D> {
-    pub fn zip<D2: TyDatas<'vir>>(&'vir self, other: &'vir StructData<'vir, D2>) -> StructData<'vir, (D, D2)> {
+    pub fn zip<D2: TyDatas<'vir>>(
+        &'vir self,
+        other: &'vir StructData<'vir, D2>,
+    ) -> StructData<'vir, (D, D2)> {
         assert_eq!(self.fields.len(), other.fields.len());
         let fields = self.fields.iter().zip(other.fields.iter());
         StructData {
             data: (&self.data, &other.data),
-            fields: fields.map(|(f1, f2)| (f1, f2)).collect(),
+            fields: fields.collect(),
         }
     }
 }
 
 impl<'vir, D: TyDatas<'vir>> EnumData<'vir, D> {
-    pub fn zip<D2: TyDatas<'vir>>(&'vir self, other: &'vir EnumData<'vir, D2>) -> EnumData<'vir, (D, D2)> {
+    pub fn zip<D2: TyDatas<'vir>>(
+        &'vir self,
+        other: &'vir EnumData<'vir, D2>,
+    ) -> EnumData<'vir, (D, D2)> {
         assert_eq!(self.variants.len(), other.variants.len());
         let variants = self.variants.iter().zip(other.variants.iter());
         EnumData {
@@ -351,9 +389,15 @@ impl<'vir, D: TyDatas<'vir>> Clone for TySpecifics<'vir, D> {
 
 impl<'vir, D: TyDatas<'vir>> PartialEq for TySpecifics<'vir, D>
 where
-    D::TyData: PartialEq, D::ParamData: PartialEq, D::OpaqueData: PartialEq,
-    D::PrimitiveData: PartialEq, D::ImmRefData: PartialEq, D::MutRefData: PartialEq,
-    D::StructData: PartialEq, D::FieldData: PartialEq, D::EnumData: PartialEq,
+    D::TyData: PartialEq,
+    D::ParamData: PartialEq,
+    D::OpaqueData: PartialEq,
+    D::PrimitiveData: PartialEq,
+    D::ImmRefData: PartialEq,
+    D::MutRefData: PartialEq,
+    D::StructData: PartialEq,
+    D::FieldData: PartialEq,
+    D::EnumData: PartialEq,
     D::VariantData: PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
@@ -372,16 +416,31 @@ where
 
 impl<'vir, D: TyDatas<'vir>> Eq for TySpecifics<'vir, D>
 where
-    D::TyData: Eq, D::ParamData: Eq, D::OpaqueData: Eq, D::PrimitiveData: Eq,
-    D::ImmRefData: Eq, D::MutRefData: Eq, D::StructData: Eq,
-    D::FieldData: Eq, D::EnumData: Eq, D::VariantData: Eq,
-{}
+    D::TyData: Eq,
+    D::ParamData: Eq,
+    D::OpaqueData: Eq,
+    D::PrimitiveData: Eq,
+    D::ImmRefData: Eq,
+    D::MutRefData: Eq,
+    D::StructData: Eq,
+    D::FieldData: Eq,
+    D::EnumData: Eq,
+    D::VariantData: Eq,
+{
+}
 
 impl<'vir, D: TyDatas<'vir>> Hash for TySpecifics<'vir, D>
 where
-    D::TyData: Hash, D::ParamData: Hash, D::OpaqueData: Hash, D::PrimitiveData: Hash,
-    D::ImmRefData: Hash, D::MutRefData: Hash, D::StructData: Hash,
-    D::FieldData: Hash, D::EnumData: Hash, D::VariantData: Hash,
+    D::TyData: Hash,
+    D::ParamData: Hash,
+    D::OpaqueData: Hash,
+    D::PrimitiveData: Hash,
+    D::ImmRefData: Hash,
+    D::MutRefData: Hash,
+    D::StructData: Hash,
+    D::FieldData: Hash,
+    D::EnumData: Hash,
+    D::VariantData: Hash,
 {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         core::mem::discriminant(self).hash(state);
@@ -389,7 +448,10 @@ where
 }
 
 impl<'vir, D: TyDatas<'vir>> TySpecifics<'vir, D> {
-    pub fn zip<D2: TyDatas<'vir>>(&'vir self, other: &'vir TySpecifics<'vir, D2>) -> TySpecifics<'vir, (D, D2)> {
+    pub fn zip<D2: TyDatas<'vir>>(
+        &'vir self,
+        other: &'vir TySpecifics<'vir, D2>,
+    ) -> TySpecifics<'vir, (D, D2)> {
         use TySpecifics::*;
         match (self, other) {
             (Param(d1), Param(d2)) => Param((d1, d2)),

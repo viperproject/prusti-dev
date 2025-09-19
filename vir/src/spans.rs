@@ -112,10 +112,7 @@ impl<'tcx> VirCtxt<'tcx> {
         );
     }
 
-    pub fn emit_early_error(
-        &'tcx self,
-        error: PrustiError,
-    ) {
+    pub fn emit_early_error(&'tcx self, error: PrustiError) {
         let mut manager = self.spans.borrow_mut();
         manager.early_errors.push(error);
     }

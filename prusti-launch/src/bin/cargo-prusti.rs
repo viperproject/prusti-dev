@@ -134,14 +134,13 @@ fn copy_exported_specs(cargo_target: PathBuf) -> io::Result<()> {
                 let entry = entry?.path();
                 if let Some(ext) = entry.extension()
                     && ext == "specs"
+                    && let Some(fname) = entry.file_name()
                 {
-                    if let Some(fname) = entry.file_name() {
-                        let pkg_name = fname.to_string_lossy();
-                        if let Some(pkg_name) = pkg_name.split('-').next() {
-                            let mut tgt = build_dir.join(pkg_name);
-                            tgt.set_extension("specs");
-                            fs::copy(entry, tgt)?;
-                        }
+                    let pkg_name = fname.to_string_lossy();
+                    if let Some(pkg_name) = pkg_name.split('-').next() {
+                        let mut tgt = build_dir.join(pkg_name);
+                        tgt.set_extension("specs");
+                        fs::copy(entry, tgt)?;
                     }
                 }
             }

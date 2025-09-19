@@ -228,7 +228,9 @@ impl<'vir, Ty: CompType> ExprApply<'vir, (crate::ExprRef<'vir>,), Ty> for crate:
         self.call_once(args)
     }
 }
-impl<'vir, I: CompType, Ty: CompType> ExprApply<'vir, (crate::Expr<'vir, I>,), Ty> for crate::AdtDestructor<'vir, I, Ty> {
+impl<'vir, I: CompType, Ty: CompType> ExprApply<'vir, (crate::Expr<'vir, I>,), Ty>
+    for crate::AdtDestructor<'vir, I, Ty>
+{
     fn expr_apply(
         self,
         _vcx: &'vir crate::VirCtxt,

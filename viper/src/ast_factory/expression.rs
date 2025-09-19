@@ -1549,11 +1549,7 @@ impl<'a> AstFactory<'a> {
         Expr::new(obj)
     }
 
-    pub fn decreases_tuple(
-        &self,
-        tuple_expressions: &[Expr],
-        condition: Option<Expr>,
-    ) -> Expr<'a> {
+    pub fn decreases_tuple(&self, tuple_expressions: &[Expr], condition: Option<Expr>) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -1564,7 +1560,12 @@ impl<'a> AstFactory<'a> {
     }
 
     pub fn decreases_wildcard(&self, condition: Option<Expr>) -> Expr<'a> {
-        build_ast_node!(self, Expr, plugin::standard::termination::DecreasesWildcard, self.jni.new_option(condition.map(|c| c.to_jobject())))
+        build_ast_node!(
+            self,
+            Expr,
+            plugin::standard::termination::DecreasesWildcard,
+            self.jni.new_option(condition.map(|c| c.to_jobject()))
+        )
     }
 
     pub fn decreases_star(&self) -> Expr<'a> {

@@ -1,7 +1,7 @@
-use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies};
-use vir::{CallableIdn, CastType, FunctionIdn};
+use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder};
+use vir::FunctionIdn;
 
-use crate::encoders::ty::{pure::TyPureEnc, RustTy};
+use crate::encoders::ty::{RustTy, pure::TyPureEnc};
 
 #[derive(Clone)]
 pub struct TypeOfEncOutputRef<'vir> {
@@ -44,12 +44,7 @@ impl TaskEncoder for TypeOfEnc {
                 snap,
                 vir::TYPE_TYVAL,
             );
-            deps.emit_output_ref(
-                *task_key,
-                TypeOfEncOutputRef {
-                    typeof_function,
-                },
-            )?;
+            deps.emit_output_ref(*task_key, TypeOfEncOutputRef { typeof_function })?;
 
             let typeof_function = vcx.mk_domain_function(typeof_function, false);
             Ok((typeof_function, ()))
@@ -59,7 +54,12 @@ impl TaskEncoder for TypeOfEnc {
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
         let typeof_fns = Self::all_outputs_local_no_errors();
         vir::with_vcx(|vcx| {
-            let domain = vcx.mk_domain(vir::ViperIdent::new("TypeOf"), &[], &[], vcx.alloc_slice(&typeof_fns));
+            let domain = vcx.mk_domain(
+                vir::ViperIdent::new("TypeOf"),
+                &[],
+                &[],
+                vcx.alloc_slice(&typeof_fns),
+            );
             program.add_domain(domain);
         })
     }

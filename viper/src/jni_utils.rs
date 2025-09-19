@@ -88,7 +88,7 @@ impl<'a> JniUtils<'a> {
     }
 
     /// Converts a Rust number to a Java BigInt
-    pub fn new_big_int(&self, number: &dyn ToString) -> JObject {
+    pub fn new_big_int(&self, number: &dyn ToString) -> JObject<'_> {
         let number_string = self.new_string(number.to_string());
 
         let java_big_integer =
@@ -98,7 +98,7 @@ impl<'a> JniUtils<'a> {
     }
 
     /// Converts a Rust Vec<JObject> to a Scala Seq
-    pub fn new_seq(&self, objects: &[JObject]) -> JObject {
+    pub fn new_seq(&self, objects: &[JObject]) -> JObject<'_> {
         let array_buffer_wrapper = scala::collection::mutable::ArrayBuffer::with(self.env);
         let len = objects.len();
         let res = self.unwrap_result(array_buffer_wrapper.new(len as i32));
@@ -191,7 +191,7 @@ impl<'a> JniUtils<'a> {
     }
 
     /// Returns a new Java array of objects, initialised with null values
-    pub fn new_object_array(&self, length: jsize) -> JObject {
+    pub fn new_object_array(&self, length: jsize) -> JObject<'_> {
         let object_class = self.unwrap_result(self.env.find_class("java/lang/Object"));
         let object_array = self.unwrap_result(self.env.new_object_array(
             length,

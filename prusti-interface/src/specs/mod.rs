@@ -323,7 +323,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             result: Vec::new(),
         };
         for def_id in specs.iter().chain(predicates.iter()) {
-            let body_id = self.env.query.tcx().hir_body_owned_by(def_id.expect_local());
+            let body_id = self
+                .env
+                .query
+                .tcx()
+                .hir_body_owned_by(def_id.expect_local());
             intravisit::Visitor::visit_nested_body(&mut cl_visitor, body_id.id());
         }
         for def_id in cl_visitor.result {

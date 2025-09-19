@@ -36,7 +36,7 @@ pub fn try_pop_one_level<'tcx>(
     tcx: TyCtxt<'tcx>,
     place: mir::Place<'tcx>,
 ) -> Option<(mir::PlaceElem<'tcx>, mir::Place<'tcx>)> {
-    if place.projection.len() > 0 {
+    if !place.projection.is_empty() {
         let last_index = place.projection.len() - 1;
         let new_place = mir::Place {
             local: place.local,
@@ -92,17 +92,11 @@ pub fn has_prusti_attr(attrs: &[hir::Attribute], name: &str) -> bool {
         hir::Attribute::Unparsed(normal_attr) => {
             let hir::AttrItem {
                 span: _,
-                path:
-                    hir::AttrPath {
-                        span: _,
-                        segments,
-                    },
+                path: hir::AttrPath { span: _, segments },
                 args: _,
                 ..
             } = &**normal_attr;
-            segments.len() == 2
-                && segments[0].as_str() == "prusti"
-                && segments[1].as_str() == name
+            segments.len() == 2 && segments[0].as_str() == "prusti" && segments[1].as_str() == name
         }
         _ => false,
     })
@@ -149,16 +143,8 @@ pub fn read_prusti_attrs<T: Borrow<hir::Attribute>>(attr_name: &str, attrs: &[T]
         if let hir::Attribute::Unparsed(normal_attr) = &attr.borrow() {
             if let hir::AttrItem {
                 span: _,
-                path:
-                    hir::AttrPath {
-                        span: _,
-                        segments,
-                    },
-                args:
-                    hir::AttrArgs::Eq {
-                        expr,
-                        eq_span: _,
-                    },
+                path: hir::AttrPath { span: _, segments },
+                args: hir::AttrArgs::Eq { expr, eq_span: _ },
                 ..
             } = &**normal_attr
             {

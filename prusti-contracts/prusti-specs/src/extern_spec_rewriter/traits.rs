@@ -49,7 +49,7 @@ pub fn rewrite_extern_spec(
 fn generate_new_struct(
     item_trait: &syn::ItemTrait,
     trait_path: syn::Path,
-) -> syn::Result<GeneratedStruct> {
+) -> syn::Result<GeneratedStruct<'_>> {
     let struct_name = generate_struct_name_for_trait(item_trait);
     let struct_ident = syn::Ident::new(&struct_name, item_trait.span());
 

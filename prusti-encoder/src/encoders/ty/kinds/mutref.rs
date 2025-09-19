@@ -1,8 +1,9 @@
 use crate::encoders::ty::{
-    impure::{ImpureTyDatas, PredicateBuilder, TyImpureEnc, TyImpureMutRef, TyImpureMutRefData}, pure::{AdtBuilder, PureTyDatas, TyPureEnc, TyPureMutRef, TyPureMutRefData}, RustTyDatas, RustMutRef
+    RustMutRef,
+    impure::{PredicateBuilder, TyImpureEnc, TyImpureMutRef, TyImpureMutRefData},
+    pure::{AdtBuilder, TyPureEnc, TyPureMutRef, TyPureMutRefData},
 };
-use prusti_rustc_interface::middle::ty;
-use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{EncodeFullError, TaskEncoderDependencies};
 use vir::{CastType, HasType};
 
 pub(crate) fn ty_pure<'vir>(
@@ -10,7 +11,8 @@ pub(crate) fn ty_pure<'vir>(
     _deps: &mut TaskEncoderDependencies<'vir, TyPureEnc>,
     builder: &mut AdtBuilder<'vir>,
 ) -> Result<TyPureMutRef<'vir>, EncodeFullError<'vir, TyPureEnc>> {
-    let (field_snaps_to_snap, field_access) = builder.constructor("", (vir::TYPE_REF, vir::TYPE_PSNAP), None);
+    let (field_snaps_to_snap, field_access) =
+        builder.constructor("", (vir::TYPE_REF, vir::TYPE_PSNAP), None);
 
     Ok(TyPureMutRefData {
         prim_to_snap: field_snaps_to_snap,
@@ -23,10 +25,7 @@ pub(crate) fn ty_impure<'vir>(
     data: &(&RustMutRef<'vir>, &TyPureMutRef<'vir>),
     _deps: &mut TaskEncoderDependencies<'vir, TyImpureEnc>,
     builder: &mut PredicateBuilder<'vir>,
-) -> Result<
-    TyImpureMutRef<'vir>,
-    EncodeFullError<'vir, TyImpureEnc>,
-> {
+) -> Result<TyImpureMutRef<'vir>, EncodeFullError<'vir, TyImpureEnc>> {
     let snap_type = builder.snap_type();
 
     let ref_self_decl = builder.ref_self_decl();
@@ -36,12 +35,22 @@ pub(crate) fn ty_impure<'vir>(
     let ref_field = builder.field("val", snap_type);
 
     // main predicate
-    let self_pred = builder.inner.predicate::<(vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>(
-        "",
-        (ref_self_decl.ty(), builder.params.ty_args(), builder.params.const_args()),
-        (ref_self_decl, builder.params.ty_decls(), builder.params.const_decls()),
-        Some(vir::expr! { acc((ref_self).[ref_field]) }),
-    );
+    let self_pred = builder
+        .inner
+        .predicate::<(vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>(
+            "",
+            (
+                ref_self_decl.ty(),
+                builder.params.ty_args(),
+                builder.params.const_args(),
+            ),
+            (
+                ref_self_decl,
+                builder.params.ty_decls(),
+                builder.params.const_decls(),
+            ),
+            Some(vir::expr! { acc((ref_self).[ref_field]) }),
+        );
 
     // Ref-to-snap
     builder.function_snap = Some(
@@ -73,7 +82,5 @@ pub(crate) fn ty_impure<'vir>(
         }),
     );
 
-    Ok(TyImpureMutRefData {
-        deref_func,
-    })
+    Ok(TyImpureMutRefData { deref_func })
 }

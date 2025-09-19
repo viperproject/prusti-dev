@@ -25,16 +25,16 @@ impl<'a> VerificationContext<'a> {
         VerificationContext { env: env_guard }
     }
 
-    pub fn new_ast_factory(&self) -> AstFactory {
+    pub fn new_ast_factory(&self) -> AstFactory<'_> {
         AstFactory::new(&self.env)
     }
 
-    pub fn new_ast_utils(&self) -> AstUtils {
+    pub fn new_ast_utils(&self) -> AstUtils<'_> {
         AstUtils::new(&self.env)
     }
 
     /// Should be used only by tests.
-    pub fn new_verifier_with_default_smt(&self, backend: VerificationBackend) -> Verifier {
+    pub fn new_verifier_with_default_smt(&self, backend: VerificationBackend) -> Verifier<'_> {
         self.new_verifier_with_default_smt_and_extra_args(backend, vec![])
     }
 
@@ -43,7 +43,7 @@ impl<'a> VerificationContext<'a> {
         &self,
         backend: VerificationBackend,
         extra_args: Vec<String>,
-    ) -> Verifier {
+    ) -> Verifier<'_> {
         let z3_exe =
             env::var("Z3_EXE").expect("the Z3_EXE environment variable should not be empty");
         let boogie_exe = env::var("BOOGIE_EXE").ok();
@@ -66,7 +66,7 @@ impl<'a> VerificationContext<'a> {
         z3_exe: String,
         boogie_exe: Option<String>,
         smt_manager: SmtManager,
-    ) -> Verifier {
+    ) -> Verifier<'_> {
         let mut verifier_args: Vec<String> = vec![];
 
         // Set Z3 binary

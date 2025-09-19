@@ -96,7 +96,7 @@ impl<'vir, Curr, Next> Debug for CfgLabelGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         writeln!(f, "label {:?}", self.label)?;
         for inv in self.invariants {
-            writeln!(f, "  invariant {:?}", inv)?;
+            writeln!(f, "  invariant {inv:?}")?;
         }
         Ok(())
     }
@@ -194,8 +194,8 @@ impl<'vir, Curr, Next> Debug for ExprKindGenData<'vir, Curr, Next> {
             Self::Unfolding(e) => e.fmt(f),
             Self::AdtConstructor(e) => e.fmt(f),
             Self::AdtDestructor(e, field) => write!(f, "{:?}.{}", e, field.name),
-            Self::AdtDiscriminator(e, cons) => write!(f, "{:?}.is{cons}", e),
-            Self::Todo(e) => write!(f, "{}", e),
+            Self::AdtDiscriminator(e, cons) => write!(f, "{e:?}.is{cons}"),
+            Self::Todo(e) => write!(f, "{e}"),
         }
     }
 }
@@ -212,7 +212,7 @@ impl<'vir, Curr, Next> Debug for ForallGenData<'vir, Curr, Next> {
         fmt_comma_sep(f, self.qvars)?;
         write!(f, " ::")?;
         for trigger in self.triggers {
-            write!(f, " {:?}", trigger)?;
+            write!(f, " {trigger:?}")?;
         }
         write!(f, " {:?}", self.body)
     }
@@ -224,7 +224,7 @@ impl<'vir, Curr, Next> Debug for ExistsGenData<'vir, Curr, Next> {
         fmt_comma_sep(f, self.qvars)?;
         write!(f, " ::")?;
         for trigger in self.triggers {
-            write!(f, " {:?}", trigger)?;
+            write!(f, " {trigger:?}")?;
         }
         write!(f, " {:?}", self.body)
     }
@@ -246,10 +246,10 @@ impl<'vir, Curr, Next> Debug for FunctionGenData<'vir, Curr, Next> {
         writeln!(f, "): {:?}", self.ret)?;
         self.pres
             .iter()
-            .try_for_each(|el| writeln!(f, "  requires {:?}", el))?;
+            .try_for_each(|el| writeln!(f, "  requires {el:?}"))?;
         self.posts
             .iter()
-            .try_for_each(|el| writeln!(f, "  ensures {:?}", el))?;
+            .try_for_each(|el| writeln!(f, "  ensures {el:?}"))?;
         if let Some(expr) = self.expr {
             writeln!(f, "{{\n  {expr:2?}\n}}")?;
         }
@@ -299,16 +299,16 @@ impl<'vir, Curr, Next> Debug for MethodGenData<'vir, Curr, Next> {
         }
         self.pres
             .iter()
-            .try_for_each(|el| writeln!(f, "  requires {:2?}", el))?;
+            .try_for_each(|el| writeln!(f, "  requires {el:2?}"))?;
         self.posts
             .iter()
-            .try_for_each(|el| writeln!(f, "  ensures {:2?}", el))?;
+            .try_for_each(|el| writeln!(f, "  ensures {el:2?}"))?;
         if let Some(body) = self.body.as_ref() {
             writeln!(f, "{{")?;
             for block in body.blocks.iter() {
                 write!(f, "{:?}", block.label)?;
                 for stmt in block.stmts {
-                    writeln!(f, "  {:2?}", stmt)?;
+                    writeln!(f, "  {stmt:2?}")?;
                 }
                 writeln!(f, "  {:2?}", block.terminator)?;
             }
@@ -375,17 +375,17 @@ impl<'vir, Curr, Next> Debug for StmtKindGenData<'vir, Curr, Next> {
         let indent = f.width().unwrap_or_default();
         match self {
             Self::LocalDecl(decl, expr) => {
-                write!(f, "var {:indent$?}", decl)?;
+                write!(f, "var {decl:indent$?}")?;
                 if let Some(expr) = expr {
-                    write!(f, " := {:indent$?}", expr)?;
+                    write!(f, " := {expr:indent$?}")?;
                 }
                 Ok(())
             }
             Self::PureAssign(data) => write!(f, "{:indent$?} := {:indent$?}", data.lhs, data.rhs),
-            Self::Inhale(data) => write!(f, "inhale {:indent$?}", data),
-            Self::Exhale(data) => write!(f, "exhale {:indent$?}", data),
-            Self::Unfold(data) => write!(f, "unfold {:indent$?}", data),
-            Self::Fold(data) => write!(f, "fold {:indent$?}", data),
+            Self::Inhale(data) => write!(f, "inhale {data:indent$?}"),
+            Self::Exhale(data) => write!(f, "exhale {data:indent$?}"),
+            Self::Unfold(data) => write!(f, "unfold {data:indent$?}"),
+            Self::Fold(data) => write!(f, "fold {data:indent$?}"),
             Self::Package(wand, stmts) => {
                 writeln!(f, "package {wand:?} {{")?;
                 f.pad("")?;
@@ -396,7 +396,7 @@ impl<'vir, Curr, Next> Debug for StmtKindGenData<'vir, Curr, Next> {
                 }
                 write!(f, "}}")
             }
-            Self::Apply(wand) => write!(f, "apply {:indent$?}", wand),
+            Self::Apply(wand) => write!(f, "apply {wand:indent$?}"),
             Self::MethodCall(data) => {
                 if !data.targets.is_empty() {
                     fmt_comma_sep(f, data.targets)?;
@@ -422,8 +422,8 @@ impl<'vir, Curr, Next> Debug for StmtKindGenData<'vir, Curr, Next> {
                 write!(f, "}}")
             }
             Self::Label(label) => write!(f, "label {label}"),
-            Self::Comment(info) => write!(f, "// {}", info),
-            Self::Dummy(info) => write!(f, "// {}", info),
+            Self::Comment(info) => write!(f, "// {info}"),
+            Self::Dummy(info) => write!(f, "// {info}"),
         }
     }
 }
@@ -437,7 +437,7 @@ impl<'vir, Curr, Next> Debug for TerminatorStmtGenData<'vir, Curr, Next> {
                 f.pad("")?;
                 write!(f, "{:?}", Self::Goto(&CfgBlockLabelData::End))
             }
-            Self::Goto(target) => write!(f, "goto {:?}", target),
+            Self::Goto(target) => write!(f, "goto {target:?}"),
             Self::GotoIf(data) => {
                 if data.targets.is_empty() {
                     for extra in data.otherwise_statements {
@@ -473,7 +473,7 @@ impl<'vir, Curr, Next> Debug for TerminatorStmtGenData<'vir, Curr, Next> {
                 }
             }
             Self::Exit => write!(f, "// return"),
-            Self::Dummy(info) => write!(f, "assert false // {}", info),
+            Self::Dummy(info) => write!(f, "assert false // {info}"),
         }
     }
 }
