@@ -1,8 +1,12 @@
 use std::fmt::Debug;
 
 use crate::{
-    data::*, debug_info::{DebugInfo, DEBUGINFO_NONE}, genrefs::*, refs::*, spans::VirSpan, typecheck_error, with_vcx, CastType,
-    CompType, Dyn,
+    data::*,
+    debug_info::{DebugInfo, DEBUGINFO_NONE},
+    genrefs::*,
+    refs::*,
+    spans::VirSpan,
+    typecheck_error, with_vcx, CastType, CompType, Dyn,
 };
 
 use vir_proc_macro::*;
@@ -168,9 +172,13 @@ impl<'vir, Curr: 'vir, Next: 'vir, T: CompType> ExprGenData<'vir, Curr, Next, T>
         with_vcx(|vcx| Self::new_inner(kind, DebugInfo::new(vcx), vcx.top_span(), ty))
     }
 
-    pub(crate) fn new_inner(kind: ExprKindGen<'vir, Curr, Next>, debug_info: DebugInfo<'vir>, span: Option<&'vir VirSpan<'vir>>, ty: Type<'vir, T>) -> Self {
-        if kind.ty() != ty.as_dyn()
-            && !matches!(kind.ty().kind(), crate::TypeKind::Err) {
+    pub(crate) fn new_inner(
+        kind: ExprKindGen<'vir, Curr, Next>,
+        debug_info: DebugInfo<'vir>,
+        span: Option<&'vir VirSpan<'vir>>,
+        ty: Type<'vir, T>,
+    ) -> Self {
+        if kind.ty() != ty.as_dyn() && !matches!(kind.ty().kind(), crate::TypeKind::Err) {
             typecheck_error!(
                 "ExprGenData new_inner: kind {:?} has type {:?}, but trying to create with type {:?}",
                 kind,
@@ -311,10 +319,9 @@ impl<'vir, Curr, Next, T: CompType> ExprGenData<'vir, Curr, Next, T> {
 impl<'vir, T: CompType> ExprGenData<'vir, (), !, T> {
     pub fn lazy<Curr, Next>(&'vir self) -> ExprGen<'vir, Curr, Next, T> {
         unsafe {
-            std::mem::transmute::<
-                &ExprGenData<'vir, (), !, T>,
-                &ExprGenData<'vir, Curr, Next, T>,
-            >(self)
+            std::mem::transmute::<&ExprGenData<'vir, (), !, T>, &ExprGenData<'vir, Curr, Next, T>>(
+                self,
+            )
         }
     }
 }
@@ -407,7 +414,10 @@ pub struct FunctionGenData<'vir, Curr, Next> {
 #[derive(VirHash, VirReify, VirSerde)]
 pub enum DecreasesGenData<'vir, Curr, Next> {
     None,
-    Tuple(&'vir [ExprGenDyn<'vir, Curr, Next>], Option<ExprGenBool<'vir, Curr, Next>>),
+    Tuple(
+        &'vir [ExprGenDyn<'vir, Curr, Next>],
+        Option<ExprGenBool<'vir, Curr, Next>>,
+    ),
     Wildcard(Option<ExprGenBool<'vir, Curr, Next>>),
     Star,
 }

@@ -2,15 +2,15 @@ mod method;
 mod function;
 mod signature;
 
-pub use method::*;
 pub use function::*;
+pub use method::*;
 pub use signature::*;
 
 use crate::encoders::ty::generics::GArgs;
 
-use prusti_rustc_interface::{span::def_id::DefId, middle::ty, hir};
-use task_encoder::TaskEncoder;
 use prusti_interface::specs::specifications::SpecQuery;
+use prusti_rustc_interface::{hir, middle::ty, span::def_id::DefId};
+use task_encoder::TaskEncoder;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CallTaskDescription<'tcx> {
@@ -20,7 +20,10 @@ pub struct CallTaskDescription<'tcx> {
 
 impl<'tcx> CallTaskDescription<'tcx> {
     pub fn new(context: DefId, args: &'tcx [ty::GenericArg<'tcx>], callee: DefId) -> Self {
-        Self { gargs: GArgs::new(context, args), callee }
+        Self {
+            gargs: GArgs::new(context, args),
+            callee,
+        }
     }
 }
 

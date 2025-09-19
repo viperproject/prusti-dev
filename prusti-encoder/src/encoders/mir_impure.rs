@@ -1,5 +1,3 @@
-use std::alloc::Global;
-
 use pcg::{
     PcgOutput,
     action::{BorrowPcgAction, PcgAction, PcgActions},
@@ -11,9 +9,9 @@ use pcg::{
         state::BorrowsState,
         unblock_graph::BorrowPcgUnblockAction,
     },
-    free_pcs::{CapabilityKind, RepackOp},
+    free_pcs::RepackOp,
     r#loop::LoopAnalysis,
-    pcg::{EvalStmtPhase, Pcg, PcgNode, PcgSuccessor},
+    pcg::{CapabilityKind, EvalStmtPhase, Pcg, PcgNode, PcgSuccessor},
     results::PcgBasicBlock,
     utils::{CompilerCtxt, HasPlace, Place, maybe_old::MaybeLabelledPlace},
 };
@@ -28,16 +26,21 @@ use prusti_rustc_interface::{
     span::def_id::DefId,
 };
 use prusti_utils::config;
-use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, CompType};
 
 use crate::encoders::{
-    self, r#const::ConstEncTask, mir_fn::{CallTaskDescription, RustSignature}, ty::{generics::GParams, use_impure::TyUseImpure, use_pure::{TyUsePure, TyUsePureEnc}, RustTyDecomposition}, FunctionCallEnc, MirBuiltinEnc, TyUseImpureEnc, WandEnc, WandEncTask
+    self, FunctionCallEnc, MirBuiltinEnc, TyUseImpureEnc, WandEnc, WandEncTask,
+    r#const::ConstEncTask,
+    mir_fn::{CallTaskDescription, RustSignature},
+    ty::{
+        RustTyDecomposition,
+        use_impure::TyUseImpure,
+        use_pure::{TyUsePure, TyUsePureEnc},
+    },
 };
 
-use super::{
-    ConstEnc, WandEncOutput,
-};
+use super::{ConstEnc, WandEncOutput};
 
 pub struct ImpureEncVisitor<'vir, 'enc, E: TaskEncoder>
 where
@@ -242,25 +245,36 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         // For each block `b` where the edge is only valid if control flow
         // continues from `b` to a specified subset of its successors, `cond`
         // contains the corresponding VIR expression.
-        let cond = conditions.all_branch_choices().map(|choices| {
-            let successors = choices.successors(self.body);
-            let from = choices.from();
-            let conj = successors.iter()
-                .map(|to| {
-                    let decl = self.from_to_vars.get(&from)
-                        .and_then(|tos| tos.iter().find(|(t, _)| t == to))
-                        .map(|(_, decl)| *decl);
-                    let decl = decl.unwrap_or_else(|| {
-                        // TODO: the `from -> to` flag hasn't been set yet!
-                        let name = vir::vir_format!(self.vcx, "_from_bb{}_to_bb{}", from.index(), to.index());
-                        self.vcx.mk_local_decl(name, vir::TYPE_BOOL)
-                    });
-                    self.vcx.mk_local_ex(decl)
-                })
-                .collect::<Vec<_>>();
-            // Control flow must continue from `choices.from()` to any one of the `successors`
-            self.vcx.mk_disj(self.vcx.alloc_slice(&conj))
-        }).collect::<Vec<_>>();
+        let cond = conditions
+            .all_branch_choices()
+            .map(|choices| {
+                let successors = choices.successors(self.body);
+                let from = choices.from();
+                let conj = successors
+                    .iter()
+                    .map(|to| {
+                        let decl = self
+                            .from_to_vars
+                            .get(&from)
+                            .and_then(|tos| tos.iter().find(|(t, _)| t == to))
+                            .map(|(_, decl)| *decl);
+                        let decl = decl.unwrap_or_else(|| {
+                            // TODO: the `from -> to` flag hasn't been set yet!
+                            let name = vir::vir_format!(
+                                self.vcx,
+                                "_from_bb{}_to_bb{}",
+                                from.index(),
+                                to.index()
+                            );
+                            self.vcx.mk_local_decl(name, vir::TYPE_BOOL)
+                        });
+                        self.vcx.mk_local_ex(decl)
+                    })
+                    .collect::<Vec<_>>();
+                // Control flow must continue from `choices.from()` to any one of the `successors`
+                self.vcx.mk_disj(self.vcx.alloc_slice(&conj))
+            })
+            .collect::<Vec<_>>();
         // For each block `b` where the edge validity depends on the successor taken from `b`,
         // every successor must be valid.
         let cond = self.vcx.mk_conj(self.vcx.alloc_slice(&cond));
@@ -503,21 +517,19 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 // a shared reference, it happens immediately.
                 let mut place_ty = mir::PlaceTy::from_ty(self.local_decls[place.local].ty);
                 let mut encoded_place = mir::Place::from(place.local);
-                let mut crossed_ref = matches!(place_ty.ty.kind(), TyKind::Ref(_, _, ty::Mutability::Not));
-                let mut result =
-                    if crossed_ref {
-                        let ty_out = self.ty_use_impure(place_ty.ty);
-                        let snap_val = ty_out
-                            .ref_to_snap(self.local_defs[place.local].local_ex);
-                        snap_val.as_dyn()
-                    } else {
-                        self.local_defs[place.local].local_ex.as_dyn()
-                    };
+                let mut crossed_ref =
+                    matches!(place_ty.ty.kind(), TyKind::Ref(_, _, ty::Mutability::Not));
+                let mut result = if crossed_ref {
+                    let ty_out = self.ty_use_impure(place_ty.ty);
+                    let snap_val = ty_out.ref_to_snap(self.local_defs[place.local].local_ex);
+                    snap_val.as_dyn()
+                } else {
+                    self.local_defs[place.local].local_ex.as_dyn()
+                };
                 for elem in place.projection {
                     if crossed_ref {
                         use vir::Reify;
                         let (expr, _) = crate::encoders::mir_pure::encode_place_element(
-                            self.vcx,
                             self.deps,
                             self.def_id,
                             place_ty,
@@ -636,8 +648,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         match elem {
             mir::ProjectionElem::Field(field_idx, _) => {
                 let e_ty = self.ty_use_impure(place_ty.ty);
-                let field_access = e_ty
-                    .expect_variant_opt(place_ty.variant_index);
+                let field_access = e_ty.expect_variant_opt(place_ty.variant_index);
                 field_access[field_idx].field_ref(expr)
             }
             // TODO: should all variants start at the same `Ref`?
@@ -649,8 +660,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 // println!("    place_ty: {place_ty:?}");
                 match place_ty.ty.kind() {
                     ty::TyKind::Adt(adt, _) if adt.is_box() => {
-                        let field_access = e_ty
-                            .expect_variant_opt(None);
+                        let field_access = e_ty.expect_variant_opt(None);
                         field_access[abi::FieldIdx::ZERO].field_ref(expr)
                     }
                     ty::TyKind::Ref(_, _, ty::Mutability::Not) => {
@@ -659,7 +669,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     }
                     ty::TyKind::Ref(_, _, ty::Mutability::Mut) => {
                         // TODO: unfold? function? use snapshot?
-                        let expr_deref = e_ty.expect_mutref().deref(expr);
+
                         // TODO: we are writing directly to the deref; is a cast ever
                         //   needed?
                         /*
@@ -674,7 +684,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                             return (expr_deref, Some(cast_stmts.unapply_cast_stmt));
                         }
                         */
-                        expr_deref
+                        (e_ty.expect_mutref().deref(expr)) as _
                     }
                     _ => unreachable!(),
                 }
@@ -683,10 +693,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         }
     }
 
-    fn new_tmp<T: CompType>(
-        &mut self,
-        ty: vir::Type<'vir, T>,
-    ) -> vir::Expr<'vir, T> {
+    fn new_tmp<T: CompType>(&mut self, ty: vir::Type<'vir, T>) -> vir::Expr<'vir, T> {
         let name = vir::vir_format!(self.vcx, "_tmp{}", self.tmp_ctr);
         let local = vir::vir_local_decl! { self.vcx; [name] : [ty] };
         self.tmp_ctr += 1;
@@ -848,7 +855,6 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     //mir::Rvalue::AddressOf(Mutability, Place<'vir>) => {}
                     //mir::Rvalue::Len(Place<'vir>) => {}
                     //mir::Rvalue::Cast(CastKind, Operand<'vir>, Ty<'vir>) => {}
-
                     mir::Rvalue::BinaryOp(op, box (l, r)) => {
                         let l_ty = l.ty(self.local_decls, self.vcx.tcx());
                         let r_ty = r.ty(self.local_decls, self.vcx.tcx());
@@ -858,27 +864,36 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                         } else {
                             BinOp(rvalue_ty, *op, l_ty, r_ty)
                         };
-                        let binop_function = self.deps.require_ref::<MirBuiltinEnc>(
-                            task
-                        ).unwrap().bin_op().unwrap();
-                        Some(binop_function(
-                            self.encode_operand_snap(l).downcast_ty(),
-                            self.encode_operand_snap(r).downcast_ty(),
-                        ).upcast_ty())
+                        let binop_function = self
+                            .deps
+                            .require_ref::<MirBuiltinEnc>(task)
+                            .unwrap()
+                            .bin_op()
+                            .unwrap();
+                        Some(
+                            binop_function(
+                                self.encode_operand_snap(l).downcast_ty(),
+                                self.encode_operand_snap(r).downcast_ty(),
+                            )
+                            .upcast_ty(),
+                        )
                     }
 
                     //mir::Rvalue::NullaryOp(NullOp, Ty<'vir>) => {}
-
                     mir::Rvalue::UnaryOp(unop, operand) => {
                         let operand_ty = operand.ty(self.local_decls, self.vcx.tcx());
-                        let unop_function = self.deps.require_ref::<MirBuiltinEnc>(
-                            crate::encoders::MirBuiltinEncTask::UnOp(
-                                rvalue_ty,
-                                *unop,
-                                operand_ty,
-                            ),
-                        ).unwrap().un_op().unwrap();
-                        Some(unop_function(self.encode_operand_snap(operand).downcast_ty()).upcast_ty())
+                        let unop_function = self
+                            .deps
+                            .require_ref::<MirBuiltinEnc>(crate::encoders::MirBuiltinEncTask::UnOp(
+                                rvalue_ty, *unop, operand_ty,
+                            ))
+                            .unwrap()
+                            .un_op()
+                            .unwrap();
+                        Some(
+                            unop_function(self.encode_operand_snap(operand).downcast_ty())
+                                .upcast_ty(),
+                        )
                         /*
                         assert!(source.projection.is_empty());
                         let source_version = self.ssa_analysis.version.get(&(location, source.local)).unwrap();
@@ -902,9 +917,10 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     ) => {
                         let e_rvalue_ty = self.ty_use_pure(rvalue_ty);
                         let sl = match kind {
-                            mir::AggregateKind::Adt(_, vidx, _, _, _) =>
-                                e_rvalue_ty.get_variant_any(*vidx),
-                            _ => e_rvalue_ty.expect_structlike()
+                            mir::AggregateKind::Adt(_, vidx, _, _, _) => {
+                                e_rvalue_ty.get_variant_any(*vidx)
+                            }
+                            _ => e_rvalue_ty.expect_structlike(),
                         };
                         // let field_tys = fields.iter()
                         //     .map(|field| {
@@ -918,7 +934,10 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                         //         aggregate_type: kind.into()
                         //     }
                         // ).unwrap();
-                        let field_snaps = fields.iter().map(|field| self.encode_operand_snap(field)).collect::<Vec<_>>();
+                        let field_snaps = fields
+                            .iter()
+                            .map(|field| self.encode_operand_snap(field))
+                            .collect::<Vec<_>>();
                         // let casted_args = ty_caster.apply_casts(self.vcx, field_snaps.into_iter());
                         Some(sl.field_snaps_to_snap(field_snaps).upcast_ty())
                     }
@@ -928,19 +947,31 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                         let ty = self.ty_use_impure(place_ty.ty);
                         let place_expr = self.encode_place(Place::from(*place)).expr;
 
-                        Some(match ty.get_enumlike().filter(|_| place_ty.variant_index.is_none()) {
-                            Some(el) => {
-                                let discr_ty = place_ty.ty.discriminant_ty(self.vcx.tcx());
-                                let discr_ty_out = self.ty_use_impure(discr_ty);
-                                let discr_expr = discr_ty_out.ref_to_snap(el.discr(place_expr));
-                                self.vcx.mk_unfolding_expr(ty.ref_to_pred_app(place_expr, Some(self.vcx.mk_wildcard())), discr_expr)
-                            }
-                            None => {
-                                // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
-                                let zero = self.vcx.mk_uint::<0>();
-                                (e_rvalue_ty.expect_primitive().prim_to_snap)(zero.upcast_ty()).upcast_ty()
-                            }
-                        })
+                        Some(
+                            match ty
+                                .get_enumlike()
+                                .filter(|_| place_ty.variant_index.is_none())
+                            {
+                                Some(el) => {
+                                    let discr_ty = place_ty.ty.discriminant_ty(self.vcx.tcx());
+                                    let discr_ty_out = self.ty_use_impure(discr_ty);
+                                    let discr_expr = discr_ty_out.ref_to_snap(el.discr(place_expr));
+                                    self.vcx.mk_unfolding_expr(
+                                        ty.ref_to_pred_app(
+                                            place_expr,
+                                            Some(self.vcx.mk_wildcard()),
+                                        ),
+                                        discr_expr,
+                                    )
+                                }
+                                None => {
+                                    // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
+                                    let zero = self.vcx.mk_uint::<0>();
+                                    (e_rvalue_ty.expect_primitive().prim_to_snap)(zero.upcast_ty())
+                                        .upcast_ty()
+                                }
+                            },
+                        )
                     }
                     mir::Rvalue::Ref(_reg, _kind, place) => {
                         Some(match rvalue_ty.kind() {
@@ -954,7 +985,8 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                             }
                             TyKind::Ref(.., ty::Mutability::Mut) => {
                                 let e_rvalue_ty = self.ty_use_pure(rvalue_ty);
-                                let (place_expr, snap, _, _) = self.encode_place_snap(Place::from(*place));
+                                let (place_expr, snap, _, _) =
+                                    self.encode_place_snap(Place::from(*place));
 
                                 // The snapshot of the referenced value should be encoded as a generic `Param`
                                 let inner = e_rvalue_ty.expect_mutref();
@@ -981,11 +1013,8 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     let dest_ty = dest.ty(self.local_decls, self.vcx.tcx());
                     assert!(dest_ty.variant_index.is_none());
                     let dest_ty_out = self.ty_use_impure(dest_ty.ty);
-                    let method_assign_app = dest_ty_out.apply_method_assign(
-                        self.vcx,
-                        proj_enc.expr,
-                        rval_enc,
-                    );
+                    let method_assign_app =
+                        dest_ty_out.apply_method_assign(self.vcx, proj_enc.expr, rval_enc);
 
                     self.stmt(method_assign_app);
                 } else {
@@ -1021,11 +1050,14 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     });
                     self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
                 });
-            },
+            }
 
             mir::StatementKind::Retag(..)
             | mir::StatementKind::SetDiscriminant { .. }
-            | mir::StatementKind::Deinit(..) => unreachable!("the statement kind {:?} is not allowed in the MIR analysis phase", statement.kind),
+            | mir::StatementKind::Deinit(..) => unreachable!(
+                "the statement kind {:?} is not allowed in the MIR analysis phase",
+                statement.kind
+            ),
         }
         self.new_after_label(location);
     }
@@ -1080,8 +1112,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
             }
             mir::TerminatorKind::SwitchInt { discr, targets } => {
                 let discr_ty_rs = discr.ty(self.local_decls, self.vcx.tcx());
-                let discr_ty = self.ty_use_pure(discr_ty_rs)
-                    .expect_primitive();
+                let discr_ty = self.ty_use_pure(discr_ty_rs).expect_primitive();
 
                 let goto_targets = self.vcx.alloc_slice(
                     &targets
@@ -1165,17 +1196,16 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 };
                 self.encoded_blocks.push(
                     self.vcx.mk_cfg_block(
-                        std::mem::replace(
-                            &mut self.current_block_label,
-                            Some(self.vcx.alloc(vir::CfgBlockLabelData::BasicBlockTerminator(
-                                current_block,
-                            ))),
-                        )
-                        .unwrap(),
+                        self.current_block_label
+                            .replace(
+                                self.vcx.alloc(vir::CfgBlockLabelData::BasicBlockTerminator(
+                                    current_block,
+                                )),
+                            )
+                            .unwrap(),
                         &[],
-                        self.vcx.alloc_slice(
-                            &std::mem::replace(&mut self.current_stmts, Some(Vec::new())).unwrap(),
-                        ),
+                        self.vcx
+                            .alloc_slice(&self.current_stmts.replace(Vec::new()).unwrap()),
                         self.vcx
                             .mk_goto_stmt(self.vcx.alloc(
                                 vir::CfgBlockLabelData::BasicBlockTerminator(current_block),
@@ -1184,7 +1214,8 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 );
 
                 let func_ty = func.ty(self.body, self.vcx.tcx());
-                let (func_def_id, caller_substs) = RustSignature::get_def_id_and_caller_substs(func_ty);
+                let (func_def_id, caller_substs) =
+                    RustSignature::get_def_id_and_caller_substs(func_ty);
                 let is_pure = crate::encoders::with_proc_spec(
                     SpecQuery::GetProcKind(
                         func_def_id,
@@ -1204,20 +1235,29 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                             func_def_id,
                         ))
                         .unwrap();
-                    let snap_args = args.iter()
+                    let snap_args = args
+                        .iter()
                         .map(|arg| self.encode_operand_snap(&arg.node))
                         .collect::<Vec<_>>();
                     let pure_func_app = pure_func.call(snap_args);
 
                     let return_ty = destination.ty(self.local_decls, self.vcx.tcx()).ty;
-                    let assign_stmt = self.ty_use_impure(return_ty)
-                        .apply_method_assign(self.vcx, dest, pure_func_app);
+                    let assign_stmt = self.ty_use_impure(return_ty).apply_method_assign(
+                        self.vcx,
+                        dest,
+                        pure_func_app,
+                    );
 
                     self.stmt(assign_stmt);
                 } else {
-                    let Ok(func_out) = self.deps.require_dep::<encoders::MethodCallEnc>(
-                        CallTaskDescription::new(self.def_id, caller_substs, func_def_id),
-                    ) else {
+                    let Ok(func_out) =
+                        self.deps
+                            .require_dep::<encoders::MethodCallEnc>(CallTaskDescription::new(
+                                self.def_id,
+                                caller_substs,
+                                func_def_id,
+                            ))
+                    else {
                         self.current_terminator = Some(
                             self.vcx
                                 .mk_dummy_stmt(vir::vir_format!(self.vcx, "recursion",)),
@@ -1250,7 +1290,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                                 Some(vec![error])
                             },
                         );
-                        self.stmts(call.into_iter());
+                        self.stmts(call);
                     });
                     let label_post = self.new_label("post");
                     self.call_labels
@@ -1300,11 +1340,13 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
             }
             // If we are not checking for overflows, encode an overflow-checking
             // assertion as a goto.
-            mir::TerminatorKind::Assert {
-                msg,
-                target,
-                ..
-            } if !config::check_overflows() && matches!(**msg, mir::AssertMessage::Overflow(..) | mir::AssertMessage::OverflowNeg(..)) => {
+            mir::TerminatorKind::Assert { msg, target, .. }
+                if !config::check_overflows()
+                    && matches!(
+                        **msg,
+                        mir::AssertMessage::Overflow(..) | mir::AssertMessage::OverflowNeg(..)
+                    ) =>
+            {
                 const REAL_TARGET_SUCC_IDX: usize = 0;
                 // Ensure that the terminator succ that we use for the repacks is the correct one
                 assert_eq!(
@@ -1371,12 +1413,8 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     mir::AssertMessage::MisalignedPointerDereference { .. } => {
                         "misaligned pointer may be dereferenced"
                     }
-                    mir::AssertKind::ResumedAfterDrop(..) => {
-                        "execution may continue after drop"
-                    }
-                    mir::AssertKind::NullPointerDereference => {
-                        "null pointer may be dereferenced"
-                    }
+                    mir::AssertKind::ResumedAfterDrop(..) => "execution may continue after drop",
+                    mir::AssertKind::NullPointerDereference => "null pointer may be dereferenced",
                     mir::AssertKind::InvalidEnumConstruction(..) => {
                         "invalid enum construction may occur"
                     }
@@ -1414,17 +1452,18 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 )
             }
 
-            mir::TerminatorKind::UnwindResume
-            | mir::TerminatorKind::UnwindTerminate(..) => self.vcx.with_span(span, |vcx| {
-                vcx.handle_error("exhale.failed:assertion.false", move |_| {
-                    Some(vec![PrustiError::unsupported(
-                        "unwind paths are not supported",
-                        span.into(),
-                    )])
-                });
-                self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
-                self.vcx.mk_assume_false_stmt()
-            }),
+            mir::TerminatorKind::UnwindResume | mir::TerminatorKind::UnwindTerminate(..) => {
+                self.vcx.with_span(span, |vcx| {
+                    vcx.handle_error("exhale.failed:assertion.false", move |_| {
+                        Some(vec![PrustiError::unsupported(
+                            "unwind paths are not supported",
+                            span.into(),
+                        )])
+                    });
+                    self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
+                    self.vcx.mk_assume_false_stmt()
+                })
+            }
 
             mir::TerminatorKind::TailCall { .. } => self.vcx.with_span(span, |vcx| {
                 vcx.handle_error("exhale.failed:assertion.false", move |_| {

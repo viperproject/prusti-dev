@@ -1,13 +1,12 @@
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::CastType;
 
-use prusti_rustc_interface::{
-    middle::ty,
-    abi,
-    span::def_id::DefId,
-};
+use prusti_rustc_interface::{abi, middle::ty, span::def_id::DefId};
 
-use crate::encoders::ty::{generics::GParams, use_pure::{TyUsePure, TyUsePureEnc, TyUsePureStruct}, RustTyDecomposition};
+use crate::encoders::ty::{
+    RustTyDecomposition,
+    use_pure::{TyUsePure, TyUsePureEnc, TyUsePureStruct},
+};
 
 pub struct ViperTupleEnc;
 
@@ -73,11 +72,6 @@ impl TaskEncoder for ViperTupleEnc {
     ) -> EncodeFullResult<'vir, Self> {
         deps.emit_output_ref(*task_key, ())?;
         let domain_data = deps.require_dep::<TyUsePureEnc>(*task_key)?;
-        Ok((
-            (),
-            ViperTupleEncOutput {
-                domain_data,
-            },
-        ))
+        Ok(((), ViperTupleEncOutput { domain_data }))
     }
 }

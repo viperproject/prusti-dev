@@ -3,7 +3,7 @@ use prusti_utils::config;
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CallableIdn, CastType, FunctionIdn};
 
-use crate::encoders::ty::{use_pure::TyUsePureEnc, RustTyDecomposition};
+use crate::encoders::ty::{RustTyDecomposition, use_pure::TyUsePureEnc};
 
 pub struct MirBuiltinEnc;
 
@@ -110,8 +110,7 @@ impl MirBuiltinEnc {
         ty: ty::Ty<'vir>,
     ) -> Result<vir::Function<'vir>, EncodeFullError<'vir, Self>> {
         let ty_task = RustTyDecomposition::from_prim_ty(ty);
-        let e_ty = deps
-            .require_dep::<TyUsePureEnc>(ty_task)?;
+        let e_ty = deps.require_dep::<TyUsePureEnc>(ty_task)?;
 
         let name = vir::vir_format_identifier!(vcx, "mir_unop_{op:?}_{}", int_name(ty));
         let e_ty_snap = e_ty.snapshot.downcast_ty();
@@ -137,14 +136,7 @@ impl MirBuiltinEnc {
             val = vcx.mk_ternary_expr(cond, snap_arg, val)
         }
 
-        Ok(vcx.mk_function(
-            function,
-            (snap_arg_decl,),
-            &[],
-            &[],
-            None,
-            Some(val),
-        ))
+        Ok(vcx.mk_function(function, (snap_arg_decl,), &[], &[], None, Some(val)))
     }
 
     fn handle_bin_op<'vir>(
@@ -158,14 +150,11 @@ impl MirBuiltinEnc {
     ) -> Result<vir::Function<'vir>, EncodeFullError<'vir, Self>> {
         use mir::BinOp::*;
         let l_ty_task = RustTyDecomposition::from_prim_ty(l_ty);
-        let e_l_ty = deps
-            .require_dep::<TyUsePureEnc>(l_ty_task)?;
+        let e_l_ty = deps.require_dep::<TyUsePureEnc>(l_ty_task)?;
         let r_ty_task = RustTyDecomposition::from_prim_ty(r_ty);
-        let e_r_ty = deps
-            .require_dep::<TyUsePureEnc>(r_ty_task)?;
+        let e_r_ty = deps.require_dep::<TyUsePureEnc>(r_ty_task)?;
         let res_ty_task = RustTyDecomposition::from_prim_ty(res_ty);
-        let e_res_ty = deps
-            .require_dep::<TyUsePureEnc>(res_ty_task)?;
+        let e_res_ty = deps.require_dep::<TyUsePureEnc>(res_ty_task)?;
         let prim_l_ty = e_l_ty.expect_primitive();
         let prim_r_ty = e_r_ty.expect_primitive();
         let prim_res_ty = e_res_ty.expect_primitive();
@@ -200,26 +189,18 @@ impl MirBuiltinEnc {
             // so we treat it specially.
             // a > b ? 1 : (b > a ? -1 : 0)
             let a_gt_b = vcx
-                .mk_bin_op_expr(
-                    vir::BinOpKind::CmpGt,
-                    lhs,
-                    rhs,
-                ).downcast_ty();
+                .mk_bin_op_expr(vir::BinOpKind::CmpGt, lhs, rhs)
+                .downcast_ty();
             let b_gt_a = vcx
-                .mk_bin_op_expr(
-                    vir::BinOpKind::CmpGt,
-                    rhs,
-                    lhs,
-                ).downcast_ty();
-            let val = vcx.mk_ternary_expr(
-                a_gt_b,
-                vcx.mk_int::<1>(),
-                vcx.mk_ternary_expr(
-                    b_gt_a,
-                    vcx.mk_int::<-1>(),
-                    vcx.mk_int::<0>(),
-                ),
-            ).upcast_ty();
+                .mk_bin_op_expr(vir::BinOpKind::CmpGt, rhs, lhs)
+                .downcast_ty();
+            let val = vcx
+                .mk_ternary_expr(
+                    a_gt_b,
+                    vcx.mk_int::<1>(),
+                    vcx.mk_ternary_expr(b_gt_a, vcx.mk_int::<-1>(), vcx.mk_int::<0>()),
+                )
+                .upcast_ty();
             (vec![], val)
         } else {
             let op_kind = vir::BinOpKind::from(op);
@@ -296,11 +277,19 @@ impl MirBuiltinEnc {
                                 lhs.downcast_ty(),
                                 vcx.mk_int::<1>(),
                             );
-                            let common_div = vcx.mk_bin_op_expr_inner(op_kind, lhs_sub, rhs).downcast_ty();
-                            let neg_pos =
-                                vcx.mk_bin_op_expr(vir::BinOpKind::Add, common_div, vcx.mk_int::<1>());
-                            let neg_neg =
-                                vcx.mk_bin_op_expr(vir::BinOpKind::Sub, common_div, vcx.mk_int::<1>());
+                            let common_div = vcx
+                                .mk_bin_op_expr_inner(op_kind, lhs_sub, rhs)
+                                .downcast_ty();
+                            let neg_pos = vcx.mk_bin_op_expr(
+                                vir::BinOpKind::Add,
+                                common_div,
+                                vcx.mk_int::<1>(),
+                            );
+                            let neg_neg = vcx.mk_bin_op_expr(
+                                vir::BinOpKind::Sub,
+                                common_div,
+                                vcx.mk_int::<1>(),
+                            );
                             let rhs_pos = vcx
                                 .mk_bin_op_expr(
                                     vir::BinOpKind::CmpGe,
@@ -331,7 +320,8 @@ impl MirBuiltinEnc {
                                 rhs,
                                 vcx.mk_unary_op_expr(vir::UnOpKind::Neg, rhs),
                             );
-                            let negative = vcx.mk_bin_op_expr(vir::BinOpKind::Sub, viper_val, rhs_abs);
+                            let negative =
+                                vcx.mk_bin_op_expr(vir::BinOpKind::Sub, viper_val, rhs_abs);
                             let lhs_pos = vcx
                                 .mk_bin_op_expr(
                                     vir::BinOpKind::CmpGe,
@@ -359,10 +349,7 @@ impl MirBuiltinEnc {
         let val = (prim_res_ty.prim_to_snap)(val);
         Ok(vcx.mk_function(
             function,
-            (
-                lhs_decl,
-                rhs_decl,
-            ),
+            (lhs_decl, rhs_decl),
             vcx.alloc_slice(&pres),
             &[],
             None,
@@ -390,11 +377,9 @@ impl MirBuiltinEnc {
                 | mir::BinOp::MulWithOverflow
         ));
         let l_ty_task = RustTyDecomposition::from_prim_ty(l_ty);
-        let e_l_ty = deps
-            .require_dep::<TyUsePureEnc>(l_ty_task)?;
+        let e_l_ty = deps.require_dep::<TyUsePureEnc>(l_ty_task)?;
         let r_ty_task = RustTyDecomposition::from_prim_ty(r_ty);
-        let e_r_ty = deps
-            .require_dep::<TyUsePureEnc>(r_ty_task)?;
+        let e_r_ty = deps.require_dep::<TyUsePureEnc>(r_ty_task)?;
         let e_l_ty_snap = e_l_ty.snapshot.downcast_ty();
         let e_r_ty_snap = e_r_ty.snapshot.downcast_ty();
 
@@ -405,8 +390,7 @@ impl MirBuiltinEnc {
             int_name(r_ty)
         );
         let res_ty_task = RustTyDecomposition::from_prim_ty(res_ty);
-        let e_res_ty = deps
-            .require_dep::<TyUsePureEnc>(res_ty_task)?;
+        let e_res_ty = deps.require_dep::<TyUsePureEnc>(res_ty_task)?;
         let e_res_ty_snap = e_res_ty.snapshot.downcast_ty();
         let function = FunctionIdn::new(name, (e_l_ty_snap, e_r_ty_snap), e_res_ty_snap);
         deps.emit_output_ref(key, MirBuiltinEncOutputRef::BinOp(function))?;
@@ -421,29 +405,25 @@ impl MirBuiltinEnc {
         assert!(bool_ty.is_bool());
 
         let rvalue_pure_ty_task = RustTyDecomposition::from_prim_ty(rvalue_pure_ty);
-        let e_rvalue_pure_ty = deps
-            .require_dep::<TyUsePureEnc>(rvalue_pure_ty_task)?;
+        let e_rvalue_pure_ty = deps.require_dep::<TyUsePureEnc>(rvalue_pure_ty_task)?;
         let e_rvalue_pure_ty = e_rvalue_pure_ty.expect_primitive();
         assert_eq!(vir::TYPE_INT.upcast_ty(), e_rvalue_pure_ty.prim_type);
         let prim_type = e_rvalue_pure_ty.prim_type.downcast_ty::<vir::Int>();
         let bool_ty_task = RustTyDecomposition::from_prim_ty(bool_ty);
-        let e_bool = deps
-            .require_dep::<TyUsePureEnc>(bool_ty_task)?;
+        let e_bool = deps.require_dep::<TyUsePureEnc>(bool_ty_task)?;
         let bool_cons = e_bool
             .expect_primitive()
             .prim_to_snap
             .cast_args::<vir::Bool>(vir::TYPE_BOOL);
 
         // Unbounded value
-        let val_exp = vcx.mk_bin_op_expr(
-            vir::BinOpKind::from(op),
-            (e_l_ty.expect_primitive().snap_to_prim)(
-                vcx.mk_local_ex(lhs_decl),
-            ),
-            (e_r_ty.expect_primitive().snap_to_prim)(
-                vcx.mk_local_ex(rhs_decl),
-            ),
-        ).downcast_ty();
+        let val_exp = vcx
+            .mk_bin_op_expr(
+                vir::BinOpKind::from(op),
+                (e_l_ty.expect_primitive().snap_to_prim)(vcx.mk_local_ex(lhs_decl)),
+                (e_r_ty.expect_primitive().snap_to_prim)(vcx.mk_local_ex(rhs_decl)),
+            )
+            .downcast_ty();
         let val_decl = vcx.mk_local_decl("val", prim_type);
         let val = vcx.mk_local_ex(val_decl);
         // Wrapped value
@@ -460,19 +440,16 @@ impl MirBuiltinEnc {
         };
         let overflowed_snap = bool_cons(overflowed);
         // `tuple(prim_to_snap(wrapped_val), wrapped_val != val)`
-        let tuple =
-            e_res_ty.expect_structlike().field_snaps_to_snap(
-                vec![wrapped_val_snap.upcast_ty(), overflowed_snap.upcast_ty()],
-            );
+        let tuple = e_res_ty.expect_structlike().field_snaps_to_snap(vec![
+            wrapped_val_snap.upcast_ty(),
+            overflowed_snap.upcast_ty(),
+        ]);
         // `let wrapped_val == (val ..) in $tuple`
         let inner_let = vcx.mk_let_expr(wrapped_val_decl, wrapped_val_exp, tuple);
 
         Ok(vcx.mk_function(
             function,
-            (
-                lhs_decl,
-                rhs_decl,
-            ),
+            (lhs_decl, rhs_decl),
             &[],
             &[],
             None,
