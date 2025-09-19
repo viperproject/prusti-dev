@@ -89,6 +89,7 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
             //         || (config::skip_unsupported_features()
             //             && config::allow_unreachable_unsupported_code())
             // );
+            std::process::exit(1);
         }
 
         //let verification_result =

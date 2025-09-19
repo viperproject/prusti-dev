@@ -27,6 +27,7 @@ pub fn test_entrypoint<'tcx>(
     def_spec: prusti_interface::specs::typed::DefSpecificationMap,
 ) -> request::RequestWithContext {
     vir::init_vcx(vir::VirCtxt::new(tcx, body, def_spec));
+    unsafe { backtrace_on_stack_overflow::enable() };
 
     // TODO: this should be a "crate" encoder, which will deps.require all the methods in the crate
 
