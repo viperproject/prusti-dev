@@ -919,24 +919,36 @@ impl<'tcx> VirCtxt<'tcx> {
         &'vir self,
         elems: &[ExprGenBool<'vir, Curr, Next>],
     ) -> ExprGenBool<'vir, Curr, Next> {
+        self.mk_conj_iter(elems.iter().copied())
+    }
+
+    pub fn mk_conj_iter<'vir, Curr, Next>(
+        &'vir self,
+        mut elems: impl DoubleEndedIterator<Item = ExprGenBool<'vir, Curr, Next>>,
+    ) -> ExprGenBool<'vir, Curr, Next> {
         elems
-            .split_last()
-            .map(|(last, rest)| {
-                rest.iter().rfold(*last, |acc, e| {
-                    self.mk_bin_op_expr(BinOpKind::And, e.as_dyn(), acc.as_dyn())
-                        .downcast_ty()
+            .next_back()
+            .map(|last| {
+                elems.rfold(last, |acc, e| {
+                    self.mk_bin_op_expr(BinOpKind::And, e, acc).downcast_ty()
                 })
             })
             .unwrap_or_else(|| self.mk_bool::<true>().lazy())
     }
 
     pub fn mk_disj<'vir>(&'vir self, elems: &[ExprBool<'vir>]) -> ExprBool<'vir> {
+        self.mk_disj_iter(elems.iter().copied())
+    }
+
+    pub fn mk_disj_iter<'vir>(
+        &'vir self,
+        mut elems: impl DoubleEndedIterator<Item = ExprBool<'vir>>,
+    ) -> ExprBool<'vir> {
         elems
-            .split_last()
-            .map(|(last, rest)| {
-                rest.iter().rfold(*last, |acc, e| {
-                    self.mk_bin_op_expr(BinOpKind::Or, e.as_dyn(), acc.as_dyn())
-                        .downcast_ty()
+            .next_back()
+            .map(|last| {
+                elems.rfold(last, |acc, e| {
+                    self.mk_bin_op_expr(BinOpKind::Or, e, acc).downcast_ty()
                 })
             })
             .unwrap_or_else(|| self.mk_bool::<false>())

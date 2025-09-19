@@ -93,7 +93,7 @@ pub struct TyPureFieldData<'vir> {
 #[derive(Debug, Clone, Copy)]
 pub struct TyPureEnumData<'vir> {
     #[allow(dead_code)]
-    pub(super) discr_ty: vir::TypeSnap<'vir>,
+    pub(super) discr_ty: vir::TypeCSnap<'vir>,
     #[allow(dead_code)]
     pub(super) discr_prim: TyPurePrimitive<'vir>,
     pub(super) snap_to_discr_snap: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,

@@ -490,7 +490,11 @@ pub trait TaskEncoder {
         Self: 'vir,
     {
         let (outputs, errored) = Self::all_outputs_local();
-        assert!(errored.is_empty(), "encoder {} had errors: {errored:#?}", Self::ENCODER_NAME);
+        assert!(
+            errored.is_empty(),
+            "encoder {} had errors: {errored:#?}",
+            Self::ENCODER_NAME
+        );
         outputs
     }
 

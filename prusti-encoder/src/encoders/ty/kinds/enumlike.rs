@@ -22,7 +22,7 @@ pub(crate) fn ty_pure<'vir>(
     let discr_ty =
         deps.require_dep::<TyPureEnc>(RustTyDecomposition::from_prim_ty(data.discr).ty)?;
     let discr_prim = discr_ty.expect_primitive();
-    let discr_ty = (discr_ty.domain)();
+    let discr_ty = (discr_ty.domain)().downcast_ty();
 
     let variants = data
         .variants
@@ -46,7 +46,7 @@ pub(crate) fn ty_pure<'vir>(
         .collect::<Result<Vec<_>, _>>()?;
 
     // discriminant can only have the selected values
-    let snap_to_discr_snap = builder.build_discr_fn(discr_ty.downcast_ty());
+    let snap_to_discr_snap = builder.build_discr_fn(discr_ty);
 
     Ok(EnumData::new(
         TyPureEnumData {

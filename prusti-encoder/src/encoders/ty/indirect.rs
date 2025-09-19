@@ -2,6 +2,10 @@ use prusti_rustc_interface::middle::ty::{self};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, Reify};
 
+use crate::encoders::ty::{
+    RustTyDatas, data::StructData, generics::GParams, use_pure::UsePureTyDatas,
+};
+
 use super::{data::TySpecifics, use_impure::TyUseImpureEnc, use_pure::TyUsePureEnc};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -44,7 +48,7 @@ pub struct IndirectPredicatesEnc;
 type ExprInput<'vir> = vir::ExprSnap<'vir>;
 type ExprOutput<'vir> = vir::ExprGenBool<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
 
-#[derive(Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct IndirectPredicatesEncOutputRef<'vir> {
     pub covariant: Vec<ExprOutput<'vir>>,
     pub contravariant: Vec<ExprOutput<'vir>>,
@@ -75,8 +79,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
         vir::with_vcx(|vcx| {
             let (ty, proj_region) = task_key;
             let self_ty_enc = deps.require_dep::<TyUsePureEnc>(*ty)?;
-            let mut covariant = Vec::<ExprOutput<'vir>>::new();
-            let mut contravariant = Vec::<ExprOutput<'vir>>::new();
+            let mut output = IndirectPredicatesEncOutputRef::default();
             let combined = ty.ty.zip(self_ty_enc);
             match combined.specifics {
                 // Optimisation: if there are no type arguments, there cannot be
@@ -100,7 +103,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                         .is_some_and(|indirect| &indirect == proj_region)
                     {
                         let inner_ty_enc = deps.require_dep::<TyUseImpureEnc>(inner_ty)?;
-                        covariant.push(vcx.mk_lazy_expr(
+                        output.covariant.push(vcx.mk_lazy_expr(
                             "ref_indirect",
                             vir::TYPE_BOOL,
                             Box::new(move |vcx, self_expr| {
@@ -136,41 +139,96 @@ impl TaskEncoder for IndirectPredicatesEnc {
                             )
                         })
                         .collect::<Vec<_>>();
-                    covariant.extend(inner.clone());
-                    contravariant.extend(inner);
+                    output.covariant.extend(inner.clone());
+                    output.contravariant.extend(inner);
                 }
                 TySpecifics::StructLike(data) => {
-                    for (field_ty, accessor) in data.fields {
-                        let project = |inner_expr: ExprOutput<'vir>| {
-                            vcx.mk_lazy_expr(
-                                "ref_inner_indirect",
-                                vir::TYPE_BOOL,
-                                Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
-                                    inner_expr
-                                        .reify(vcx, accessor.read(self_expr.downcast_ty()))
-                                        .kind
-                                }),
-                            )
-                        };
-
-                        // TODO: invalid recursion here if the defined struct is
-                        // recursive!
-                        let field_ty = field_ty.decompose(ty.ty.params);
-                        let field_indirect =
-                            deps.require_dep::<IndirectPredicatesEnc>((field_ty, *proj_region))?;
-                        covariant.extend(field_indirect.covariant.into_iter().map(project));
-                        contravariant.extend(field_indirect.contravariant.into_iter().map(project));
-                    }
+                    output = Self::indirect_structlike(deps, data, ty.ty.params, *proj_region)?.1;
                 }
-                TySpecifics::EnumLike(_data) => todo!(),
+                TySpecifics::EnumLike(data) => {
+                    let variants = data.variants.into_iter().map(|variant| {
+                        Ok((
+                            variant.1.discr,
+                            Self::indirect_structlike(
+                                deps,
+                                variant.inner,
+                                ty.ty.params,
+                                *proj_region,
+                            )?
+                            .1,
+                        ))
+                    });
+                    let enum_data = data.data.1;
+                    let (covariant, contravariant) = vir::with_vcx(move |vcx| {
+                        let discr_snap = vcx.mk_lazy_expr(
+                            "enum_discr_indirect",
+                            enum_data.discr_ty,
+                            Box::new(move |_vcx, self_expr: vir::ExprGenSnap<_, _>| {
+                                (enum_data.snap_to_discr_snap)(self_expr.downcast_ty()).kind
+                            }),
+                        );
+                        variants.fold(
+                            Ok((vcx.mk_bool::<true>().lazy(), vcx.mk_bool::<true>().lazy())),
+                            |acc, data| {
+                                let (covariant, contravariant) = acc?;
+                                let (discr, data) = data?;
+                                let (covar, contra) = (
+                                    vcx.mk_conj(&data.covariant),
+                                    vcx.mk_conj(&data.contravariant),
+                                );
+                                let discr_eq = vcx.mk_eq_expr(discr_snap, discr.lazy());
+                                Ok((
+                                    vcx.mk_ternary_expr(discr_eq, covar, covariant),
+                                    vcx.mk_ternary_expr(discr_eq, contra, contravariant),
+                                ))
+                            },
+                        )
+                    })?;
+                    output.covariant.push(covariant);
+                    output.contravariant.push(contravariant);
+                }
             }
-            Ok((
-                (),
-                IndirectPredicatesEncOutputRef {
-                    covariant,
-                    contravariant,
-                },
-            ))
+            Ok(((), output))
         })
+    }
+}
+
+impl IndirectPredicatesEnc {
+    fn indirect_structlike<'vir>(
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+        data: StructData<'vir, (RustTyDatas, UsePureTyDatas)>,
+        params: GParams<'vir>,
+        proj_region: IndirectKey,
+    ) -> EncodeFullResult<'vir, Self> {
+        let mut output = IndirectPredicatesEncOutputRef::default();
+        let _ = vir::with_vcx(|vcx| {
+            for (field_ty, accessor) in data.fields {
+                let project = |inner_expr: ExprOutput<'vir>| {
+                    vcx.mk_lazy_expr(
+                        "ref_inner_indirect",
+                        vir::TYPE_BOOL,
+                        Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
+                            inner_expr
+                                .reify(vcx, accessor.read(self_expr.downcast_ty()))
+                                .kind
+                        }),
+                    )
+                };
+
+                // TODO: invalid recursion here if the defined struct is
+                // recursive!
+                let field_ty = field_ty.decompose(params);
+                let field_indirect =
+                    deps.require_dep::<IndirectPredicatesEnc>((field_ty, proj_region))?;
+                output
+                    .covariant
+                    .extend(field_indirect.covariant.into_iter().map(project));
+                output
+                    .contravariant
+                    .extend(field_indirect.contravariant.into_iter().map(project));
+            }
+            Ok(())
+        })?;
+        Ok(((), output))
     }
 }
