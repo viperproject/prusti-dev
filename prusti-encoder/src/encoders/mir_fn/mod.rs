@@ -6,7 +6,7 @@ pub use function::*;
 pub use method::*;
 pub use signature::*;
 
-use crate::encoders::ty::generics::GArgs;
+use crate::encoders::ty::generics::{GArgs, GParams};
 
 use prusti_interface::specs::specifications::SpecQuery;
 use prusti_rustc_interface::{hir, middle::ty, span::def_id::DefId};
@@ -19,7 +19,11 @@ pub struct CallTaskDescription<'tcx> {
 }
 
 impl<'tcx> CallTaskDescription<'tcx> {
-    pub fn new(context: DefId, args: &'tcx [ty::GenericArg<'tcx>], callee: DefId) -> Self {
+    pub fn new(
+        context: impl Into<GParams<'tcx>>,
+        args: &'tcx [ty::GenericArg<'tcx>],
+        callee: DefId,
+    ) -> Self {
         Self {
             gargs: GArgs::new(context, args),
             callee,

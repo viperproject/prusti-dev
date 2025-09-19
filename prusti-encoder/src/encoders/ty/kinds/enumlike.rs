@@ -170,7 +170,10 @@ pub(crate) fn ty_impure<'vir>(
     ).1);
 
     Ok(EnumData::new(
-        TyImpureEnumData { discr: fdisc_func },
+        TyImpureEnumData {
+            discr: fdisc_func,
+            discr_ty: discr_ty_impure,
+        },
         variants.into_iter().map(|v| v.3).collect::<Vec<_>>(),
     ))
 }

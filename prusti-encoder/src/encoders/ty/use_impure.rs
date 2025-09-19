@@ -47,7 +47,9 @@ pub struct TyUseImpureData<'vir> {
 pub struct TyUseImpureImmRef<'vir> {
     #[allow(dead_code)]
     caster: FieldCaster<'vir>,
+    #[allow(dead_code)]
     args: GArgsTy<'vir>,
+    #[allow(dead_code)]
     impure: <ImpureTyDatas as TyDatas<'vir>>::ImmRefData,
 }
 
@@ -399,13 +401,13 @@ impl<'vir> TyUseImpureEnum<'vir> {
     pub fn discr(&self, self_ref: vir::ExprRef<'vir>) -> vir::ExprRef<'vir> {
         (self.impure.discr)(self_ref)
     }
-}
 
-impl<'vir> TyUseImpureImmRef<'vir> {
-    pub fn deref(&self, self_ref: vir::ExprRef<'vir>) -> vir::ExprRef<'vir> {
-        (self.impure.deref_func)(self_ref, self.args.get_ty(), self.args.get_const())
+    pub fn discr_ty(&self) -> TyUseImpure<'vir> {
+        self.impure.discr_ty
     }
 }
+
+impl<'vir> TyUseImpureImmRef<'vir> {}
 
 impl<'vir> TyUseImpureMutRef<'vir> {
     pub fn deref(&self, self_ref: vir::ExprRef<'vir>) -> vir::ExprRef<'vir> {

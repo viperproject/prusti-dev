@@ -97,7 +97,7 @@ impl TaskEncoder for MirSpecEnc {
                         .require_dep::<crate::encoders::MirPureEnc>(
                             crate::encoders::MirPureEncTask {
                                 encoding_depth: 0,
-                                kind: PureKind::Spec,
+                                kind: PureKind::Spec(specs.extern_spec),
                                 parent_def_id: *spec_def_id,
                                 param_env: vcx.tcx().param_env(spec_def_id),
                                 substs,
@@ -140,7 +140,7 @@ impl TaskEncoder for MirSpecEnc {
                             .require_dep::<crate::encoders::MirPureEnc>(
                                 crate::encoders::MirPureEncTask {
                                     encoding_depth: 0,
-                                    kind: PureKind::Spec,
+                                    kind: PureKind::Spec(specs.extern_spec),
                                     parent_def_id: *spec_def_id,
                                     param_env: vcx.tcx().param_env(spec_def_id),
                                     substs,
@@ -172,7 +172,7 @@ impl TaskEncoder for MirSpecEnc {
                         deps.require_dep::<crate::encoders::MirPureEnc>(
                             crate::encoders::MirPureEncTask {
                                 encoding_depth: 0,
-                                kind: PureKind::Spec,
+                                kind: PureKind::Spec(specs.extern_spec),
                                 parent_def_id: lhs_def_id,
                                 param_env: vcx.tcx().param_env(lhs_def_id),
                                 substs,
@@ -188,7 +188,7 @@ impl TaskEncoder for MirSpecEnc {
                         .require_dep::<crate::encoders::MirPureEnc>(
                             crate::encoders::MirPureEncTask {
                                 encoding_depth: 0,
-                                kind: PureKind::Spec,
+                                kind: PureKind::Spec(specs.extern_spec),
                                 parent_def_id: *rhs_def_id,
                                 param_env: vcx.tcx().param_env(rhs_def_id),
                                 substs,

@@ -22,7 +22,7 @@ pub(crate) fn ty_pure<'vir>(
 }
 
 pub(crate) fn ty_impure<'vir>(
-    data: &(&RustImmRef<'vir>, &TyPureImmRef<'vir>),
+    _data: &(&RustImmRef<'vir>, &TyPureImmRef<'vir>),
     _deps: &mut TaskEncoderDependencies<'vir, TyImpureEnc>,
     builder: &mut PredicateBuilder<'vir>,
 ) -> Result<TyImpureImmRef<'vir>, EncodeFullError<'vir, TyImpureEnc>> {
@@ -69,18 +69,5 @@ pub(crate) fn ty_impure<'vir>(
         }),
     ).1);
 
-    // Ref-to-Ref
-    let deref_func = builder.inner.function::<(vir::Ref, vir::ManyTyVal, vir::ManyCSnap), _>(
-        "deref",
-        (ref_self_decl.ty(), builder.params.ty_args(), builder.params.const_args()),
-        vir::TYPE_REF,
-        (ref_self_decl, builder.params.ty_decls(), builder.params.const_decls()),
-        &[vir::expr! { acc([self_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) }],
-        &[],
-        Some(vir::expr! {
-            unfolding ([self_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) in ([data.1.deref_access]([ref_field](ref_self)))
-        }),
-    );
-
-    Ok(TyImpureImmRefData { deref_func })
+    Ok(TyImpureImmRefData {})
 }

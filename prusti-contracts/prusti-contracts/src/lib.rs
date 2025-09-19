@@ -1,5 +1,29 @@
 #![no_std]
 #![cfg_attr(feature = "prusti", feature(unboxed_closures, tuple_trait))]
+#![feature(auto_traits)]
+#![feature(negative_impls)]
+#![feature(try_trait_v2)]
+#![feature(cfg_version)]
+
+// Even alloc can be disabled for consistency with std, and in preparation for future specs for other, possibly no_std, crates.
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
+// link to std if the feature is set
+#[cfg(feature = "std")]
+extern crate std;
+
+// modules have a `_spec` suffix to avoid name conflicts with their crates.
+// this is present even when compiling outside prusti to enable (negatively) implementing traits used for better specs
+#[cfg(feature = "core")]
+pub mod core_spec;
+#[cfg(feature = "alloc")]
+pub mod alloc_spec;
+#[cfg(feature = "std")]
+pub mod std_spec;
+
+#[cfg(feature = "core")]
+pub use core_spec::type_eq::TypeEq;
 
 /// A macro for writing a precondition on a function.
 pub use prusti_contracts_proc_macros::requires;
@@ -121,9 +145,6 @@ mod private {
         _phantom: PhantomData<T>,
     }
 }
-
-#[cfg(feature = "prusti")]
-pub mod core_spec;
 
 #[cfg(feature = "prusti")]
 mod private {

@@ -217,8 +217,6 @@ impl TaskEncoder for CastersEnc<Impure> {
         assert!(param.specifics.is_param() && !concrete.specifics.is_param());
         vir::with_vcx(|vcx| {
             use vir::CastType;
-            let predicate_ref = deps.require_dep::<TyImpureEnc>(concrete)?;
-            let generic_ref = deps.require_dep::<TyImpureEnc>(param)?;
             let base_name = concrete.name();
             let ty_constructor = deps.require_ref::<TyConstructorEnc>(concrete)?;
             let generics = deps.require_dep::<GenericParamsEnc>(concrete.params)?;
@@ -246,6 +244,9 @@ impl TaskEncoder for CastersEnc<Impure> {
             let self_decl = vcx.mk_local_decl("self", vir::TYPE_REF);
             let self_expr = vcx.mk_local_ex(self_decl);
             let decls = (self_decl, generics.ty_decls(), generics.const_decls());
+
+            let predicate_ref = deps.require_dep::<TyImpureEnc>(concrete)?;
+            let generic_ref = deps.require_dep::<TyImpureEnc>(param)?;
 
             let concrete_predicate = (predicate_ref.ref_to_pred)(
                 self_expr,

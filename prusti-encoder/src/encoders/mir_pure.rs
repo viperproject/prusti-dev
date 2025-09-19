@@ -4,10 +4,11 @@ use crate::encoders::{
     mir_fn::{CallTaskDescription, RustSignature},
     ty::{
         RustTyDecomposition,
+        generics::GParams,
         use_pure::{TyUsePure, TyUsePureEnc},
     },
 };
-use prusti_interface::specs::specifications::SpecQuery;
+use prusti_interface::specs::{specifications::SpecQuery, typed::ExternSpecKind};
 use prusti_rustc_interface::{
     abi,
     data_structures::graph,
@@ -54,7 +55,7 @@ pub struct MirPureEncOutput<'vir> {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum PureKind {
     Closure,
-    Spec,
+    Spec(Option<ExternSpecKind>),
     Pure,
     Constant(mir::Promoted),
 }
@@ -109,12 +110,15 @@ impl TaskEncoder for MirPureEnc {
 
         tracing::debug!("encoding {def_id:?}");
         let expr = vir::with_vcx(move |vcx| {
-            //let body = vcx.tcx().mir_promoted(local_def_id).0.borrow();
+            let mut k = None;
             let body = match kind {
                 PureKind::Closure => vcx
                     .body_mut()
                     .get_closure_body(def_id, substs, caller_def_id),
-                PureKind::Spec => vcx.body_mut().get_spec_body(def_id, substs, caller_def_id),
+                PureKind::Spec(kind) => {
+                    k = kind;
+                    vcx.body_mut().get_spec_body(def_id, substs, caller_def_id)
+                }
                 PureKind::Pure => vcx
                     .body_mut()
                     .get_pure_fn_body(def_id, substs, caller_def_id),
@@ -123,7 +127,7 @@ impl TaskEncoder for MirPureEnc {
                 }
             };
 
-            let expr_inner = Enc::new(vcx, task_key.0, def_id, &body, deps).encode_body();
+            let expr_inner = Enc::new(vcx, task_key.0, def_id, k, &body, deps).encode_body();
 
             // We wrap the expression with an additional lazy that will perform
             // some sanity checks. These requirements cannot be expressed using
@@ -218,6 +222,7 @@ struct Enc<'vir: 'enc, 'enc> {
     vcx: &'vir vir::VirCtxt<'vir>,
     encoding_depth: usize,
     def_id: DefId,
+    context: GParams<'vir>,
     body: &'enc mir::Body<'vir>,
     rev_doms: rev_doms::ReverseDominators,
     deps: &'enc mut TaskEncoderDependencies<'vir, MirPureEnc>,
@@ -235,6 +240,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         vcx: &'vir vir::VirCtxt<'vir>,
         encoding_depth: usize,
         def_id: DefId,
+        kind: Option<ExternSpecKind>,
         body: &'enc mir::Body<'vir>,
         deps: &'enc mut TaskEncoderDependencies<'vir, MirPureEnc>,
     ) -> Self {
@@ -247,6 +253,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             vcx,
             encoding_depth,
             def_id,
+            context: GParams::new_maybe_extern(def_id, kind),
             body,
             rev_doms,
             deps,
@@ -261,13 +268,13 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     }
 
     fn ty_use(&mut self, ty: ty::Ty<'vir>) -> TyUsePure<'vir> {
-        let ty_task = RustTyDecomposition::from_ty(ty, self.def_id);
+        let ty_task = RustTyDecomposition::from_ty(ty, self.context);
         self.deps.require_dep::<TyUsePureEnc>(ty_task).unwrap()
     }
 
     fn get_ty_for_local(&mut self, local: mir::Local) -> vir::TypeSnap<'vir> {
         let ty = self.body.local_decls[local].ty;
-        let ty_task = RustTyDecomposition::from_ty(ty, self.def_id);
+        let ty_task = RustTyDecomposition::from_ty(ty, self.context);
         self.deps
             .require_ref::<TyUsePureEnc>(ty_task)
             .unwrap()
@@ -560,7 +567,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         let pure_func = self
                             .deps
                             .require_dep::<FunctionCallEnc>(CallTaskDescription::new(
-                                self.def_id,
+                                self.context,
                                 arg_tys,
                                 def_id,
                             ))
@@ -837,7 +844,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         expr: ExprCRet<'vir>,
         place_ref: Option<ExprRetRef<'vir>>,
     ) -> (ExprRet<'vir>, Option<ExprRetRef<'vir>>) {
-        encode_place_element(self.deps, self.def_id, place_ty, elem, expr, place_ref)
+        encode_place_element(self.deps, self.context, place_ty, elem, expr, place_ref)
     }
 
     fn encode_prusti_builtin(
@@ -1189,13 +1196,14 @@ fn encode_place_with_ref<'vir, 'enc>(
 
 pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
     deps: &'enc mut TaskEncoderDependencies<'vir, T>,
-    def_id: DefId,
+    context: impl Into<GParams<'vir>>,
     place_ty: mir::PlaceTy<'vir>,
     elem: mir::PlaceElem<'vir>,
     expr: ExprCRet<'vir>,
     place_ref: Option<ExprRetRef<'vir>>,
 ) -> (ExprRet<'vir>, Option<ExprRetRef<'vir>>) {
-    let ty_task = RustTyDecomposition::from_ty(place_ty.ty, def_id);
+    let context = context.into();
+    let ty_task = RustTyDecomposition::from_ty(place_ty.ty, context);
     match elem {
         mir::ProjectionElem::Deref => {
             assert!(place_ty.variant_index.is_none());
@@ -1224,7 +1232,7 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
                         .require_dep::<TyUsePureEnc>(ty_task)
                         .unwrap()
                         .expect_mutref();
-                    let inner_ty = RustTyDecomposition::from_ty(*inner_ty, def_id);
+                    let inner_ty = RustTyDecomposition::from_ty(*inner_ty, context);
                     let inner_ty_out = deps.require_dep::<TyUseImpureEnc>(inner_ty).unwrap();
                     let ref_expr = e_ty.deref_access(expr);
                     let ref_val_expr = inner_ty_out.ref_to_snap(unsafe {

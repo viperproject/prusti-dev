@@ -237,6 +237,13 @@ impl<'vir> TyUsePureImmRef<'vir> {
         self.pure.prim_to_snap.call()(ref_, inner.downcast_ty())
     }
 
+    pub fn deref_access<Curr, Next>(
+        &self,
+        snap: vir::ExprGenCSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenRef<'vir, Curr, Next> {
+        self.pure.deref_access.call()(snap)
+    }
+
     pub fn value_access<Curr, Next>(
         &self,
         snap: vir::ExprGenCSnap<'vir, Curr, Next>,

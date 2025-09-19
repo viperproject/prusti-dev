@@ -233,7 +233,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         let ty = context.normalize(ty);
 
         let name = Self::ty_name(ty);
-        let (params, args) = Self::identity_for_ty(ty);
+        let (params, args) = Self::identity_for_ty(ty, context.is_trait_extern_spec());
         let args = GArgs::new(context, args);
         let data = RustTyData {
             name: symbol::Symbol::intern(&name),
@@ -305,7 +305,10 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
     /// For the ty `MyStruct<i32>` (with defn
     /// `struct MyStruct<T: Iterator<Item = i32>> { ... }`), returns
     /// `([<T: Iterator<Item = i32>>], [i32])`.
-    pub(super) fn identity_for_ty(ty: ty::Ty<'tcx>) -> (GParams<'tcx>, ty::GenericArgsRef<'tcx>) {
+    pub(super) fn identity_for_ty(
+        ty: ty::Ty<'tcx>,
+        is_trait_extern_spec: bool,
+    ) -> (GParams<'tcx>, ty::GenericArgsRef<'tcx>) {
         let (params, args) = match *ty.kind() {
             _ if ty.is_primitive() => return Self::identity_for_prim_ty(ty),
             ty::TyKind::Adt(adt, args) => (GParams::from(adt.did()), args),
@@ -347,7 +350,10 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
                 let identity = ty::List::identity_for_item(vcx.tcx(), did);
                 let gargs = vcx.tcx().mk_args(identity.as_closure().parent_args());
                 let args = vcx.tcx().mk_args(args.as_closure().parent_args());
-                (GParams::new(gargs, vcx.tcx().param_env(did)), args)
+                (
+                    GParams::new(gargs, vcx.tcx().param_env(did), is_trait_extern_spec),
+                    args,
+                )
             }),
             ty::TyKind::Never | ty::TyKind::Str | ty::TyKind::FnPtr(..) => {
                 (GParams::empty(), ty::GenericArgs::empty())
