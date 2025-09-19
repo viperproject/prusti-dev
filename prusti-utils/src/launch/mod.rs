@@ -16,7 +16,7 @@ pub mod job;
 
 /// Determines which crates in `./prusti-contracts` have their specs re-exported
 /// for `prusti-rustc`.
-pub const PRUSTI_LIBS: [&str; 2] = ["prusti-contracts", "prusti-std"];
+pub const PRUSTI_LIBS: [&str; 1] = ["prusti-contracts"];
 
 pub fn get_current_executable_dir() -> PathBuf {
     env::current_exe()
@@ -307,7 +307,7 @@ pub fn enable_prusti_feature(cargo_path: &str, manifest_path: Option<&str>) -> b
     let out = command
         .output()
         .unwrap_or_else(|_| panic!("Failed to run '{cargo_path} tree'"));
-    // Expected stdout:
+    // Expected stdout (maybe with "[default]" instead of "[]"):
     // (error if line "2+ [] prusti-contracts " appears but no "0/1 [] prusti-contracts " line does):
     // 0 [] current-crate v0.1.0 (...)
     // 1 [] dependency-crate v0.1.0 (...)
@@ -334,11 +334,15 @@ pub fn enable_prusti_feature(cargo_path: &str, manifest_path: Option<&str>) -> b
 fn classify_line(line: &str) -> Option<u32> {
     let mut line = line.split(' ');
     let depth = line.next()?;
+    // When no features are specified for the `prusti-contracts` dependency,
+    // this will be "[default]".
     let feats = line.next()?;
     let cname = line.next()?;
     // We want to allow having crates which enable the `prusti` feature, thus anything that
     // depends on them need not add `prusti-contracts` as a direct dependency.
-    if cname != "prusti-contracts" || feats != "[]" {
+    let feats = feats.strip_prefix('[').unwrap().strip_suffix(']').unwrap();
+    let prusti_enabled = feats.split(',').any(|f| f == "prusti");
+    if cname != "prusti-contracts" || prusti_enabled {
         return None;
     }
     depth.parse().ok()

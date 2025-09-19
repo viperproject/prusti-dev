@@ -3,7 +3,7 @@ use std::ops::{Deref, DerefMut};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CallableIdn, CastType, FunctionIdn, HasType, MethodIdn, PredicateIdn};
 
-use crate::encoders::Impure;
+use crate::encoders::{Impure, ty::use_impure::TyUseImpure};
 
 use super::{
     RustTy, ViperTyDatas,
@@ -17,7 +17,7 @@ pub(super) type ImpureTyDatas = ViperTyDatas<Impure>;
 impl<'vir> TyDatas<'vir> for ImpureTyDatas {
     type TyData = TyImpureRef<'vir>;
     type PrimitiveData = ();
-    type ImmRefData = TyImpureImmRefData<'vir>;
+    type ImmRefData = TyImpureImmRefData;
     type MutRefData = TyImpureMutRefData<'vir>;
     type FieldData = TyImpureFieldData<'vir>;
     type StructData = ();
@@ -33,9 +33,7 @@ pub type TyImpureImmRef<'vir> = <ImpureTyDatas as TyDatas<'vir>>::ImmRefData;
 pub type TyImpureMutRef<'vir> = <ImpureTyDatas as TyDatas<'vir>>::MutRefData;
 
 #[derive(Debug, Clone, Copy)]
-pub struct TyImpureImmRefData<'vir> {
-    pub deref_func: vir::FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Ref>,
-}
+pub struct TyImpureImmRefData {}
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyImpureMutRefData<'vir> {
@@ -49,7 +47,8 @@ pub struct TyImpureFieldData<'vir> {
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyImpureEnumData<'vir> {
-    pub discr: FunctionIdn<'vir, vir::Ref, vir::Ref>,
+    pub(super) discr: FunctionIdn<'vir, vir::Ref, vir::Ref>,
+    pub(super) discr_ty: TyUseImpure<'vir>,
 }
 
 #[derive(Debug, Clone, Copy)]

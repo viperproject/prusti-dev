@@ -1,3 +1,4 @@
+use prusti_interface::specs::typed::ExternSpecKind;
 use prusti_rustc_interface::{
     middle::ty,
     span::{def_id::DefId, symbol},
@@ -16,11 +17,36 @@ use crate::encoders::{
 pub struct GParams<'tcx> {
     params: ty::GenericArgsRef<'tcx>,
     env: ty::ParamEnv<'tcx>,
+    /// Trait extern_specs will have a synthetic `Prusti_T_Self` parameter
+    /// instead of the actual `Self` parameter to which the spec is attached to.
+    /// This flag indicates whether this is the case, so that we can replace it
+    /// with the actual `Self` parameter when needed.
+    is_trait_extern_spec: bool,
 }
 
 impl<'tcx> GParams<'tcx> {
-    pub fn new(params: ty::GenericArgsRef<'tcx>, env: ty::ParamEnv<'tcx>) -> Self {
-        GParams { params, env }
+    pub fn new(
+        params: ty::GenericArgsRef<'tcx>,
+        env: ty::ParamEnv<'tcx>,
+        is_trait_extern_spec: bool,
+    ) -> Self {
+        GParams {
+            params,
+            env,
+            is_trait_extern_spec,
+        }
+    }
+
+    /// Gets the generic params for a given def_id. Additionally if this is a
+    /// special extern_spec function for a trait, replaces the synthetic
+    /// `Prusti_T_Self` parameter with the `Self` that the actual trait has.
+    pub fn new_maybe_extern(def_id: DefId, kind: Option<ExternSpecKind>) -> Self {
+        vir::with_vcx(|vcx| {
+            let params = ty::GenericArgs::identity_for_item(vcx.tcx(), def_id);
+            let env = vcx.tcx().param_env(def_id);
+            let is_trait_extern_spec = matches!(kind, Some(ExternSpecKind::Trait));
+            Self::new(params, env, is_trait_extern_spec)
+        })
     }
 
     pub fn empty() -> Self {
@@ -28,11 +54,15 @@ impl<'tcx> GParams<'tcx> {
     }
 
     pub fn empty_env(params: ty::GenericArgsRef<'tcx>) -> Self {
-        Self::new(params, ty::ParamEnv::empty())
+        Self::new(params, ty::ParamEnv::empty(), false)
     }
 
     pub fn count(self) -> usize {
         self.ty_params().count() + self.const_params().count()
+    }
+
+    pub fn is_trait_extern_spec(self) -> bool {
+        self.is_trait_extern_spec
     }
 
     pub(super) fn expect_const(self, idx: usize) -> (ty::ParamConst, ty::Ty<'tcx>) {
@@ -46,8 +76,12 @@ impl<'tcx> GParams<'tcx> {
         (p, p.find_const_ty_from_env(self.env))
     }
 
-    pub fn check(self, args: ty::GenericArgsRef<'tcx>) {
-        assert_eq!(self.params.len(), args.len());
+    pub fn check(self, args: &'tcx [ty::GenericArg<'tcx>]) {
+        assert_eq!(
+            self.params.len(),
+            args.len(),
+            "generic args length mismatch, context {self:?}, args {args:?}"
+        );
     }
 
     /// Tries to normalize associated types of the corresponding type. Returns
@@ -107,11 +141,14 @@ impl<'tcx> GParams<'tcx> {
     }
 
     fn ty_params(self) -> impl Iterator<Item = (usize, ty::ParamTy)> {
-        self.params(ty::GenericArg::as_type).map(|(i, ty)| {
-            let ty::TyKind::Param(param) = ty.kind() else {
+        self.params(ty::GenericArg::as_type).map(move |(i, ty)| {
+            let ty::TyKind::Param(mut param) = *ty.kind() else {
                 unreachable!()
             };
-            (i, *param)
+            if self.is_trait_extern_spec && param.name.as_str() == "Prusti_T_Self" {
+                param.name = symbol::Symbol::intern("Self");
+            }
+            (i, param)
         })
     }
 
@@ -126,10 +163,7 @@ impl<'tcx> GParams<'tcx> {
 
 impl<'vir> From<DefId> for GParams<'vir> {
     fn from(did: DefId) -> Self {
-        let tcx = vir::with_vcx(|vcx| vcx.tcx());
-        let params = ty::GenericArgs::identity_for_item(tcx, did);
-        let env = tcx.param_env(did);
-        Self::new(params, env)
+        Self::new_maybe_extern(did, None)
     }
 }
 
