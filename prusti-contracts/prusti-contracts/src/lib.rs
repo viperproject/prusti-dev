@@ -1,9 +1,8 @@
 #![no_std]
 #![cfg_attr(feature = "prusti", feature(unboxed_closures, tuple_trait))]
-#![feature(auto_traits)]
-#![feature(negative_impls)]
-#![feature(try_trait_v2)]
-#![feature(cfg_version)]
+#![feature(auto_traits, negative_impls, try_trait_v2, cfg_version)]
+#![feature(panic_internals)]
+#![allow(internal_features)]
 
 // Even alloc can be disabled for consistency with std, and in preparation for future specs for other, possibly no_std, crates.
 #[cfg(feature = "alloc")]
