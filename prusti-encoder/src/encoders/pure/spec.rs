@@ -58,6 +58,7 @@ impl TaskEncoder for MirSpecEnc {
             deps.require_dep::<crate::encoders::SpecEnc>(crate::encoders::SpecEncTask { def_id })?;
 
         vir::with_vcx(|vcx| {
+            let is_panic_cold_explicit = is_panic_cold_explicit(vcx.tcx(), def_id);
             let substs = ty::GenericArgs::identity_for_item(vcx.tcx(), def_id);
             let local_iter = (1..=local_defs.arg_count).map(mir::Local::from);
             let all_args: Vec<vir::ExprSnap<'vir>> = if pure {
@@ -89,7 +90,7 @@ impl TaskEncoder for MirSpecEnc {
                 .map(|s| s.1)
                 .unwrap_or(substs);
 
-            let pres = specs
+            let mut pres = specs
                 .pres
                 .iter()
                 .map(|spec_def_id| {
@@ -224,6 +225,10 @@ impl TaskEncoder for MirSpecEnc {
                     )
                 })
                 .collect::<Vec<_>>();
+            if is_panic_cold_explicit {
+                assert!(pres.is_empty() && posts.is_empty() && pledges.is_empty());
+                pres.push(vcx.mk_bool::<false>());
+            }
             let data = MirSpecEncOutput {
                 pres,
                 posts,
@@ -234,4 +239,23 @@ impl TaskEncoder for MirSpecEnc {
             Ok(((), data))
         })
     }
+}
+
+/// TODO: fix this issue properly, rather than with a name matching hack (the
+/// behaviour may also change in newer Rust versions)
+///
+/// Currently, rustc sometimes turns a `panic!()` into:
+/// ```
+/// #[inline(never)]
+/// #[cold]
+/// #[track_caller]
+/// fn panic_cold_explicit() -> ! {
+///    core::panicking::panic_explicit()
+/// }
+/// panic_cold_explicit();
+/// ```
+/// So we add a synthetic `#[requires(false)]` to any function that is called
+/// `panic_cold_explicit`.
+fn is_panic_cold_explicit(tcx: ty::TyCtxt<'_>, def_id: DefId) -> bool {
+    tcx.item_name(def_id).as_str() == "panic_cold_explicit"
 }
