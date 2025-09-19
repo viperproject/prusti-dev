@@ -1,4 +1,5 @@
 pub mod eq;
+pub mod panicking;
 
 pub use eq::PureEq;
 

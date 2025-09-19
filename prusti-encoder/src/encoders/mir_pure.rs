@@ -549,6 +549,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 target,
                 ..
             } => {
+                let Some(target) = target else {
+                    assert_eq!(
+                        self.body.local_decls[destination.local].ty,
+                        self.vcx.tcx().types.never,
+                        "call diverges but return type is not never (`!`)"
+                    );
+                    return None;
+                };
                 let func_ty = func.ty(self.body, self.vcx.tcx());
                 let (def_id, arg_tys) = RustSignature::get_def_id_and_caller_substs(func_ty);
                 let expr = {
@@ -590,7 +598,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 term_update.add_to_map(&mut new_curr_ver);
 
                 // walk rest of CFG
-                let end_update = self.encode_cfg(&new_curr_ver, target.unwrap(), join_point);
+                let end_update = self.encode_cfg(&new_curr_ver, *target, join_point);
 
                 stmt_update.merge_inner(term_update).merge(end_update)
             }
