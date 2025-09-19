@@ -2,7 +2,7 @@ use std::cell::RefCell;
 
 use prusti_interface::specs::{
     specifications::SpecQuery,
-    typed::{DefSpecificationMap, ProcedureSpecification, SpecificationItem},
+    typed::{DefSpecificationMap, ExternSpecKind, ProcedureSpecification, SpecificationItem},
 };
 use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
@@ -14,7 +14,7 @@ pub type SpecEncError = ();
 
 #[derive(Clone, Debug)]
 pub struct SpecEncOutput<'vir> {
-    //pub expr: vir::Expr<'vir>,
+    pub extern_spec: Option<ExternSpecKind>,
     pub pres: &'vir [DefId],
     pub posts: &'vir [DefId],
     pub pledges: &'vir [(Option<DefId>, DefId)], // TODO: reuse Pledge type?
@@ -99,7 +99,7 @@ impl TaskEncoder for SpecEnc {
     ) -> EncodeFullResult<'vir, Self> {
         deps.emit_output_ref(*task_key, ())?;
         vir::with_vcx(|vcx| {
-            let (pres, posts, pledges) = with_proc_spec(
+            let (extern_spec, pres, posts, pledges) = with_proc_spec(
                 SpecQuery::GetProcKind(
                     task_key.0,
                     ty::List::identity_for_item(vcx.tcx(), task_key.0),
@@ -109,10 +109,10 @@ impl TaskEncoder for SpecEnc {
                     let pres = get_spec_items(vcx, &specs.pres);
                     let posts = get_spec_items(vcx, &specs.posts);
                     let pledges = get_spec_items(vcx, &specs.pledges);
-                    (pres, posts, pledges)
+                    (specs.extern_spec, pres, posts, pledges)
                 },
             )
-            .unwrap_or((&[], &[], &[]));
+            .unwrap_or((None, &[], &[], &[]));
             let pledges = vcx.alloc_slice(
                 &pledges
                     .iter()
@@ -122,6 +122,7 @@ impl TaskEncoder for SpecEnc {
             Ok((
                 (),
                 SpecEncOutput {
+                    extern_spec,
                     pres,
                     posts,
                     pledges,

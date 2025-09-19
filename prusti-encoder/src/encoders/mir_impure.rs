@@ -72,8 +72,35 @@ where
     pub encoded_blocks: Vec<vir::CfgBlock<'vir>>, // TODO: use IndexVec ?
 }
 
+/// Represents the translation of a MIR place. If the place crosses a shared
+/// reference, then we will no longer have a predicate for the `address` Ref,
+/// but we do also have the snapshot available.
+pub(crate) struct PlaceExpr<'vir> {
+    address: vir::ExprRef<'vir>,
+    snap: Option<vir::ExprSnap<'vir>>,
+}
+
+impl<'vir> PlaceExpr<'vir> {
+    /// Expects the encoded place to not be behind a shared ref
+    pub(crate) fn expect_predicate(&self) -> vir::ExprRef<'vir> {
+        assert!(self.snap.is_none());
+        self.address
+    }
+
+    pub(crate) fn map(
+        self,
+        fa: impl FnOnce(vir::ExprRef<'vir>) -> vir::ExprRef<'vir>,
+        fs: impl FnOnce(vir::ExprSnap<'vir>) -> vir::ExprSnap<'vir>,
+    ) -> Self {
+        PlaceExpr {
+            address: fa(self.address),
+            snap: self.snap.map(fs),
+        }
+    }
+}
+
 pub(crate) struct EncodePlaceResult<'vir> {
-    pub(crate) expr: vir::ExprRef<'vir>,
+    pub(crate) expr: PlaceExpr<'vir>,
     pub(crate) ty: mir::PlaceTy<'vir>,
 }
 
@@ -211,21 +238,22 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         ) {
             return; // TODO: does this make sense??? we don't want to unfold because for immut refs we only use snapshot read/writes
         }
-        let mut ref_p = self.encode_place(place);
+        let ref_p = self.encode_place(place);
         let place_ty = ref_p.ty;
+        let mut ref_p = ref_p.expr.expect_predicate();
         let data = self.ty_use_impure(place_ty.ty);
 
         if let Some(label) = old {
-            ref_p.expr = self.vcx.mk_old(ref_p.expr, label);
+            ref_p = self.vcx.mk_old(ref_p, label);
         } else if let Some(label) = label {
-            ref_p.expr = self.vcx.mk_local_labelled_old_expr(ref_p.expr, label);
+            ref_p = self.vcx.mk_local_labelled_old_expr(ref_p, label);
         }
         if unfold {
-            for stmt in data.unfold(place_ty.variant_index, ref_p.expr, None) {
+            for stmt in data.unfold(place_ty.variant_index, ref_p, None) {
                 self.stmt(stmt);
             }
         } else {
-            for stmt in data.fold(place_ty.variant_index, ref_p.expr, None) {
+            for stmt in data.fold(place_ty.variant_index, ref_p, None) {
                 self.stmt(stmt);
             }
         }
@@ -445,13 +473,14 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 }
                 let place_enc = self.encode_place(place);
                 let place_ty = place_enc.ty;
+                let place_enc = place_enc.expr.expect_predicate();
                 let data = self.ty_use_impure(place_ty.ty);
                 if matches!(repack_op, pcg::free_pcs::RepackOp::Expand(..)) {
-                    for stmt in data.unfold(place_ty.variant_index, place_enc.expr, None) {
+                    for stmt in data.unfold(place_ty.variant_index, place_enc, None) {
                         self.stmt(stmt);
                     }
                 } else {
-                    for stmt in data.fold(place_ty.variant_index, place_enc.expr, None) {
+                    for stmt in data.fold(place_ty.variant_index, place_enc, None) {
                         self.stmt(stmt);
                     }
                 }
@@ -466,7 +495,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 comment!(self, "exhale due to Weaken(E, W)");
                 self.stmt(self.vcx.mk_exhale_stmt(place_ty_out.ref_to_pred(
                     self.vcx,
-                    place_enc.expr,
+                    place_enc.expr.expect_predicate(),
                     None,
                 )));
             }
@@ -499,66 +528,14 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
                 let tmp_exp = self.new_tmp(ty_out.snapshot());
                 self.stmt(self.vcx.mk_pure_assign_stmt(tmp_exp, snap_val));
-                self.stmt(
-                    self.vcx
-                        .mk_exhale_stmt(ty_out.ref_to_pred(self.vcx, result.expr, None)),
-                );
+                self.stmt(self.vcx.mk_exhale_stmt(ty_out.ref_to_pred(
+                    self.vcx,
+                    result.expr.expect_predicate(),
+                    None,
+                )));
                 tmp_exp
             }
-            &mir::Operand::Copy(place) => {
-                // When encoding a Copy, we proceed in two phases:
-                // - "impure" heap accesses to walk through predicates which
-                //   should be unfolded by the PCG at this point;
-                // - "pure" snapshot accesses to access values as soon as we
-                //   cross a shared reference.
-                // The crossing point is marked with `crossed_ref` and either
-                // coincides with taking a snapshot of the heap accesses we
-                // have performed thus far, or, if the local variable itself is
-                // a shared reference, it happens immediately.
-                let mut place_ty = mir::PlaceTy::from_ty(self.local_decls[place.local].ty);
-                let mut encoded_place = mir::Place::from(place.local);
-                let mut crossed_ref =
-                    matches!(place_ty.ty.kind(), TyKind::Ref(_, _, ty::Mutability::Not));
-                let mut result = if crossed_ref {
-                    let ty_out = self.ty_use_impure(place_ty.ty);
-                    let snap_val = ty_out.ref_to_snap(self.local_defs[place.local].local_ex);
-                    snap_val.as_dyn()
-                } else {
-                    self.local_defs[place.local].local_ex.as_dyn()
-                };
-                for elem in place.projection {
-                    if crossed_ref {
-                        use vir::Reify;
-                        let (expr, _) = crate::encoders::mir_pure::encode_place_element(
-                            self.deps,
-                            self.def_id,
-                            place_ty,
-                            elem,
-                            result.lift().downcast_ty(),
-                            None,
-                        );
-                        result = expr.reify(self.vcx, (self.def_id, &[])).as_dyn();
-                    } else {
-                        result = self
-                            .encode_place_element(place_ty, elem, result.downcast_ty())
-                            .as_dyn();
-                    }
-                    place_ty = place_ty.projection_ty(self.vcx.tcx(), elem);
-                    encoded_place = encoded_place.project_deeper(&[elem], self.vcx.tcx());
-                    if !crossed_ref
-                        && matches!(place_ty.ty.kind(), TyKind::Ref(_, _, ty::Mutability::Not))
-                    {
-                        let ty_out = self.ty_use_impure(place_ty.ty);
-                        result = ty_out.ref_to_snap(result.downcast_ty()).as_dyn();
-                        crossed_ref = true;
-                    }
-                }
-                if !crossed_ref {
-                    let ty_out = self.ty_use_impure(place_ty.ty);
-                    result = ty_out.ref_to_snap(result.downcast_ty()).as_dyn();
-                }
-                result.downcast_ty()
-            }
+            &mir::Operand::Copy(place) => self.encode_place_snap(place.into()).1,
             mir::Operand::Constant(box constant) => self.encode_constant(constant).upcast_ty(),
         }
     }
@@ -566,7 +543,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn encode_operand(&mut self, operand: &mir::Operand<'vir>) -> vir::ExprRef<'vir> {
         let ty = operand.ty(self.local_decls, self.vcx.tcx());
         let (encode_place_result, ty_out) = match operand {
-            &mir::Operand::Move(source) => return self.encode_place(Place::from(source)).expr,
+            &mir::Operand::Move(source) => {
+                return self
+                    .encode_place(Place::from(source))
+                    .expr
+                    .expect_predicate();
+            }
             &mir::Operand::Copy(_source) => {
                 let ty_out = self.ty_use_impure(ty);
                 (self.encode_operand_snap(operand), ty_out)
@@ -608,7 +590,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     pub(crate) fn encode_place(&mut self, place: Place<'vir>) -> EncodePlaceResult<'vir> {
         let mut place_ty = mir::PlaceTy::from_ty(self.local_decls[place.local].ty);
         let mut encoded_place = mir::Place::from(place.local);
-        let mut result = self.local_defs[place.local].local_ex;
+        let mut result = PlaceExpr {
+            address: self.local_defs[place.local].local_ex,
+            snap: None,
+        };
         // TODO: factor this out (duplication with pure encoder)?
         for &elem in place.projection {
             result = self.encode_place_element(place_ty, elem, result);
@@ -635,7 +620,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
         let ty_out = self.ty_use_impure(ty.ty);
         let result = self.encode_place(place);
-        let snap = ty_out.ref_to_snap(result.expr);
+        let snap = result
+            .expr
+            .snap
+            .unwrap_or_else(|| ty_out.ref_to_snap(result.expr.address));
         (result, snap, ty, ty_out)
     }
 
@@ -643,48 +631,66 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         &mut self,
         place_ty: mir::PlaceTy<'vir>,
         elem: mir::PlaceElem<'vir>,
-        expr: vir::ExprRef<'vir>,
-    ) -> vir::ExprRef<'vir> {
+        expr: PlaceExpr<'vir>,
+    ) -> PlaceExpr<'vir> {
         match elem {
             mir::ProjectionElem::Field(field_idx, _) => {
                 let e_ty = self.ty_use_impure(place_ty.ty);
                 let field_access = e_ty.expect_variant_opt(place_ty.variant_index);
-                field_access[field_idx].field_ref(expr)
+                expr.map(
+                    |r| field_access[field_idx].field_ref(r),
+                    |snap| {
+                        let e_ty = self.ty_use_pure(place_ty.ty);
+                        let field_access = e_ty.expect_variant_opt(place_ty.variant_index);
+                        field_access[field_idx].read(snap.downcast_ty())
+                    },
+                )
             }
             // TODO: should all variants start at the same `Ref`?
             mir::ProjectionElem::Downcast(..) => expr,
             mir::ProjectionElem::Deref => {
                 assert!(place_ty.variant_index.is_none());
                 let e_ty = self.ty_use_impure(place_ty.ty);
-                // println!("  trying to deref place elem {elem:?}");
-                // println!("    place_ty: {place_ty:?}");
                 match place_ty.ty.kind() {
                     ty::TyKind::Adt(adt, _) if adt.is_box() => {
                         let field_access = e_ty.expect_variant_opt(None);
-                        field_access[abi::FieldIdx::ZERO].field_ref(expr)
+                        expr.map(
+                            // TODO: this is unsound: a Box should be modelled
+                            // with a Ref field rather than a field_access
+                            // function.
+                            |r| field_access[abi::FieldIdx::ZERO].field_ref(r),
+                            |snap| {
+                                let e_ty = self.ty_use_pure(place_ty.ty);
+                                let field_access = e_ty.expect_variant_opt(None);
+                                field_access[abi::FieldIdx::ZERO].read(snap.downcast_ty())
+                            },
+                        )
                     }
                     ty::TyKind::Ref(_, _, ty::Mutability::Not) => {
-                        // TODO: unfold? function? use snapshot?
-                        e_ty.expect_immref().deref(expr)
+                        let snap = expr
+                            .snap
+                            .unwrap_or_else(|| e_ty.ref_to_snap(expr.address))
+                            .downcast_ty();
+                        let p_ty = self.ty_use_pure(place_ty.ty).expect_immref();
+                        PlaceExpr {
+                            address: p_ty.deref_access(snap),
+                            snap: Some(p_ty.value_access(snap)),
+                        }
                     }
                     ty::TyKind::Ref(_, _, ty::Mutability::Mut) => {
-                        // TODO: unfold? function? use snapshot?
-
-                        // TODO: we are writing directly to the deref; is a cast ever
-                        //   needed?
-                        /*
-                        let inner_ty = place_ty.ty.builtin_deref(true).unwrap();
-                        if let Some(cast_stmts) = self
-                            .deps
-                            .require_dep::<RustTyCastersEnc<CastTypeImpure>>(inner_ty)
-                            .unwrap()
-                            .cast_to_concrete_if_possible(self.vcx, expr_deref)
-                        {
-                            self.stmt(cast_stmts.apply_cast_stmt);
-                            return (expr_deref, Some(cast_stmts.unapply_cast_stmt));
+                        if let Some(snap) = expr.snap {
+                            let snap = snap.downcast_ty();
+                            let p_ty = self.ty_use_pure(place_ty.ty).expect_mutref();
+                            PlaceExpr {
+                                address: p_ty.deref_access(snap),
+                                snap: Some(p_ty.value_access(snap)),
+                            }
+                        } else {
+                            PlaceExpr {
+                                address: e_ty.expect_mutref().deref(expr.address),
+                                snap: None,
+                            }
                         }
-                        */
-                        (e_ty.expect_mutref().deref(expr)) as _
                     }
                     _ => unreachable!(),
                 }
@@ -842,7 +848,10 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
         match &statement.kind {
             mir::StatementKind::Assign(box (dest, rvalue)) => {
                 // What are we assigning to?
-                let proj_enc = self.encode_place(Place::from(*dest));
+                let proj_enc = self
+                    .encode_place(Place::from(*dest))
+                    .expr
+                    .expect_predicate();
 
                 let rvalue_ty = rvalue.ty(self.local_decls, self.vcx.tcx());
 
@@ -953,35 +962,37 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                                 .filter(|_| place_ty.variant_index.is_none())
                             {
                                 Some(el) => {
-                                    let discr_ty = place_ty.ty.discriminant_ty(self.vcx.tcx());
-                                    let discr_ty_out = self.ty_use_impure(discr_ty);
-                                    let discr_expr = discr_ty_out.ref_to_snap(el.discr(place_expr));
-                                    self.vcx.mk_unfolding_expr(
-                                        ty.ref_to_pred_app(
-                                            place_expr,
-                                            Some(self.vcx.mk_wildcard()),
-                                        ),
-                                        discr_expr,
-                                    )
+                                    if let Some(snap) = place_expr.snap {
+                                        let ty = self.ty_use_pure(place_ty.ty).expect_enumlike();
+                                        ty.snap_to_discr_snap(snap.downcast_ty())
+                                    } else {
+                                        let place_expr = place_expr.expect_predicate();
+                                        self.vcx.mk_unfolding_expr(
+                                            ty.ref_to_pred_app(
+                                                place_expr,
+                                                Some(self.vcx.mk_wildcard()),
+                                            ),
+                                            el.discr_ty()
+                                                .ref_to_snap(el.discr(place_expr))
+                                                .downcast_ty(),
+                                        )
+                                    }
                                 }
                                 None => {
                                     // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
                                     let zero = self.vcx.mk_uint::<0>();
                                     (e_rvalue_ty.expect_primitive().prim_to_snap)(zero.upcast_ty())
-                                        .upcast_ty()
                                 }
-                            },
+                            }
+                            .upcast_ty(),
                         )
                     }
                     mir::Rvalue::Ref(_reg, _kind, place) => {
                         Some(match rvalue_ty.kind() {
-                            TyKind::Ref(_, inner_ty, ty::Mutability::Not) => {
-                                let e_rvalue_ty = self.ty_use_pure(rvalue_ty);
-                                let ep = self.encode_place(Place::from(*place));
-                                debug_assert_eq!(ep.ty.ty, *inner_ty);
-                                let snap = self.encode_operand_snap(&mir::Operand::Copy(*place));
-                                let inner = e_rvalue_ty.expect_immref();
-                                inner.prim_to_snap(ep.expr, snap).upcast_ty()
+                            TyKind::Ref(.., ty::Mutability::Not) => {
+                                let (address, snap, _, _) = self.encode_place_snap((*place).into());
+                                let inner = self.ty_use_pure(rvalue_ty).expect_immref();
+                                inner.prim_to_snap(address.expr.address, snap).upcast_ty()
                             }
                             TyKind::Ref(.., ty::Mutability::Mut) => {
                                 let e_rvalue_ty = self.ty_use_pure(rvalue_ty);
@@ -990,7 +1001,9 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
 
                                 // The snapshot of the referenced value should be encoded as a generic `Param`
                                 let inner = e_rvalue_ty.expect_mutref();
-                                inner.prim_to_snap(place_expr.expr, snap).upcast_ty()
+                                inner
+                                    .prim_to_snap(place_expr.expr.expect_predicate(), snap)
+                                    .upcast_ty()
                             }
                             _ => unreachable!(),
                         })
@@ -1014,7 +1027,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     assert!(dest_ty.variant_index.is_none());
                     let dest_ty_out = self.ty_use_impure(dest_ty.ty);
                     let method_assign_app =
-                        dest_ty_out.apply_method_assign(self.vcx, proj_enc.expr, rval_enc);
+                        dest_ty_out.apply_method_assign(self.vcx, proj_enc, rval_enc);
 
                     self.stmt(method_assign_app);
                 } else {
@@ -1225,7 +1238,10 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 )
                 .unwrap_or_default();
 
-                let dest = self.encode_place(Place::from(*destination)).expr;
+                let dest = self
+                    .encode_place(Place::from(*destination))
+                    .expr
+                    .expect_predicate();
                 if is_pure {
                     let pure_func = self
                         .deps

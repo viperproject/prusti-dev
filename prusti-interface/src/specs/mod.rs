@@ -211,7 +211,8 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 .emit(&self.env.diagnostic);
             }
 
-            let spec = def_spec.proc_specs.remove(spec_id).unwrap();
+            let mut spec = def_spec.proc_specs.remove(spec_id).unwrap();
+            spec.set_extern_spec(extern_spec_decl.into());
             def_spec.proc_specs.insert(target_def_id, spec);
         }
     }
