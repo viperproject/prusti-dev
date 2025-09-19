@@ -4,8 +4,7 @@ pub fn is_function_with_body(tcx: ty::TyCtxt<'_>, def_id: DefId) -> bool {
         let associated_items = tcx.associated_items(trait_def_id);
         if let Some(assoc_item) = associated_items
             .in_definition_order()
-            .filter(|item| item.def_id == def_id)
-            .next()
+            .find(|item| item.def_id == def_id)
         {
             return assoc_item.defaultness(tcx).has_value();
         }

@@ -4,10 +4,7 @@ use prusti_interface::specs::{
     specifications::SpecQuery,
     typed::{DefSpecificationMap, ProcedureSpecification, SpecificationItem},
 };
-use prusti_rustc_interface::{
-    middle::ty,
-    span::def_id::DefId,
-};
+use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::VirCtxt;
 
@@ -122,7 +119,14 @@ impl TaskEncoder for SpecEnc {
                     .map(|pledge| (pledge.lhs, pledge.rhs))
                     .collect::<Vec<_>>(),
             );
-            Ok(((), SpecEncOutput { pres, posts, pledges }))
+            Ok((
+                (),
+                SpecEncOutput {
+                    pres,
+                    posts,
+                    pledges,
+                },
+            ))
         })
     }
 }

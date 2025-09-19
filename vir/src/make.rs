@@ -1,11 +1,6 @@
 use crate::{
-    callable::*,
-    data::*,
-    debug_info::DebugInfo,
-    gendata::*,
-    genrefs::*,
-    refs::*,
-    typecheck_error, CastType, CompType, HasType, ViperIdent, VirCtxt,
+    callable::*, data::*, debug_info::DebugInfo, gendata::*, genrefs::*, refs::*, typecheck_error,
+    CastType, CompType, HasType, ViperIdent, VirCtxt,
 };
 use cfg_if::cfg_if;
 use prusti_rustc_interface::middle::ty;
@@ -190,10 +185,7 @@ impl<'tcx> VirCtxt<'tcx> {
         self.alloc(LocalDeclData { name, ty })
     }
 
-    fn mk_local<'vir, T: CompType>(
-        &'vir self,
-        decl: LocalDecl<'vir, T>,
-    ) -> Local<'vir, T> {
+    fn mk_local<'vir, T: CompType>(&'vir self, decl: LocalDecl<'vir, T>) -> Local<'vir, T> {
         self.alloc(LocalData {
             name: decl.name,
             ty: decl.ty,
@@ -206,7 +198,7 @@ impl<'tcx> VirCtxt<'tcx> {
         decl: LocalDecl<'vir, T>,
     ) -> ExprGen<'vir, Curr, Next, T> {
         self.alloc(ExprGenData::new(
-            self.alloc(ExprKindGenData::Local(self.mk_local(decl.as_dyn())))
+            self.alloc(ExprKindGenData::Local(self.mk_local(decl.as_dyn()))),
         ))
     }
 
@@ -458,9 +450,9 @@ impl<'tcx> VirCtxt<'tcx> {
                 recv.ty()
             );
         }
-        self.alloc(ExprGenData::new(
-            self.alloc(ExprKindGenData::AdtDestructor(recv.as_dyn(), destr.as_dyn())),
-        ))
+        self.alloc(ExprGenData::new(self.alloc(
+            ExprKindGenData::AdtDestructor(recv.as_dyn(), destr.as_dyn()),
+        )))
     }
 
     pub fn mk_adt_discriminator_expr<'vir, Curr, Next, T: CompType>(
@@ -569,17 +561,10 @@ impl<'tcx> VirCtxt<'tcx> {
         let expr = self.mk_forall_expr(
             self.alloc_slice(&[val]),
             self.alloc_slice(&[self.mk_trigger(self.alloc_slice(&[inner]))]),
-            self.mk_eq_expr(
-                a(inner),
-                val_ex,
-            ),
+            self.mk_eq_expr(a(inner), val_ex),
         );
         self.alloc(DomainAxiomGenData {
-            name: self.alloc_str(&format!(
-                "ax_inverse_{}_{}",
-                a.name(),
-                b.name(),
-            )),
+            name: self.alloc_str(&format!("ax_inverse_{}_{}", a.name(), b.name(),)),
             expr,
         })
     }

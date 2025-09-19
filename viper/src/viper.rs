@@ -96,7 +96,7 @@ impl Viper {
         Viper { jvm }
     }
 
-    pub fn attach_current_thread(&self) -> VerificationContext {
+    pub fn attach_current_thread(&self) -> VerificationContext<'_> {
         let env_guard = self
             .jvm
             .attach_current_thread()

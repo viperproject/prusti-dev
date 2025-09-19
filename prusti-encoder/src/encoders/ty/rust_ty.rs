@@ -1,8 +1,11 @@
 use std::ops::Deref;
 
-use prusti_rustc_interface::{abi, middle::ty, span::symbol, hir, index};
+use prusti_rustc_interface::{abi, hir, index, middle::ty, span::symbol};
 
-use super::{generics::{GArgs, GParams}, data::*};
+use super::{
+    data::*,
+    generics::{GArgs, GParams},
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct RustTyDecomposition<'tcx> {
@@ -32,11 +35,11 @@ impl<'tcx> RustTyDecomposition<'tcx> {
     /// The `ty` field is agnostic of the client's generic arguments while the
     /// `args` field captures everything from the client's side. Note that we
     /// guarantee that `decomp.ty.params.len() == decomp.args.len()`.
-    /// 
+    ///
     /// To recursively encode the struct itself, one should walk the
     /// `decomp.ty.specifics` and call `RustFieldData::decompose` with
     /// `decomp.ty.params`.
-    /// 
+    ///
     /// To figure out which casts are required from the client side (e.g. when
     /// unfolding), one should walk the `decomp.ty.specifics` and call
     /// `RustFieldData::decompose_compare_normalize` with `decomp.ty.params`
@@ -92,7 +95,7 @@ impl<'tcx> LazyRustTy<'tcx> {
     /// Decomposes the field's type into a `RustTyDecomposition` (to be used
     /// when recursing over the fields of a containing `RustTy`).
     /// The passed `args` should be those of the containing `RustTyDecomposition::args`.
-    /// 
+    ///
     /// This differs from `Self::decompose` in that it substitutes the `args`
     /// removing definitional generics. For example a `Foo<i32>` with definition
     /// `struct Foo<T>(T);` would yield `i32` instead of `T` when called on the
@@ -127,7 +130,11 @@ impl<'tcx> LazyRustTy<'tcx> {
     ///     args: GArgs { args: "", context: "<T: Iterator<Item = i32>>" }
     /// });
     /// ```
-    pub fn decompose_compare_normalize(&self, params: GParams<'tcx>, args: GArgs<'tcx>) -> Option<RustTyNormalized<'tcx>> {
+    pub fn decompose_compare_normalize(
+        &self,
+        params: GParams<'tcx>,
+        args: GArgs<'tcx>,
+    ) -> Option<RustTyNormalized<'tcx>> {
         let param = self.decompose(params).ty;
         let TySpecifics::Param(..) = &param.specifics else {
             return None;
@@ -136,7 +143,11 @@ impl<'tcx> LazyRustTy<'tcx> {
         if let TySpecifics::Param(..) = &ty.specifics {
             None
         } else {
-            Some(RustTyNormalized { param, concrete: ty, args })
+            Some(RustTyNormalized {
+                param,
+                concrete: ty,
+                args,
+            })
         }
     }
 }
@@ -224,7 +235,10 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         let name = Self::ty_name(ty);
         let (params, args) = Self::identity_for_ty(ty);
         let args = GArgs::new(context, args);
-        let data = RustTyData { name: symbol::Symbol::intern(&name), params };
+        let data = RustTyData {
+            name: symbol::Symbol::intern(&name),
+            params,
+        };
         let specifics = TySpecifics::from_ty(ty);
         (Self::new(data, specifics).alloc(), args)
     }
@@ -233,7 +247,10 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         let name = Self::prim_ty_name(ty);
         let (params, args) = Self::identity_for_prim_ty(ty);
         let args = GArgs::new(params, args);
-        let data = RustTyData { name: symbol::Symbol::intern(&name), params };
+        let data = RustTyData {
+            name: symbol::Symbol::intern(&name),
+            params,
+        };
         let specifics = TySpecifics::from_prim_ty(ty);
         (Self::new(data, specifics).alloc(), args)
     }
@@ -242,7 +259,9 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         match ty.kind() {
             _ if ty.is_primitive() => Self::prim_ty_name(ty),
             ty::TyKind::Str => String::from("Str"),
-            ty::TyKind::Adt(adt, _) => vir::with_vcx(|vcx| vcx.tcx().item_name(adt.did()).to_ident_string()),
+            ty::TyKind::Adt(adt, _) => {
+                vir::with_vcx(|vcx| vcx.tcx().item_name(adt.did()).to_ident_string())
+            }
             ty::TyKind::Tuple(params) => format!("{}_Tuple", params.len()),
             ty::TyKind::Never => String::from("Never"),
             ty::TyKind::Ref(_, _, ty::Mutability::Not) => String::from("Ref_immutable"),
@@ -286,22 +305,25 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
     /// For the ty `MyStruct<i32>` (with defn
     /// `struct MyStruct<T: Iterator<Item = i32>> { ... }`), returns
     /// `([<T: Iterator<Item = i32>>], [i32])`.
-    pub(super) fn identity_for_ty(
-        ty: ty::Ty<'tcx>,
-    ) -> (GParams<'tcx>, ty::GenericArgsRef<'tcx>) {
+    pub(super) fn identity_for_ty(ty: ty::Ty<'tcx>) -> (GParams<'tcx>, ty::GenericArgsRef<'tcx>) {
         let (params, args) = match *ty.kind() {
             _ if ty.is_primitive() => return Self::identity_for_prim_ty(ty),
-            ty::TyKind::Adt(adt, args) =>
-                (GParams::from(adt.did()), args),
+            ty::TyKind::Adt(adt, args) => (GParams::from(adt.did()), args),
             ty::TyKind::Tuple(tys) => {
                 let gtys = (0..tys.len()).map(|idx| TySpecifics::new_param_ty(idx as u32));
-                (GParams::empty_env(Self::args_from_tys(gtys)), Self::args_from_tys(tys))
+                (
+                    GParams::empty_env(Self::args_from_tys(gtys)),
+                    Self::args_from_tys(tys),
+                )
             }
             ty::TyKind::Array(ty, cst) => {
                 let gty = TySpecifics::new_param_ty(0).into();
                 let gcst = TySpecifics::new_param_const(1).into();
                 let gparams = Self::args_from_generics([gty, gcst]);
-                (GParams::empty_env(gparams), Self::args_from_generics([ty.into(), cst.into()]))
+                (
+                    GParams::empty_env(gparams),
+                    Self::args_from_generics([ty.into(), cst.into()]),
+                )
             }
             ty::TyKind::Slice(ty) | ty::TyKind::RawPtr(ty, _) => {
                 let gty = Self::args_from_tys([TySpecifics::new_param_ty(0)]);
@@ -312,7 +334,10 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
                 let param_region = vir::with_vcx(|vcx| vcx.tcx().lifetimes.re_erased.into());
                 let param_ty = TySpecifics::new_param_ty(1).into();
                 let gty = Self::args_from_generics([param_region, param_ty]);
-                (GParams::empty_env(gty), Self::args_from_generics([region.into(), ty.into()]))
+                (
+                    GParams::empty_env(gty),
+                    Self::args_from_generics([region.into(), ty.into()]),
+                )
             }
             ty::TyKind::Alias(..) | ty::TyKind::Param(_) => {
                 let gty = Self::args_from_tys([TySpecifics::new_param_ty(0)]);
@@ -324,18 +349,16 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
                 let args = vcx.tcx().mk_args(args.as_closure().parent_args());
                 (GParams::new(gargs, vcx.tcx().param_env(did)), args)
             }),
-            ty::TyKind::Never
-            | ty::TyKind::Str
-            | ty::TyKind::FnPtr(..) => (GParams::empty(), ty::GenericArgs::empty()),
+            ty::TyKind::Never | ty::TyKind::Str | ty::TyKind::FnPtr(..) => {
+                (GParams::empty(), ty::GenericArgs::empty())
+            }
             _ => todo!("instantiate_identity_for_type for {:?}", ty),
         };
         params.check(args);
         (params, args)
     }
 
-    fn identity_for_prim_ty(
-        ty: ty::Ty<'tcx>,
-    ) -> (GParams<'tcx>, ty::GenericArgsRef<'tcx>) {
+    fn identity_for_prim_ty(ty: ty::Ty<'tcx>) -> (GParams<'tcx>, ty::GenericArgsRef<'tcx>) {
         assert!(ty.is_primitive());
         (GParams::empty(), ty::GenericArgs::empty())
     }
@@ -344,7 +367,9 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         Self::args_from_generics(tys.into_iter().map(ty::GenericArg::from))
     }
 
-    fn args_from_generics(tys: impl IntoIterator<Item = ty::GenericArg<'tcx>>) -> ty::GenericArgsRef<'tcx> {
+    fn args_from_generics(
+        tys: impl IntoIterator<Item = ty::GenericArg<'tcx>>,
+    ) -> ty::GenericArgsRef<'tcx> {
         vir::with_vcx(|vcx| vcx.tcx().mk_args_from_iter(tys.into_iter()))
     }
 }
@@ -361,11 +386,15 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
         match ty.kind() {
             ty::TyKind::Adt(adt, _) => Self::from_adt(*adt),
             ty::TyKind::Tuple(args) => {
-                let fields = args.iter().enumerate().map(|(i, _)| RustFieldData {
-                    name: symbol::Symbol::intern(&format!("_{i}")),
-                    fid: abi::FieldIdx::from_usize(i),
-                    ty: LazyRustTy(Self::new_param_ty(i as u32)),
-                }).collect::<Vec<_>>();
+                let fields = args
+                    .iter()
+                    .enumerate()
+                    .map(|(i, _)| RustFieldData {
+                        name: symbol::Symbol::intern(&format!("_{i}")),
+                        fid: abi::FieldIdx::from_usize(i),
+                        ty: LazyRustTy(Self::new_param_ty(i as u32)),
+                    })
+                    .collect::<Vec<_>>();
                 TySpecifics::mk_structlike((), fields)
             }
             ty::TyKind::Array(..) | ty::TyKind::Slice(..) => {
@@ -373,23 +402,33 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
                 TySpecifics::mk_opaque(())
             }
             ty::TyKind::Ref(_, _, mutability) => match mutability {
-                ty::Mutability::Mut => TySpecifics::mk_mutref(LazyRustTy(TySpecifics::new_param_ty(1))),
-                ty::Mutability::Not => TySpecifics::mk_immref(LazyRustTy(TySpecifics::new_param_ty(1))),
+                ty::Mutability::Mut => {
+                    TySpecifics::mk_mutref(LazyRustTy(TySpecifics::new_param_ty(1)))
+                }
+                ty::Mutability::Not => {
+                    TySpecifics::mk_immref(LazyRustTy(TySpecifics::new_param_ty(1)))
+                }
             },
             // TODO: add raw pointer support
             ty::TyKind::RawPtr(..) => TySpecifics::mk_opaque(()),
             ty::TyKind::Alias(..) | ty::TyKind::Param(_) => TySpecifics::mk_param(()),
             ty::TyKind::Closure(_, args) => {
                 let captured = args.as_closure().upvar_tys();
-                let fields = captured.iter().enumerate().map(|(i, ty)| RustFieldData {
-                    name: symbol::Symbol::intern(&format!("c{i}")),
-                    fid: abi::FieldIdx::from_usize(i),
-                    ty: LazyRustTy(ty),
-                }).collect::<Vec<_>>();
+                let fields = captured
+                    .iter()
+                    .enumerate()
+                    .map(|(i, ty)| RustFieldData {
+                        name: symbol::Symbol::intern(&format!("c{i}")),
+                        fid: abi::FieldIdx::from_usize(i),
+                        ty: LazyRustTy(ty),
+                    })
+                    .collect::<Vec<_>>();
                 TySpecifics::mk_structlike((), fields)
             }
             ty::TyKind::Never => {
-                let data = vir::with_vcx(|vcx| RustEnumData { discr: vcx.tcx().types.isize });
+                let data = vir::with_vcx(|vcx| RustEnumData {
+                    discr: vcx.tcx().types.isize,
+                });
                 TySpecifics::mk_enumlike(data, Vec::new())
             }
             // TODO: add str support
@@ -403,9 +442,7 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
         TySpecifics::mk_primitive(ty)
     }
 
-    fn from_adt(
-        adt: ty::AdtDef<'tcx>,
-    ) -> Self {
+    fn from_adt(adt: ty::AdtDef<'tcx>) -> Self {
         if adt.is_box() {
             let fields = vec![RustFieldData {
                 name: symbol::Symbol::intern("deref"),
@@ -431,9 +468,7 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
         }
     }
 
-    fn from_struct(
-        variant: &ty::VariantDef,
-    ) -> StructData<'tcx, RustTyDatas> {
+    fn from_struct(variant: &ty::VariantDef) -> StructData<'tcx, RustTyDatas> {
         let fields = Self::from_fields(&variant.fields);
         StructData::new((), fields)
     }
@@ -443,27 +478,39 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
             use ty::util::IntTypeExt;
             let discr = adt.repr().discr_type().to_ty(vcx.tcx());
             let data = RustEnumData { discr };
-            let variants = adt.discriminants(vcx.tcx()).map(|(vid, discr)| {
-                let variant = adt.variant(vid);
-                let fields = Self::from_fields(&variant.fields);
-                VariantData::new(
-                    RustVariantData {
-                        name: variant.name,
-                        vid,
-                        discr_val: discr.val,
-                    },
-                    StructData::new((), fields),
-                )
-            }).collect::<Vec<_>>();
+            let variants = adt
+                .discriminants(vcx.tcx())
+                .map(|(vid, discr)| {
+                    let variant = adt.variant(vid);
+                    let fields = Self::from_fields(&variant.fields);
+                    VariantData::new(
+                        RustVariantData {
+                            name: variant.name,
+                            vid,
+                            discr_val: discr.val,
+                        },
+                        StructData::new((), fields),
+                    )
+                })
+                .collect::<Vec<_>>();
             EnumData::new(data, variants)
         })
     }
 
-    fn from_fields(fields: &index::IndexVec<abi::FieldIdx, ty::FieldDef>) -> Vec<RustFieldData<'tcx>> {
-        fields.iter_enumerated().map(|(fid, field)| {
-            let ty = vir::with_vcx(|vcx| vcx.tcx().type_of(field.did).instantiate_identity());
-            RustFieldData { name: field.name, fid, ty: LazyRustTy(ty) }
-        }).collect::<Vec<_>>()
+    fn from_fields(
+        fields: &index::IndexVec<abi::FieldIdx, ty::FieldDef>,
+    ) -> Vec<RustFieldData<'tcx>> {
+        fields
+            .iter_enumerated()
+            .map(|(fid, field)| {
+                let ty = vir::with_vcx(|vcx| vcx.tcx().type_of(field.did).instantiate_identity());
+                RustFieldData {
+                    name: field.name,
+                    fid,
+                    ty: LazyRustTy(ty),
+                }
+            })
+            .collect::<Vec<_>>()
     }
 
     fn new_param_ty(index: u32) -> ty::Ty<'tcx> {
@@ -482,10 +529,7 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
             1 => symbol::Symbol::intern("N"),
             other => symbol::Symbol::intern(&format!("N{other}")),
         };
-        let param = ty::ParamConst {
-            index,
-            name,
-        };
+        let param = ty::ParamConst { index, name };
         vir::with_vcx(|vcx| ty::Const::new_param(vcx.tcx(), param))
     }
 }

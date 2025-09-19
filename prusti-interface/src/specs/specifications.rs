@@ -44,7 +44,7 @@ impl<'qry, 'tcx> RefinementContext<'qry, 'tcx> {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub(super) struct FunctionCallEncodingQuery<'tcx> {
+pub struct FunctionCallEncodingQuery<'tcx> {
     pub called_def_id: DefId,
     pub caller_def_id: DefId,
     pub call_substs: GenericArgsRef<'tcx>,
@@ -113,37 +113,37 @@ impl<'tcx> Specifications<'tcx> {
     }
 
     #[tracing::instrument(level = "trace", skip(self))]
-    pub(super) fn get_loop_spec(&self, def_id: &DefId) -> Option<&LoopSpecification> {
+    pub fn get_loop_spec(&self, def_id: &DefId) -> Option<&LoopSpecification> {
         self.user_typed_specs.get_loop_spec(def_id)
     }
 
     #[tracing::instrument(level = "trace", skip(self))]
-    pub(super) fn get_type_spec(&self, def_id: &DefId) -> Option<&TypeSpecification> {
+    pub fn get_type_spec(&self, def_id: &DefId) -> Option<&TypeSpecification> {
         self.user_typed_specs.get_type_spec(def_id)
     }
 
     #[tracing::instrument(level = "trace", skip(self))]
-    pub(super) fn get_assertion(&self, def_id: &DefId) -> Option<&PrustiAssertion> {
+    pub fn get_assertion(&self, def_id: &DefId) -> Option<&PrustiAssertion> {
         self.user_typed_specs.get_assertion(def_id)
     }
 
     #[tracing::instrument(level = "trace", skip(self))]
-    pub(super) fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
+    pub fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
         self.user_typed_specs.get_assumption(def_id)
     }
 
     #[tracing::instrument(level = "trace", skip(self))]
-    pub(super) fn get_refutation(&self, def_id: &DefId) -> Option<&PrustiRefutation> {
+    pub fn get_refutation(&self, def_id: &DefId) -> Option<&PrustiRefutation> {
         self.user_typed_specs.get_refutation(def_id)
     }
 
     #[tracing::instrument(level = "trace", skip(self))]
-    pub(super) fn get_ghost_begin(&self, def_id: &DefId) -> Option<&GhostBegin> {
+    pub fn get_ghost_begin(&self, def_id: &DefId) -> Option<&GhostBegin> {
         self.user_typed_specs.get_ghost_begin(def_id)
     }
 
     #[tracing::instrument(level = "trace", skip(self))]
-    pub(super) fn get_ghost_end(&self, def_id: &DefId) -> Option<&GhostEnd> {
+    pub fn get_ghost_end(&self, def_id: &DefId) -> Option<&GhostEnd> {
         self.user_typed_specs.get_ghost_end(def_id)
     }
 

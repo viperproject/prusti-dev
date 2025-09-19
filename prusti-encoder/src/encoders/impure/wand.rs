@@ -1,17 +1,11 @@
 use pcg::{
     borrow_pcg::{
         AbstractionInputTarget, AbstractionOutputTarget,
-        borrow_pcg_edge::{BorrowPcgEdgeLike, BorrowPcgEdgeRef},
-        edge::{abstraction::AbstractionEdge, kind::BorrowPcgEdgeKind},
-        graph::{
-            BorrowsGraph,
-            coupling::{PcgCoupledEdge, PcgCoupledEdges},
-        },
+        graph::{BorrowsGraph, coupling::PcgCoupledEdge},
         state::BorrowsState,
         unblock_graph::UnblockGraph,
     },
     pcg::PcgNode,
-    utils::maybe_remote::MaybeRemotePlace,
 };
 use task_encoder::TaskEncoder;
 
@@ -102,9 +96,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         };
         let label = *label.get_or_insert_with(|| self.new_label("outer_package"));
         let actions = ug.actions(self.pcg_ctxt()).unwrap();
-        let package_script = self.block(|visitor| {
+
+        self.block(|visitor| {
             visitor.pcs_unblock_actions(borrows_state, &actions, Some(label));
-        });
-        package_script
+        })
     }
 }

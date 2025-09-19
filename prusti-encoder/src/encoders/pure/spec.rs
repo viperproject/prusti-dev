@@ -1,19 +1,24 @@
-use prusti_interface::{specs::specifications::find_trait_method_substs, PrustiError};
+use prusti_interface::{PrustiError, specs::specifications::find_trait_method_substs};
 use prusti_rustc_interface::{
     middle::{mir, ty},
-    span::{def_id::DefId, Span},
+    span::{Span, def_id::DefId},
 };
 
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, HasType, Reify};
 
-use crate::encoders::{mir_pure::PureKind, ty::{use_pure::TyUsePureEnc, RustTyDecomposition}, MirPureEnc};
+use crate::encoders::{
+    MirPureEnc,
+    mir_pure::PureKind,
+    ty::{RustTyDecomposition, use_pure::TyUsePureEnc},
+};
 pub struct MirSpecEnc;
 
 #[derive(Clone)]
 pub struct MirSpecEncOutput<'vir> {
     pub pres: Vec<vir::ExprBool<'vir>>,
     pub posts: Vec<vir::ExprBool<'vir>>,
+    #[allow(clippy::type_complexity)]
     pub pledges: Vec<(
         Option<(vir::ExprBool<'vir>, Span)>,
         vir::ExprBool<'vir>,
@@ -28,10 +33,8 @@ impl TaskEncoder for MirSpecEnc {
     task_encoder::encoder_cache!(MirSpecEnc);
 
     type TaskDescription<'tcx> = (
-        DefId,                    // The function annotated with specs
-        ty::GenericArgsRef<'tcx>, // ? this should be the "signature", after applying the env/substs
-        Option<DefId>,            // ID of the caller function, if any
-        bool,                     // If to encode as pure or not
+        DefId, // The function annotated with specs
+        bool,  // If to encode as pure or not
     );
 
     type OutputFullDependency<'vir> = MirSpecEncOutput<'vir>;
@@ -46,17 +49,16 @@ impl TaskEncoder for MirSpecEnc {
         task_key: &Self::TaskKey<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
-        let (def_id, substs, caller_def_id, pure) = *task_key;
+        let (def_id, pure) = *task_key;
         deps.emit_output_ref(*task_key, ())?;
 
-        let local_defs = deps.require_dep::<crate::encoders::local_def::MirLocalDefEnc>((
-            def_id,
-            false,
-        ))?;
-        let specs = deps
-            .require_dep::<crate::encoders::SpecEnc>(crate::encoders::SpecEncTask { def_id })?;
+        let local_defs =
+            deps.require_dep::<crate::encoders::local_def::MirLocalDefEnc>((def_id, false))?;
+        let specs =
+            deps.require_dep::<crate::encoders::SpecEnc>(crate::encoders::SpecEncTask { def_id })?;
 
         vir::with_vcx(|vcx| {
+            let substs = ty::GenericArgs::identity_for_item(vcx.tcx(), def_id);
             let local_iter = (1..=local_defs.arg_count).map(mir::Local::from);
             let all_args: Vec<vir::ExprSnap<'vir>> = if pure {
                 let result_ty = local_defs[mir::RETURN_PLACE].local_snap.ty();
@@ -77,7 +79,9 @@ impl TaskEncoder for MirSpecEnc {
             };
 
             let to_bool = deps
-                .require_dep::<TyUsePureEnc>(RustTyDecomposition::from_prim_ty(vcx.tcx().types.bool))?
+                .require_dep::<TyUsePureEnc>(RustTyDecomposition::from_prim_ty(
+                    vcx.tcx().types.bool,
+                ))?
                 .expect_primitive()
                 .snap_to_prim;
 
@@ -156,9 +160,7 @@ impl TaskEncoder for MirSpecEnc {
                 &pre_args
                     .iter()
                     .map(|arg| vcx.mk_old_expr(arg))
-                    .chain([
-                        local_defs[mir::RETURN_PLACE].impure_snap
-                    ])
+                    .chain([local_defs[mir::RETURN_PLACE].impure_snap])
                     .collect::<Vec<_>>(),
             );
             let pledges = specs

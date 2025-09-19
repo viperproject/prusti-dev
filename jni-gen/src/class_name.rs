@@ -15,7 +15,11 @@ impl ClassName {
     pub fn new(full_class_name: &str) -> Self {
         let full_class_name_dot = full_class_name.to_string().replace('/', ".");
         let full_class_name_slash = full_class_name_dot.replace('.', "/");
-        let class_name = full_class_name_slash.split('/').last().unwrap().to_string();
+        let class_name = full_class_name_slash
+            .split('/')
+            .next_back()
+            .unwrap()
+            .to_string();
 
         ClassName {
             full_class_name_dot,

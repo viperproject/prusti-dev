@@ -1,9 +1,8 @@
 use prusti_rustc_interface::{
     middle::{
         mir::{
-            self,
+            self, ConstValue,
             interpret::{GlobalAlloc, Scalar},
-            ConstValue,
         },
         ty,
     },
@@ -12,7 +11,15 @@ use prusti_rustc_interface::{
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::CastType;
 
-use crate::encoders::{mir_pure::PureKind, ty::{generics::{GParams, GenericParamsEnc}, use_pure::TyUsePureEnc, RustTyDecomposition}, MirPureEnc, MirPureEncTask};
+use crate::encoders::{
+    MirPureEnc, MirPureEncTask,
+    mir_pure::PureKind,
+    ty::{
+        RustTyDecomposition,
+        generics::{GParams, GenericParamsEnc},
+        use_pure::TyUsePureEnc,
+    },
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum ConstEncTask<'vir> {
@@ -24,7 +31,7 @@ pub enum ConstEncTask<'vir> {
     Mir {
         const_: mir::Const<'vir>,
         encoding_depth: usize, // current encoding depth
-        def_id: DefId, // DefId of the current function
+        def_id: DefId,         // DefId of the current function
     },
 }
 
@@ -61,11 +68,10 @@ impl ConstEnc {
         deps: &mut TaskEncoderDependencies<'vir, Self>,
         val: ConstValue<'vir>,
         ty: ty::Ty<'vir>,
-        context: GParams<'vir>
+        context: GParams<'vir>,
     ) -> Result<vir::ExprCSnap<'vir>, EncodeFullError<'vir, Self>> {
         let ty_task = RustTyDecomposition::from_ty(ty, context);
-        let kind = deps
-            .require_dep::<TyUsePureEnc>(ty_task)?;
+        let kind = deps.require_dep::<TyUsePureEnc>(ty_task)?;
         Ok(match val {
             ConstValue::Scalar(Scalar::Int(int)) => {
                 let prim = kind.expect_primitive();
@@ -86,7 +92,7 @@ impl ConstEnc {
                     }
                     GlobalAlloc::TypeId { .. } => todo!(),
                 }
-            },
+            }
             ConstValue::ZeroSized => {
                 let s = kind.expect_structlike();
                 s.field_snaps_to_snap(Vec::new())
@@ -98,8 +104,7 @@ impl ConstEnc {
                 let ref_ty = kind.expect_immref();
                 let str_ty = ty.peel_refs();
                 let str_ty_task = RustTyDecomposition::from_ty(str_ty, context);
-                let str_snap = deps
-                    .require_dep::<TyUsePureEnc>(str_ty_task)?;
+                let str_snap = deps.require_dep::<TyUsePureEnc>(str_ty_task)?;
                 let str_snap = str_snap.expect_opaque();
                 // first, we create a string snapshot
                 let snap = (str_snap.arbitrary)().upcast_ty();
@@ -129,10 +134,16 @@ impl TaskEncoder for ConstEnc {
     ) -> EncodeFullResult<'vir, Self> {
         deps.emit_output_ref(*task_key, ())?;
         let res = match *task_key {
-            ConstEncTask::Ty { const_, ty, context } => {
-                Self::encode_ty_const(deps, const_, ty, context)?
-            }
-            ConstEncTask::Mir { const_, encoding_depth, def_id } => match const_ {
+            ConstEncTask::Ty {
+                const_,
+                ty,
+                context,
+            } => Self::encode_ty_const(deps, const_, ty, context)?,
+            ConstEncTask::Mir {
+                const_,
+                encoding_depth,
+                def_id,
+            } => match const_ {
                 mir::Const::Val(val, ty) => Self::encode_const_val(deps, val, ty, def_id.into())?,
                 mir::Const::Unevaluated(uneval, _) => vir::with_vcx(|vcx| {
                     let task = MirPureEncTask {
@@ -147,8 +158,10 @@ impl TaskEncoder for ConstEnc {
                     use vir::Reify;
                     Ok(expr.reify(vcx, (uneval.def, &[])).downcast_ty())
                 })?,
-                mir::Const::Ty(ty, const_) => Self::encode_ty_const(deps, const_, ty, def_id.into())?,
-            }
+                mir::Const::Ty(ty, const_) => {
+                    Self::encode_ty_const(deps, const_, ty, def_id.into())?
+                }
+            },
         };
         Ok(((), res))
     }
