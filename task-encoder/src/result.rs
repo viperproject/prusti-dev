@@ -69,14 +69,12 @@ where
     <E as TaskEncoder>::EncodingError: std::fmt::Debug,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut helper = f.debug_struct("TaskEncoderError");
         match self {
-            Self::EncodingError(err) => helper.field("EncodingError", err),
-            Self::EnqueueingError(err) => helper.field("EnqueueingError", err),
-            Self::DependencyError(..) => helper.field("DependencyError", &""),
-            Self::CyclicError => helper.field("CyclicError", &""),
-        };
-        helper.finish()
+            Self::EncodingError(err) => f.debug_tuple("EncodingError").field(err).finish(),
+            Self::EnqueueingError(err) => f.debug_tuple("EnqueueingError").field(err).finish(),
+            Self::DependencyError(err) => f.debug_tuple("DependencyError").field(err).finish(),
+            Self::CyclicError => write!(f, "CyclicError"),
+        }
     }
 }
 

@@ -101,7 +101,7 @@ pub trait TaskEncoder {
     /// A reference to an encoded item. Should be non-unit for tasks which can
     /// be "referred" to from other parts of a program, as opposed to tasks
     /// where only the full output matters.
-    type OutputRef<'vir>: Clone + OutputRefAny
+    type OutputRef<'vir>: Clone + std::fmt::Debug + OutputRefAny
         = ()
     where
         Self: 'vir;
@@ -490,7 +490,7 @@ pub trait TaskEncoder {
         Self: 'vir,
     {
         let (outputs, errored) = Self::all_outputs_local();
-        assert!(errored.is_empty());
+        assert!(errored.is_empty(), "encoder {} had errors: {errored:#?}", Self::ENCODER_NAME);
         outputs
     }
 

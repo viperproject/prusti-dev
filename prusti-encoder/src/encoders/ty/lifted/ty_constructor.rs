@@ -5,7 +5,7 @@ use crate::encoders::ty::{RustTy, generics::GenericParamsEnc};
 
 use super::r#typeof::{TypeOfEnc, TypeOfEncOutputRef};
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct TyConstructorEncOutputRef<'vir> {
     /// Takes as input the generics for this type (if any),
     /// and returns the resulting type
