@@ -1,4 +1,7 @@
-use prusti_interface::{PrustiError, specs::specifications::find_trait_method_substs};
+use prusti_interface::{
+    PrustiError,
+    specs::{specifications::find_trait_method_substs, typed::Pledge},
+};
 use prusti_rustc_interface::{
     middle::{mir, ty},
     span::{Span, def_id::DefId},
@@ -14,16 +17,56 @@ use crate::encoders::{
 };
 pub struct MirSpecEnc;
 
+/// The VIR expression and span corresponding to an `assert_on_expiry`
+/// predicate. It will be conjoined to the left-hand side of the wand for the
+/// encoded pledge.
+#[derive(Clone, Copy, Debug)]
+pub struct PledgeExpiryObligation<'vir> {
+    pub expr: vir::ExprBool<'vir>,
+    #[allow(unused)]
+    pub span: Span,
+}
+
+impl<'vir> PledgeExpiryObligation<'vir> {
+    pub fn new(expr: vir::ExprBool<'vir>, span: Span) -> Self {
+        Self { expr, span }
+    }
+}
+
+/// VIR expressions for a pledge, including a user-written `assert_on_expiry`
+/// predicate if present.
+#[derive(Clone, Copy, Debug)]
+pub struct EncodedPledge<'vir> {
+    /// The VIR expression and span corresponding to the `assert_on_expiry`
+    /// predicate, if present.
+    pub expiry_obligation: Option<PledgeExpiryObligation<'vir>>,
+    pub spec: vir::ExprBool<'vir>,
+    pub span: Span,
+}
+
+impl<'vir> EncodedPledge<'vir> {
+    pub fn expiry_obligation_expr(&self) -> Option<vir::ExprBool<'vir>> {
+        self.expiry_obligation.map(|lhs| lhs.expr)
+    }
+
+    pub fn new(
+        lhs: Option<PledgeExpiryObligation<'vir>>,
+        rhs: vir::ExprBool<'vir>,
+        span: Span,
+    ) -> Self {
+        Self {
+            expiry_obligation: lhs,
+            spec: rhs,
+            span,
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct MirSpecEncOutput<'vir> {
     pub pres: Vec<vir::ExprBool<'vir>>,
     pub posts: Vec<vir::ExprBool<'vir>>,
-    #[allow(clippy::type_complexity)]
-    pub pledges: Vec<(
-        Option<(vir::ExprBool<'vir>, Span)>,
-        vir::ExprBool<'vir>,
-        Span,
-    )>, // TODO: associate with a named lifetime
+    pub pledges: Vec<EncodedPledge<'vir>>,
     pub pre_args: &'vir [vir::ExprSnap<'vir>],
     #[allow(dead_code)]
     pub post_args: &'vir [vir::ExprSnap<'vir>],
@@ -166,63 +209,70 @@ impl TaskEncoder for MirSpecEnc {
             let pledges = specs
                 .pledges
                 .iter()
-                .map(|(lhs_def_id, rhs_def_id)| {
-                    // TODO: report error locations
-                    let lhs_expr = lhs_def_id.map(|lhs_def_id| {
-                        deps.require_dep::<crate::encoders::MirPureEnc>(
-                            crate::encoders::MirPureEncTask {
-                                encoding_depth: 0,
-                                kind: PureKind::Spec(specs.extern_spec),
-                                parent_def_id: lhs_def_id,
-                                param_env: vcx.tcx().param_env(lhs_def_id),
-                                substs,
-                                // TODO: should this be `def_id` or `caller_def_id`
-                                caller_def_id: Some(def_id),
-                            },
-                        )
-                        .unwrap()
-                        .expr
-                        .downcast_ty()
-                    });
-                    let rhs_expr = deps
-                        .require_dep::<crate::encoders::MirPureEnc>(
-                            crate::encoders::MirPureEncTask {
-                                encoding_depth: 0,
-                                kind: PureKind::Spec(specs.extern_spec),
-                                parent_def_id: *rhs_def_id,
-                                param_env: vcx.tcx().param_env(rhs_def_id),
-                                substs,
-                                // TODO: should this be `def_id` or `caller_def_id`
-                                caller_def_id: Some(def_id),
-                            },
-                        )
-                        .unwrap()
-                        .expr
-                        .downcast_ty();
-                    let lhs_expr = lhs_expr
-                        .map(|lhs_expr| lhs_expr.reify(vcx, (lhs_def_id.unwrap(), pledge_args)));
-                    let rhs_expr = rhs_expr.reify(vcx, (*rhs_def_id, pledge_args));
-                    let rhs_span = vcx.tcx().def_span(rhs_def_id);
-                    (
-                        lhs_expr.map(|lhs_expr| {
-                            let lhs_span = vcx.tcx().def_span(lhs_def_id.unwrap());
-                            (
-                                vcx.with_span(lhs_span, |_| to_bool(lhs_expr).downcast_ty()),
-                                lhs_span,
+                .map(
+                    |Pledge {
+                         lhs: lhs_def_id,
+                         rhs: rhs_def_id,
+                         ..
+                     }| {
+                        // TODO: report error locations
+                        let lhs_expr = lhs_def_id.map(|lhs_def_id| {
+                            deps.require_dep::<crate::encoders::MirPureEnc>(
+                                crate::encoders::MirPureEncTask {
+                                    encoding_depth: 0,
+                                    kind: PureKind::Spec(specs.extern_spec),
+                                    parent_def_id: lhs_def_id,
+                                    param_env: vcx.tcx().param_env(lhs_def_id),
+                                    substs,
+                                    // TODO: should this be `def_id` or `caller_def_id`
+                                    caller_def_id: Some(def_id),
+                                },
                             )
-                        }),
-                        vcx.with_span(rhs_span, |vcx| {
-                            vcx.handle_error("exhale.failed:assertion.false", move |_| {
-                                Some(vec![PrustiError::verification(
-                                    "pledge postcondition might not hold",
-                                    rhs_span.into(),
-                                )])
-                            });
-                            to_bool(rhs_expr).downcast_ty()
-                        }),
-                        rhs_span,
-                    )
-                })
+                            .unwrap()
+                            .expr
+                            .downcast_ty()
+                        });
+                        let rhs_expr = deps
+                            .require_dep::<crate::encoders::MirPureEnc>(
+                                crate::encoders::MirPureEncTask {
+                                    encoding_depth: 0,
+                                    kind: PureKind::Spec(specs.extern_spec),
+                                    parent_def_id: *rhs_def_id,
+                                    param_env: vcx.tcx().param_env(rhs_def_id),
+                                    substs,
+                                    // TODO: should this be `def_id` or `caller_def_id`
+                                    caller_def_id: Some(def_id),
+                                },
+                            )
+                            .unwrap()
+                            .expr
+                            .downcast_ty();
+                        let lhs_expr = lhs_expr.map(|lhs_expr| {
+                            lhs_expr.reify(vcx, (lhs_def_id.unwrap(), pledge_args))
+                        });
+                        let rhs_expr = rhs_expr.reify(vcx, (*rhs_def_id, pledge_args));
+                        let rhs_span = vcx.tcx().def_span(rhs_def_id);
+                        EncodedPledge::new(
+                            lhs_expr.map(|lhs_expr| {
+                                let lhs_span = vcx.tcx().def_span(lhs_def_id.unwrap());
+                                PledgeExpiryObligation::new(
+                                    vcx.with_span(lhs_span, |_| to_bool(lhs_expr).downcast_ty()),
+                                    lhs_span,
+                                )
+                            }),
+                            vcx.with_span(rhs_span, |vcx| {
+                                vcx.handle_error("exhale.failed:assertion.false", move |_| {
+                                    Some(vec![PrustiError::verification(
+                                        "pledge postcondition might not hold",
+                                        rhs_span.into(),
+                                    )])
+                                });
+                                to_bool(rhs_expr).downcast_ty()
+                            }),
+                            rhs_span,
+                        )
+                    },
+                )
                 .collect::<Vec<_>>();
             let data = MirSpecEncOutput {
                 pres,

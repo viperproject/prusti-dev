@@ -1,4 +1,4 @@
-use pcg::{borrow_checker::r#impl::NllBorrowCheckerImpl, r#loop::LoopAnalysis};
+use pcg::{borrow_checker::r#impl::NllBorrowCheckerImpl, borrow_pcg::FunctionData};
 use prusti_rustc_interface::{middle::mir, span::def_id::DefId};
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies};
 use vir::MethodIdn;
@@ -173,7 +173,13 @@ impl TaskEncoder for MethodEnc {
             let mut pres = Vec::new();
             let mut posts = Vec::new();
             let spec = deps.require_dep_spanned::<MirSpecEnc>((def_id, false), span)?;
-            let wands = deps.require_dep_spanned::<WandEnc>(WandEncTask { def_id }, span)?;
+            let function_data = FunctionData::new(def_id, params.rust_params(), None);
+            let wands = deps.require_dep_spanned::<WandEnc>(
+                WandEncTask {
+                    data: function_data,
+                },
+                span,
+            )?;
 
             let gparams = GParams::from(def_id);
             // Add direct resources for inputs and outputs to the pre- and
@@ -206,10 +212,10 @@ impl TaskEncoder for MethodEnc {
                 let local_defs =
                     deps.require_dep_spanned::<MirLocalDefEnc>((def_id, true), span)?;
 
-                let loop_analysis = LoopAnalysis::find_loops(body);
                 let bc = NllBorrowCheckerImpl::new(vcx.tcx(), &body_with_facts);
                 let pcg_ctxt = pcg::PcgCtxt::new(&body_with_facts.body, vcx.tcx(), &bc);
-                let fpcs_analysis = pcg::run_pcg(&pcg_ctxt, None);
+                let fpcs_analysis = pcg::run_pcg(&pcg_ctxt);
+                pcg_ctxt.update_debug_visualization_metadata();
 
                 let block_count = body.basic_blocks.len();
 
@@ -242,7 +248,6 @@ impl TaskEncoder for MethodEnc {
                     local_defs,
                     body,
 
-                    loop_analysis,
                     wands,
 
                     tmp_ctr: 0,

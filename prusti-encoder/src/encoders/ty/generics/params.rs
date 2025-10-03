@@ -130,6 +130,10 @@ impl<'tcx> GParams<'tcx> {
         self.try_normalize(ty).unwrap_or(ty)
     }
 
+    pub fn rust_params(self) -> ty::GenericArgsRef<'tcx> {
+        self.params
+    }
+
     fn params<T>(
         self,
         f: impl Fn(ty::GenericArg<'tcx>) -> Option<T>,

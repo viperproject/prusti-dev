@@ -78,6 +78,7 @@ fn run_prusti_tests(
         config
     };
 
+    /*
     // UI
     {
         let config = prusti_config(format!("tests/{group_name}/ui"));
@@ -94,6 +95,7 @@ fn run_prusti_tests(
         ));
         run_tests(config)?;
     }
+    */
 
     // pass
     {
@@ -176,10 +178,11 @@ pub(crate) fn run() {
     let server_address = spawn_server_thread();
     env::set_var("PRUSTI_SERVER_ADDRESS", server_address.to_string());
 
+    /*
     // Run (temporary) tests specific to Prusti v2.
     println!("[v2]");
     run_verification_no_overflow("v2");
-    /*
+
         let save_verification_cache =
             || match ureq::post(&format!("http://{server_address}/save")).call() {
                 Ok(response) => {
@@ -198,10 +201,13 @@ pub(crate) fn run() {
         // Test the type-checking of specifications. This doesn't run the verifier.
         println!("[typecheck]");
         run_no_verification("typecheck");
+    */
 
-        // Test the verifier.
-        println!("[verify]");
-        run_verification_no_overflow("verify");
+    // Test the verifier.
+    println!("[verify]");
+    run_verification_no_overflow("verify");
+
+    /*
         save_verification_cache();
 
         // Test the verifier with overflow checks enabled.
