@@ -5,12 +5,16 @@ use pcg::{
         action::BorrowPcgActionKind,
         borrow_pcg_edge::BorrowPcgEdge,
         borrow_pcg_expansion::BorrowPcgExpansion,
-        edge::{abstraction::AbstractionEdge, kind::BorrowPcgEdgeKind},
+        edge::{
+            abstraction::{AbstractionEdge, FunctionCallOrLoop},
+            kind::BorrowPcgEdgeKind,
+        },
         state::BorrowsState,
         unblock_graph::BorrowPcgUnblockAction,
     },
+    coupling::PcgCoupledEdgeKind,
     free_pcs::RepackOp,
-    r#loop::LoopAnalysis,
+    r#loop::{LoopAnalysis, LoopId, PlaceUsages},
     pcg::{CapabilityKind, EvalStmtPhase, Pcg, PcgNode, PcgSuccessor},
     results::PcgBasicBlock,
     utils::{CompilerCtxt, HasPlace, Place, maybe_old::MaybeLabelledPlace},
@@ -54,7 +58,6 @@ where
     pub local_defs: crate::encoders::MirLocalDefEncOutput<'vir>,
     pub body: &'enc mir::Body<'vir>,
 
-    pub loop_analysis: LoopAnalysis,
     pub wands: WandEncOutput<'vir>,
 
     pub tmp_ctr: usize,
@@ -63,7 +66,7 @@ where
     pub from_to_vars: FxHashMap<mir::BasicBlock, Vec<(mir::BasicBlock, vir::LocalDeclBool<'vir>)>>,
 
     // for the current basic block
-    pub current_fpcs: Option<PcgBasicBlock<'vir>>,
+    pub current_fpcs: Option<PcgBasicBlock<'enc, 'vir>>,
 
     pub current_block_label: Option<vir::CfgBlockLabel<'vir>>,
     pub current_stmts: Option<Vec<vir::Stmt<'vir>>>,
@@ -186,8 +189,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     /// TODO: clean this up
     fn collect_pcs_succ<'a>(
         &mut self,
-        state: &Pcg<'vir>,
-        pcs: &'a PcgSuccessor<'vir>,
+        state: &Pcg<'_, 'vir>,
+        pcs: &'a PcgSuccessor<'_, 'vir>,
     ) -> Vec<vir::Stmt<'vir>> {
         let current_stmts = self.current_stmts.take();
         self.current_stmts = Some(Vec::new());
@@ -261,7 +264,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
     fn pcs_handle_edge(
         &mut self,
-        borrows_state: &BorrowsState<'vir>,
+        borrows_state: &BorrowsState<'_, 'vir>,
         edge: &BorrowPcgEdge<'vir>,
         add: bool,
         label: Option<&'vir str>,
@@ -287,7 +290,6 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                             .and_then(|tos| tos.iter().find(|(t, _)| t == to))
                             .map(|(_, decl)| *decl);
                         let decl = decl.unwrap_or_else(|| {
-                            // TODO: the `from -> to` flag hasn't been set yet!
                             let name = vir::vir_format!(
                                 self.vcx,
                                 "_from_bb{}_to_bb{}",
@@ -330,7 +332,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
     fn pcs_handle_edge_conditionless(
         &mut self,
-        borrows_state: &BorrowsState<'vir>,
+        borrows_state: &BorrowsState<'_, 'vir>,
         edge: &BorrowPcgEdge<'vir>,
         add: bool,
         label: Option<&'vir str>,
@@ -341,11 +343,14 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             BorrowPcgEdgeKind::BorrowPcgExpansion(expansion) => {
                 self.pcs_borrow_expansion(expansion.clone(), add, label);
             }
-            BorrowPcgEdgeKind::Abstraction(AbstractionEdge::FunctionCall(call)) => {
+            BorrowPcgEdgeKind::Coupled(PcgCoupledEdgeKind(FunctionCallOrLoop::FunctionCall(
+                call_edge,
+            ))) => {
                 if add {
                     // The wand will be introduced by the method call itself.
                     return;
                 }
+                let call = call_edge.metadata();
                 // We may be encoding multiple edges as a single wand, skip
                 // further edge removals. This is a hack to get around the fact
                 // that Viper doesn't support hyperwands.
@@ -360,7 +365,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 let wands = self
                     .deps
                     .require_dep::<WandEnc>(WandEncTask {
-                        def_id: call.def_id().unwrap(),
+                        data: call.function_data().unwrap(),
                     })
                     .unwrap();
                 let bb = &self.body[call.location().block];
@@ -383,7 +388,13 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 }
             }
             BorrowPcgEdgeKind::Abstraction(at @ AbstractionEdge::Loop(_)) => {
-                self.pcs_handle_wand(borrows_state, add, &at.to_hyper_edge(), label, edge_to_loop);
+                self.pcs_handle_wand(
+                    borrows_state,
+                    add,
+                    &at.clone().into_singleton_coupled_edge(),
+                    label,
+                    edge_to_loop,
+                );
             }
             other => comment!(self, "(ignoring) {other:?}"),
         }
@@ -391,7 +402,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
     pub(crate) fn pcs_unblock_actions(
         &mut self,
-        borrows_state: &BorrowsState<'vir>,
+        borrows_state: &BorrowsState<'_, 'vir>,
         actions: &[BorrowPcgUnblockAction<'vir>],
         label: Option<&'vir str>,
     ) {
@@ -408,7 +419,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         }
     }
 
-    fn pcg_actions(&mut self, pcg: &Pcg<'vir>, actions: &PcgActions<'vir>, edge_to_loop: bool) {
+    fn pcg_actions(&mut self, pcg: &Pcg<'_, 'vir>, actions: &PcgActions<'vir>, edge_to_loop: bool) {
         for action in actions.iter() {
             match action {
                 PcgAction::Borrow(action) => self.borrow_action(pcg, action, edge_to_loop),
@@ -418,7 +429,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     }
     fn borrow_action(
         &mut self,
-        pcg: &Pcg<'vir>,
+        pcg: &Pcg<'_, 'vir>,
         action: &BorrowPcgAction<'vir>,
         edge_to_loop: bool,
     ) {
@@ -516,8 +527,23 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         }
     }
 
-    fn pcs_succ<'a>(&mut self, pcg_state: &Pcg<'vir>, succ: &'a PcgSuccessor<'vir>) {
-        let edge_to_loop = self.loop_analysis.loop_head_of(succ.block()).is_some();
+    fn loop_analysis(&mut self) -> &LoopAnalysis {
+        self.fpcs_analysis.analysis().loop_analysis()
+    }
+
+    fn loop_place_usages(&mut self, block: mir::BasicBlock) -> Option<PlaceUsages<'vir>> {
+        self.fpcs_analysis
+            .analysis()
+            .loop_place_usages(block)
+            .cloned()
+    }
+
+    fn loop_head_of(&mut self, block: mir::BasicBlock) -> Option<LoopId> {
+        self.loop_analysis().loop_head_of(block)
+    }
+
+    fn pcs_succ<'a>(&mut self, pcg_state: &Pcg<'_, 'vir>, succ: &'a PcgSuccessor<'_, 'vir>) {
+        let edge_to_loop = self.loop_head_of(succ.block()).is_some();
         self.pcg_actions(pcg_state, succ.actions(), edge_to_loop);
     }
 
@@ -768,9 +794,8 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
 
         // Calculate invariant at loop head
         let invariant = self
-            .loop_analysis
-            .loop_head_of(block)
-            .map(|lh| self.get_loop_inv(lh, &cfpcs))
+            .loop_place_usages(block)
+            .map(|place_usages| self.get_loop_inv(&cfpcs, &place_usages, self.pcg_ctxt()))
             .unwrap_or_default();
 
         self.current_fpcs = Some(cfpcs);

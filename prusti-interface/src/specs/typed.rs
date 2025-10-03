@@ -550,6 +550,16 @@ pub struct Pledge {
     pub rhs: DefId,
 }
 
+impl Pledge {
+    pub fn new(lhs: Option<DefId>, rhs: DefId) -> Self {
+        Self {
+            reference: None,
+            lhs,
+            rhs,
+        }
+    }
+}
+
 /// A specification, such as preconditions or a `#[pure]` annotation.
 /// Contains information about the refinement of these specifications.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, TyEncodable, TyDecodable)]

@@ -1,6 +1,13 @@
 use std::ops::Deref;
 
-use prusti_rustc_interface::{abi, hir, index, middle::ty, span::symbol};
+use itertools::Itertools;
+use pcg::borrow_pcg::region_projection::{HasRegions, PcgRegion, RegionIdx};
+use prusti_rustc_interface::{
+    abi, hir,
+    index::{self, IndexVec},
+    middle::ty,
+    span::symbol,
+};
 
 use super::{
     data::*,
@@ -11,6 +18,18 @@ use super::{
 pub struct RustTyDecomposition<'tcx> {
     pub ty: RustTy<'tcx>,
     pub args: GArgs<'tcx>,
+}
+
+impl<'tcx, Ctxt> HasRegions<'tcx, Ctxt> for RustTyDecomposition<'tcx> {
+    fn regions(&self, _ctxt: Ctxt) -> IndexVec<RegionIdx, PcgRegion> {
+        self.args
+            .args()
+            .iter()
+            .flat_map(|arg| arg.as_region())
+            .map(|region| region.into())
+            .unique()
+            .collect()
+    }
 }
 
 impl<'tcx> RustTyDecomposition<'tcx> {

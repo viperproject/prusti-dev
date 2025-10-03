@@ -2,7 +2,9 @@ use std::cell::RefCell;
 
 use prusti_interface::specs::{
     specifications::SpecQuery,
-    typed::{DefSpecificationMap, ExternSpecKind, ProcedureSpecification, SpecificationItem},
+    typed::{
+        DefSpecificationMap, ExternSpecKind, Pledge, ProcedureSpecification, SpecificationItem,
+    },
 };
 use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
@@ -17,7 +19,7 @@ pub struct SpecEncOutput<'vir> {
     pub extern_spec: Option<ExternSpecKind>,
     pub pres: &'vir [DefId],
     pub posts: &'vir [DefId],
-    pub pledges: &'vir [(Option<DefId>, DefId)], // TODO: reuse Pledge type?
+    pub pledges: &'vir [Pledge],
 }
 
 thread_local! {
@@ -116,7 +118,7 @@ impl TaskEncoder for SpecEnc {
             let pledges = vcx.alloc_slice(
                 &pledges
                     .iter()
-                    .map(|pledge| (pledge.lhs, pledge.rhs))
+                    .map(|pledge| Pledge::new(pledge.lhs, pledge.rhs))
                     .collect::<Vec<_>>(),
             );
             Ok((

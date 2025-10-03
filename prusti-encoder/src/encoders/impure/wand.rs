@@ -1,10 +1,9 @@
 use pcg::{
     borrow_pcg::{
-        AbstractionInputTarget, AbstractionOutputTarget,
-        graph::{BorrowsGraph, coupling::PcgCoupledEdge},
-        state::BorrowsState,
+        AbstractionInputTarget, AbstractionOutputTarget, graph::BorrowsGraph, state::BorrowsState,
         unblock_graph::UnblockGraph,
     },
+    coupling::PcgCoupledEdgeKind,
     pcg::PcgNode,
 };
 use task_encoder::TaskEncoder;
@@ -21,7 +20,7 @@ type Outputs<'a> = Vec<Output<'a>>;
 impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     pub(crate) fn without_remote_places(
         &self,
-        at: &PcgCoupledEdge<'vir>,
+        at: &PcgCoupledEdgeKind<'vir>,
     ) -> Option<(Inputs<'vir>, Outputs<'vir>)> {
         let inputs = at.inputs(self.pcg_ctxt());
         if inputs.iter().any(|input| input.is_remote_place()) {
@@ -37,15 +36,15 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     ) -> Vec<(Inputs<'vir>, Outputs<'vir>)> {
         g.coupled_edges()
             .into_iter()
-            .filter_map(|edge| self.without_remote_places(&edge))
+            .filter_map(|edge| self.without_remote_places(edge.value()))
             .collect()
     }
 
     pub(crate) fn pcs_handle_wand(
         &mut self,
-        borrows_state: &BorrowsState<'vir>,
+        borrows_state: &BorrowsState<'_, 'vir>,
         package: bool,
-        edge: &PcgCoupledEdge<'vir>,
+        edge: &PcgCoupledEdgeKind<'vir>,
         label: Option<&'vir str>,
         edge_to_loop: bool,
     ) {
@@ -68,7 +67,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         let mut wand_lhs = Vec::new();
         for i in outputs {
             let i = i.expect_lifetime_projection();
-            let exprs = self.encode_region_projection(i, &mut old_outer);
+            let exprs = self.encode_lifetime_projection(i, &mut old_outer);
             wand_lhs.extend(exprs);
         }
         let wand = self.vcx.mk_wand(
@@ -85,7 +84,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
     fn create_package_script(
         &mut self,
-        borrows_state: &BorrowsState<'vir>,
+        borrows_state: &BorrowsState<'_, 'vir>,
         rhs: impl Into<PcgNode<'vir>>,
         old_outer: &mut WandOldOuter<'vir>,
     ) -> Vec<vir::Stmt<'vir>> {
