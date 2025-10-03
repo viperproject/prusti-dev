@@ -70,49 +70,51 @@ impl ConstEnc {
         ty: ty::Ty<'vir>,
         context: GParams<'vir>,
     ) -> Result<vir::ExprCSnap<'vir>, EncodeFullError<'vir, Self>> {
-        let ty_task = RustTyDecomposition::from_ty(ty, context);
-        let kind = deps.require_dep::<TyUsePureEnc>(ty_task)?;
-        Ok(match val {
-            ConstValue::Scalar(Scalar::Int(int)) => {
-                let prim = kind.expect_primitive();
-                let val = int.to_bits(int.size());
-                let val = prim.expr_from_bits(ty, val);
-                (prim.prim_to_snap)(val)
-            }
-            ConstValue::Scalar(Scalar::Ptr(ptr, _)) => {
-                match vir::with_vcx(|vcx| vcx.tcx().global_alloc(ptr.provenance.alloc_id())) {
-                    GlobalAlloc::Function { .. } => todo!(),
-                    GlobalAlloc::VTable(_, _) => todo!(),
-                    GlobalAlloc::Static(_) => todo!(),
-                    GlobalAlloc::Memory(_mem) => {
-                        // If the `unwrap` ever panics we need a different way to get the inner type
-                        // let inner_ty = ty.builtin_deref(true).map(|t| t.ty).unwrap_or(ty);
-                        let _inner_ty = ty.builtin_deref(true).unwrap();
-                        todo!()
-                    }
-                    GlobalAlloc::TypeId { .. } => todo!(),
+        vir::with_vcx(|vcx| {
+            let ty_task = RustTyDecomposition::from_ty(ty, vcx.tcx(), context);
+            let kind = deps.require_dep::<TyUsePureEnc>(ty_task)?;
+            Ok(match val {
+                ConstValue::Scalar(Scalar::Int(int)) => {
+                    let prim = kind.expect_primitive();
+                    let val = int.to_bits(int.size());
+                    let val = prim.expr_from_bits(ty, val);
+                    (prim.prim_to_snap)(val)
                 }
-            }
-            ConstValue::ZeroSized => {
-                let s = kind.expect_structlike();
-                s.field_snaps_to_snap(Vec::new())
-            }
-            // Encode `&str` constants to an opaque domain. If we ever want to perform string reasoning
-            // we will need to revisit this encoding, but for the moment this allows assertions to avoid
-            // crashing Prusti.
-            ConstValue::Slice { .. } if ty.peel_refs().is_str() => {
-                let ref_ty = kind.expect_immref();
-                let str_ty = ty.peel_refs();
-                let str_ty_task = RustTyDecomposition::from_ty(str_ty, context);
-                let str_snap = deps.require_dep::<TyUsePureEnc>(str_ty_task)?;
-                let str_snap = str_snap.expect_opaque();
-                // first, we create a string snapshot
-                let snap = (str_snap.arbitrary)().upcast_ty();
-                // wrap it in a ref
-                vir::with_vcx(|vcx| ref_ty.prim_to_snap(vcx.mk_null(), snap))
-            }
-            ConstValue::Slice { .. } => todo!("ConstValue::Slice: {ty:?}"),
-            ConstValue::Indirect { .. } => todo!("ConstValue::Indirect"),
+                ConstValue::Scalar(Scalar::Ptr(ptr, _)) => {
+                    match vcx.tcx().global_alloc(ptr.provenance.alloc_id()) {
+                        GlobalAlloc::Function { .. } => todo!(),
+                        GlobalAlloc::VTable(_, _) => todo!(),
+                        GlobalAlloc::Static(_) => todo!(),
+                        GlobalAlloc::Memory(_mem) => {
+                            // If the `unwrap` ever panics we need a different way to get the inner type
+                            // let inner_ty = ty.builtin_deref(true).map(|t| t.ty).unwrap_or(ty);
+                            let _inner_ty = ty.builtin_deref(true).unwrap();
+                            todo!()
+                        }
+                        GlobalAlloc::TypeId { .. } => todo!(),
+                    }
+                }
+                ConstValue::ZeroSized => {
+                    let s = kind.expect_structlike();
+                    s.field_snaps_to_snap(Vec::new())
+                }
+                // Encode `&str` constants to an opaque domain. If we ever want to perform string reasoning
+                // we will need to revisit this encoding, but for the moment this allows assertions to avoid
+                // crashing Prusti.
+                ConstValue::Slice { .. } if ty.peel_refs().is_str() => {
+                    let ref_ty = kind.expect_immref();
+                    let str_ty = ty.peel_refs();
+                    let str_ty_task = RustTyDecomposition::from_ty(str_ty, vcx.tcx(), context);
+                    let str_snap = deps.require_dep::<TyUsePureEnc>(str_ty_task)?;
+                    let str_snap = str_snap.expect_opaque();
+                    // first, we create a string snapshot
+                    let snap = (str_snap.arbitrary)().upcast_ty();
+                    // wrap it in a ref
+                    vir::with_vcx(|vcx| ref_ty.prim_to_snap(vcx.mk_null(), snap))
+                }
+                ConstValue::Slice { .. } => todo!("ConstValue::Slice: {ty:?}"),
+                ConstValue::Indirect { .. } => todo!("ConstValue::Indirect"),
+            })
         })
     }
 }
