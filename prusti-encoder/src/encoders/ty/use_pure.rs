@@ -110,9 +110,10 @@ impl TaskEncoder for TyUsePureEnc {
 
         let ty_pure = deps.require_dep::<TyPureEnc>(task_key.ty)?;
         let ty = task_key.ty.zip(ty_pure);
+        let inhabited = ty.inhabited;
         let mut walker = TyUsePureWalker::new(deps, task_key.args);
         let specifics = walker.encode_ty(ty);
-        let ty_use_pure = TyData::new(inner, specifics);
+        let ty_use_pure = TyData::new(inner, inhabited, specifics);
         Ok(((), ty_use_pure.alloc()))
     }
 
@@ -197,11 +198,12 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
                 }
             })
             .collect::<Vec<_>>();
+        let inhabited = data.inhabited;
         let data = TyUsePureStructData {
             args: self.args_t,
             pure: *data.1,
         };
-        StructData::new(data, fields)
+        StructData::new(data, inhabited, fields)
     }
 
     fn encode_enumlike(
@@ -214,10 +216,10 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
             .iter()
             .map(|variant| {
                 let structlike = self.encode_structlike(&variant.inner, params);
-                VariantData::new(*variant.1, structlike)
+                VariantData::new(*variant.1, variant.inhabited, structlike)
             })
             .collect::<Vec<_>>();
-        EnumData::new(*data.1, variants)
+        EnumData::new(*data.1, data.inhabited, variants)
     }
 }
 
