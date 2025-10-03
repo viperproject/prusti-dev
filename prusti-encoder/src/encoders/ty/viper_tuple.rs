@@ -59,11 +59,11 @@ impl TaskEncoder for ViperTupleEnc {
     type EncodingError = ();
 
     fn task_to_key<'vir>((def_id, tys): &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
-        let ty = vir::with_vcx(|vcx| {
+        vir::with_vcx(|vcx| {
             let tys = vcx.tcx().mk_type_list(tys);
-            vcx.tcx().mk_ty_from_kind(ty::TyKind::Tuple(tys))
-        });
-        RustTyDecomposition::from_ty(ty, *def_id)
+            let ty = vcx.tcx().mk_ty_from_kind(ty::TyKind::Tuple(tys));
+            RustTyDecomposition::from_ty(ty, vcx.tcx(), *def_id)
+        })
     }
 
     fn do_encode_full<'vir>(

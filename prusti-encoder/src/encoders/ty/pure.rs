@@ -202,7 +202,7 @@ impl TaskEncoder for TyPureEnc {
                     )?)
                 }
             };
-            let output = TyData::new(output_ref, specifics).alloc();
+            let output = TyData::new(output_ref, task_key.inhabited, specifics).alloc();
             Ok((builder.build(), output))
         })
     }

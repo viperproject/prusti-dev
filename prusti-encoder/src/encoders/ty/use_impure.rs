@@ -163,7 +163,7 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
             args: self.args_t,
             impure: *ty.1,
         };
-        TyData::new(data, specifics)
+        TyData::new(data, ty.inhabited, specifics)
     }
 
     fn encode_normalized(
@@ -195,12 +195,13 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
                 }
             })
             .collect::<Vec<_>>();
+        let inhabited = data.inhabited;
         let data = TyUseImpureStructData {
             args: self.args_t,
             ref_to_pred,
             impure: *data.1,
         };
-        StructData::new(data, fields)
+        StructData::new(data, inhabited, fields)
     }
 
     fn encode_enumlike(
@@ -214,14 +215,15 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
             .map(|variant| {
                 let structlike =
                     self.encode_structlike(&variant.inner, variant.1.predicate, params);
-                VariantData::new((), structlike)
+                VariantData::new((), variant.inhabited, structlike)
             })
             .collect::<Vec<_>>();
+        let inhabited = data.inhabited;
         let data = TyUseImpureEnumData {
             args: self.args_t,
             impure: *data.1,
         };
-        EnumData::new(data, variants)
+        EnumData::new(data, inhabited, variants)
     }
 }
 
@@ -249,7 +251,11 @@ impl<'vir> TyUseImpureData<'vir> {
         self_ref: vir::ExprRef<'vir>,
         perm: Option<vir::ExprPerm<'vir>>,
     ) -> vir::ExprBool<'vir> {
-        vcx.mk_predicate_app_expr(self.ref_to_pred_app(self_ref, perm))
+        if self.impure.inhabited {
+            vcx.mk_predicate_app_expr(self.ref_to_pred_app(self_ref, perm))
+        } else {
+            vcx.mk_bool::<false>()
+        }
     }
 
     /// Constructs the Viper predicate application.

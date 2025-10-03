@@ -134,12 +134,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     }
 
     fn ty_use_impure(&mut self, ty: ty::Ty<'vir>) -> TyUseImpure<'vir> {
-        let ty_task = RustTyDecomposition::from_ty(ty, self.def_id);
+        let ty_task = RustTyDecomposition::from_ty(ty, self.vcx.tcx(), self.def_id);
         self.deps.require_dep::<TyUseImpureEnc>(ty_task).unwrap()
     }
 
     fn ty_use_pure(&mut self, ty: ty::Ty<'vir>) -> TyUsePure<'vir> {
-        let ty_task = RustTyDecomposition::from_ty(ty, self.def_id);
+        let ty_task = RustTyDecomposition::from_ty(ty, self.vcx.tcx(), self.def_id);
         self.deps.require_dep::<TyUsePureEnc>(ty_task).unwrap()
     }
 

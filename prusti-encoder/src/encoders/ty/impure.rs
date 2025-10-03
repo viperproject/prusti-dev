@@ -67,6 +67,7 @@ pub enum TyImpureEncError {
 // TODO: should output refs actually be references to structs...?
 #[derive(Debug, Clone, Copy)]
 pub struct TyImpureRef<'vir> {
+    pub inhabited: bool,
     /// Constructs the Viper predicate application.
     pub ref_to_pred: PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>,
     /// Construct snapshot from Viper ref.
@@ -178,11 +179,12 @@ impl TaskEncoder for TyImpureEnc {
                 ),
             };
             let data = TyImpureRef {
+                inhabited: ty.inhabited,
                 ref_to_pred: self_pred_ident,
                 ref_to_snap: snap_func_ident.cast_ty(snap_func_ident.arity()),
                 method_assign,
             };
-            let output = TyData::new(data, specifics).alloc();
+            let output = TyData::new(data, ty.inhabited, specifics).alloc();
 
             Ok((builder.inner.build(), output))
         })

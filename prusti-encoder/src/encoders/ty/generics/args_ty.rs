@@ -49,7 +49,9 @@ impl TaskEncoder for GArgsTyEnc {
             .copied()
             .filter_map(ty::GenericArg::as_type)
             .map(|arg| {
-                let decomp = RustTyDecomposition::from_ty(arg, task_key.context);
+                let decomp = vir::with_vcx(|vcx| {
+                    RustTyDecomposition::from_ty(arg, vcx.tcx(), task_key.context)
+                });
                 params.ty_expr(deps, decomp)
             })
             .collect::<Vec<_>>();
