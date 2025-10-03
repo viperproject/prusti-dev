@@ -125,7 +125,7 @@ impl<'vir> WandEncOutput<'vir> {
         use vir::Reify;
         let g = g.into();
         let fn_sig = self.fn_sig(vcx);
-        let ty = RustTyDecomposition::from_ty(g.ty(fn_sig), self.g_params(vcx));
+        let ty = RustTyDecomposition::from_ty(g.ty(fn_sig), vcx.tcx(), self.g_params(vcx));
         let predicates = deps
             .require_dep::<IndirectPredicatesEnc>(g.with_base(ty))
             .unwrap()

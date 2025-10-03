@@ -132,7 +132,7 @@ impl TaskEncoder for MirPureEnc {
             // We wrap the expression with an additional lazy that will perform
             // some sanity checks. These requirements cannot be expressed using
             // only the type system.
-            let ret = RustTyDecomposition::from_ty(body.return_ty(), def_id);
+            let ret = RustTyDecomposition::from_ty(body.return_ty(), vcx.tcx(), def_id);
             let expr = vcx.mk_lazy_expr(
                 vir::vir_format!(vcx, "pure body {def_id:?}"),
                 deps.require_ref::<TyUsePureEnc>(ret)?.snapshot,
@@ -268,13 +268,13 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     }
 
     fn ty_use(&mut self, ty: ty::Ty<'vir>) -> TyUsePure<'vir> {
-        let ty_task = RustTyDecomposition::from_ty(ty, self.context);
+        let ty_task = RustTyDecomposition::from_ty(ty, self.vcx.tcx(), self.context);
         self.deps.require_dep::<TyUsePureEnc>(ty_task).unwrap()
     }
 
     fn get_ty_for_local(&mut self, local: mir::Local) -> vir::TypeSnap<'vir> {
         let ty = self.body.local_decls[local].ty;
-        let ty_task = RustTyDecomposition::from_ty(ty, self.context);
+        let ty_task = RustTyDecomposition::from_ty(ty, self.vcx.tcx(), self.context);
         self.deps
             .require_ref::<TyUsePureEnc>(ty_task)
             .unwrap()
@@ -1203,7 +1203,8 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
     place_ref: Option<ExprRetRef<'vir>>,
 ) -> (ExprRet<'vir>, Option<ExprRetRef<'vir>>) {
     let context = context.into();
-    let ty_task = RustTyDecomposition::from_ty(place_ty.ty, context);
+    let ty_task =
+        vir::with_vcx(|vcx| RustTyDecomposition::from_ty(place_ty.ty, vcx.tcx(), context));
     match elem {
         mir::ProjectionElem::Deref => {
             assert!(place_ty.variant_index.is_none());
@@ -1232,7 +1233,9 @@ pub fn encode_place_element<'vir, 'enc, T: TaskEncoder>(
                         .require_dep::<TyUsePureEnc>(ty_task)
                         .unwrap()
                         .expect_mutref();
-                    let inner_ty = RustTyDecomposition::from_ty(*inner_ty, context);
+                    let inner_ty = vir::with_vcx(|vcx| {
+                        RustTyDecomposition::from_ty(*inner_ty, vcx.tcx(), context)
+                    });
                     let inner_ty_out = deps.require_dep::<TyUseImpureEnc>(inner_ty).unwrap();
                     let ref_expr = e_ty.deref_access(expr);
                     let ref_val_expr = inner_ty_out.ref_to_snap(unsafe {
