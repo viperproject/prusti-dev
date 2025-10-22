@@ -300,7 +300,7 @@ impl TaskEncoder for GenericParamsEnc {
                 .enumerate()
                 .map(|(i, (gi, p, ty))| {
                     indicies[gi] = Err(i);
-                    let ty = RustTyDecomposition::from_ty(ty, vcx.tcx(), *task_key);
+                    let ty = RustTyDecomposition::from_prim_ty(ty);
                     let lifted_const = deps.require_ref::<TyUsePureEnc>(ty)?;
                     Ok(vcx.mk_local_decl(
                         sanitize(p.name, p.index),

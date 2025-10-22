@@ -62,7 +62,13 @@ impl TaskEncoder for GArgsTyEnc {
             .enumerate()
             .filter_map(|(i, a)| ty::GenericArg::as_const(a).map(|a| (i, a)))
             .map(|(i, const_)| {
-                let (_, ty) = task_key.context.expect_const(i);
+                // If the constant is a value, we already know its type.
+                // Otherwise, we will look it up in the param environment.
+                // TODO: what about the other ConstKind variants?
+                let ty = match const_.kind() {
+                    ty::ConstKind::Value(v) => v.ty,
+                    _ => task_key.context.expect_const(i).1,
+                };
                 let task = ConstEncTask::Ty {
                     const_,
                     ty,

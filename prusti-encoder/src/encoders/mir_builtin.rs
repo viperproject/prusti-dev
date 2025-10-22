@@ -3,7 +3,7 @@ use prusti_utils::config;
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CallableIdn, CastType, FunctionIdn};
 
-use crate::encoders::ty::{RustTyDecomposition, use_pure::TyUsePureEnc};
+use crate::encoders::ty::{RustTyDecomposition, generics::GParams, use_pure::TyUsePureEnc};
 
 pub struct MirBuiltinEnc;
 
@@ -15,6 +15,7 @@ pub enum MirBuiltinEncError {
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 #[allow(clippy::enum_variant_names)]
 pub enum MirBuiltinEncTask<'tcx> {
+    Len(ty::Ty<'tcx>),
     UnOp(ty::Ty<'tcx>, mir::UnOp, ty::Ty<'tcx>),
     BinOp(ty::Ty<'tcx>, mir::BinOp, ty::Ty<'tcx>, ty::Ty<'tcx>),
     CheckedBinOp(ty::Ty<'tcx>, mir::BinOp, ty::Ty<'tcx>, ty::Ty<'tcx>),
@@ -22,22 +23,30 @@ pub enum MirBuiltinEncTask<'tcx> {
 
 #[derive(Copy, Clone, Debug)]
 pub enum MirBuiltinEncOutputRef<'vir> {
+    Len(FunctionIdn<'vir, vir::CSnap, vir::CSnap>),
     UnOp(FunctionIdn<'vir, vir::CSnap, vir::CSnap>),
     BinOp(FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::CSnap>),
 }
 impl<'vir> task_encoder::OutputRefAny for MirBuiltinEncOutputRef<'vir> {}
 impl<'vir> MirBuiltinEncOutputRef<'vir> {
+    pub fn len(self) -> Option<FunctionIdn<'vir, vir::CSnap, vir::CSnap>> {
+        match self {
+            MirBuiltinEncOutputRef::Len(idn) => Some(idn),
+            _ => None,
+        }
+    }
+
     pub fn un_op(self) -> Option<FunctionIdn<'vir, vir::CSnap, vir::CSnap>> {
         match self {
             MirBuiltinEncOutputRef::UnOp(idn) => Some(idn),
-            MirBuiltinEncOutputRef::BinOp(_) => None,
+            _ => None,
         }
     }
 
     pub fn bin_op(self) -> Option<FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::CSnap>> {
         match self {
-            MirBuiltinEncOutputRef::UnOp(_) => None,
             MirBuiltinEncOutputRef::BinOp(idn) => Some(idn),
+            _ => None,
         }
     }
 }
@@ -65,22 +74,20 @@ impl TaskEncoder for MirBuiltinEnc {
         task_key: &Self::TaskKey<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
-        vir::with_vcx(|vcx| match *task_key {
+        let function = vir::with_vcx(|vcx| match *task_key {
+            MirBuiltinEncTask::Len(arg_ty) => Self::handle_len(vcx, deps, *task_key, arg_ty),
             MirBuiltinEncTask::UnOp(res_ty, op, operand_ty) => {
                 assert_eq!(res_ty, operand_ty);
-                let function = Self::handle_un_op(vcx, deps, *task_key, op, operand_ty)?;
-                Ok((MirBuiltinEncOutput { function }, ()))
+                Self::handle_un_op(vcx, deps, *task_key, op, operand_ty)
             }
             MirBuiltinEncTask::BinOp(res_ty, op, l_ty, r_ty) => {
-                let function = Self::handle_bin_op(vcx, deps, *task_key, res_ty, op, l_ty, r_ty)?;
-                Ok((MirBuiltinEncOutput { function }, ()))
+                Self::handle_bin_op(vcx, deps, *task_key, res_ty, op, l_ty, r_ty)
             }
             MirBuiltinEncTask::CheckedBinOp(res_ty, op, l_ty, r_ty) => {
-                let function =
-                    Self::handle_checked_bin_op(vcx, deps, *task_key, res_ty, op, l_ty, r_ty)?;
-                Ok((MirBuiltinEncOutput { function }, ()))
+                Self::handle_checked_bin_op(vcx, deps, *task_key, res_ty, op, l_ty, r_ty)
             }
-        })
+        })?;
+        Ok((MirBuiltinEncOutput { function }, ()))
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
@@ -102,6 +109,34 @@ fn int_name(ty: ty::Ty<'_>) -> &'static str {
 }
 
 impl MirBuiltinEnc {
+    fn handle_len<'vir>(
+        vcx: &'vir vir::VirCtxt<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+        key: <Self as TaskEncoder>::TaskKey<'vir>,
+        arg_ty: ty::Ty<'vir>,
+    ) -> Result<vir::Function<'vir>, EncodeFullError<'vir, Self>> {
+        let ty_task = RustTyDecomposition::from_prim_ty(arg_ty);
+        let arg_ty = deps.require_dep::<TyUsePureEnc>(ty_task)?;
+
+        let ty_task = RustTyDecomposition::from_prim_ty(vcx.tcx().types.usize);
+        let res_ty = deps.require_dep::<TyUsePureEnc>(ty_task)?;
+
+        let name = vir::vir_format_identifier!(vcx, "mir_len"); // TODO: name (Slice or Array)
+        let arg_ty_snap = arg_ty.snapshot.downcast_ty();
+        let res_ty_snap = res_ty.snapshot.downcast_ty();
+        let function = FunctionIdn::new(name, arg_ty_snap, res_ty_snap);
+        deps.emit_output_ref(key, MirBuiltinEncOutputRef::Len(function))?;
+
+        let snap_arg_decl = vcx.mk_local_decl("arg", arg_ty_snap);
+        /*let prim_res_ty = e_ty.expect_primitive();
+        let snap_arg = vcx.mk_local_ex(snap_arg_decl);
+        let prim_arg = (prim_res_ty.snap_to_prim)(snap_arg);
+        let mut val =
+            (prim_res_ty.prim_to_snap)(vcx.mk_unary_op_expr(vir::UnOpKind::from(op), prim_arg));
+        */
+        Ok(vcx.mk_function(function, (snap_arg_decl,), &[], &[], None, None))
+    }
+
     fn handle_un_op<'vir>(
         vcx: &'vir vir::VirCtxt<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
@@ -389,7 +424,7 @@ impl MirBuiltinEnc {
             int_name(l_ty),
             int_name(r_ty)
         );
-        let res_ty_task = RustTyDecomposition::from_prim_ty(res_ty);
+        let res_ty_task = RustTyDecomposition::from_ty(res_ty, vcx.tcx(), GParams::empty());
         let e_res_ty = deps.require_dep::<TyUsePureEnc>(res_ty_task)?;
         let e_res_ty_snap = e_res_ty.snapshot.downcast_ty();
         let function = FunctionIdn::new(name, (e_l_ty_snap, e_r_ty_snap), e_res_ty_snap);

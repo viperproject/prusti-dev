@@ -361,6 +361,27 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::DomainParam<'vir> {
     }
 }
 
+impl<'vir, 'v> ToViper<'vir, 'v> for vir::Exists<'vir> {
+    type Output = viper::Expr<'v>;
+    // `pos` coming from the parent `Expr` is used
+    fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, pos: Position) -> Self::Output {
+        ctx.ast.exists_with_pos(
+            &self
+                .qvars
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
+            &self
+                .triggers
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
+            self.body.to_viper_no_pos(ctx),
+            pos,
+        )
+    }
+}
+
 impl<'vir, 'v, T: vir::CompType> ToViper<'vir, 'v> for vir::Expr<'vir, T> {
     type Output = viper::Expr<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
@@ -368,6 +389,7 @@ impl<'vir, 'v, T: vir::CompType> ToViper<'vir, 'v> for vir::Expr<'vir, T> {
             vir::ExprKindData::AccField(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::BinOp(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Const(v) => v.to_viper_with_span(ctx, self.span),
+            vir::ExprKindData::Exists(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Field(recv, field) => ctx.ast.field_access_with_pos(
                 recv.to_viper_no_pos(ctx),
                 field.to_viper_no_pos(ctx),

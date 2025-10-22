@@ -75,10 +75,10 @@ impl From<mir::BinOp> for BinOpKind {
             }
             mir::BinOp::Div => BinOpKind::Div,
             mir::BinOp::Rem => BinOpKind::Mod,
-            mir::BinOp::BitXor => todo!("bitwise operations"),
             // TODO: this is a temporary workaround,
             // we need to fix this for integers and
             // do non-short-circuiting for booleans.
+            mir::BinOp::BitXor => BinOpKind::CmpNe,
             mir::BinOp::BitAnd => BinOpKind::And,
             mir::BinOp::BitOr => BinOpKind::Or,
             mir::BinOp::Shl => todo!("bitwise operations"),
@@ -256,6 +256,7 @@ pub type CfgBlockData<'vir> = crate::gendata::CfgBlockGenData<'vir, (), !>;
 pub type CfgLabelData<'vir> = crate::gendata::CfgLabelGenData<'vir, (), !>;
 pub type DomainAxiomData<'vir> = crate::gendata::DomainAxiomGenData<'vir, (), !>;
 pub type DomainData<'vir> = crate::gendata::DomainGenData<'vir, (), !>;
+pub type ExistsData<'vir> = crate::gendata::ExistsGenData<'vir, (), !>;
 pub type ExprData<'vir, T> = crate::gendata::ExprGenData<'vir, (), !, T>;
 pub type ExprKindData<'vir> = crate::gendata::ExprKindGenData<'vir, (), !>;
 pub type ForallData<'vir> = crate::gendata::ForallGenData<'vir, (), !>;
