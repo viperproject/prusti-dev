@@ -152,7 +152,8 @@ cfg_if! {
                     check_expr_bindings(m, *then);
                     check_expr_bindings(m, *else_);
                 }
-                ExprKindGenData::Forall(ForallGenData { qvars, triggers, body }) => {
+                ExprKindGenData::Forall(ForallGenData { qvars, triggers, body })
+                | ExprKindGenData::Exists(ExistsGenData { qvars, triggers, body }) => {
                     for qvar in qvars.iter() {
                         m.insert(qvar.name, qvar.ty_dyn());
                     }
@@ -322,6 +323,24 @@ impl<'tcx> VirCtxt<'tcx> {
         }
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Forall(
             self.alloc(ForallGenData {
+                qvars: qvars.as_dyn(),
+                triggers,
+                body,
+            }),
+        ))))
+    }
+
+    pub fn mk_exists_expr<'vir, Curr, Next, T: CompType>(
+        &'vir self,
+        qvars: &'vir [LocalDecl<'vir, T>],
+        triggers: &'vir [TriggerGen<'vir, Curr, Next>],
+        body: ExprGenBool<'vir, Curr, Next>,
+    ) -> ExprGenBool<'vir, Curr, Next> {
+        if qvars.is_empty() {
+            return body;
+        }
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::Exists(
+            self.alloc(ExistsGenData {
                 qvars: qvars.as_dyn(),
                 triggers,
                 body,
