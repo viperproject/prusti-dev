@@ -31,7 +31,7 @@ pub enum MirPureEncError {
     // UnsupportedTerminator,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Mode {
     Old,
     Rel(usize),
@@ -855,9 +855,10 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         args: &[Spanned<mir::Operand<'vir>>],
         curr_ver: &HashMap<mir::Local, Version<'vir>>,
     ) -> ExprRet<'vir> {
-        #[derive(Debug)]
+        #[derive(Debug, PartialEq, Eq)]
         enum PrustiBuiltin {
             Forall,
+            Exists,
             SnapshotEquality,
             ModeStart(Mode),
             ModeEnd(Mode),
@@ -872,6 +873,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         // TODO: this probably isn't necessary
         let builtin = match item_name.as_str() {
             "forall" => PrustiBuiltin::Forall,
+            "exists" => PrustiBuiltin::Exists,
             "snapshot_equality" => PrustiBuiltin::SnapshotEquality,
             "old_start" => PrustiBuiltin::ModeStart(Mode::Old),
             "old_end" => PrustiBuiltin::ModeEnd(Mode::Old),
@@ -908,7 +910,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 let rhs = self.encode_operand(curr_ver, &args[1].node);
                 self.vcx.mk_eq_expr(lhs, rhs)
             }
-            PrustiBuiltin::Forall => {
+            PrustiBuiltin::Forall | PrustiBuiltin::Exists => {
                 assert_eq!(arg_tys.len(), 3);
 
                 let encoded_args = args
@@ -932,7 +934,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         cl_args.as_closure().kind(),
                         *cl_def_id,
                     ),
-                    other => panic!("illegal prusti::forall: expected closure, got {other:?}"),
+                    other => panic!(
+                        "illegal prusti::{}: expected closure, got {other:?}",
+                        if builtin == PrustiBuiltin::Forall {
+                            "forall"
+                        } else {
+                            "exists"
+                        }
+                    ),
                 };
 
                 let qvars = self.vcx.alloc_slice(
@@ -993,11 +1002,19 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .reify(self.vcx, (cl_def_id, self.vcx.alloc_slice(&reify_args)))
                     .lift();
 
-                self.vcx.mk_forall_expr(
-                    qvars,
-                    &[], // TODO
-                    bool.snap_to_prim.call()(body.downcast_ty()).downcast_ty(),
-                )
+                if builtin == PrustiBuiltin::Forall {
+                    self.vcx.mk_forall_expr(
+                        qvars,
+                        &[], // TODO
+                        bool.snap_to_prim.call()(body.downcast_ty()).downcast_ty(),
+                    )
+                } else {
+                    self.vcx.mk_exists_expr(
+                        qvars,
+                        &[], // TODO
+                        bool.snap_to_prim.call()(body.downcast_ty()).downcast_ty(),
+                    )
+                }
             }
             PrustiBuiltin::ModeStart(mode) => {
                 match mode {

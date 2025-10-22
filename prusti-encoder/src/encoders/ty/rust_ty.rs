@@ -316,6 +316,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
                 }
             }),
             ty::TyKind::FnPtr(..) => String::from("FnPtr"),
+            ty::TyKind::Array(..) => String::from("Array"),
             other => unimplemented!("ty_name for {:?}", other),
         }
     }
@@ -349,15 +350,25 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
                     Self::args_from_tys(tys),
                 )
             }
-            ty::TyKind::Array(ty, cst) => {
-                let gty = TySpecifics::new_param_ty(0).into();
-                let gcst = TySpecifics::new_param_const(1).into();
-                let gparams = Self::args_from_generics([gty, gcst]);
+            ty::TyKind::Array(ty, cst) => vir::with_vcx(|vcx| {
+                let gcst = TySpecifics::new_param_const(0).into();
+                let gty = TySpecifics::new_param_ty(1).into();
+                let gparams = Self::args_from_generics([gcst, gty]);
+                let predicate =
+                    vcx.tcx()
+                        .mk_predicate(ty::Binder::dummy(ty::PredicateKind::Clause(
+                            ty::ClauseKind::ConstArgHasType(
+                                gcst.expect_const(),
+                                vcx.tcx().types.usize,
+                            ),
+                        )));
+                let param_env =
+                    ty::ParamEnv::new(vcx.tcx().mk_clauses(&[predicate.expect_clause()]));
                 (
-                    GParams::empty_env(gparams),
-                    Self::args_from_generics([ty.into(), cst.into()]),
+                    GParams::new(gparams, param_env, false),
+                    Self::args_from_generics([cst.into(), ty.into()]),
                 )
-            }
+            }),
             ty::TyKind::Slice(ty) | ty::TyKind::RawPtr(ty, _) => {
                 let gty = Self::args_from_tys([TySpecifics::new_param_ty(0)]);
                 (GParams::empty_env(gty), Self::args_from_tys([ty]))

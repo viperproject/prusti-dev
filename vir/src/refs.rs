@@ -17,6 +17,7 @@ pub type Domain<'vir> = &'vir crate::data::DomainData<'vir>;
 pub type DomainAxiom<'vir> = &'vir crate::data::DomainAxiomData<'vir>;
 pub type DomainFunction<'vir> = &'vir crate::data::DomainFunctionData<'vir>;
 pub type DomainParam<'vir> = &'vir crate::data::DomainParamData<'vir>;
+pub type Exists<'vir> = &'vir crate::data::ExistsData<'vir>;
 typed!(ExprData; Bool => ExprBool, Int => ExprInt, Perm => ExprPerm, Ref => ExprRef);
 typed!(ExprData; CSnap => ExprCSnap, PSnap => ExprPSnap, TyVal => ExprTyVal);
 typed!(ExprData; Prim => ExprPrim, Snap => ExprSnap, Dyn => ExprDyn);
