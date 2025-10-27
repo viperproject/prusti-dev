@@ -456,6 +456,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 edge_to_loop,
                 &mut to_skip,
             ),
+            BorrowPcgActionKind::Weaken(weaken)
+                if matches!(weaken.from_cap(), CapabilityKind::Exclusive)
+                    && matches!(weaken.to_cap(), None | Some(CapabilityKind::Write)) =>
+            {
+                self.pcg_weaken(weaken.place())
+            }
             //RenamePlace {
             //    old: MaybeLabelledPlace<'tcx>,
             //    new: MaybeLabelledPlace<'tcx>,
@@ -497,18 +503,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 }
             }
             RepackOp::Weaken(place, CapabilityKind::Exclusive, CapabilityKind::Write) => {
-                let place_ty = (*place).ty(self.pcg_ctxt());
-                assert!(place_ty.variant_index.is_none());
-
-                let place_ty_out = self.ty_use_impure(place_ty.ty);
-
-                let place_enc = self.encode_place(*place);
-                comment!(self, "exhale due to Weaken(E, W)");
-                self.stmt(self.vcx.mk_exhale_stmt(place_ty_out.ref_to_pred(
-                    self.vcx,
-                    place_enc.expr.expect_predicate(),
-                    None,
-                )));
+                self.pcg_weaken(*place)
             }
             ignored_op @ (RepackOp::RegainLoanedCapability(..)
             | RepackOp::Weaken(_, CapabilityKind::Exclusive, CapabilityKind::Read)) => {
@@ -525,6 +520,21 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
             }
         }
+    }
+
+    fn pcg_weaken(&mut self, place: Place<'vir>) {
+        let place_ty = place.ty(self.pcg_ctxt());
+        assert!(place_ty.variant_index.is_none());
+
+        let place_ty_out = self.ty_use_impure(place_ty.ty);
+
+        let place_enc = self.encode_place(place);
+        comment!(self, "exhale due to Weaken(E, W)");
+        self.stmt(self.vcx.mk_exhale_stmt(place_ty_out.ref_to_pred(
+            self.vcx,
+            place_enc.expr.expect_predicate(),
+            None,
+        )));
     }
 
     fn loop_analysis(&mut self) -> &LoopAnalysis {
