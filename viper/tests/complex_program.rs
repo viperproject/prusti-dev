@@ -195,7 +195,7 @@ fn success_with_complex_program() {
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
-    let verification_result = verifier.verify(program);
+    let verification_result = verifier.verify(program, None);
 
     assert!(verification_result.is_success());
 }

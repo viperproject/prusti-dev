@@ -17,14 +17,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: "repo"
+          submodules: recursive
 
       - name: Check for broken links
         uses: lycheeverse/lychee-action@v1.5.1
         with:
           fail: true
+          # Check all Markdown and HTML files (the action's default inputs), except in the
+          # `pcg` submodule, a separate project with its own (generated) pages. The option
+          # must come last, since it takes all values that follow it.
+          args: --verbose --no-progress './**/*.md' './**/*.html' --exclude-path repo/pcg
 
       - name: Prepare output directory
         run: |

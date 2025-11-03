@@ -19,6 +19,8 @@ pub struct VerificationTask<'tcx> {
     pub procedures: Vec<DefId>,
     /// A list of types to verify.
     pub types: Vec<ty::Ty<'tcx>>,
+    /// Whether or not the task is selective (see verify_only_defpaths)
+    pub selective: bool,
 }
 
 /// Verification result returned by a verifier.

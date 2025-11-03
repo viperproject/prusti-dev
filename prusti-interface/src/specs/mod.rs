@@ -370,7 +370,7 @@ fn parse_spec_id(spec_id: String, def_id: DefId) -> SpecificationId {
 /// Returns true iff def_id points to a spec function (i.e. a function for
 /// which we don't need polonius/borrowck facts)
 pub fn is_spec_fn(tcx: ty::TyCtxt, def_id: DefId) -> bool {
-    let attrs = tcx.get_attrs_unchecked(def_id);
+    let attrs = tcx.get_all_attrs(def_id);
     read_prusti_attr("spec_id", attrs).is_some()
 }
 

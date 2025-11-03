@@ -22,7 +22,7 @@ fn bench_verify_program(bench: &mut Bencher) {
     let mut verifier = verification_context.new_verifier_with_default_smt(backend);
     let program = build_program(&ast_factory);
 
-    bench.iter(move || verifier.verify(program));
+    bench.iter(move || verifier.verify(program, None));
 }
 
 fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {

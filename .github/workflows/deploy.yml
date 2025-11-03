@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: 'master'
+    branches: ['master']
     paths-ignore: 'docs/**'
 
 env:
@@ -14,24 +14,35 @@ jobs:
   build:
     strategy:
       matrix:
-        # macos-13 is x86, macos-14 is arm64
-        os: [ubuntu-20.04, windows-latest, macos-13, macos-14]
+        include:
+          - os: ubuntu-22.04
+            label: ubuntu-22.04-x64
+          - os: windows-latest
+            label: windows-latest-x64
+          - os: windows-11-arm
+            label: windows-latest-arm64
+          - os: macos-latest
+            label: macos-latest-arm64
+          - os: macos-15-intel
+            label: macos-15-x64
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Set up Python 3
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
       - name: Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
-          java-version: '15'
-          distribution: 'zulu'
+          distribution: 'temurin'
+          java-version: '23'
 
       - name: Set up the environment
         run: python x.py setup
@@ -55,9 +66,9 @@ jobs:
           filename: release.zip
 
       - name: Upload Prusti artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: prusti-release-${{ matrix.os }}
+          name: prusti-release-${{ matrix.label }}
           if-no-files-found: error
           path: prusti_artifact/release.zip
 
@@ -67,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all Prusti artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
 
       - name: Create release tag
         shell: bash
@@ -83,46 +94,34 @@ jobs:
           release_name: Nightly Release ${{ env.TAG_NAME }}
           keep_num: 4
 
-      - name: Upload release asset for Ubuntu
+      - name: Upload release asset for Ubuntu 22.04
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./prusti-release-ubuntu-20.04/release.zip
-          asset_name: prusti-release-ubuntu.zip
+          asset_path: ./prusti-release-ubuntu-22.04-x64/release.zip
+          asset_name: prusti-release-ubuntu-22.04.zip
           asset_content_type: application/zip
 
-      - name: Upload release asset for Windows
+      - name: Upload release asset for Windows x64
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./prusti-release-windows-latest/release.zip
-          asset_name: prusti-release-windows.zip
+          asset_path: ./prusti-release-windows-latest-x64/release.zip
+          asset_name: prusti-release-windows-x64.zip
           asset_content_type: application/zip
 
-      # This asset is only for backward compatibility with Prusti-Assistant. After updating
-      # Prusti-Assistant to use the new asset name, we can wait a while and then delete this.
-      - name: Upload release asset for macOS x86 using a backward-compatibile name
+      - name: Upload release asset for Windows ARM64
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./prusti-release-macos-13/release.zip
-          asset_name: prusti-release-macos.zip
-          asset_content_type: application/zip
-
-      - name: Upload release asset for macOS x86
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./prusti-release-macos-13/release.zip
-          asset_name: prusti-release-macos-x86.zip
+          asset_path: ./prusti-release-windows-latest-arm64/release.zip
+          asset_name: prusti-release-windows-arm64.zip
           asset_content_type: application/zip
 
       - name: Upload release asset for macOS arm64
@@ -131,6 +130,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./prusti-release-macos-14/release.zip
+          asset_path: ./prusti-release-macos-latest-arm64/release.zip
           asset_name: prusti-release-macos-arm64.zip
+          asset_content_type: application/zip
+
+      - name: Upload release asset for macOS x64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./prusti-release-macos-15-x64/release.zip
+          asset_name: prusti-release-macos-x64.zip
           asset_content_type: application/zip

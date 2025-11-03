@@ -1,7 +1,14 @@
 use crate::VirCtxt;
-use prusti_interface::PrustiError;
-use prusti_rustc_interface::span::Span;
-use std::collections::HashMap;
+use ide::{EncodingInfo, SpanOfCallContracts};
+use prusti_interface::{environment::EnvDiagnostic, PrustiError};
+use prusti_rustc_interface::{
+    data_structures::fx::{FxHashMap, FxHashSet},
+    span::{
+        def_id::{DefId, LOCAL_CRATE},
+        source_map::SourceMap,
+        Span, DUMMY_SP,
+    },
+};
 
 pub struct VirSpanHandler<'vir> {
     error_kind: &'static str,
@@ -64,9 +71,27 @@ pub struct VirSpanManager<'vir> {
     //   together
     stack: Vec<&'vir crate::spans::VirSpan<'vir>>,
 
-    handlers: HashMap<usize, VirSpanHandler<'vir>>,
+    handlers: FxHashMap<usize, VirSpanHandler<'vir>>,
 
     early_errors: Vec<PrustiError>,
+    /// Vector of objects holding for each method call the spans of any
+    /// associated contracts. Intended for consuption by Prusti-Assistant.
+    call_contract_spans: Vec<SpanOfCallContracts>,
+
+    /// Map of identifiers composed of a method `DefId` and a label to the
+    /// span of the respective block.
+    /// Only populated if `GENERATE_BLOCK_MESSAGES` is set.
+    block_spans: FxHashMap<(DefId, String), Span>,
+
+    /// Map of specifically local, non-trusted, selected,
+    /// impure method identifier strings to their `DefId`s.
+    /// (See `prusti_encoder::ImpureFunctionEnc::encode`)
+    /// Used for backtranslation of viper names where the identifier is all to
+    /// go off of.
+    // TODO: If useful, extend to include other identifiers too. But take care
+    // to also change the usage as well - these currently server as a filter
+    // for EntitySuccess/FailureMessages in prusti-server's viper backend
+    viper_identifiers: FxHashMap<String, DefId>,
 }
 
 impl<'tcx> VirCtxt<'tcx> {
@@ -151,6 +176,93 @@ impl<'tcx> VirCtxt<'tcx> {
             }
             span_opt = span.parent.as_ref();
         }
+        eprintln!("no handler found for error kind: {error_kind}");
         None
+    }
+
+    /// Attempt to backtranslate a position id to a rust span
+    pub fn get_span_from_id(&'tcx self, pos_id: usize) -> Option<Span> {
+        let manager = self.spans.borrow();
+        manager.all.get(pos_id).map(|vir_span| vir_span.span)
+    }
+
+    pub fn viper_to_rust_identifier(&'tcx self, viper_method: &str) -> Option<String> {
+        self.get_viper_identifier(viper_method)
+            .map(|def_id| self.get_unique_item_name(&def_id))
+    }
+
+    /// Get the crate name of `def_id_opt` or the local crate name if it is `None`
+    pub fn get_crate_name(&'tcx self, def_id_opt: Option<DefId>) -> String {
+        def_id_opt.map_or(self.tcx().crate_name(LOCAL_CRATE).to_string(), |def_id| {
+            self.tcx().crate_name(def_id.krate).to_string()
+        })
+    }
+
+    pub fn insert_block_span(&'tcx self, key: (DefId, String), span: Span) {
+        let mut manager = self.spans.borrow_mut();
+        manager.block_spans.insert(key, span);
+    }
+
+    pub fn get_block_span(&'tcx self, key: &(DefId, String)) -> Option<Span> {
+        let manager = self.spans.borrow();
+        manager.block_spans.get(key).copied()
+    }
+
+    pub fn insert_viper_identifier(&'tcx self, identifier: String, def_id: &DefId) {
+        let mut manager = self.spans.borrow_mut();
+        manager.viper_identifiers.insert(identifier, *def_id);
+    }
+
+    /// Attempt to retrieve the def id from a viper identifier string.
+    /// Currently, these are only stored for locally defined, selected methods.
+    /// See `prusti_encoder::ImpureFunctionEnc::encode`.
+    pub fn get_viper_identifier(&'tcx self, identifier: &str) -> Option<DefId> {
+        let manager = self.spans.borrow();
+        manager.viper_identifiers.get(identifier).copied()
+    }
+
+    /// Return the set of all viper identifiers with encoded bodies
+    pub fn get_viper_identifiers(&'tcx self) -> FxHashSet<String> {
+        let manager = self.spans.borrow();
+        FxHashSet::from_iter(manager.viper_identifiers.keys().cloned())
+    }
+
+    /// The unique itemname is of form `<crate name>::<defpath>`
+    pub fn get_unique_item_name(&'tcx self, def_id: &DefId) -> String {
+        format!(
+            "{}::{}",
+            self.tcx().crate_name(def_id.krate),
+            self.tcx().def_path_str(def_id),
+        )
+        .to_string()
+    }
+
+    pub fn push_call_contract_span(
+        &'tcx self,
+        defpath: String,
+        call_span: Span,
+        contracts_spans: Vec<Span>,
+        source_map: &SourceMap,
+    ) {
+        let span_of_call_contracts =
+            SpanOfCallContracts::new(defpath, call_span, contracts_spans, source_map);
+        let mut manager = self.spans.borrow_mut();
+        manager.call_contract_spans.push(span_of_call_contracts);
+    }
+
+    /// Emit contract spans as diagnostic. (For Prusti-Assistant)
+    pub fn emit_contract_spans(&'tcx self, env_diagnostic: &EnvDiagnostic<'_>) {
+        let mut call_contract_spans = self.spans.borrow().call_contract_spans.clone();
+        // sort, so the order is deterministic
+        call_contract_spans.sort_by(|a, b| a.defpath.cmp(&b.defpath));
+
+        let encoding_info = EncodingInfo {
+            call_contract_spans,
+        };
+        PrustiError::message(
+            format!("encodingInfo{}", encoding_info.to_json_string()),
+            DUMMY_SP.into(),
+        )
+        .emit(env_diagnostic);
     }
 }

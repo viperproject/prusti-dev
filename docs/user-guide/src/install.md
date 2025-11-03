@@ -17,6 +17,6 @@ Bugs with Prusti itself can be reported on the [prusti-dev repository](https://g
 
 ## Command-line setup
 
-Alternatively, Prusti can be set up by downloading the [precompiled binaries](https://github.com/viperproject/prusti-dev/releases) available from the project page. We currently provide binaries for Windows, macOS (Intel), and Ubuntu. Releases marked as "Pre-release" may contain unstable or experimental features.
+Alternatively, Prusti can be set up by downloading the [precompiled binaries](https://github.com/viperproject/prusti-dev/releases) available from the project page. We currently provide binaries for Windows and macOS (both x64 and arm64), and Ubuntu. Releases marked as "Pre-release" may contain unstable or experimental features.
 
 For a command-line setup with Prusti built from source, please confer the [developer guide](https://viperproject.github.io/prusti-dev/dev-guide/development/setup.html).

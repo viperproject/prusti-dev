@@ -1,6 +1,6 @@
 #![feature(rustc_private)]
 use lazy_static::lazy_static;
-use prusti_server::spawn_server_thread;
+use prusti_server::server::spawn_server_thread;
 
 lazy_static! {
     // only start the jvm & server once

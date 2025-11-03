@@ -90,7 +90,7 @@ impl Viper {
                 jni.unwrap_result(system_wrapper.call_getProperty(jni.new_string("java.version"))),
             );
 
-            info!("Using JVM {}, Java {}", vm_name, java_version);
+            info!("Using JVM {vm_name}, Java {java_version}");
         }
 
         Viper { jvm }
