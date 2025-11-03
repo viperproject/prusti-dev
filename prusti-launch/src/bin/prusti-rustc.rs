@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_utils::launch;
-use std::{env, io::Write, path::PathBuf, process::Command};
+use std::{env, io::Write};
 
 fn main() {
     if let Err(code) = process(std::env::args().skip(1).collect()) {
@@ -16,33 +16,12 @@ fn main() {
 fn process(mut args: Vec<String>) -> Result<(), i32> {
     let _setup = launch::job::setup().unwrap(); // Kill all subprocesses on kill or Ctrl-C
 
-    let prusti_home = launch::get_current_executable_dir();
+    let paths = launch::PrustiPaths::new();
 
-    let mut prusti_driver_path = prusti_home.join("prusti-driver");
-    if cfg!(windows) {
-        prusti_driver_path.set_extension("exe");
-    }
-
-    let java_home = match env::var("JAVA_HOME") {
-        Ok(java_home) => PathBuf::from(java_home),
-        Err(_) => launch::find_java_home()
-            .expect("Failed to find Java home directory. Try setting JAVA_HOME"),
-    };
-
-    let libjvm_path =
-        launch::find_libjvm(&java_home).expect("Failed to find JVM library. Check JAVA_HOME");
-
-    let prusti_sysroot = launch::prusti_sysroot().expect("Failed to find Rust's sysroot");
-
-    let compiler_bin = prusti_sysroot.join("bin");
-    let compiler_lib = prusti_sysroot.join("lib");
-
-    let mut cmd = Command::new(&prusti_driver_path);
+    let mut cmd = paths.prusti_driver_command();
     cmd.arg("--cfg=prusti");
 
-    launch::add_to_loader_path(vec![compiler_lib, compiler_bin, libjvm_path], &mut cmd);
-
-    launch::set_environment_settings(&mut cmd, &prusti_home, &java_home);
+    let prusti_sysroot = launch::prusti_sysroot().expect("Failed to find Rust's sysroot");
 
     let cargo_invoked = env::var("PRUSTI_CARGO").is_ok();
 
@@ -50,12 +29,13 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     // should always be with `cargo` anyway (i.e. cargo_invoked == true)
     if !cargo_invoked {
         // Need to give references to standard prusti libraries
-        let target_dir = launch::get_prusti_contracts_dir(&prusti_home).unwrap_or_else(|| {
-            panic!(
-                "Failed to find the path of the Prusti contracts from prusti home '{}'",
-                prusti_home.display()
-            )
-        });
+        let target_dir = launch::get_prusti_contracts_dir(paths.current_executable_dir())
+            .unwrap_or_else(|| {
+                panic!(
+                    "Failed to find the path of the Prusti contracts from prusti home '{}'",
+                    paths.current_executable_dir().display()
+                )
+            });
         if target_dir.to_str().is_none() {
             panic!(
                 "Path to '{}' is not a valid utf-8 string!",
@@ -131,9 +111,9 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         }
     }
 
-    let exit_status = cmd.status().unwrap_or_else(|e| {
-        panic!("failed to execute prusti-driver ({prusti_driver_path:?}): {e}")
-    });
+    let exit_status = cmd
+        .status()
+        .unwrap_or_else(|e| panic!("failed to execute prusti-driver: {e}"));
 
     if exit_status.success() {
         Ok(())

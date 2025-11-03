@@ -415,7 +415,7 @@ impl<T> SpecGraph<T> {
 /// fn main() {
 ///     let s = SomeStruct;
 ///     let r = s.foo::<i32>(100); // i32 implements MarkerTrait -> C_S is active
-///     let r = s.foo::<u32>(100); // i32 does not implement MarkerTrait -> B_S is active
+///     let r = s.foo::<u32>(100); // u32 does not implement MarkerTrait -> B_S is active
 /// }
 /// ```
 impl SpecGraph<ProcedureSpecification> {

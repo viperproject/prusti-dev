@@ -12,9 +12,8 @@ use self::commandline::CommandLine;
 use crate::launch::{find_viper_home, get_current_executable_dir};
 use ::config::{Config, Environment, File};
 use log::warn;
-use rustc_hash::FxHashSet;
 use serde::Deserialize;
-use std::{env, path::PathBuf, sync::RwLock};
+use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Optimizations {
@@ -104,6 +103,9 @@ lazy_static::lazy_static! {
         settings.set_default("quiet", false).unwrap();
         settings.set_default("assert_timeout", 10_000).unwrap();
         settings.set_default("smt_qi_eager_threshold", 1000).unwrap();
+        settings.set_default::<Option<bool>>("smt_qi_profile", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_qi_profile_freq", None).unwrap();
+        settings.set_default("report_viper_messages", false).unwrap();
         settings.set_default("use_more_complete_exhale", true).unwrap();
         settings.set_default("skip_unsupported_features", false).unwrap();
         settings.set_default("internal_errors_as_warnings", false).unwrap();
@@ -171,6 +173,13 @@ lazy_static::lazy_static! {
         settings.set_default::<Vec<String>>("verify_only_basic_block_path", vec![]).unwrap();
         settings.set_default::<Vec<String>>("delete_basic_blocks", vec![]).unwrap();
 
+       // Flags specifically for Prusti-Assistant:
+        settings.set_default("show_ide_info", false).unwrap();
+        settings.set_default("skip_verification", false).unwrap();
+        settings.set_default::<Vec<String>>("verify_only_defpaths", vec![]).unwrap();
+        settings.set_default::<Option<String>>("query_method_signature", None).unwrap();
+        settings.set_default("report_block_messages", false).unwrap();
+
         // Get the list of all allowed flags.
         let mut allowed_keys = get_keys(&settings);
         allowed_keys.insert("server_max_stored_verifiers".to_string());
@@ -213,6 +222,7 @@ lazy_static::lazy_static! {
                 .with_list_parse_key("extra_jvm_args")
                 .with_list_parse_key("extra_verifier_args")
                 .with_list_parse_key("verify_only_basic_block_path")
+                .with_list_parse_key("verify_only_defpaths")
                 .list_separator(" ")
         ).unwrap();
         check_keys(&settings, &allowed_keys, "environment variables");
@@ -227,7 +237,7 @@ lazy_static::lazy_static! {
     });
 }
 
-fn get_keys(settings: &Config) -> FxHashSet<String> {
+fn get_keys(settings: &Config) -> HashSet<String> {
     settings
         .cache
         .clone()
@@ -237,7 +247,7 @@ fn get_keys(settings: &Config) -> FxHashSet<String> {
         .collect()
 }
 
-fn check_keys(settings: &Config, allowed_keys: &FxHashSet<String>, source: &str) {
+fn check_keys(settings: &Config, allowed_keys: &HashSet<String>, source: &str) {
     for key in settings.cache.clone().into_table().unwrap().keys() {
         assert!(
             allowed_keys.contains(key),
@@ -503,6 +513,22 @@ pub fn smt_qi_eager_threshold() -> u64 {
     read_setting("smt_qi_eager_threshold")
 }
 
+/// Whether to make Z3 periodically report quantifier instantiations to Viper.
+pub fn smt_qi_profile() -> Option<bool> {
+    read_setting("smt_qi_profile")
+}
+
+/// The frequency for the report of quantifier instantiations of Z3 to Viper.
+pub fn smt_qi_profile_freq() -> Option<u64> {
+    read_setting("smt_qi_profile_freq")
+}
+
+/// Whether to report the messages produced by the viper backend (e.g. quantifier instantiations,
+/// quantifier triggers)
+pub fn report_viper_messages() -> bool {
+    read_setting("report_viper_messages")
+}
+
 /// Maximum time (in milliseconds) for the verifier to spend on checks.
 /// Set to None uses the verifier's default value. Maps to the verifier command-line
 /// argument `--checkTimeout`.
@@ -728,7 +754,7 @@ pub fn optimizations() -> Optimizations {
             "remove_unused_vars" => opt.remove_unused_vars = true,
             "remove_trivial_assertions" => opt.remove_trivial_assertions = true,
             "clean_cfg" => opt.clean_cfg = true,
-            _ => warn!("Ignoring Unkown optimization '{}'", trimmed),
+            _ => warn!("Ignoring Unknown optimization '{trimmed}'"),
         }
     }
 
@@ -784,6 +810,12 @@ fn read_smt_wrapper_dependent_option(name: &'static str) -> Option<u64> {
         );
     }
     value
+}
+
+/// Whether to report the messages produced by the viper backend about CFG block being processed
+/// (primarily for IDE display)
+pub fn report_block_messages() -> bool {
+    read_setting("report_block_messages")
 }
 
 /// Whether the built-in quantifiers should be ignored when comparing bounds.
@@ -1029,4 +1061,32 @@ pub fn enable_type_invariants() -> bool {
 
 pub fn test_free_pcs() -> bool {
     read_setting("test_free_pcs")
+}
+
+/// When enabled, prusti should return various Data structures that are
+/// used by prusti-assistant, such as a list of method calls,
+/// a list of all procedures to be verified, etc.
+pub fn show_ide_info() -> bool {
+    read_setting("show_ide_info")
+}
+
+/// When enabled, verification is skipped. Similar to no_verify but needed
+/// because no_verify is also set automatically for dependencies, independent
+/// of whether the user passed this flag. In general only required because
+/// of issue #1261
+pub fn skip_verification() -> bool {
+    read_setting("skip_verification")
+}
+
+/// Used for selective verification, can be passed a String containing
+/// the DefPath of the method to be verified
+pub fn verify_only_defpaths() -> Vec<String> {
+    read_setting("verify_only_defpaths")
+}
+
+/// A flag that can be used to ask the compiler for the declaration /
+/// signature of a method, used to automatically generate a skeleton
+/// for an external specification
+pub fn query_method_signature() -> Option<String> {
+    read_setting("query_method_signature")
 }

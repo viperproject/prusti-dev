@@ -123,7 +123,7 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for ModelDefinedOnTypeWithoutFields {
                     let adt_def = env.tcx().adt_def(def_id);
                     let has_fields = adt_def.all_fields().next().is_some();
                     let def_path_str = env.name.get_absolute_item_name(def_id);
-                    debug!("Type {} has fields: {}", def_path_str, has_fields);
+                    debug!("Type {def_path_str} has fields: {has_fields}");
                     modelled_types_has_fields.insert(hir_id, !has_fields);
                     type_names.insert(hir_id, def_path_str);
                 }

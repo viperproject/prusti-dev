@@ -63,7 +63,7 @@ impl ExternSpecDeclaration {
         env_query: EnvQuery<'tcx>,
     ) -> Self {
         let is_impl_method = env_query.is_trait_method_impl(def_id);
-        let is_trait_method = env_query.get_trait_of_item(def_id).is_some();
+        let is_trait_method = env_query.get_trait_of_assoc(def_id).is_some();
         let maybe_impl_def_id = env_query.find_impl_of_trait_method_call(def_id, substs);
 
         if is_trait_method && maybe_impl_def_id.is_none() {

@@ -2,18 +2,19 @@ use prusti_rustc_interface::{
     errors::{Diag, EmissionGuarantee, MultiSpan},
     middle::ty::TyCtxt,
 };
-use std::cell::RefCell;
+use std::{cell::RefCell, rc::Rc};
 
+#[derive(Clone)]
 pub struct EnvDiagnostic<'tcx> {
     tcx: TyCtxt<'tcx>,
-    warn_buffer: RefCell<Vec<prusti_rustc_interface::errors::Diag<'tcx, ()>>>,
+    warn_buffer: Rc<RefCell<Vec<prusti_rustc_interface::errors::Diag<'tcx, ()>>>>,
 }
 
 impl<'tcx> EnvDiagnostic<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>) -> Self {
         EnvDiagnostic {
             tcx,
-            warn_buffer: RefCell::new(Vec::new()),
+            warn_buffer: Rc::new(RefCell::new(Vec::new())),
         }
     }
 
@@ -76,6 +77,11 @@ impl<'tcx> EnvDiagnostic<'tcx> {
         let mut diagnostic = self.tcx.dcx().struct_warn(msg.to_string());
         Self::configure_diagnostic(&mut diagnostic, sp, help, notes);
         self.warn_buffer.borrow_mut().push(diagnostic);
+    }
+
+    /// Emits a note
+    pub fn span_note<S: Into<MultiSpan> + Clone>(&self, sp: S, msg: &str) {
+        self.tcx.sess.dcx().span_note(sp.clone(), msg.to_string());
     }
 
     /// Returns true if an error has been emitted

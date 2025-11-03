@@ -1168,15 +1168,15 @@ mod tests {
             parse_prusti("forall(|x: i32| a ==> b)".parse().unwrap())
                 .unwrap()
                 .to_string(),
-            ":: prusti_contracts :: forall (() , # [prusti :: spec_only] | x : i32 | -> bool { ((! (a) || (b)) : bool) })",
+            ":: prusti_contracts :: forall (() , & (# [prusti :: spec_only] | x : i32 | -> bool { ! (a) || (b) }) ,)",
         );
         assert_eq!(
             parse_prusti("exists(|x: i32| a === b)".parse().unwrap()).unwrap().to_string(),
-            ":: prusti_contracts :: exists (() , # [prusti :: spec_only] | x : i32 | -> bool { ((snapshot_equality (& (a) , & (b))) : bool) })",
+            ":: prusti_contracts :: exists (() , & (# [prusti :: spec_only] | x : i32 | -> bool { snapshot_equality (& (a) , & (b)) }) ,)",
         );
         assert_eq!(
             parse_prusti("forall(|x: i32| a ==> b, triggers = [(c,), (d, e)])".parse().unwrap()).unwrap().to_string(),
-            ":: prusti_contracts :: forall (((# [prusti :: spec_only] | x : i32 | (c) ,) , (# [prusti :: spec_only] | x : i32 | (d) , # [prusti :: spec_only] | x : i32 | (e) ,) ,) , # [prusti :: spec_only] | x : i32 | -> bool { ((! (a) || (b)) : bool) })",
+            ":: prusti_contracts :: forall (((# [prusti :: spec_only] | x : i32 | (c) ,) , (# [prusti :: spec_only] | x : i32 | (d) , # [prusti :: spec_only] | x : i32 | (e) ,) ,) , & (# [prusti :: spec_only] | x : i32 | -> bool { ! (a) || (b) }) ,)",
         );
         assert_eq!(
             parse_prusti("assert!(a === b ==> b)".parse().unwrap())

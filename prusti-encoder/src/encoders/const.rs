@@ -66,7 +66,7 @@ impl ConstEnc {
 
     fn encode_const_val<'vir>(
         deps: &mut TaskEncoderDependencies<'vir, Self>,
-        val: ConstValue<'vir>,
+        val: ConstValue,
         ty: ty::Ty<'vir>,
         context: GParams<'vir>,
     ) -> Result<vir::ExprCSnap<'vir>, EncodeFullError<'vir, Self>> {
