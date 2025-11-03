@@ -64,9 +64,9 @@ fn verify_multiple_errors(backend: viper::VerificationBackend, args: Vec<String>
     let mut verifier =
         verification_context.new_verifier_with_default_smt_and_extra_args(backend, args);
 
-    let verification_result = verifier.verify(program);
+    let verification_result = verifier.verify(program, None);
 
-    if let VerificationResult::Failure(errors) = verification_result {
+    if let VerificationResultKind::Failure(errors) = verification_result {
         assert_eq!(errors.len(), 2);
         assert_eq!(
             errors[0].full_id,

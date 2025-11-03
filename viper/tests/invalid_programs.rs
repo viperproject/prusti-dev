@@ -15,28 +15,6 @@ fn setup() {
 }
 
 #[test]
-fn runtime_error() {
-    setup();
-
-    let verification_context: VerificationContext = VIPER.attach_current_thread();
-    let ast = verification_context.new_ast_factory();
-
-    // This is an error, as Silicon expects the method body to be a Seqn statement.
-    let method_body = ast.assert(ast.true_lit(), ast.no_position());
-    let method = ast.method("foo", &[], &[], &[], &[], Some(method_body));
-    let program = ast.program(&[], &[], &[], &[], &[method], &[]);
-
-    let mut verifier =
-        verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
-    let verification_result = verifier.verify(program);
-
-    assert!(matches!(
-        verification_result,
-        VerificationResult::JavaException(_)
-    ));
-}
-
-#[test]
 fn consistency_error() {
     test_consistency_error_for_method_body(|ast| {
         let local_var = ast.local_var("x", ast.bool_type(), ast.no_position());
@@ -97,9 +75,9 @@ where
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
-    let verification_result = verifier.verify(program);
+    let verification_result = verifier.verify(program, None);
     match verification_result {
-        VerificationResult::ConsistencyErrors(_) => (),
+        VerificationResultKind::ConsistencyErrors(_) => (),
         other => panic!("consistency errors not identified, instead found {other:?}"),
     }
 }

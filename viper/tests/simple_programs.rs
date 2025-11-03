@@ -27,7 +27,7 @@ fn success_with_empty_program() {
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
-    let verification_result = verifier.verify(program);
+    let verification_result = verifier.verify(program, None);
 
     assert!(verification_result.is_success());
 }
@@ -54,9 +54,9 @@ fn failure_with_assert_false() {
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
-    let verification_result = verifier.verify(program);
+    let verification_result = verifier.verify(program, None);
 
-    if let VerificationResult::Failure(errors) = verification_result {
+    if let VerificationResultKind::Failure(errors) = verification_result {
         assert_eq!(errors.len(), 1);
         assert_eq!(
             errors[0].full_id,
@@ -98,7 +98,7 @@ fn success_with_assert_with_boolean_operations() {
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
-    let verification_result = verifier.verify(program);
+    let verification_result = verifier.verify(program, None);
 
     assert!(verification_result.is_success());
 }
@@ -128,7 +128,7 @@ fn success_with_assert_false_in_dead_code() {
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
-    let verification_result = verifier.verify(program);
+    let verification_result = verifier.verify(program, None);
 
     assert!(verification_result.is_success());
 }
@@ -162,7 +162,7 @@ fn success_with_assign_if_and_assert() {
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
-    let verification_result = verifier.verify(program);
+    let verification_result = verifier.verify(program, None);
 
     assert!(verification_result.is_success());
 }
@@ -202,9 +202,9 @@ fn failure_with_assign_if_and_assert() {
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
-    let verification_result = verifier.verify(program);
+    let verification_result = verifier.verify(program, None);
 
-    if let VerificationResult::Failure(errors) = verification_result {
+    if let VerificationResultKind::Failure(errors) = verification_result {
         assert_eq!(errors.len(), 1);
         assert_eq!(
             errors[0].full_id,
@@ -254,7 +254,7 @@ fn success_with_complex_post_condition() {
     let mut verifier =
         verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
-    let verification_result = verifier.verify(program);
+    let verification_result = verifier.verify(program, None);
 
     assert!(verification_result.is_success());
 }

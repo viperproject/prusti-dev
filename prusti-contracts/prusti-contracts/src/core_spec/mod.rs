@@ -1,3 +1,4 @@
+use crate::*;
 pub mod eq;
 
 pub use eq::PureEq;
@@ -12,3 +13,7 @@ pub(super) mod type_eq {
     trait SealedTypeEq<T> {}
     impl<T> SealedTypeEq<T> for T {}
 }
+
+#[extern_spec(core::panicking)]
+#[requires(false)]
+fn panic(expr: &'static str) -> !;
