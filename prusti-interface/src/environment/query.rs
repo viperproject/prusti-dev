@@ -124,17 +124,17 @@ impl<'tcx> EnvQuery<'tcx> {
     /// If the given DefId describes an item belonging to a trait, returns the DefId
     /// of the trait that the trait item belongs to; otherwise, returns None.
     #[tracing::instrument(level = "trace", skip(self))]
-    pub fn get_trait_of_item(
+    pub fn get_trait_of_assoc(
         self,
         def_id: impl IntoParam<ProcedureDefId> + Debug,
     ) -> Option<DefId> {
-        self.tcx.trait_of_item(def_id.into_param())
+        self.tcx.trait_of_assoc(def_id.into_param())
     }
 
     /// Returns true iff `def_id` is an implementation of a trait method
     pub fn is_trait_method_impl(self, def_id: impl IntoParam<ProcedureDefId>) -> bool {
         self.tcx
-            .impl_of_method(def_id.into_param())
+            .impl_of_assoc(def_id.into_param())
             .and_then(|impl_id| self.tcx.trait_id_of_impl(impl_id))
             .is_some()
     }
@@ -214,21 +214,6 @@ impl<'tcx> EnvQuery<'tcx> {
         self.tcx.is_closure_like(def_id.into_param())
     }
 
-    // /// Returns the `DefId` of the corresponding trait method, if any.
-    // /// This should not be used to resolve calls (where substs are known): use
-    // /// `find_trait_method_substs` instead!
-    // pub fn find_trait_method(
-    //     self,
-    //     impl_def_id: impl IntoParam<ProcedureDefId>, // what are we calling?
-    // ) -> Option<DefId> {
-    //     let impl_def_id = impl_def_id.into_param();
-    //     self.tcx
-    //         .impl_of_method(impl_def_id)
-    //         .and_then(|impl_id| self.tcx.trait_id_of_impl(impl_id))
-    //         .and_then(|trait_id| self.get_assoc_item(trait_id, impl_def_id))
-    //         .map(|assoc_item| assoc_item.def_id)
-    // }
-
     /// If the given `impl_method_def_id` is an implementation of a trait
     /// method, return the `DefId` of that trait method as well as an adapted
     /// version of the callsite `impl_method_substs` substitutions.
@@ -238,7 +223,7 @@ impl<'tcx> EnvQuery<'tcx> {
         impl_method_substs: GenericArgsRef<'tcx>,           // what are the substs on the call?
     ) -> Option<(ProcedureDefId, GenericArgsRef<'tcx>)> {
         let impl_method_def_id = impl_method_def_id.into_param();
-        let impl_def_id = self.tcx.impl_of_method(impl_method_def_id)?;
+        let impl_def_id = self.tcx.impl_of_assoc(impl_method_def_id)?;
         let trait_ref = self.tcx.impl_trait_ref(impl_def_id)?.skip_binder();
 
         // At this point, we know that the given method:
@@ -309,7 +294,7 @@ impl<'tcx> EnvQuery<'tcx> {
     ) -> Option<ProcedureDefId> {
         // TODO(tymap): remove this method?
         let proc_def_id = proc_def_id.into_param();
-        if let Some(trait_id) = self.get_trait_of_item(proc_def_id) {
+        if let Some(trait_id) = self.get_trait_of_assoc(proc_def_id) {
             debug!("Fetching implementations of method '{:?}' defined in trait '{}' with substs '{:?}'", proc_def_id, self.tcx.def_path_str(trait_id), substs);
             // TODO(tymap): don't use reveal_all
             let typing_env = ty::TypingEnv::fully_monomorphized();
@@ -495,14 +480,11 @@ impl<'tcx> EnvQuery<'tcx> {
 
         match norm_res {
             Ok(normalized) => {
-                debug!("Normalized {:?}: {:?}", normalizable, normalized);
+                debug!("Normalized {normalizable:?}: {normalized:?}");
                 normalized
             }
             Err(err) => {
-                debug!(
-                    "Error while resolving associated types for {:?}: {:?}",
-                    normalizable, err
-                );
+                debug!("Error while resolving associated types for {normalizable:?}: {err:?}");
                 normalizable
             }
         }

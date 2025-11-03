@@ -1,4 +1,4 @@
-use chrono::{prelude::Utc, DateTime, NaiveDateTime};
+use chrono::{prelude::Utc, DateTime};
 use std::process::Command;
 
 fn main() {
@@ -23,9 +23,7 @@ fn main() {
         .and_then(|output| String::from_utf8(output.stdout).ok())
     {
         if let Ok(timestamp) = commit_timestamp.trim().parse() {
-            let commit_naive_datetime = NaiveDateTime::from_timestamp_opt(timestamp, 0).unwrap();
-            let commit_time =
-                DateTime::<Utc>::from_naive_utc_and_offset(commit_naive_datetime, Utc);
+            let commit_time = DateTime::from_timestamp(timestamp, 0).unwrap();
             println!(
                 "cargo:rustc-env=COMMIT_TIME={}",
                 commit_time.format("%F %T %Z")

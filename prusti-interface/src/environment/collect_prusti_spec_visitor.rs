@@ -64,7 +64,7 @@ impl<'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'tcx> {
         if let hir::ItemKind::Fn { .. } = item.kind {
             let def_id = self.env_query.as_local_def_id(item.hir_id()).to_def_id();
             let item_def_path = self.env_name.get_item_def_path(def_id);
-            trace!("Add {} to procedures", item_def_path);
+            trace!("Add {item_def_path} to procedures");
             self.procedures.push(def_id);
         }
         if matches!(
@@ -106,7 +106,7 @@ impl<'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'tcx> {
             .as_local_def_id(trait_item.hir_id())
             .to_def_id();
         let item_def_path = self.env_name.get_item_def_path(def_id);
-        trace!("Add {} to procedures", item_def_path);
+        trace!("Add {item_def_path} to procedures");
         self.procedures.push(def_id);
     }
 
@@ -131,7 +131,7 @@ impl<'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'tcx> {
             .as_local_def_id(impl_item.hir_id())
             .to_def_id();
         let item_def_path = self.env_name.get_item_def_path(def_id);
-        trace!("Add {} to procedures", item_def_path);
+        trace!("Add {item_def_path} to procedures");
         self.procedures.push(def_id);
     }
 

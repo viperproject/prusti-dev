@@ -162,6 +162,45 @@ fn main() {
             java_class!("viper.silver.reporter.NoopReporter$", vec![
                 object_getter!(),
             ]),
+            java_class!("viper.silver.reporter.PollingReporter", vec![
+                constructor!("(Ljava/lang/String;Lviper/silver/reporter/Reporter;)V"),
+                method!("hasNewMessage"),
+                method!("getNewMessage"),
+            ]),
+            java_class!("viper.silver.reporter.QuantifierChosenTriggersMessage", vec![
+                method!("quantifier"),
+                method!("triggers_string"),
+            ]),
+            java_class!("viper.silver.reporter.QuantifierInstantiationsMessage", vec![
+                method!("quantifier"),
+                method!("instantiations"),
+            ]),
+            // java_class!("viper.silver.reporter.BlockReachedMessage", vec![
+            //     method!("methodName"),
+            //     method!("label"),
+            //     method!("pathId"),
+            // ]),
+            // java_class!("viper.silver.reporter.BlockFailureMessage", vec![
+            //     method!("methodName"),
+            //     method!("label"),
+            //     method!("pathId"),
+            // ]),
+            // java_class!("viper.silver.reporter.PathProcessedMessage", vec![
+            //     method!("methodName"),
+            //     method!("pathId"),
+            //     method!("result"),
+            // ]),
+            java_class!("viper.silver.reporter.EntitySuccessMessage", vec![
+                method!("concerning"),
+                method!("verificationTime"),
+                // method!("cached"),
+            ]),
+            java_class!("viper.silver.reporter.EntityFailureMessage", vec![
+                method!("concerning"),
+                method!("result", "()Lviper/silver/verifier/Failure;"),
+                method!("verificationTime"),
+                // method!("cached"),
+            ]),
             java_class!("viper.silver.verifier.Verifier", vec![
                 method!("name"),
                 method!("buildVersion"),
@@ -169,6 +208,7 @@ fn main() {
                 method!("start"),
                 method!("stop"),
                 method!("verify"),
+                method!("reporter"),
             ]),
             java_class!("viper.silver.frontend.DefaultStates", vec![
                 method!("ConsistencyCheck"),
@@ -531,6 +571,7 @@ fn main() {
             ]),
             java_class!("viper.silver.ast.Method", vec![
                 constructor!(),
+                method!("name"),
             ]),
             java_class!("viper.silver.ast.MethodCall", vec![
                 constructor!(),

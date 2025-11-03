@@ -5,16 +5,18 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![deny(unused_must_use)]
-#![warn(clippy::disallowed_types)]
+#![allow(clippy::disallowed_types)]
 
 mod ast_factory;
 mod ast_utils;
 pub mod errors;
-mod jni_utils;
+// used by prusti-server
+pub mod jni_utils;
 #[macro_use]
 pub mod utils;
 mod cache;
-mod java_exception;
+// used by prusti-server
+pub mod java_exception;
 pub mod silicon_counterexample;
 pub mod smt_manager;
 mod verification_backend;

@@ -67,7 +67,7 @@ fn concurrent_verifier_initialization() {
                             vec!["--numberOfParallelVerifiers=1".to_string()],
                         );
 
-                    let verification_result = verifier.verify(program);
+                    let verification_result = verifier.verify(program, None);
 
                     assert!(verification_result.is_success());
                 }));

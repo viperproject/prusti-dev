@@ -212,7 +212,7 @@ pub fn find_trait_method_substs<'tcx>(
     impl_method_def_id: ProcedureDefId, // what are we calling?
     impl_method_substs: GenericArgsRef<'tcx>, // what are the substs on the call?
 ) -> Option<(ProcedureDefId, GenericArgsRef<'tcx>)> {
-    let impl_def_id = tcx.impl_of_method(impl_method_def_id)?;
+    let impl_def_id = tcx.impl_of_assoc(impl_method_def_id)?;
     let trait_ref = tcx.impl_trait_ref(impl_def_id)?.skip_binder();
 
     // At this point, we know that the given method:

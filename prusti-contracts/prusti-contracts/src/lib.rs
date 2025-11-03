@@ -4,6 +4,7 @@
 #![feature(negative_impls)]
 #![feature(try_trait_v2)]
 #![feature(cfg_version)]
+#![feature(panic_internals)]
 
 // Even alloc can be disabled for consistency with std, and in preparation for future specs for other, possibly no_std, crates.
 #[cfg(feature = "alloc")]

@@ -6,7 +6,7 @@ use prusti_contracts::*;
 //a counterexample can only be generated for directly accessed elements of a sequence
 
 fn test1(seq: Seq<i32>, idx: usize) {
-    //the counterexample only shows a seq of length <= idx but the elements are unkown
+    //the counterexample only shows a seq of length <= idx but the elements are unknown
     prusti_assert!(seq[idx] == seq[idx]);
 }
 

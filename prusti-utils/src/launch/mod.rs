@@ -153,14 +153,14 @@ pub fn get_rust_toolchain_channel() -> String {
 }
 
 /// Find Prusti's sysroot
-pub fn prusti_sysroot() -> Option<PathBuf> {
+pub fn prusti_sysroot() -> Result<PathBuf, String> {
     match env::var("RUST_SYSROOT") {
-        Ok(prusti_sysroot) => Some(PathBuf::from(prusti_sysroot)),
+        Ok(prusti_sysroot) => Ok(PathBuf::from(prusti_sysroot)),
         Err(_) => get_sysroot_from_rustup(),
     }
 }
 
-fn get_sysroot_from_rustup() -> Option<PathBuf> {
+fn get_sysroot_from_rustup() -> Result<PathBuf, String> {
     Command::new("rustup")
         .arg("run")
         .arg(get_rust_toolchain_channel())
@@ -168,10 +168,10 @@ fn get_sysroot_from_rustup() -> Option<PathBuf> {
         .arg("--print")
         .arg("sysroot")
         .output()
-        .ok()
+        .map_err(|e| e.to_string())
         .and_then(|out| {
             print!("{}", String::from_utf8(out.stderr).ok().unwrap());
-            String::from_utf8(out.stdout).ok()
+            String::from_utf8(out.stdout).map_err(|e| e.to_string())
         })
         .map(|s| PathBuf::from(s.trim().to_owned()))
 }
@@ -286,6 +286,101 @@ pub fn set_viper_home_setting(cmd: &mut Command, current_executable_dir: &Path) 
 
 pub fn set_java_home_setting(cmd: &mut Command, java_home: &Path) {
     cmd.env("PRUSTI_JAVA_HOME", java_home);
+}
+
+/// Paths required for running Prusti tools (driver, server, etc.)
+pub struct PrustiPaths {
+    current_executable_dir: PathBuf,
+    java_home: PathBuf,
+    libjvm_path: PathBuf,
+    compiler_bin: PathBuf,
+    compiler_lib: PathBuf,
+}
+
+impl Default for PrustiPaths {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl PrustiPaths {
+    /// Create a new PrustiPaths instance by discovering all required paths
+    pub fn new() -> Self {
+        let current_executable_dir = get_current_executable_dir();
+
+        let java_home = match env::var("JAVA_HOME") {
+            Ok(java_home) => PathBuf::from(java_home),
+            Err(_) => {
+                find_java_home().expect("Failed to find Java home directory. Try setting JAVA_HOME")
+            }
+        };
+
+        let libjvm_path =
+            find_libjvm(&java_home).expect("Failed to find JVM library. Check JAVA_HOME");
+
+        let prusti_sysroot = prusti_sysroot().expect("Failed to find Rust's sysroot");
+
+        let compiler_bin = prusti_sysroot.join("bin");
+        let compiler_lib = prusti_sysroot.join("lib");
+
+        Self {
+            current_executable_dir,
+            java_home,
+            libjvm_path,
+            compiler_bin,
+            compiler_lib,
+        }
+    }
+
+    pub fn java_home(&self) -> &Path {
+        &self.java_home
+    }
+
+    pub fn current_executable_dir(&self) -> &Path {
+        &self.current_executable_dir
+    }
+
+    /// Creates a `Command` for the given executable with the appropriate loader
+    /// paths and environment
+    fn configured_command(&self, executable_name: &str) -> Command {
+        let mut path = self.current_executable_dir.join(executable_name);
+        if cfg!(windows) {
+            path.set_extension("exe");
+        }
+        let mut cmd = Command::new(path);
+        self.configure_command(&mut cmd);
+        cmd
+    }
+
+    /// Creates a `Command` for prusti-server-driver with the appropriate loader
+    /// paths and environment
+    pub fn prusti_server_driver_command(&self) -> Command {
+        self.configured_command("prusti-server-driver")
+    }
+
+    /// Creates a `Command` for prusti-driver with the appropriate loader
+    /// paths and environment
+    pub fn prusti_driver_command(&self) -> Command {
+        self.configured_command("prusti-driver")
+    }
+
+    /// Setup loader path with compiler bin, lib, and JVM paths
+    fn setup_loader_path(&self, cmd: &mut Command) {
+        add_to_loader_path(
+            vec![
+                self.libjvm_path.clone(),
+                self.compiler_bin.clone(),
+                self.compiler_lib.clone(),
+            ],
+            cmd,
+        );
+    }
+
+    /// Configure command with loader path and environment settings
+    fn configure_command(&self, cmd: &mut Command) {
+        self.setup_loader_path(cmd);
+        set_environment_settings(cmd, &self.current_executable_dir, &self.java_home);
+    }
 }
 
 /// Checks if the current crate enable the `prusti` cargo feature on

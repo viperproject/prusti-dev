@@ -9,8 +9,12 @@ mod encoders;
 mod trait_support;
 pub mod request;
 
-use prusti_interface::{PrustiError, environment::EnvBody};
-use prusti_rustc_interface::middle::ty;
+use prusti_interface::{
+    PrustiError,
+    environment::{EnvBody, EnvDiagnostic},
+};
+use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
+use prusti_utils::config;
 use task_encoder::TaskEncoder;
 
 use crate::encoders::{
@@ -21,18 +25,48 @@ use crate::encoders::{
     },
 };
 
+// TODO: find a better way of handling selective verification.
+// Currently, this thread local static is used to converst the initial list of defpaths from the
+// `VERIFY_ONLY_DEFPATHS` option from `Vec<String>` to `Vec<DefId>`. This is done,
+// so the encoder (impure/pure_function_enc) can check elements for containment.
+// Because currently, it does not have the crate name available to it. But that crate name
+// is part of the defpaths passed through the option.
+thread_local!(
+    pub static SELECTIVE_TASKS: std::cell::OnceCell<Vec<DefId>> = const { std::cell::OnceCell::new() }
+);
+
+pub fn is_selected(def_id: &DefId) -> bool {
+    SELECTIVE_TASKS.with(|selective_tasks| {
+        selective_tasks
+            .get()
+            .as_ref()
+            .is_none_or(|procs| procs.contains(def_id))
+    })
+}
+
 pub fn test_entrypoint<'tcx>(
     tcx: ty::TyCtxt<'tcx>,
     body: EnvBody<'tcx>,
     def_spec: prusti_interface::specs::typed::DefSpecificationMap,
+    // this is None if the verification is not selective - all procedures should be encoded.
+    // if the verification is selective, only the procedures in this vector should be encoded with body
+    procedures: Option<Vec<DefId>>,
+    env_diagnostic: &EnvDiagnostic<'tcx>,
 ) -> request::RequestWithContext {
     vir::init_vcx(vir::VirCtxt::new(tcx, body, def_spec));
-    unsafe { backtrace_on_stack_overflow::enable() };
-
-    // TODO: this should be a "crate" encoder, which will deps.require all the methods in the crate
+    SELECTIVE_TASKS.with(|selective_tasks| {
+        if let Some(procs) = procedures {
+            selective_tasks
+                .set(procs)
+                .expect("Selective tasks were already set");
+        }
+    });
 
     crate::encoders::encode_all_in_crate(tcx);
 
+    if config::show_ide_info() {
+        vir::with_vcx(|vcx| vcx.emit_contract_spans(env_diagnostic));
+    }
     let mut program = task_encoder::Program::default();
 
     // We output results from both monomorphic and polymorphic encoding of
@@ -69,16 +103,6 @@ pub fn test_entrypoint<'tcx>(
     }
 
     let program = program.mk_program();
-
-    /*
-    let source_path = std::path::Path::new("source/path"); // TODO: env.name.source_path();
-    let rust_program_name = source_path
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_owned();
-    */
 
     request::RequestWithContext {
         program: program.to_ref(),

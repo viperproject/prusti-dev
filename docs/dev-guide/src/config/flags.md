@@ -55,18 +55,25 @@
 | [`PRINT_DESUGARED_SPECS`](#print_desugared_specs) | `bool` | `false` | A |
 | [`PRINT_HASH`](#print_hash) | `bool` | `false` | A |
 | [`PRINT_TYPECKD_SPECS`](#print_typeckd_specs) | `bool` | `false` | A |
+| [`QUERY_METHOD_SIGNATURE`](#query_method_signature) | `Option<String>` | `None` | A |
 | [`QUIET`](#quiet) | `bool` | `false` | A* |
+| [`REPORT_VIPER_MESSAGES`](#report_viper_messages) | `bool` | `false` | A |
+| [`REPORT_BLOCK_MESSAGES`](#report_block_messages) | `bool` | `false` | A |
 | [`SERVER_ADDRESS`](#server_address) | `Option<String>` | `None` | A |
 | [`SERVER_MAX_CONCURRENCY`](#server_max_concurrency) | `Option<usize>` | `None` | A |
 | [`SERVER_MAX_STORED_VERIFIERS`](#server_max_stored_verifiers) | `Option<usize>` | `None` | A |
+| [`SHOW_IDE_INFO`](#show_ide_info) | `bool` | `false` | A |
 | [`SIMPLIFY_ENCODING`](#simplify_encoding) | `bool` | `true` | A |
 | [`SKIP_UNSUPPORTED_FEATURES`](#skip_unsupported_features) | `bool` | `false` | A |
+| [`SKIP_VERIFICATION`](#skip_verification) | `bool` | `false` | A |
 | [`SMT_QI_BOUND_GLOBAL`](#smt_qi_bound_global) | `Option<u64>` | `None` | A |
-[`SMT_QI_BOUND_GLOBAL_KIND`](#smt_qi_bound_global_kind) | `Option<u64>` | `None` | A |
+| [`SMT_QI_BOUND_GLOBAL_KIND`](#smt_qi_bound_global_kind) | `Option<u64>` | `None` | A |
 | [`SMT_QI_BOUND_TRACE`](#smt_qi_bound_trace) | `Option<u64>` | `None` | A |
 | [`SMT_QI_BOUND_TRACE_KIND`](#smt_qi_bound_trace_kind) | `Option<u64>` | `None` | A |
-| [`SMT_QI_IGNORE_BUILTIN`](#smt_qi_ignore_builtin) | `bool` | `true` | A |
 | [`SMT_QI_EAGER_THRESHOLD`](#smt_qi_eager_threshold) | `u64` | `1000` | A |
+| [`SMT_QI_IGNORE_BUILTIN`](#smt_qi_ignore_builtin) | `bool` | `true` | A |
+| [`SMT_QI_PROFILE`](#smt_qi_profile) | `Option<bool>` | `None` | A |
+| [`SMT_QI_PROFILE_FREQ`](#smt_qi_profile_freq) | `Option<u64>` | `None` | A |
 | [`SMT_SOLVER_PATH`](#smt_solver_path) | `Option<String>` | `env::var("Z3_EXE")` | A |
 | [`SMT_SOLVER_WRAPPER_PATH`](#smt_solver_wrapper_path) | `Option<String>` | `None` | A |
 | [`SMT_UNIQUE_TRIGGERS_BOUND`](#smt_unique_triggers_bound) | `Option<u64>` | `None` | A |
@@ -76,6 +83,7 @@
 | [`USE_SMT_WRAPPER`](#use_smt_wrapper) | `bool` | `false` | A |
 | [`VERIFICATION_DEADLINE`](#verification_deadline) | `Option<u64>` | `None` | A |
 | [`VERIFY_ONLY_BASIC_BLOCK_PATH`](#verify_only_basic_block_path) | `Vec<String>` | `vec![]` | A |
+| [`VERIFY_ONLY_DEFPATH`](#verify_only_defpath) | `Vec<String>` | `vec![]` | A |
 | [`VERIFY_ONLY_PREAMBLE`](#verify_only_preamble) | `bool` | `false` | A |
 | [`VIPER_BACKEND`](#viper_backend) | `String` | `"Silicon"` | A |
 | [`VIPER_HOME`](#viper_home) | `Option<String>` | `None` | A |
@@ -351,11 +359,23 @@ When enabled, prints the hash of a verification request (the hash is used for ca
 
 When enabled, prints the type-checked specifications.
 
+## `QUERY_METHOD_SIGNATURE`
+
+When set to a defpath, prusti will generate a template for an external specification for this method. The result is part of the CompilerInfo and will only be emitted if the `SHOW_IDE_INFO` flag is enabled too.
+
 ## `QUIET`
 
 When enabled, user messages are not printed. Otherwise, messages output into `stderr`.
 
 > **Note:** `cargo prusti` sets this flag with `DEFAULT_PRUSTI_QUIET=true`.
+
+## `REPORT_VIPER_MESSAGES`
+
+When enabled for both server and client, certain supported Viper messages will be reported to the user.
+
+## `REPORT_BLOCK_MESSAGES`
+
+When enabled for both server and client, messages for individual basic blocks will be reported to the user. Does nothing if [`REPORT_VIPER_MESSAGES`](#report_viper_messages) is not enabled. Intended for usage with the Prusti Assistant (IDE). 
 
 ## `SERVER_ADDRESS`
 
@@ -373,6 +393,10 @@ Maximum amount of instantiated Viper verifiers the server will keep around for r
 
 > **Note:** This does _not_ limit how many verification requests the server handles concurrently, only the size of what is essentially its verifier cache.
 
+## `SHOW_IDE_INFO`
+
+When enabled, we emit various json data structures containing information about the program, its encoding, and the results of the verification. This flag intended for prusti-assistant (IDE).
+
 ## `SIMPLIFY_ENCODING`
 
 When enabled, the encoded program is simplified before it is passed to the Viper backend.
@@ -380,6 +404,10 @@ When enabled, the encoded program is simplified before it is passed to the Viper
 ## `SKIP_UNSUPPORTED_FEATURES`
 
 When enabled, features not supported by Prusti will be reported as warnings rather than errors.
+
+## `SKIP_VERIFICATION`
+
+When enabled, verification will be skipped. Opposed to `NO_VERIFY`, this flag will cause fake errors to stop the compiler from caching the result. 
 
 ## `SMT_QI_BOUND_GLOBAL`
 
@@ -405,16 +433,24 @@ If not `None`, checks that the number of quantifier instantiations in each trace
 
 > **Note:** Requires `USE_SMT_WRAPPER` to be `true`.
 
-## `SMT_QI_IGNORE_BUILTIN`
-
-When enabled, ignores the built-in quantifiers in SMT quantifier instantiation bounds checking.
-
 ## `SMT_QI_EAGER_THRESHOLD`
 
 A threshold controlling how many times Z3 should instantiate a single quantifier. This option controls a tradeoff between performance and completeness:
 
 * Setting it to a too small value, may lead to spurious verification errors and unstable verification.
 + Setting it to a too large value, may significantly impact performance.
+
+## `SMT_QI_IGNORE_BUILTIN`
+
+When enabled, ignores the built-in quantifiers in SMT quantifier instantiation bounds checking.
+
+## `SMT_QI_PROFILE`
+
+When enabled, the Z3 backend periodically (and on finish) reports the number of quantifier instantiations to Viper.
+
+## `SMT_QI_PROFILE_FREQ`
+
+Frequency of the quantifier instantiation reporting of Z3 (every X instantiations, a report is issued).
 
 ## `SMT_SOLVER_PATH`
 
@@ -467,6 +503,12 @@ Prusti panics if it fails to meet this deadline. This flag is intended to be use
 Verify only the single execution path goes through the given basic blocks. All basic blocks not on this execution path are replaced with `assume false`. Must be enabled using the [`ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`](#enable_verify_only_basic_block_path) flag.
 
 > **Note:** This option is only for debugging Prusti.
+
+## `VERIFY_ONLY_DEFPATHS`
+
+When set to the defpath of a local method, prusti will only verify the specified method. A fake error will be generated to avoid caching of a success.
+
+> **Note:** When passing this flag through environment variables, it should be a string of space-separated defpaths.
 
 ## `VERIFY_ONLY_PREAMBLE`
 

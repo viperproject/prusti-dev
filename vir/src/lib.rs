@@ -17,12 +17,10 @@ mod refs;
 mod reify;
 mod serde;
 mod spans;
-// mod callable_idents;
 mod callable;
 mod viper_ident;
 mod r#type;
 
-// pub use callable_idents::*;
 pub use callable::*;
 pub use context::*;
 pub use data::*;

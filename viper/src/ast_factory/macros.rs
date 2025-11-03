@@ -11,10 +11,10 @@ macro_rules! jobject_wrapper {
         }
 
         impl<'a> $name<'a> {
-            pub(crate) fn new(obj: JObject<'a>) -> Self {
+            pub fn new(obj: JObject<'a>) -> Self {
                 $name { obj }
             }
-            pub(crate) fn to_jobject(self) -> JObject<'a> {
+            pub fn to_jobject(self) -> JObject<'a> {
                 self.obj
             }
         }

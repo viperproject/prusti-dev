@@ -44,7 +44,7 @@ impl<'env, 'tcx> Visitor<'tcx> for CollectClosureDefsVisitor<'env, 'tcx> {
             let def_id = local_def_id.to_def_id();
             if !has_spec_only_attr(self.env.query.get_attributes(def_id)) {
                 let item_def_path = self.env.name.get_item_def_path(def_id);
-                trace!("Add {} to result", item_def_path);
+                trace!("Add {item_def_path} to result");
                 self.result.push(def_id);
             }
         }

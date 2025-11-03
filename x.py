@@ -114,14 +114,20 @@ def setup_mac():
     """Install the dependencies on Mac."""
     # Non-Viper dependencies must be installed manually.
     # Download Viper.
+    arch = platform.machine().lower()
+    if arch in ('arm64', 'aarch64'):
+        zip_filename = 'ViperToolsMacARM.zip'
+    else:
+        zip_filename = 'ViperToolsMac.zip'
+
     shell(
         'curl https://github.com/viperproject/viper-ide/releases/'
-        'download/{}/ViperToolsMac.zip -Lo ViperToolsMac.zip'.format(viper_version())
+        'download/{}/{} -Lo {}'.format(viper_version(), zip_filename, zip_filename)
     )
     if os.path.exists('viper_tools'):
         shutil.rmtree('viper_tools')
-    shell('unzip ViperToolsMac.zip -d viper_tools')
-    os.remove('ViperToolsMac.zip')
+    shell('unzip {} -d viper_tools'.format(zip_filename))
+    os.remove(zip_filename)
 
 
 def setup_win():

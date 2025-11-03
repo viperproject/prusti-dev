@@ -11,12 +11,17 @@ use crate::{
     silicon_counterexample::SiliconCounterexample,
     smt_manager::SmtManager,
     verification_backend::VerificationBackend,
-    verification_result::{VerificationError, VerificationResult},
+    verification_result::{VerificationError, VerificationResultKind},
     ConsistencyError,
 };
 use jni::{errors::Result, objects::JObject, JNIEnv};
 use log::{debug, error, info};
-use std::path::PathBuf;
+use std::{
+    collections::{hash_map::DefaultHasher, HashSet},
+    hash::{Hash, Hasher},
+    path::PathBuf,
+    thread::ScopedJoinHandle,
+};
 use viper_sys::wrappers::{scala, viper::*};
 
 pub struct Verifier<'a> {
@@ -43,7 +48,7 @@ impl<'a> Verifier<'a> {
         let frontend_wrapper = silver::frontend::SilFrontend::with(env);
 
         let frontend_instance = jni.unwrap_result(env.with_local_frame(16, || {
-            let reporter = if let Some(real_report_path) = report_path {
+            let pass_through_reporter = if let Some(real_report_path) = report_path {
                 jni.unwrap_result(silver::reporter::CSVReporter::with(env).new(
                     jni.new_string("csv_reporter"),
                     jni.new_string(real_report_path.to_str().unwrap()),
@@ -51,6 +56,11 @@ impl<'a> Verifier<'a> {
             } else {
                 jni.unwrap_result(silver::reporter::NoopReporter_object::with(env).singleton())
             };
+
+            let reporter = jni.unwrap_result(
+                silver::reporter::PollingReporter::with(env)
+                    .new(jni.new_string("polling_reporter"), pass_through_reporter),
+            );
 
             let debug_info = jni.new_seq(&[]);
 
@@ -106,7 +116,7 @@ impl<'a> Verifier<'a> {
             let build_version = jni.to_string(
                 jni.unwrap_result(verifier_wrapper.call_buildVersion(verifier_instance)),
             );
-            info!("Using backend {} version {}", name, build_version);
+            info!("Using backend {name} version {build_version}");
             Ok(verifier_instance)
         }));
 
@@ -165,25 +175,12 @@ impl<'a> Verifier<'a> {
         self
     }
 
-    /// Extract a position identifier from a `Position` object.
-    fn extract_pos_id(&self, pos: JObject<'_>) -> Option<String> {
-        let has_identifier_wrapper = silver::ast::HasIdentifier::with(self.env);
-
-        if self
-            .jni
-            .is_instance_of(pos, "viper/silver/ast/HasIdentifier")
-        {
-            Some(
-                self.jni
-                    .get_string(self.jni.unwrap_result(has_identifier_wrapper.call_id(pos))),
-            )
-        } else {
-            None
-        }
-    }
-
     #[tracing::instrument(name = "viper::verify", level = "debug", skip_all)]
-    pub fn verify(&mut self, program: Program) -> VerificationResult {
+    pub fn verify(
+        &mut self,
+        program: Program,
+        polling_thread: Option<ScopedJoinHandle<HashSet<u64>>>,
+    ) -> VerificationResultKind {
         let ast_utils = self.ast_utils;
         ast_utils.with_local_frame(16, || {
             debug!(
@@ -195,7 +192,7 @@ impl<'a> Verifier<'a> {
                 let consistency_errors = match self.ast_utils.check_consistency(program) {
                     Ok(errors) => errors,
                     Err(java_exception) => {
-                        return VerificationResult::JavaException(java_exception);
+                        return VerificationResultKind::JavaException(java_exception);
                     }
                 };
             );
@@ -208,7 +205,7 @@ impl<'a> Verifier<'a> {
                     "The provided Viper program has {} consistency errors.",
                     consistency_errors.len()
                 );
-                return VerificationResult::ConsistencyErrors(
+                return VerificationResultKind::ConsistencyErrors(
                     consistency_errors
                         .into_iter()
                         .map(|e| {
@@ -216,7 +213,7 @@ impl<'a> Verifier<'a> {
                                 .jni
                                 .unwrap_result(consistency_error_wrapper.call_pos(e));
 
-                            let pos_id = self.extract_pos_id(pos);
+                            let pos_id = extract_pos_id(&self.jni, self.env, pos);
 
                             let message =
                                 self.jni.to_string(self.jni.unwrap_result(
@@ -251,162 +248,24 @@ impl<'a> Verifier<'a> {
 
             self.smt_manager.stop_and_check();
 
+            // wait for the polling thread if present so no errors get processed here that should
+            // be processed by the polling thread. Also avoids the need for locking.
+            let error_hashes_opt = polling_thread.map(|pt| pt.join().unwrap());
             if is_failure {
-                let mut errors: Vec<VerificationError> = vec![];
-
-                let viper_errors = self.jni.seq_to_vec(self.jni.unwrap_result(
-                    silver::verifier::Failure::with(self.env).call_errors(viper_result),
-                ));
-
-
-                let verification_error_wrapper = silver::verifier::VerificationError::with(self.env);
-
-                let error_node_positioned_wrapper = silver::ast::Positioned::with(self.env);
-
-                let failure_context_wrapper = silver::verifier::FailureContext::with(self.env);
-
-                let error_reason_wrapper = silver::verifier::ErrorReason::with(self.env);
-
-                for viper_error in viper_errors {
-                    let is_verification_error = self
-                        .jni
-                        .is_instance_of(viper_error, "viper/silver/verifier/VerificationError");
-
-                    if !is_verification_error {
-                        let is_aborted_exceptionally = self
-                            .jni
-                            .is_instance_of(viper_error, "viper/silver/verifier/AbortedExceptionally");
-
-                        if is_aborted_exceptionally {
-                            let exception = self.jni.unwrap_result(
-                                silver::verifier::AbortedExceptionally::with(self.env)
-                                    .call_cause(viper_error),
-                            );
-                            let stack_trace =
-                                self.jni.unwrap_result(self.jni.get_stack_trace(exception));
-                            error!(
-                                "The verification aborted due to the following exception: {}",
-                                stack_trace
-                            );
-                        } else {
-                            error!(
-                                "The verifier returned an unhandled error of type {}: {}",
-                                self.jni.class_name(viper_error),
-                                self.jni.to_string(viper_error)
-                            );
-                        }
-                        unreachable!(
-                            "The verifier returned an unknown error of type {}: {}",
-                            self.jni.class_name(viper_error),
-                            self.jni.to_string(viper_error)
-                        );
-                    };
-                    let mut failure_contexts = self.jni.seq_to_vec(self
-                    .jni
-                    .unwrap_result(verification_error_wrapper.call_failureContexts(viper_error)));
-
-                    let counterexample: Option<SiliconCounterexample> = {
-                        if let Some(failure_context) = failure_contexts.pop() {
-                            let option_original_counterexample = self
-                                .jni
-                                .unwrap_result(failure_context_wrapper.call_counterExample(failure_context));
-                            if !self
-                                .jni
-                                .is_instance_of(option_original_counterexample, "scala/None$")
-                            {
-                                let original_counterexample = self.jni.unwrap_result(
-                                    scala::Some::with(self.env).call_get(option_original_counterexample),
-                                );
-                                if self.jni.is_instance_of(
-                                    original_counterexample,
-                                    "viper/silicon/interfaces/SiliconMappedCounterexample",
-                                ) {
-                                    // only mapped counterexamples are processed
-                                    Some(SiliconCounterexample::new(
-                                        self.env,
-                                        self.jni,
-                                        original_counterexample,
-                                    ))
-                                } else {
-                                    None
-                                }
-                            } else {
-                                None
-                            }
-                        } else {
-                            None
-                        }
-                    };
-
-                    let reason = self
-                        .jni
-                        .unwrap_result(verification_error_wrapper.call_reason(viper_error));
-
-                    let reason_pos = self
-                        .jni
-                        .unwrap_result(error_reason_wrapper.call_pos(reason));
-
-                    let reason_pos_id = self.extract_pos_id(reason_pos);
-                    if reason_pos_id.is_none() {
-                        debug!(
-                            "The verifier returned an error whose offending node position has no identifier: {:?}",
-                            self.jni.to_string(viper_error)
-                        );
-                    }
-
-                    let error_full_id = self.jni.get_string(
-                        self.jni
-                            .unwrap_result(verification_error_wrapper.call_fullId(viper_error)),
-                    );
-
-                    let pos = self
-                        .jni
-                        .unwrap_result(verification_error_wrapper.call_pos(viper_error));
-
-                    let message =
-                        self.jni.to_string(self.jni.unwrap_result(
-                            verification_error_wrapper.call_readableMessage(viper_error),
-                        ));
-
-                    let pos_id = self.extract_pos_id(pos);
-                    if pos_id.is_none() {
-                        debug!(
-                            "The verifier returned an error whose position has no identifier: {:?}",
-                            self.jni.to_string(viper_error)
-                        );
-                    }
-
-                    let offending_node = self
-                        .jni
-                        .unwrap_result(verification_error_wrapper.call_offendingNode(viper_error));
-
-                    let offending_pos = self
-                        .jni
-                        .unwrap_result(error_node_positioned_wrapper.call_pos(offending_node));
-
-                    let offending_pos_id = self.extract_pos_id(offending_pos);
-                    if offending_pos_id.is_none() {
-                        debug!(
-                            "The verifier returned an error whose offending node position has no identifier: {:?}",
-                            self.jni.to_string(viper_error)
-                        );
-                    }
-
-                    errors.push(VerificationError::new(
-                        error_full_id,
-                        pos_id,
-                        offending_pos_id,
-                        reason_pos_id,
-                        message,
-                        counterexample,
-                    ))
+                if let Some(mut error_hashes) = error_hashes_opt {
+                    debug!("processing final errors. already did {error_hashes:?}");
+                    extract_errors(&self.jni, self.env, viper_result, Some(&mut error_hashes))
+                } else {
+                    extract_errors(&self.jni, self.env, viper_result, None)
                 }
-
-                VerificationResult::Failure(errors)
             } else {
-                VerificationResult::Success
+                VerificationResultKind::Success
             }
         })
+    }
+
+    pub fn verifier_instance(&self) -> &JObject<'a> {
+        &self.verifier_instance
     }
 }
 
@@ -422,4 +281,178 @@ impl Drop for Verifier<'_> {
         self.jni
             .unwrap_result(self.env.delete_local_ref(self.frontend_instance));
     }
+}
+
+/// Extract a position identifier from a `Position` object.
+fn extract_pos_id(jni_utils: &JniUtils<'_>, env: &JNIEnv<'_>, pos: JObject<'_>) -> Option<String> {
+    let has_identifier_wrapper = silver::ast::HasIdentifier::with(env);
+
+    if jni_utils.is_instance_of(pos, "viper/silver/ast/HasIdentifier") {
+        Some(jni_utils.get_string(jni_utils.unwrap_result(has_identifier_wrapper.call_id(pos))))
+    } else {
+        None
+    }
+}
+
+pub fn extract_errors(
+    jni_utils: &JniUtils<'_>,
+    env: &JNIEnv<'_>,
+    viper_result: JObject<'_>, // viper::silicon::verification::Failure
+    mut error_hashes_opt: Option<&mut HashSet<u64>>,
+) -> VerificationResultKind {
+    let mut errors: Vec<VerificationError> = vec![];
+
+    let viper_errors = jni_utils.seq_to_vec(
+        jni_utils.unwrap_result(silver::verifier::Failure::with(env).call_errors(viper_result)),
+    );
+
+    let verification_error_wrapper = silver::verifier::VerificationError::with(env);
+    let error_node_positioned_wrapper = silver::ast::Positioned::with(env);
+    let failure_context_wrapper = silver::verifier::FailureContext::with(env);
+    let error_reason_wrapper = silver::verifier::ErrorReason::with(env);
+
+    for viper_error in viper_errors {
+        let is_verification_error =
+            jni_utils.is_instance_of(viper_error, "viper/silver/verifier/VerificationError");
+
+        if !is_verification_error {
+            let is_aborted_exceptionally =
+                jni_utils.is_instance_of(viper_error, "viper/silver/verifier/AbortedExceptionally");
+
+            if is_aborted_exceptionally {
+                let exception = jni_utils.unwrap_result(
+                    silver::verifier::AbortedExceptionally::with(env).call_cause(viper_error),
+                );
+                let stack_trace = jni_utils.unwrap_result(jni_utils.get_stack_trace(exception));
+                error!("The verification aborted due to the following exception: {stack_trace}");
+            } else {
+                error!(
+                    "The verifier returned an unhandled error of type {}: {}",
+                    jni_utils.class_name(viper_error),
+                    jni_utils.to_string(viper_error)
+                );
+            }
+            unreachable!(
+                "The verifier returned an unknown error of type {}: {}",
+                jni_utils.class_name(viper_error),
+                jni_utils.to_string(viper_error)
+            );
+        };
+
+        let reason = jni_utils.unwrap_result(verification_error_wrapper.call_reason(viper_error));
+
+        let reason_pos = jni_utils.unwrap_result(error_reason_wrapper.call_pos(reason));
+
+        let reason_pos_id = extract_pos_id(jni_utils, env, reason_pos);
+        if reason_pos_id.is_none() {
+            debug!(
+                "The verifier returned an error whose reason position has no identifier: {:?}",
+                jni_utils.to_string(viper_error)
+            );
+        }
+
+        let error_full_id = jni_utils.get_string(
+            jni_utils.unwrap_result(verification_error_wrapper.call_fullId(viper_error)),
+        );
+
+        let pos = jni_utils.unwrap_result(verification_error_wrapper.call_pos(viper_error));
+
+        let pos_id = extract_pos_id(jni_utils, env, pos);
+        if pos_id.is_none() {
+            debug!(
+                "The verifier returned an error whose position has no identifier: {:?}",
+                jni_utils.to_string(viper_error)
+            );
+        }
+
+        let offending_node =
+            jni_utils.unwrap_result(verification_error_wrapper.call_offendingNode(viper_error));
+
+        let offending_pos =
+            jni_utils.unwrap_result(error_node_positioned_wrapper.call_pos(offending_node));
+
+        let offending_pos_id = extract_pos_id(jni_utils, env, offending_pos);
+        if offending_pos_id.is_none() {
+            debug!(
+                "The verifier returned an error whose offending node position has no identifier: {:?}",
+                jni_utils.to_string(viper_error)
+            );
+        }
+
+        // We only process errors that have not been processed yet. This mainly skips errors
+        // that occurred during the verification of user-written rust functions. Any other errors
+        // will still be processed here by the verifier for the overall result.
+        if let Some(ref mut error_hashes) = error_hashes_opt {
+            let error_hash = hash_error(&error_full_id, &pos_id, &offending_pos_id, &reason_pos_id);
+            if (error_hashes).contains(&error_hash) {
+                debug!("already processed {error_hash}");
+                continue;
+            }
+            debug!("processing {error_hash}");
+            (error_hashes).insert(error_hash);
+        }
+
+        let message = jni_utils.to_string(
+            jni_utils.unwrap_result(verification_error_wrapper.call_readableMessage(viper_error)),
+        );
+
+        let mut failure_contexts = jni_utils.seq_to_vec(
+            jni_utils.unwrap_result(verification_error_wrapper.call_failureContexts(viper_error)),
+        );
+
+        let counterexample: Option<SiliconCounterexample> = {
+            if let Some(failure_context) = failure_contexts.pop() {
+                let option_original_counterexample = jni_utils
+                    .unwrap_result(failure_context_wrapper.call_counterExample(failure_context));
+                if !jni_utils.is_instance_of(option_original_counterexample, "scala/None$") {
+                    let original_counterexample = jni_utils.unwrap_result(
+                        scala::Some::with(env).call_get(option_original_counterexample),
+                    );
+                    if jni_utils.is_instance_of(
+                        original_counterexample,
+                        "viper/silicon/interfaces/SiliconMappedCounterexample",
+                    ) {
+                        // only mapped counterexamples are processed
+                        Some(SiliconCounterexample::new(
+                            env,
+                            *jni_utils,
+                            original_counterexample,
+                        ))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        };
+
+        errors.push(VerificationError::new(
+            error_full_id,
+            pos_id,
+            offending_pos_id,
+            reason_pos_id,
+            message,
+            counterexample,
+        ))
+    }
+
+    VerificationResultKind::Failure(errors)
+}
+
+/// manually hash identifying parts of an error
+fn hash_error(
+    full_id: &str,
+    pos_id: &Option<String>,
+    offending_pos_id: &Option<String>,
+    reason_pos_id: &Option<String>,
+) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    full_id.hash(&mut hasher);
+    pos_id.hash(&mut hasher);
+    offending_pos_id.hash(&mut hasher);
+    reason_pos_id.hash(&mut hasher);
+    hasher.finish()
 }
