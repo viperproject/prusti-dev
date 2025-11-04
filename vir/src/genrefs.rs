@@ -15,7 +15,7 @@ pub type DecreasesGen<'vir, Curr, Next> = &'vir crate::gendata::DecreasesGenData
 pub type DomainAxiomGen<'vir, Curr, Next> =
     &'vir crate::gendata::DomainAxiomGenData<'vir, Curr, Next>;
 pub type DomainGen<'vir, Curr, Next> = &'vir crate::gendata::DomainGenData<'vir, Curr, Next>;
-typed_gen!(Bool => ExprGenBool, Int => ExprGenInt, Perm => ExprGenPerm, Ref => ExprGenRef);
+typed_gen!(Bool => ExprGenBool, Int => ExprGenInt, Perm => ExprGenPerm, Ref => ExprGenRef, Set => ExprGenSet);
 typed_gen!(CSnap => ExprGenCSnap, PSnap => ExprGenPSnap, TyVal => ExprGenTyVal);
 typed_gen!(Prim => ExprGenPrim, Snap => ExprGenSnap, Dyn => ExprGenDyn);
 pub type ExprGen<'vir, Curr, Next, T> = &'vir crate::gendata::ExprGenData<'vir, Curr, Next, T>;
@@ -41,6 +41,8 @@ pub type PredicateAppGen<'vir, Curr, Next> =
 pub type ProgramGen<'vir, Curr, Next> = &'vir crate::gendata::ProgramGenData<'vir, Curr, Next>;
 pub type PureAssignGen<'vir, Curr, Next> =
     &'vir crate::gendata::PureAssignGenData<'vir, Curr, Next>;
+pub type SetLiteralGen<'vir, Curr, Next> =
+    &'vir crate::gendata::SetLiteralGenData<'vir, Curr, Next>;
 pub type StmtGen<'vir, Curr, Next> = &'vir crate::gendata::StmtGenData<'vir, Curr, Next>;
 pub type StmtKindGen<'vir, Curr, Next> = &'vir crate::gendata::StmtKindGenData<'vir, Curr, Next>;
 pub type TerminatorStmtGen<'vir, Curr, Next> =
