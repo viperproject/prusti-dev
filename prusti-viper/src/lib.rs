@@ -217,6 +217,8 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::BinOp<'vir> {
             vir::BinOpKind::DivRational => ctx.ast.perm_div(lhs, rhs), // TODO: position
             vir::BinOpKind::Mod => ctx.ast.mod_with_pos(lhs, rhs, pos),
             vir::BinOpKind::Implies => ctx.ast.implies_with_pos(lhs, rhs, pos),
+            vir::BinOpKind::SetUnion => ctx.ast.any_set_union(lhs, rhs),
+            vir::BinOpKind::SetIn => ctx.ast.any_set_contains(lhs, rhs),
         }
     }
 }
@@ -405,6 +407,7 @@ impl<'vir, 'v, T: vir::CompType> ToViper<'vir, 'v> for vir::Expr<'vir, T> {
             vir::ExprKindData::Result(ty) => ctx
                 .ast
                 .result_with_pos(ty.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
+            vir::ExprKindData::SetLiteral(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Ternary(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Unfolding(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::UnOp(v) => v.to_viper_with_span(ctx, self.span),
@@ -424,9 +427,7 @@ impl<'vir, 'v, T: vir::CompType> ToViper<'vir, 'v> for vir::Expr<'vir, T> {
                 ctx.adt_constructors.get(field).unwrap().0.name,
             ),
 
-            //vir::ExprKindData::Lazy(&'vir str, Box<dyn for <'a> Fn(&'vir crate::VirCtxt<'a>, Curr) -> Next + 'vir>),
-            //vir::ExprKindData::Todo(&'vir str) => unreachable!(),
-            _ => unimplemented!(),
+            vir::ExprKindData::Lazy(..) | vir::ExprKindData::Todo(..) => unimplemented!(),
         }
     }
 }
@@ -793,6 +794,19 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::PureAssign<'vir> {
             // TODO: this won't work, maybe abstract assign?
             self.lhs.to_viper_no_pos(ctx),
             self.rhs.to_viper_no_pos(ctx),
+        )
+    }
+}
+
+impl<'vir, 'v> ToViper<'vir, 'v> for vir::SetLiteral<'vir> {
+    type Output = viper::Expr<'v>;
+    fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
+        ctx.ast.explicit_set(
+            &self
+                .values
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>(),
         )
     }
 }

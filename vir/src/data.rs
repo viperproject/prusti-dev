@@ -59,6 +59,9 @@ pub enum BinOpKind {
     Div,
     DivRational,
     Mod,
+    // Set ops
+    SetUnion,
+    SetIn,
     // ...
 }
 impl From<mir::BinOp> for BinOpKind {
@@ -167,6 +170,7 @@ pub enum TypeKind<'vir> {
     // TODO: separate `TyParam` variant? `Domain` used for now
     Ref, // TODO: typed references ?
     Perm,
+    Set(#[serde(with = "crate::serde::serde_ref")] TypeDyn<'vir>),
     Unsupported(UnsupportedType<'vir>),
     Err,
 }
@@ -272,6 +276,7 @@ pub type PredicateAppData<'vir> = crate::gendata::PredicateAppGenData<'vir, (), 
 pub type PredicateData<'vir> = crate::gendata::PredicateGenData<'vir, (), !>;
 pub type ProgramData<'vir> = crate::gendata::ProgramGenData<'vir, (), !>;
 pub type PureAssignData<'vir> = crate::gendata::PureAssignGenData<'vir, (), !>;
+pub type SetLiteralData<'vir> = &'vir crate::gendata::SetLiteralGenData<'vir, (), !>;
 pub type StmtData<'vir> = crate::gendata::StmtGenData<'vir, (), !>;
 pub type StmtKindData<'vir> = crate::gendata::StmtKindGenData<'vir, (), !>;
 pub type TerminatorStmtData<'vir> = crate::gendata::TerminatorStmtGenData<'vir, (), !>;

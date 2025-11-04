@@ -68,6 +68,8 @@ impl<'vir, Curr, Next> Debug for BinOpGenData<'vir, Curr, Next> {
                 BinOpKind::Div => "\\",
                 BinOpKind::DivRational => "/",
                 BinOpKind::Mod => "%",
+                BinOpKind::SetUnion => "union",
+                BinOpKind::SetIn => "in",
             }
         )?;
         self.rhs.fmt(f)?;
@@ -182,6 +184,7 @@ impl<'vir, Curr, Next> Debug for ExprKindGenData<'vir, Curr, Next> {
             Self::Field(e, field) => write!(f, "{:?}.{}", e, field.name),
             Self::Forall(e) => e.fmt(f),
             Self::Exists(e) => e.fmt(f),
+            Self::SetLiteral(e) => e.fmt(f),
             Self::FuncApp(e) => e.fmt(f),
             Self::Let(e) => e.fmt(f),
             Self::Lazy(e) => write!(f, "%%/*{}*/", e.name),
@@ -227,6 +230,21 @@ impl<'vir, Curr, Next> Debug for ExistsGenData<'vir, Curr, Next> {
             write!(f, " {trigger:?}")?;
         }
         write!(f, " {:?}", self.body)
+    }
+}
+
+impl<'vir, Curr, Next> Debug for SetLiteralGenData<'vir, Curr, Next> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if self.values.is_empty() {
+            write!(f, "(")?;
+        }
+        write!(f, "Set(")?;
+        fmt_comma_sep(f, self.values)?;
+        write!(f, ")")?;
+        if self.values.is_empty() {
+            write!(f, ": {:?})", self.ty)?;
+        }
+        Ok(())
     }
 }
 
@@ -521,6 +539,7 @@ impl<'vir> Debug for TypeKind<'vir> {
             }
             Self::Ref => write!(f, "Ref"),
             Self::Perm => write!(f, "Perm"),
+            Self::Set(ty) => write!(f, "Set[{ty:?}]"),
             Self::Unsupported(u) => u.fmt(f),
             Self::Err => write!(f, "Err"),
         }

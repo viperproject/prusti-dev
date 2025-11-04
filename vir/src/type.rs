@@ -95,6 +95,7 @@ impl_exp_type!(Bool[TYPE_BOOL = Bool] => Prim | Dyn, "The Viper `Bool` type");
 impl_exp_type!(Int[TYPE_INT = Int] => Prim | Dyn, "The Viper `Int` type");
 impl_exp_type!(Perm[TYPE_PERM = Perm] => Prim | Dyn, "The Viper `Perm` type (reals)");
 impl_exp_type!(Ref[TYPE_REF = Ref] => Prim | Dyn, "The Viper `Ref` type");
+impl_exp_type!(Set => Prim | Dyn, TypeKind::Set(_), "The Viper `Set` type");
 
 impl_exp_type!(Err[TYPE_ERR = Err] => Prim | Dyn, "Type for encoding errors");
 

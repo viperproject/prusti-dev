@@ -34,11 +34,15 @@ impl<'vir, Curr, Next> BinOpGenData<'vir, Curr, Next> {
             | BinOpKind::CmpGt
             | BinOpKind::CmpLt
             | BinOpKind::CmpGe
-            | BinOpKind::CmpLe => crate::TYPE_BOOL.upcast_ty(),
+            | BinOpKind::CmpLe
+            | BinOpKind::SetIn => crate::TYPE_BOOL.upcast_ty(),
             BinOpKind::And | BinOpKind::Or | BinOpKind::Implies => crate::TYPE_BOOL.upcast_ty(),
-            BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Div | BinOpKind::Mod => {
-                self.lhs.ty().downcast_ty()
-            }
+            BinOpKind::Add
+            | BinOpKind::Sub
+            | BinOpKind::Mul
+            | BinOpKind::Div
+            | BinOpKind::Mod
+            | BinOpKind::SetUnion => self.lhs.ty().downcast_ty(),
             BinOpKind::DivRational => crate::TYPE_PERM.upcast_ty(),
         }
     }
@@ -70,6 +74,13 @@ pub struct ExistsGenData<'vir, Curr, Next> {
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct TriggerGenData<'vir, Curr, Next> {
     pub exprs: &'vir [ExprGenDyn<'vir, Curr, Next>],
+}
+
+#[derive(VirHash, VirReify, VirSerde)]
+pub struct SetLiteralGenData<'vir, Curr, Next> {
+    pub values: &'vir [ExprGenDyn<'vir, Curr, Next>],
+    #[vir(reify_pass, is_ref)]
+    pub ty: TypeDyn<'vir>,
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
@@ -247,6 +258,7 @@ pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
     // container ops?
     // map ops?
     // sequence, map, set, multiset literals
+    SetLiteral(SetLiteralGen<'vir, Curr, Next>),
     Ternary(TernaryGen<'vir, Curr, Next>),
     Exists(ExistsGen<'vir, Curr, Next>),
     Forall(ForallGen<'vir, Curr, Next>),
@@ -282,6 +294,7 @@ impl<'vir, Curr, Next> ExprKindGenData<'vir, Curr, Next> {
             ExprKindGenData::Unfolding(f) => f.expr.ty(),
             ExprKindGenData::UnOp(u) => u.expr.ty().as_dyn(),
             ExprKindGenData::BinOp(b) => b.ty().as_dyn(),
+            ExprKindGenData::SetLiteral(s) => s.ty.as_dyn(),
             ExprKindGenData::Ternary(t) => t.then.ty(),
             ExprKindGenData::Forall(_) => crate::TYPE_BOOL.as_dyn(),
             ExprKindGenData::Exists(_) => crate::TYPE_BOOL.as_dyn(),

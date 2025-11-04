@@ -239,7 +239,7 @@ impl MirBuiltinEnc {
             (vec![], val)
         } else {
             let op_kind = vir::BinOpKind::from(op);
-            let viper_val = vcx.mk_bin_op_expr_inner(op_kind, lhs, rhs);
+            let viper_val = vcx.mk_bin_op_expr_inner(op_kind, lhs.as_dyn(), rhs.as_dyn());
             match op {
                 // Overflow well defined as wrapping (implicit) and for the shifts
                 // the RHS will be masked to the bit width.
@@ -313,7 +313,7 @@ impl MirBuiltinEnc {
                                 vcx.mk_int::<1>(),
                             );
                             let common_div = vcx
-                                .mk_bin_op_expr_inner(op_kind, lhs_sub, rhs)
+                                .mk_bin_op_expr_inner(op_kind, lhs_sub.as_dyn(), rhs.as_dyn())
                                 .downcast_ty();
                             let neg_pos = vcx.mk_bin_op_expr(
                                 vir::BinOpKind::Add,
