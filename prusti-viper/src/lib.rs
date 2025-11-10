@@ -90,6 +90,19 @@ impl<'vir> ToViperContext<'vir, '_> {
             self.ast.no_position()
         }
     }
+
+    #[track_caller]
+    fn adt_type_map(&self, ty: &vir::TypeKind<'vir>) -> Vec<(viper::Type<'_>, viper::Type<'_>)> {
+        let vir::TypeKind::Domain(adt_name, ty_args) = *ty else {
+            panic!("expected adt type, got {:?}", ty);
+        };
+        let adt = self.adts.get(adt_name).expect("no adt found for adt type");
+        assert_eq!(adt.typarams.len(), ty_args.len());
+        let type_map = adt.typarams.iter().zip(ty_args);
+        type_map
+            .map(|(param, arg)| (param.to_viper_no_pos(self), arg.to_viper_no_pos(self)))
+            .collect()
+    }
 }
 
 /// Conversion of one VIR node into one Viper AST node.
@@ -412,20 +425,25 @@ impl<'vir, 'v, T: vir::CompType> ToViper<'vir, 'v> for vir::Expr<'vir, T> {
             vir::ExprKindData::Unfolding(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::UnOp(v) => v.to_viper_with_span(ctx, self.span),
 
-            vir::ExprKindData::AdtConstructor(v) => v.to_viper_with_span(ctx, self.span),
-            vir::ExprKindData::AdtDestructor(recv, field) => ctx.ast.adt_destructor(
-                field.name,
-                recv.to_viper_no_pos(ctx),
-                &[],
-                field.ty.to_viper_no_pos(ctx),
-                ctx.adt_destructors.get(field.name).unwrap().0.name,
-            ),
-            vir::ExprKindData::AdtDiscriminator(recv, field) => ctx.ast.adt_discr(
-                field,
-                recv.to_viper_no_pos(ctx),
-                &[],
-                ctx.adt_constructors.get(field).unwrap().0.name,
-            ),
+            vir::ExprKindData::AdtDestructor(recv, field) => {
+                let type_map = ctx.adt_type_map(recv.ty().kind());
+                ctx.ast.adt_destructor(
+                    field.name,
+                    recv.to_viper_no_pos(ctx),
+                    &type_map,
+                    field.ty.to_viper_no_pos(ctx),
+                    ctx.adt_destructors.get(field.name).unwrap().0.name,
+                )
+            }
+            vir::ExprKindData::AdtDiscriminator(recv, field) => {
+                let type_map = ctx.adt_type_map(recv.ty().kind());
+                ctx.ast.adt_discr(
+                    field,
+                    recv.to_viper_no_pos(ctx),
+                    &type_map,
+                    ctx.adt_constructors.get(field).unwrap().0.name,
+                )
+            }
 
             vir::ExprKindData::Lazy(..) | vir::ExprKindData::Todo(..) => unimplemented!(),
         }
@@ -465,6 +483,11 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::FuncApp<'vir> {
     // `pos` coming from the parent `Expr` is used
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, pos: Position) -> Self::Output {
         if let Some((domain, _)) = ctx.domain_functions.get(self.target) {
+            assert_eq!(domain.typarams.len(), self.typ_var_map.len());
+            let type_map = domain.typarams.iter().zip(self.typ_var_map);
+            let type_map = type_map
+                .map(|(param, ty)| (param.to_viper_no_pos(ctx), ty.to_viper_no_pos(ctx)))
+                .collect::<Vec<_>>();
             ctx.ast.domain_func_app2(
                 self.target,
                 &self
@@ -472,12 +495,18 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::FuncApp<'vir> {
                     .iter()
                     .map(|v| v.to_viper_no_pos(ctx))
                     .collect::<Vec<_>>(),
-                &[],
+                &type_map,
                 self.result_ty.to_viper_no_pos(ctx),
                 domain.name,
                 pos,
             )
         } else if let Some((adt, _)) = ctx.adt_constructors.get(self.target) {
+            assert_eq!(
+                self.typ_var_map.len(),
+                0,
+                "adt constructors construct the type map internally"
+            );
+            let type_map = ctx.adt_type_map(self.result_ty.kind());
             ctx.ast.adt_constructor_app(
                 self.target,
                 &self
@@ -485,11 +514,16 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::FuncApp<'vir> {
                     .iter()
                     .map(|v| v.to_viper_no_pos(ctx))
                     .collect::<Vec<_>>(),
-                &[],
+                &type_map,
                 self.result_ty.to_viper_no_pos(ctx),
                 adt.name,
             )
         } else {
+            assert_eq!(
+                self.typ_var_map.len(),
+                0,
+                "non-domain functions cannot have type variables"
+            );
             ctx.ast.func_app(
                 self.target,
                 &self
@@ -801,13 +835,20 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::PureAssign<'vir> {
 impl<'vir, 'v> ToViper<'vir, 'v> for vir::SetLiteral<'vir> {
     type Output = viper::Expr<'v>;
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
-        ctx.ast.explicit_set(
-            &self
-                .values
-                .iter()
-                .map(|v| v.to_viper_no_pos(ctx))
-                .collect::<Vec<_>>(),
-        )
+        if self.values.is_empty() {
+            let vir::TypeKind::Set(inner) = self.ty.kind() else {
+                unreachable!()
+            };
+            ctx.ast.empty_set(inner.to_viper_no_pos(ctx))
+        } else {
+            ctx.ast.explicit_set(
+                &self
+                    .values
+                    .iter()
+                    .map(|v| v.to_viper_no_pos(ctx))
+                    .collect::<Vec<_>>(),
+            )
+        }
     }
 }
 
@@ -980,6 +1021,7 @@ impl<'vir, 'v, T: CompType> ToViper<'vir, 'v> for vir::Type<'vir, T> {
             }
             vir::TypeKind::Ref => ctx.ast.ref_type(),
             vir::TypeKind::Perm => ctx.ast.perm_type(),
+            vir::TypeKind::Set(elem) => ctx.ast.set_type(elem.to_viper_no_pos(ctx)),
             //vir::TypeData::Predicate, // The type of a predicate application
             //vir::TypeData::Unsupported(UnsupportedType<'vir>)
             other => unimplemented!("{:?}", other),

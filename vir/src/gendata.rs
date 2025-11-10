@@ -27,8 +27,8 @@ pub struct BinOpGenData<'vir, Curr, Next> {
 }
 
 impl<'vir, Curr, Next> BinOpGenData<'vir, Curr, Next> {
-    pub fn ty(&self) -> TypePrim<'vir> {
-        match self.kind {
+    pub fn ty(&self) -> TypeDyn<'vir> {
+        let ty: TypePrim<'vir> = match self.kind {
             BinOpKind::CmpEq
             | BinOpKind::CmpNe
             | BinOpKind::CmpGt
@@ -37,14 +37,14 @@ impl<'vir, Curr, Next> BinOpGenData<'vir, Curr, Next> {
             | BinOpKind::CmpLe
             | BinOpKind::SetIn => crate::TYPE_BOOL.upcast_ty(),
             BinOpKind::And | BinOpKind::Or | BinOpKind::Implies => crate::TYPE_BOOL.upcast_ty(),
-            BinOpKind::Add
-            | BinOpKind::Sub
-            | BinOpKind::Mul
-            | BinOpKind::Div
-            | BinOpKind::Mod
-            | BinOpKind::SetUnion => self.lhs.ty().downcast_ty(),
+            BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Div | BinOpKind::Mod => {
+                self.lhs.ty().downcast_ty()
+            }
             BinOpKind::DivRational => crate::TYPE_PERM.upcast_ty(),
-        }
+
+            BinOpKind::SetUnion => return self.lhs.ty(),
+        };
+        ty.as_dyn()
     }
 }
 
@@ -91,6 +91,8 @@ pub struct FuncAppGenData<'vir, Curr, Next> {
     // containing `ExprGenData`)
     #[vir(reify_pass, is_ref)]
     pub result_ty: TypeDyn<'vir>,
+    #[vir(reify_pass)]
+    pub typ_var_map: &'vir [TypeDyn<'vir>],
 }
 
 #[derive(VirHash, VirReify, VirSerde)]
@@ -272,7 +274,7 @@ pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
 
     // Adt ops
     AdtDestructor(ExprGenDyn<'vir, Curr, Next>, AdtDestructor<'vir, Dyn, Dyn>),
-    AdtConstructor(FuncAppGen<'vir, Curr, Next>),
+    // For `AdtConstructor` use `FuncApp` instead.
     // TODO: make this not a &str
     AdtDiscriminator(ExprGenDyn<'vir, Curr, Next>, &'vir str),
 
@@ -304,7 +306,6 @@ impl<'vir, Curr, Next> ExprKindGenData<'vir, Curr, Next> {
             ExprKindGenData::Wand(..) => crate::TYPE_BOOL.as_dyn(),
             ExprKindGenData::Lazy(l) => l.ty,
             ExprKindGenData::AdtDestructor(_, destr) => destr.ty,
-            ExprKindGenData::AdtConstructor(a) => a.result_ty,
             ExprKindGenData::AdtDiscriminator(_, _) => crate::TYPE_BOOL.as_dyn(),
             ExprKindGenData::Todo(_msg) => crate::TYPE_ERR.as_dyn(), // panic!("{msg}"),
         }
@@ -677,6 +678,7 @@ mod tests {
         vcx,
         crate::DomainParamData {
             name: vcx.alloc_str("hello"),
+            index: 0,
         }
     );
     roundtrip_test_eq!(

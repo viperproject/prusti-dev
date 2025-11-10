@@ -307,7 +307,7 @@ impl<'vir> TyPureBuilder<'vir> {
     ) -> Self {
         let params = deps.require_dep::<GenericParamsEnc>(ty.params).unwrap();
         let name = vir::vir_format!(vcx, "s_{}", ty.name());
-        let domain_ident = DomainIdnSnap::new(vir::ViperIdent::new(name));
+        let domain_ident = DomainIdnSnap::new(vir::ViperIdent::new(name), 0);
         let self_type = domain_ident();
         let unreachable_to_snap = FunctionIdn::new(
             vir::ViperIdent::new(vir::vir_format!(vcx, "{name}_unreachable")),
