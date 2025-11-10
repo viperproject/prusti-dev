@@ -30,18 +30,24 @@ typed_wrapper!(Many; Prim => ManyPrim, Snap => ManySnap, Dyn => ManyDyn);
 #[serde(bound(deserialize = "'de: 'vir"))]
 pub struct DomainIdn<'vir, R: CompType> {
     idn: ViperIdent<'vir>,
+    params: usize,
     _p: core::marker::PhantomData<R>,
 }
 typed_wrapper!(DomainIdn; CSnap => DomainIdnCSnap<'vir>, PSnap => DomainIdnPSnap<'vir>, TyVal => DomainIdnTyVal<'vir>);
 typed_wrapper!(DomainIdn; Prim => DomainIdnPrim<'vir>, Snap => DomainIdnSnap<'vir>, Dyn => DomainIdnDyn<'vir>);
 
 impl<'vir, R: CompType> DomainIdn<'vir, R> {
-    pub fn new(idn: ViperIdent<'vir>) -> Self {
+    pub fn new(idn: ViperIdent<'vir>, params: usize) -> Self {
+        let ps = (0..params)
+            .map(|_| crate::TypeData::new(crate::TypeKind::Err))
+            .collect::<Vec<_>>();
+        let ps = ps.iter().collect::<Vec<_>>();
         R::check(&crate::TypeData::<crate::Dyn>::new(
-            crate::TypeKind::Domain(idn.to_str(), &[]),
+            crate::TypeKind::Domain(idn.to_str(), &ps),
         ));
         Self {
             idn,
+            params,
             _p: core::marker::PhantomData,
         }
     }
@@ -51,7 +57,7 @@ impl<'vir, R: CompType> DomainIdn<'vir, R> {
     }
 
     pub fn cast_ty<R1: CompType>(self) -> DomainIdn<'vir, R1> {
-        DomainIdn::new(self.idn)
+        DomainIdn::new(self.idn, self.params)
     }
 }
 
@@ -59,6 +65,7 @@ impl<'vir, R: CompType> FnOnce<()> for DomainIdn<'vir, R> {
     type Output = crate::Type<'vir, R>;
     extern "rust-call" fn call_once(self, _args: ()) -> Self::Output {
         with_vcx(|vcx| {
+            assert_eq!(self.params, 0);
             let kind = crate::TypeKind::Domain(self.idn.to_str(), &[]);
             vcx.alloc(crate::TypeData::new(kind))
         })
@@ -71,6 +78,7 @@ impl<'a, 'vir, T: CompType, R: CompType> FnOnce<(&'a [crate::Type<'vir, T>],)>
     type Output = crate::Type<'vir, R>;
     extern "rust-call" fn call_once(self, args: (&'a [crate::Type<'vir, T>],)) -> Self::Output {
         with_vcx(|vcx| {
+            assert_eq!(self.params, args.0.len());
             let args = vcx.alloc_slice(args.0);
             let kind = crate::TypeKind::Domain(self.idn.to_str(), args.as_dyn());
             vcx.alloc(crate::TypeData::new(kind))
@@ -199,7 +207,7 @@ impl<'a, 'vir, Curr: 'vir, Next: 'vir, A: Arity, R: CompType> FnOnce<A::Exprs<'a
         with_vcx(|vcx| {
             let args = A::args(vcx, args);
             A::types_match(self.inner.args, args, self.inner.debug_info);
-            vcx.mk_func_app(self.inner.idn.to_str(), args, self.inner.result_ty)
+            vcx.mk_func_app(self.inner.idn.to_str(), args, self.inner.result_ty, &[])
         })
     }
 }

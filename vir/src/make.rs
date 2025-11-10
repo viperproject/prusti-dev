@@ -113,7 +113,6 @@ cfg_if! {
                     m.remove(name);
                 },
                 ExprKindGenData::FuncApp(FuncAppGenData { args, .. })
-                | ExprKindGenData::AdtConstructor(FuncAppGenData { args, .. })
                 | ExprKindGenData::SetLiteral(SetLiteralGenData { values: args, .. }) => {
                     for arg in args.iter() {
                         check_expr_bindings(m, *arg);
@@ -210,12 +209,14 @@ impl<'tcx> VirCtxt<'tcx> {
         target: &'vir str,
         args: &'vir [ExprGenDyn<'vir, Curr, Next>],
         result_ty: Type<'vir, R>,
+        typ_var_map: &'vir [TypeDyn<'vir>],
     ) -> ExprGen<'vir, Curr, Next, R> {
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::FuncApp(
             self.arena.alloc(FuncAppGenData {
                 target,
                 args,
                 result_ty: result_ty.as_dyn(),
+                typ_var_map,
             }),
         ))))
     }
@@ -337,7 +338,7 @@ impl<'tcx> VirCtxt<'tcx> {
     ) -> ExprGen<'vir, Curr, Next, T> {
         let v = self.mk_const_expr(ConstData::Int(exec as u128));
         let args = [expr.as_dyn(), v.as_dyn()];
-        self.mk_func_app("rel", self.alloc_array(&args), expr.ty())
+        self.mk_func_app("rel", self.alloc_array(&args), expr.ty(), &[])
     }
 
     pub fn mk_forall_expr<'vir, Curr, Next, T: CompType>(
@@ -446,6 +447,8 @@ impl<'tcx> VirCtxt<'tcx> {
         rhs: ExprGen<'vir, Curr, Next, T>,
     ) -> ExprGenPrim<'vir, Curr, Next> {
         assert!(kind != BinOpKind::CmpEq, "Use mk_eq_expr instead");
+        assert!(kind != BinOpKind::SetIn, "Use mk_set_in_expr instead");
+        assert!(kind != BinOpKind::SetUnion, "Use mk_set_union_expr instead");
         if lhs.ty() != rhs.ty() {
             typecheck_error!(
                 "Type mismatch in binary operation {:?}. LHS type: {:?}, RHS type: {:?}",
@@ -455,6 +458,7 @@ impl<'tcx> VirCtxt<'tcx> {
             );
         }
         self.mk_bin_op_expr_inner(kind, lhs.as_dyn(), rhs.as_dyn())
+            .downcast_ty()
     }
 
     pub fn mk_eq_expr<'vir, Curr, Next, T: CompType>(
@@ -490,6 +494,22 @@ impl<'tcx> VirCtxt<'tcx> {
             .downcast_ty()
     }
 
+    pub fn mk_set_union_expr<'vir, Curr, Next>(
+        &'vir self,
+        lhs: ExprGenSet<'vir, Curr, Next>,
+        rhs: ExprGenSet<'vir, Curr, Next>,
+    ) -> ExprGenSet<'vir, Curr, Next> {
+        if lhs.ty() != rhs.ty() {
+            typecheck_error!(
+                "Type mismatch in set union expression. LHS type: {:?}, RHS type: {:?}",
+                lhs.ty(),
+                rhs.ty(),
+            );
+        }
+        self.mk_bin_op_expr_inner(BinOpKind::SetUnion, lhs.as_dyn(), rhs.as_dyn())
+            .downcast_ty()
+    }
+
     /// To be used only when `kind` is generated e.g. with a `from` call.
     /// Otherwise always use either `mk_eq_expr` or `mk_bin_op_expr`.
     pub fn mk_bin_op_expr_inner<'vir, Curr, Next>(
@@ -497,7 +517,7 @@ impl<'tcx> VirCtxt<'tcx> {
         kind: BinOpKind,
         lhs: ExprGenDyn<'vir, Curr, Next>,
         rhs: ExprGenDyn<'vir, Curr, Next>,
-    ) -> ExprGenPrim<'vir, Curr, Next> {
+    ) -> ExprGenDyn<'vir, Curr, Next> {
         self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::BinOp(
             self.alloc(BinOpGenData { kind, lhs, rhs }),
         ))))
@@ -755,6 +775,7 @@ impl<'tcx> VirCtxt<'tcx> {
         axioms: &'vir [DomainAxiomGen<'vir, Curr, Next>],
         functions: &'vir [DomainFunction<'vir>],
     ) -> DomainGen<'vir, Curr, Next> {
+        assert_eq!(typarams.len(), 0, "Domain type parameters are not yet supported (because `FunctionIdn` doesn't have a mechanism to add a type_map for calls)");
         self.alloc(DomainGenData {
             name: name.to_str(),
             typarams,

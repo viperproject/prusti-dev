@@ -195,7 +195,6 @@ impl<'vir, Curr, Next> Debug for ExprKindGenData<'vir, Curr, Next> {
             Self::Ternary(e) => e.fmt(f),
             Self::UnOp(e) => e.fmt(f),
             Self::Unfolding(e) => e.fmt(f),
-            Self::AdtConstructor(e) => e.fmt(f),
             Self::AdtDestructor(e, field) => write!(f, "{:?}.{}", e, field.name),
             Self::AdtDiscriminator(e, cons) => write!(f, "{e:?}.is{cons}"),
             Self::Todo(e) => write!(f, "{e}"),
