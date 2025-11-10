@@ -187,6 +187,7 @@ pub type TySubsts<'vir> = HashMap<&'vir str, TypeDyn<'vir>>;
 pub struct DomainParamData<'vir> {
     #[serde(with = "crate::serde::serde_str")]
     pub name: &'vir str, // TODO: identifiers
+    pub index: usize,
 }
 
 #[derive(PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]

@@ -19,6 +19,7 @@ use task_encoder::TaskEncoder;
 
 use crate::encoders::{
     Impure, Pure,
+    custom::PairUseEnc,
     ty::{
         generics::GArgsCastEnc,
         lifted::{TyConstructorEnc, TypeOfEnc},
@@ -97,6 +98,9 @@ pub fn test_entrypoint<'tcx>(
     program.header("type constructors");
     TyConstructorEnc::emit_outputs(&mut program);
     TypeOfEnc::emit_outputs(&mut program);
+
+    program.header("custom");
+    PairUseEnc::emit_outputs(&mut program);
 
     if std::env::var("LOCAL_TESTING").is_ok() {
         std::fs::write("local-testing/simple.vpr", program.code()).unwrap();

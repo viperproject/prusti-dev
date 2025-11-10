@@ -56,6 +56,7 @@ pub type Ternary<'vir> = &'vir crate::data::TernaryData<'vir>;
 pub type Trigger<'vir> = &'vir crate::data::TriggerData<'vir>;
 typed!(TypeData; Bool => TypeBool, Int => TypeInt, Perm => TypePerm, Ref => TypeRef, Set => TypeSet);
 typed!(TypeData; CSnap => TypeCSnap, PSnap => TypePSnap, TyVal => TypeTyVal);
+typed!(TypeData; Pair => TypePair);
 typed!(TypeData; Prim => TypePrim, Snap => TypeSnap, Dyn => TypeDyn);
 pub type Type<'vir, T> = &'vir crate::data::TypeData<'vir, T>;
 pub type UnOp<'vir> = &'vir crate::data::UnOpData<'vir>;

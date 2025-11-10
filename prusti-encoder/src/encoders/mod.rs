@@ -10,6 +10,7 @@ mod r#const;
 pub mod impure;
 /// Encoders for Rust functions (pure and impure)
 pub mod mir_fn;
+pub mod custom;
 
 pub use r#const::ConstEnc;
 pub use impure::fn_wand::{WandEnc, WandEncOutput, WandEncTask};
