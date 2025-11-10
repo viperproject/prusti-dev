@@ -226,7 +226,7 @@ def check_smir():
             continue
         if os.path.exists(os.path.join(folder, 'Cargo.toml')):
             completed = subprocess.run(
-                ['grep', 'extern crate', '-nr', folder],
+                ['grep', '^extern crate', '-nr', folder],
                 capture_output=True
             )
             lines = [
