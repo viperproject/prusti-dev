@@ -31,6 +31,7 @@ pub type Forall<'vir> = &'vir crate::data::ForallData<'vir>;
 pub type FuncApp<'vir> = &'vir crate::data::FuncAppData<'vir>;
 pub type Function<'vir> = &'vir crate::data::FunctionData<'vir>;
 pub type GotoIf<'vir> = &'vir crate::data::GotoIfData<'vir>;
+pub type BackendInterpretation<'vir> = &'vir crate::data::BackendInterpretationData<'vir>;
 pub type Let<'vir> = &'vir crate::data::LetData<'vir>;
 typed!(LocalData; Bool => LocalBool, Int => LocalInt, Perm => LocalPerm, Ref => LocalRef, Set => LocalSet);
 typed!(LocalData; CSnap => LocalCSnap, PSnap => LocalPSnap, TyVal => LocalTyVal);

@@ -178,6 +178,7 @@ impl<'a> AstFactory<'a> {
         functions: &[DomainFunc],
         axioms: &[NamedDomainAxiom],
         type_vars: &[Type],
+        interpretations: Option<&[(&str, &str)]>,
     ) -> Domain<'a> {
         build_ast_node!(
             self,
@@ -187,7 +188,13 @@ impl<'a> AstFactory<'a> {
             self.jni.new_seq(&map_to_jobjects!(functions)),
             self.jni.new_seq(&map_to_jobjects!(axioms)),
             self.jni.new_seq(&map_to_jobjects!(type_vars)),
-            self.jni.new_option(None)
+            self.jni.new_option(interpretations.map(|i| {
+                self.jni.new_map(
+                    &i.iter()
+                        .map(|x| (self.jni.new_string(x.0), self.jni.new_string(x.1)))
+                        .collect::<Vec<_>>(),
+                )
+            }))
         )
     }
 
@@ -198,18 +205,22 @@ impl<'a> AstFactory<'a> {
         typ: Type,
         unique: bool,
         domain_name: &str,
+        interpretation: Option<&str>,
     ) -> DomainFunc<'a> {
-        let obj = self.jni.unwrap_result(ast::DomainFunc::with(self.env).new(
-            self.jni.new_string(name),
-            self.jni.new_seq(&map_to_jobjects!(formal_args)),
-            typ.to_jobject(),
-            unique,
-            self.jni.new_option(None),
-            self.no_position().to_jobject(),
-            self.no_info(),
-            self.jni.new_string(domain_name),
-            self.no_trafos(),
-        ));
+        let obj = self.jni.unwrap_result(
+            ast::DomainFunc::with(self.env).new(
+                self.jni.new_string(name),
+                self.jni.new_seq(&map_to_jobjects!(formal_args)),
+                typ.to_jobject(),
+                unique,
+                self.jni
+                    .new_option(interpretation.map(|i| self.jni.new_string(i))),
+                self.no_position().to_jobject(),
+                self.no_info(),
+                self.jni.new_string(domain_name),
+                self.no_trafos(),
+            ),
+        );
         DomainFunc::new(obj)
     }
 

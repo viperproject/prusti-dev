@@ -36,6 +36,7 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
         ),
         false,
         "Wrapper",
+        None,
     );
 
     let unwrap_domain_function = ast.domain_func(
@@ -51,6 +52,7 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
         ast.type_var("T"),
         false,
         "Wrapper",
+        None,
     );
 
     let wrapper_domain = ast.domain(
@@ -78,6 +80,7 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
             "Wrapper",
         )],
         &[ast.type_var("T")],
+        None,
     );
 
     let value_field = ast.field("value", ast.int_type());

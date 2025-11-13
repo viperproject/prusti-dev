@@ -46,7 +46,7 @@ impl TaskEncoder for TypeOfEnc {
             );
             deps.emit_output_ref(*task_key, TypeOfEncOutputRef { typeof_function })?;
 
-            let typeof_function = vcx.mk_domain_function(typeof_function, false);
+            let typeof_function = vcx.mk_domain_function(typeof_function, false, None);
             Ok((typeof_function, ()))
         })
     }
@@ -59,6 +59,7 @@ impl TaskEncoder for TypeOfEnc {
                 &[],
                 &[],
                 vcx.alloc_slice(&typeof_fns),
+                None,
             );
             program.add_domain(domain);
         })

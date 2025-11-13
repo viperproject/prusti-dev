@@ -4,6 +4,8 @@
 #![feature(negative_impls)]
 #![feature(try_trait_v2)]
 #![feature(cfg_version)]
+#![feature(f128)]
+#![feature(f16)]
 #![feature(panic_internals)]
 
 // Even alloc can be disabled for consistency with std, and in preparation for future specs for other, possibly no_std, crates.
@@ -402,6 +404,57 @@ pub fn snap<T>(_x: &T) -> T {
 /// are not. Importantly, addresses are not taken into consideration.
 pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
     true
+}
+
+/// Checks if a float is NaN
+pub fn f16_is_nan(fl: f16) -> bool {
+    true
+}
+
+pub fn f32_is_nan(fl: f32) -> bool {
+    true
+}
+
+pub fn f64_is_nan(fl: f64) -> bool {
+    true
+}
+
+pub fn f128_is_nan(fl: f128) -> bool {
+    true
+}
+
+/// Checks if a float is infinite
+pub fn f16_is_infinite(fl: f16) -> bool {
+    true
+}
+
+pub fn f32_is_infinite(fl: f32) -> bool {
+    true
+}
+
+pub fn f64_is_infinite(fl: f64) -> bool {
+    true
+}
+
+pub fn f128_is_infinite(fl: f128) -> bool {
+    true
+}
+
+/// Returns the absolute value of a float
+pub fn f16_abs(fl: f16) -> f16 {
+    fl
+}
+
+pub fn f32_abs(fl: f32) -> f32 {
+    fl
+}
+
+pub fn f64_abs(fl: f64) -> f64 {
+    fl
+}
+
+pub fn f128_abs(fl: f128) -> f128 {
+    fl
 }
 
 pub use private::*;

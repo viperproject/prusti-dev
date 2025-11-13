@@ -492,7 +492,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     |expr, ((cond_val, _target), branch_update)| {
                         self.vcx.mk_ternary_expr(
                             self.vcx.mk_eq_expr(
-                                (discr_ty_out.snap_to_prim.call())(discr_expr),
+                                discr_ty_out.expect_native().snap_to_prim.call()(discr_expr),
                                 discr_ty_out.expr_from_bits(discr_ty, cond_val).lift(),
                             ),
                             self.reify_branch(
@@ -862,6 +862,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             SnapshotEquality,
             ModeStart(Mode),
             ModeEnd(Mode),
+            IsNaN(ty::FloatTy),
+            IsInfinite(ty::FloatTy),
+            FlAbs(ty::FloatTy),
         }
 
         let crate_name = self.vcx.tcx().crate_name(def_id.krate);
@@ -897,18 +900,32 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             )),
             "before_expiry_start" => PrustiBuiltin::ModeStart(Mode::BeforeExpiry),
             "before_expiry_end" => PrustiBuiltin::ModeEnd(Mode::BeforeExpiry),
+            "f16_is_nan" => PrustiBuiltin::IsNaN(ty::FloatTy::F16),
+            "f32_is_nan" => PrustiBuiltin::IsNaN(ty::FloatTy::F32),
+            "f64_is_nan" => PrustiBuiltin::IsNaN(ty::FloatTy::F64),
+            "f128_is_nan" => PrustiBuiltin::IsNaN(ty::FloatTy::F128),
+            "f16_is_infinite" => PrustiBuiltin::IsInfinite(ty::FloatTy::F16),
+            "f32_is_infinite" => PrustiBuiltin::IsInfinite(ty::FloatTy::F32),
+            "f64_is_infinite" => PrustiBuiltin::IsInfinite(ty::FloatTy::F64),
+            "f128_is_infinite" => PrustiBuiltin::IsInfinite(ty::FloatTy::F128),
+            "f16_abs" => PrustiBuiltin::FlAbs(ty::FloatTy::F16),
+            "f32_abs" => PrustiBuiltin::FlAbs(ty::FloatTy::F32),
+            "f64_abs" => PrustiBuiltin::FlAbs(ty::FloatTy::F64),
+            "f128_abs" => PrustiBuiltin::FlAbs(ty::FloatTy::F128),
             other => panic!("illegal prusti::builtin ({other})"),
         };
 
         let bool = self.ty_use(self.vcx.tcx().types.bool);
         let bool = bool.expect_primitive();
+        let mk_bool =
+            |prim: vir::ExprGenBool<'vir, _, _>| bool.prim_to_snap.call()(prim.upcast_ty());
 
-        let prim = match builtin {
+        match builtin {
             PrustiBuiltin::SnapshotEquality => {
                 assert_eq!(args.len(), 2);
                 let lhs = self.encode_operand(curr_ver, &args[0].node);
                 let rhs = self.encode_operand(curr_ver, &args[1].node);
-                self.vcx.mk_eq_expr(lhs, rhs)
+                mk_bool(self.vcx.mk_eq_expr(lhs, rhs))
             }
             PrustiBuiltin::Forall | PrustiBuiltin::Exists => {
                 assert_eq!(arg_tys.len(), 3);
@@ -1002,19 +1019,15 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .reify(self.vcx, (cl_def_id, self.vcx.alloc_slice(&reify_args)))
                     .lift();
 
-                if builtin == PrustiBuiltin::Forall {
-                    self.vcx.mk_forall_expr(
-                        qvars,
-                        &[], // TODO
-                        bool.snap_to_prim.call()(body.downcast_ty()).downcast_ty(),
-                    )
+                let body =
+                    bool.expect_native().snap_to_prim.call()(body.downcast_ty()).downcast_ty();
+                // TODO: triggers
+                let res = if builtin == PrustiBuiltin::Forall {
+                    self.vcx.mk_forall_expr(qvars, &[], body)
                 } else {
-                    self.vcx.mk_exists_expr(
-                        qvars,
-                        &[], // TODO
-                        bool.snap_to_prim.call()(body.downcast_ty()).downcast_ty(),
-                    )
-                }
+                    self.vcx.mk_exists_expr(qvars, &[], body)
+                };
+                mk_bool(res)
             }
             PrustiBuiltin::ModeStart(mode) => {
                 match mode {
@@ -1037,7 +1050,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         self.before_expiry_mode = true;
                     }
                 }
-                self.vcx.mk_bool::<true>().lift() //TODO what value do we return?
+                mk_bool(self.vcx.mk_bool::<true>().lift()) //TODO what value do we return?
             }
             PrustiBuiltin::ModeEnd(mode) => {
                 match mode {
@@ -1060,10 +1073,73 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         self.before_expiry_mode = false;
                     }
                 }
-                self.vcx.mk_bool::<true>().lift() //TODO what value do we return?
+                mk_bool(self.vcx.mk_bool::<true>().lift()) //TODO what value do we return?
             }
-        };
-        bool.prim_to_snap.call()(prim.upcast_ty()).upcast_ty()
+            PrustiBuiltin::IsNaN(fl) => {
+                let is_nan_fun = match fl {
+                    ty::FloatTy::F16 => {
+                        self.ty_use(self.vcx.tcx().types.f16)
+                            .expect_float()
+                            .fp_is_nan
+                    }
+                    ty::FloatTy::F32 => {
+                        self.ty_use(self.vcx.tcx().types.f32)
+                            .expect_float()
+                            .fp_is_nan
+                    }
+                    ty::FloatTy::F64 => {
+                        self.ty_use(self.vcx.tcx().types.f64)
+                            .expect_float()
+                            .fp_is_nan
+                    }
+                    ty::FloatTy::F128 => {
+                        self.ty_use(self.vcx.tcx().types.f128)
+                            .expect_float()
+                            .fp_is_nan
+                    }
+                };
+                let fl = self.encode_operand(curr_ver, &args[0].node);
+                mk_bool(is_nan_fun.call()(fl.downcast_ty()))
+            }
+            PrustiBuiltin::IsInfinite(fl) => {
+                let is_infinite_fun = match fl {
+                    ty::FloatTy::F16 => {
+                        self.ty_use(self.vcx.tcx().types.f16)
+                            .expect_float()
+                            .fp_is_infinite
+                    }
+                    ty::FloatTy::F32 => {
+                        self.ty_use(self.vcx.tcx().types.f32)
+                            .expect_float()
+                            .fp_is_infinite
+                    }
+                    ty::FloatTy::F64 => {
+                        self.ty_use(self.vcx.tcx().types.f64)
+                            .expect_float()
+                            .fp_is_infinite
+                    }
+                    ty::FloatTy::F128 => {
+                        self.ty_use(self.vcx.tcx().types.f128)
+                            .expect_float()
+                            .fp_is_infinite
+                    }
+                };
+                let fl = self.encode_operand(curr_ver, &args[0].node);
+                mk_bool(is_infinite_fun.call()(fl.downcast_ty()))
+            }
+            PrustiBuiltin::FlAbs(fl) => {
+                let fl_ty = match fl {
+                    ty::FloatTy::F16 => self.ty_use(self.vcx.tcx().types.f16),
+                    ty::FloatTy::F32 => self.ty_use(self.vcx.tcx().types.f32),
+                    ty::FloatTy::F64 => self.ty_use(self.vcx.tcx().types.f64),
+                    ty::FloatTy::F128 => self.ty_use(self.vcx.tcx().types.f128),
+                }
+                .expect_float();
+                let fl1 = self.encode_operand(curr_ver, &args[0].node).downcast_ty();
+                fl_ty.fp_abs.call()(fl1)
+            }
+        }
+        .upcast_ty()
     }
 }
 
