@@ -1222,8 +1222,9 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 self.current_fpcs = Some(current_fpcs);
                 otherwise_stmts.push(self.set_from_to_flag(location.block, targets.otherwise()));
 
-                let discr_ex =
-                    (discr_ty.snap_to_prim)(self.encode_operand_snap(discr).downcast_ty());
+                let discr_ex = (discr_ty.expect_native().snap_to_prim)(
+                    self.encode_operand_snap(discr).downcast_ty(),
+                );
                 self.vcx.mk_goto_if_stmt(
                     discr_ex.as_dyn(), // self.vcx.mk_local_ex(discr_name),
                     goto_targets,
@@ -1459,7 +1460,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
 
                 let e_bool = self.ty_use_pure(self.vcx.tcx().types.bool);
                 let enc = self.encode_operand_snap(cond).downcast_ty();
-                let enc = (e_bool.expect_primitive().snap_to_prim)(enc);
+                let enc = (e_bool.expect_native().snap_to_prim)(enc);
                 let expected = self.vcx.mk_const_expr(vir::ConstData::Bool(*expected));
                 let assert = self.vcx.mk_eq_expr(enc, expected);
                 let error_msg = match **msg {
