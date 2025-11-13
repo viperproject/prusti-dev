@@ -23,6 +23,7 @@ fn success_with_complex_program() {
         wrapper_type,
         false,
         "Wrapper",
+        None,
     );
 
     let unwrap_domain_function = ast.domain_func(
@@ -31,6 +32,7 @@ fn success_with_complex_program() {
         ast.type_var("T"),
         false,
         "Wrapper",
+        None,
     );
 
     let wrapper_domain = ast.domain(
@@ -75,6 +77,7 @@ fn success_with_complex_program() {
             "Wrapper",
         )],
         &[ast.type_var("T")],
+        None,
     );
 
     let value_field = ast.field("value", ast.int_type());

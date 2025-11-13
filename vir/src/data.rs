@@ -216,6 +216,33 @@ impl<'vir, T: CompType, R: CompType> AdtDestructorData<'vir, T, R> {
 }
 
 #[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
+pub struct BackendInterpretationPair<'vir> {
+    #[serde(with = "crate::serde::serde_str")]
+    pub key: &'vir str,
+    #[serde(with = "crate::serde::serde_str")]
+    pub value: &'vir str,
+}
+
+impl<'vir> BackendInterpretationPair<'vir> {
+    pub fn to_tuple(&self) -> (&'vir str, &'vir str) {
+        (self.key, self.value)
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
+#[serde(bound(deserialize = "'de: 'vir"))]
+pub struct BackendInterpretationData<'vir> {
+    #[serde(with = "crate::serde::serde_slice")]
+    pub interpretation: &'vir [&'vir BackendInterpretationPair<'vir>],
+}
+
+#[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
+pub struct InterpretationData<'vir> {
+    #[serde(with = "crate::serde::serde_str")]
+    pub interpretation: &'vir str,
+}
+
+#[derive(PartialEq, Eq, Clone, Serialize, Deserialize, Hash)]
 #[serde(bound(deserialize = "'de: 'vir"))]
 pub struct DomainFunctionData<'vir> {
     pub unique: bool,
@@ -224,6 +251,7 @@ pub struct DomainFunctionData<'vir> {
     pub args: &'vir [TypeDyn<'vir>],
     #[serde(with = "crate::serde::serde_ref")]
     pub ret: TypeDyn<'vir>,
+    pub interpretation: Option<InterpretationData<'vir>>,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Hash)]
