@@ -10,6 +10,7 @@ pub mod lifted;
 pub mod generics;
 mod data;
 mod rust_ty;
+pub mod interpretation;
 
 pub use rust_ty::*;
 

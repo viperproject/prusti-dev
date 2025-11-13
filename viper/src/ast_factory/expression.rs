@@ -1019,6 +1019,27 @@ impl<'a> AstFactory<'a> {
         Expr::new(obj)
     }
 
+    pub fn backend_func_app_from_name(
+        &self,
+        function_name: &str,
+        args: &[Expr],
+        return_type: Type,
+        pos: Position,
+        interpretation: &str,
+    ) -> Expr<'a> {
+        let backend_func_app_wrapper = ast::BackendFuncApp::with(self.env);
+        let obj = self.jni.unwrap_result(backend_func_app_wrapper.new(
+            self.jni.new_string(function_name),
+            self.jni.new_seq(&map_to_jobjects!(args)),
+            pos.to_jobject(),
+            self.no_info(),
+            return_type.to_jobject(),
+            self.jni.new_string(interpretation),
+            self.no_trafos(),
+        ));
+        Expr::new(obj)
+    }
+
     pub fn backend_func_app(
         &self,
         backend_function: JObject,

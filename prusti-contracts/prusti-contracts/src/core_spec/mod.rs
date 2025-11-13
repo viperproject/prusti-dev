@@ -1,5 +1,6 @@
 use crate::*;
 pub mod eq;
+pub mod float;
 
 pub use eq::PureEq;
 

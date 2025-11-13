@@ -669,6 +669,7 @@ impl<'tcx> VirCtxt<'tcx> {
         &'vir self,
         ident: FunctionIdn<'vir, A, impl CompType>,
         unique: bool,
+        interpretation: Option<&'static str>,
     ) -> DomainFunction<'vir> {
         let params = A::params(ident.arity());
         self.alloc(DomainFunctionData {
@@ -676,6 +677,7 @@ impl<'tcx> VirCtxt<'tcx> {
             name: ident.name(),
             args: self.alloc_slice(params.as_slice()),
             ret: ident.result().as_dyn(),
+            interpretation: interpretation.map(|i| InterpretationData { interpretation: i }),
         })
     }
 
@@ -774,6 +776,7 @@ impl<'tcx> VirCtxt<'tcx> {
         typarams: &'vir [DomainParam<'vir>],
         axioms: &'vir [DomainAxiomGen<'vir, Curr, Next>],
         functions: &'vir [DomainFunction<'vir>],
+        interpretation: Option<&'vir [&'vir BackendInterpretationPair]>,
     ) -> DomainGen<'vir, Curr, Next> {
         assert_eq!(typarams.len(), 0, "Domain type parameters are not yet supported (because `FunctionIdn` doesn't have a mechanism to add a type_map for calls)");
         self.alloc(DomainGenData {
@@ -781,6 +784,8 @@ impl<'tcx> VirCtxt<'tcx> {
             typarams,
             axioms,
             functions,
+            interpretation: interpretation
+                .map(|i| self.alloc(BackendInterpretationData { interpretation: i })),
         })
     }
 
