@@ -147,18 +147,29 @@ impl TaskEncoder for ConstEnc {
                 def_id,
             } => match const_ {
                 mir::Const::Val(val, ty) => Self::encode_const_val(deps, val, ty, def_id.into())?,
-                mir::Const::Unevaluated(uneval, _) => vir::with_vcx(|vcx| {
-                    let task = MirPureEncTask {
-                        encoding_depth: encoding_depth + 1,
-                        parent_def_id: uneval.def,
-                        param_env: vcx.tcx().param_env(uneval.def),
-                        substs: ty::List::identity_for_item(vcx.tcx(), uneval.def),
-                        kind: PureKind::Constant(uneval.promoted.unwrap()),
-                        caller_def_id: Some(def_id),
+                mir::Const::Unevaluated(uneval, ty) => vir::with_vcx(|vcx| {
+                    let resolved = {
+                        let typing_env = ty::TypingEnv::post_analysis(vcx.tcx(), def_id);
+                        vcx.tcx()
+                            .const_eval_resolve(typing_env, uneval, vcx.tcx().def_span(def_id))
                     };
-                    let expr = deps.require_dep::<MirPureEnc>(task)?.expr;
-                    use vir::Reify;
-                    Ok(expr.reify(vcx, (uneval.def, &[])).downcast_ty())
+                    if let Ok(val) = resolved {
+                        Self::encode_const_val(deps, val, ty, def_id.into())
+                    } else if let Some(promoted) = uneval.promoted {
+                        let task = MirPureEncTask {
+                            encoding_depth: encoding_depth + 1,
+                            parent_def_id: uneval.def,
+                            param_env: vcx.tcx().param_env(uneval.def),
+                            substs: ty::List::identity_for_item(vcx.tcx(), uneval.def),
+                            kind: PureKind::Constant(promoted),
+                            caller_def_id: Some(def_id),
+                        };
+                        let expr = deps.require_dep::<MirPureEnc>(task)?.expr;
+                        use vir::Reify;
+                        Ok(expr.reify(vcx, (uneval.def, &[])).downcast_ty())
+                    } else {
+                        todo!("const too generic")
+                    }
                 })?,
                 mir::Const::Ty(ty, const_) => {
                     Self::encode_ty_const(deps, const_, ty, def_id.into())?
