@@ -52,7 +52,7 @@ impl<'vir, E: TaskEncoder + 'vir + ?Sized> std::fmt::Debug for EncodeFullError<'
                 .debug_tuple("EncodingError")
                 .field(err) /*.field(output_dep)*/
                 .finish(),
-            Self::DependencyError(..) => write!(f, "DependencyError"),
+            Self::DependencyError(contents) => write!(f, "DependencyError({contents:?})"),
         }
     }
 }
