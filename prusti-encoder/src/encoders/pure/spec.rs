@@ -190,15 +190,14 @@ impl TaskEncoder for MirSpecEnc {
                                     // TODO: should this be `def_id` or `caller_def_id`
                                     caller_def_id: Some(def_id),
                                 },
-                            )
-                            .unwrap()
+                            )?
                             .expr
                             .downcast_ty();
                         let expr = expr.reify(vcx, (*spec_def_id, post_args));
-                        to_bool(expr).downcast_ty()
+                        Ok(to_bool(expr).downcast_ty())
                     })
                 })
-                .collect::<Vec<vir::ExprBool<'_>>>();
+                .collect::<Result<Vec<vir::ExprBool<'_>>, _>>()?;
             let pledge_args = vcx.alloc_slice(
                 &pre_args
                     .iter()

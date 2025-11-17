@@ -1044,7 +1044,7 @@ impl<'tcx> VirCtxt<'tcx> {
             .unwrap_or_else(|| self.mk_bool::<false>())
     }
 
-    const fn get_int_data(rust_ty: &ty::TyKind) -> (u32, bool) {
+    pub const fn get_int_data(rust_ty: &ty::TyKind) -> (u32, bool) {
         match rust_ty {
             ty::Int(ty::IntTy::Isize) => ((std::mem::size_of::<isize>() * 8) as u32, true),
             ty::Int(ty::IntTy::I8) => (8, true),
@@ -1058,6 +1058,8 @@ impl<'tcx> VirCtxt<'tcx> {
             ty::Uint(ty::UintTy::U32) => (32, false),
             ty::Uint(ty::UintTy::U64) => (64, false),
             ty::Uint(ty::UintTy::U128) => (128, false),
+            // See https://doc.rust-lang.org/book/ch03-02-data-types.html#the-character-type
+            ty::Char => (32, false),
             _ => unreachable!(),
         }
     }
