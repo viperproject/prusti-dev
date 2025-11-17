@@ -215,7 +215,14 @@ fn handle_result(
                 .flat_map(|error| {
                     prusti_encoder::backtranslate_error(
                         &error.full_id,
-                        error.offending_pos_id.unwrap().parse::<usize>().unwrap(),
+                        error
+                            .offending_pos_id
+                            .as_ref()
+                            .unwrap_or_else(|| {
+                                panic!("offending pos id is missing for error {error:?}")
+                            })
+                            .parse::<usize>()
+                            .unwrap(),
                         error.reason_pos_id.and_then(|id| id.parse::<usize>().ok()),
                     )
                     .expect("verification error could not be backtranslated")

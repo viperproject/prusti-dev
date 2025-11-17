@@ -1,14 +1,18 @@
 use crate::encoders::{
-    ConstEnc, FunctionCallEnc, MirBuiltinEnc, TyUseImpureEnc, ViperTupleEnc,
-    r#const::ConstEncTask,
+    FunctionCallEnc, TyUseImpureEnc, ViperTupleEnc,
     mir_fn::{CallTaskDescription, RustSignature},
+    mir_shared::PureRvalueEnc,
     ty::{
         RustTyDecomposition,
         generics::GParams,
         use_pure::{TyUsePure, TyUsePureEnc},
     },
 };
-use prusti_interface::specs::{specifications::SpecQuery, typed::ExternSpecKind};
+use pcg::utils::Place;
+use prusti_interface::{
+    PrustiError,
+    specs::{specifications::SpecQuery, typed::ExternSpecKind},
+};
 use prusti_rustc_interface::{
     abi,
     data_structures::graph,
@@ -17,10 +21,10 @@ use prusti_rustc_interface::{
         mir,
         ty::{self, Binder, FnSig, TyKind},
     },
-    span::{def_id::DefId, source_map::Spanned},
+    span::{Span, def_id::DefId, source_map::Spanned},
 };
 use std::{collections::HashMap, fmt};
-use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, CompType, add_debug_note};
 
 pub struct MirPureEnc;
@@ -127,7 +131,7 @@ impl TaskEncoder for MirPureEnc {
                 }
             };
 
-            let expr_inner = Enc::new(vcx, task_key.0, def_id, k, &body, deps).encode_body();
+            let expr_inner = Enc::new(vcx, task_key.0, def_id, k, &body, deps).encode_body()?;
 
             // We wrap the expression with an additional lazy that will perform
             // some sanity checks. These requirements cannot be expressed using
@@ -233,6 +237,51 @@ struct Enc<'vir: 'enc, 'enc> {
     rel0_mode: bool,
     rel1_mode: bool,
     before_expiry_mode: bool,
+}
+
+impl<'vir: 'enc, 'enc> PureRvalueEnc<'vir> for Enc<'vir, 'enc> {
+    type Encoder = MirPureEnc;
+    type EncodePlaceCtxt = HashMap<mir::Local, Version<'vir>>;
+    type ExprCurr = ExprInput<'vir>;
+    type ExprNext = vir::ExprKind<'vir>;
+    fn def_id(&self) -> DefId {
+        self.def_id
+    }
+    fn deps(&mut self) -> &mut TaskEncoderDependencies<'vir, Self::Encoder> {
+        self.deps
+    }
+    fn vcx(&self) -> &'vir vir::VirCtxt<'vir> {
+        self.vcx
+    }
+    fn body(&self) -> &mir::Body<'vir> {
+        self.body
+    }
+    fn ty_use_pure(&mut self, ty: ty::Ty<'vir>) -> TyUsePure<'vir> {
+        self.ty_use(ty)
+    }
+
+    fn encode_place_snap<'slf>(
+        &mut self,
+        place: Place<'vir>,
+        curr_ver: &Self::EncodePlaceCtxt,
+    ) -> ExprRet<'vir> {
+        self.encode_place_with_ref(curr_ver, place).0
+    }
+
+    fn encode_operand_snap(
+        &mut self,
+        operand: &mir::Operand<'vir>,
+        curr_ver: &HashMap<mir::Local, Version<'vir>>,
+    ) -> Result<ExprRet<'vir>, EncodeFullError<'vir, Self::Encoder>> {
+        Ok(match operand {
+            mir::Operand::Copy(place) | mir::Operand::Move(place) => {
+                self.encode_place_snap((*place).into(), curr_ver)
+            }
+            mir::Operand::Constant(box constant) => {
+                self.encode_constant_snap(constant)?.upcast_ty().lift()
+            }
+        })
+    }
 }
 
 impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
@@ -378,7 +427,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             .unwrap_or_else(|| tuple_ref.mk_unreachable(self.vcx))
     }
 
-    fn encode_body(&mut self) -> ExprRet<'vir> {
+    fn encode_body(&mut self) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
         let mut init = Update::new();
         let v0 = Version::default();
         // TODO: what about locals which never have StorageLive (i.e. always_live)?
@@ -393,7 +442,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             self.bump_version(&mut init, local.into(), local_ex, v0.location);
         }
 
-        let update = self.encode_cfg(&init.versions, mir::START_BLOCK, self.rev_doms.end);
+        let update = self.encode_cfg(&init.versions, mir::START_BLOCK, self.rev_doms.end)?;
 
         // do we ever panic here? if yes, return the `unreachable_to_snap` expr.
         let res = init
@@ -402,7 +451,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         let ret_version = res.versions.get(&mir::RETURN_PLACE).copied().unwrap_or(v0);
 
         let ex = self.mk_local_ex(mir::RETURN_PLACE, ret_version);
-        self.reify_binds(res, ex)
+        Ok(self.reify_binds(res, ex))
     }
 
     fn encode_cfg(
@@ -410,27 +459,25 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         curr_ver: &HashMap<mir::Local, Version<'vir>>,
         curr: mir::BasicBlock,
         join_point: mir::BasicBlock,
-    ) -> Option<Update<'vir>> {
+    ) -> Result<Option<Update<'vir>>, EncodeFullError<'vir, MirPureEnc>> {
         if curr == join_point {
             // We are done with the current fragment of the CFG, the rest is
             // handled in a parent call.
-            return Some(Update::new());
+            return Ok(Some(Update::new()));
         }
 
         // walk block statements first
         let mut new_curr_ver = curr_ver.clone();
-        let stmt_update = self.body[curr].statements.iter().enumerate().fold(
-            Update::new(),
-            |update, (statement_index, stmt)| {
-                let location = mir::Location {
-                    block: curr,
-                    statement_index,
-                };
-                let newer = self.encode_stmt(&new_curr_ver, stmt, location);
-                newer.add_to_map(&mut new_curr_ver);
-                update.merge_inner(newer)
-            },
-        );
+        let mut stmt_update = Update::new();
+        for (statement_index, stmt) in self.body[curr].statements.iter().enumerate() {
+            let location = mir::Location {
+                block: curr,
+                statement_index,
+            };
+            let newer = self.encode_stmt(&new_curr_ver, stmt, location)?;
+            newer.add_to_map(&mut new_curr_ver);
+            stmt_update = stmt_update.merge_inner(newer);
+        }
 
         // then walk terminator
         let term = self.body[curr].terminator.as_ref().unwrap();
@@ -445,13 +492,15 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 ..
             }
             | &mir::TerminatorKind::Drop { target, .. } => {
-                let rest_update = self.encode_cfg(&new_curr_ver, target, join_point);
-                stmt_update.merge(rest_update)
+                let rest_update = self.encode_cfg(&new_curr_ver, target, join_point)?;
+                Ok(stmt_update.merge(rest_update))
             }
 
             mir::TerminatorKind::SwitchInt { discr, targets } => {
                 // encode the discriminant operand
-                let discr_expr = self.encode_operand(&new_curr_ver, discr).downcast_ty();
+                let discr_expr = self
+                    .encode_operand_snap(discr, &new_curr_ver)?
+                    .downcast_ty();
                 let discr_ty = discr.ty(self.body, self.vcx.tcx());
                 let discr_ty_out = self.ty_use(discr_ty).expect_primitive();
 
@@ -464,7 +513,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .all_targets()
                     .iter()
                     .map(|target| self.encode_cfg(&new_curr_ver, *target, new_join_point))
-                    .collect::<Vec<_>>();
+                    .collect::<Result<Vec<_>, _>>()?;
 
                 // find locals updated in any of the results, which were also
                 // defined before the branch
@@ -531,15 +580,15 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 }
 
                 // walk `join` -> `end`
-                let end_update = self.encode_cfg(&new_curr_ver, new_join_point, join_point);
-                stmt_update.merge(phi_update.merge(end_update))
+                let end_update = self.encode_cfg(&new_curr_ver, new_join_point, join_point)?;
+                Ok(stmt_update.merge(phi_update.merge(end_update)))
             }
 
-            mir::TerminatorKind::Return => Some(stmt_update),
+            mir::TerminatorKind::Return => Ok(Some(stmt_update)),
 
             mir::TerminatorKind::Unreachable => {
                 // will result in generating an unreachable phi merge
-                None
+                Ok(None)
             }
 
             mir::TerminatorKind::Call {
@@ -574,13 +623,13 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             .unwrap();
                         let snap_args = args
                             .iter()
-                            .map(|arg| self.encode_operand(&new_curr_ver, &arg.node))
-                            .collect::<Vec<_>>();
+                            .map(|arg| self.encode_operand_snap(&arg.node, &new_curr_ver))
+                            .collect::<Result<Vec<_>, _>>()?;
                         pure_func.call(snap_args)
                     } else {
                         let sig = self.vcx.tcx().fn_sig(def_id);
                         let sig = sig.instantiate_identity();
-                        self.encode_prusti_builtin(def_id, sig, arg_tys, args, &new_curr_ver)
+                        self.encode_prusti_builtin(def_id, sig, arg_tys, args, &new_curr_ver)?
                     }
                 };
 
@@ -590,9 +639,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 term_update.add_to_map(&mut new_curr_ver);
 
                 // walk rest of CFG
-                let end_update = self.encode_cfg(&new_curr_ver, target.unwrap(), join_point);
+                let end_update = self.encode_cfg(&new_curr_ver, target.unwrap(), join_point)?;
 
-                stmt_update.merge_inner(term_update).merge(end_update)
+                Ok(stmt_update.merge_inner(term_update).merge(end_update))
             }
 
             k => todo!("terminator kind {k:?}"),
@@ -604,7 +653,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         curr_ver: &HashMap<mir::Local, Version<'vir>>,
         stmt: &mir::Statement<'vir>,
         location: mir::Location,
-    ) -> Update<'vir> {
+    ) -> Result<Update<'vir>, EncodeFullError<'vir, MirPureEnc>> {
         let mut update = Update::new();
         match &stmt.kind {
             &mir::StatementKind::StorageLive(local) => {
@@ -617,26 +666,27 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             | mir::StatementKind::PlaceMention(..) => {} // nop
             mir::StatementKind::Assign(box (dest, rvalue)) => {
                 //assert!(dest.projection.is_empty());
-                let expr = self.encode_rvalue(curr_ver, rvalue);
+                let span = stmt.source_info.span;
+                let expr = self.encode_rvalue(curr_ver, rvalue, span)?;
                 self.bump_version(&mut update, dest.local, expr, location);
             }
             k => todo!("statement kind {k:?}"),
         }
-        update
+        Ok(update)
     }
 
     fn encode_rvalue(
         &mut self,
         curr_ver: &HashMap<mir::Local, Version<'vir>>,
         rvalue: &mir::Rvalue<'vir>,
-    ) -> ExprRet<'vir> {
+        span: Span,
+    ) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
         let rvalue_ty = rvalue.ty(self.body, self.vcx.tcx());
         match rvalue {
-            mir::Rvalue::Use(op) => self.encode_operand(curr_ver, op),
-            // Repeat
+            mir::Rvalue::Use(op) => self.encode_operand_snap(op, curr_ver),
             mir::Rvalue::Ref(_, kind, place) => {
                 let rvalue_snapshot_encoding = self.ty_use(rvalue_ty);
-                let (snap, place_ref) = self.encode_place_with_ref(curr_ver, place);
+                let (snap, place_ref) = self.encode_place_with_ref(curr_ver, (*place).into());
                 if kind.mutability().is_mut() {
                     let e_rvalue_ty = rvalue_snapshot_encoding.expect_mutref();
                     // We want to distinguish if `place` is a value that lives
@@ -649,79 +699,29 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     // a re-borrow of created-in-pure reference then it will be
                     // field projections of `null` which is also `null`.
                     let place_ref = place_ref.unwrap_or_else(|| self.vcx.mk_null().lazy());
-                    e_rvalue_ty.prim_to_snap(place_ref, snap).upcast_ty()
+                    Ok(e_rvalue_ty.prim_to_snap(place_ref, snap).upcast_ty())
                 } else {
                     let e_rvalue_ty = rvalue_snapshot_encoding.expect_immref();
                     // For shared borrows we want to use just the snapshot
                     // without the reference so that snapshot equality compares
                     // only values.
-                    e_rvalue_ty
+                    Ok(e_rvalue_ty
                         .prim_to_snap(self.vcx.mk_null().lazy(), snap)
-                        .upcast_ty()
+                        .upcast_ty())
                 }
             }
-            // ThreadLocalRef
-            // AddressOf
-            // Len
-            // Cast
             mir::Rvalue::BinaryOp(op, box (l, r)) => {
-                let l_ty = l.ty(self.body, self.vcx.tcx());
-                let r_ty = r.ty(self.body, self.vcx.tcx());
-                use crate::encoders::MirBuiltinEncTask::{BinOp, CheckedBinOp};
-                let task = if op.is_overflowing() {
-                    CheckedBinOp(rvalue_ty, *op, l_ty, r_ty)
-                } else {
-                    BinOp(rvalue_ty, *op, l_ty, r_ty)
-                };
-                let binop_function = self
-                    .deps
-                    .require_ref::<MirBuiltinEnc>(task)
-                    .unwrap()
-                    .bin_op()
-                    .unwrap();
-                binop_function.call()(
-                    self.encode_operand(curr_ver, l).downcast_ty(),
-                    self.encode_operand(curr_ver, r).downcast_ty(),
-                )
-                .upcast_ty()
+                self.encode_binop_snap(rvalue_ty, *op, l, r, curr_ver)
             }
-            // NullaryOp
             mir::Rvalue::UnaryOp(unop, operand) => {
-                let operand_ty = operand.ty(self.body, self.vcx.tcx());
-                let unop_function = self
-                    .deps
-                    .require_ref::<MirBuiltinEnc>(crate::encoders::MirBuiltinEncTask::UnOp(
-                        rvalue_ty, *unop, operand_ty,
-                    ))
-                    .unwrap()
-                    .un_op()
-                    .unwrap();
-                unop_function.call()(self.encode_operand(curr_ver, operand).downcast_ty())
-                    .upcast_ty()
+                self.encode_unary_op_snap(rvalue_ty, *unop, operand, curr_ver)
             }
-            mir::Rvalue::Aggregate(box kind, fields) => match kind {
-                mir::AggregateKind::Adt(..)
+            mir::Rvalue::Aggregate(
+                box kind @ (mir::AggregateKind::Adt(..)
                 | mir::AggregateKind::Tuple
-                | mir::AggregateKind::Closure(..) => {
-                    let e_rvalue_ty = self.ty_use(rvalue_ty);
-                    let sl = match kind {
-                        mir::AggregateKind::Adt(_, vidx, _, _, _) => {
-                            e_rvalue_ty.get_variant_any(*vidx)
-                        }
-                        _ => e_rvalue_ty.expect_structlike(),
-                    };
-                    let cons_args = fields
-                        .iter()
-                        .map(|field| self.encode_operand(curr_ver, field))
-                        .collect::<Vec<_>>();
-                    sl.field_snaps_to_snap(cons_args).upcast_ty()
-                }
-                _k => {
-                    // TODO: attach kind of aggregate to the unreachable
-                    //   expression in case it is reached
-                    self.ty_use(rvalue_ty).unreachable_to_snap()
-                }
-            },
+                | mir::AggregateKind::Closure(..)),
+                fields,
+            ) => self.encode_aggregate_snap(rvalue_ty, kind, fields, curr_ver),
             mir::Rvalue::Discriminant(place) => {
                 let place_ty = place.ty(self.body, self.vcx.tcx());
                 let ty = self.ty_use(place_ty.ty);
@@ -729,9 +729,10 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .get_enumlike()
                     .filter(|_| place_ty.variant_index.is_none())
                 {
-                    Some(ty) => {
-                        ty.snap_to_discr_snap(self.encode_place(curr_ver, place).downcast_ty())
-                    }
+                    Some(ty) => ty.snap_to_discr_snap(
+                        self.encode_place_snap((*place).into(), curr_ver)
+                            .downcast_ty(),
+                    ),
                     None => {
                         let e_rvalue_ty = self.ty_use(rvalue_ty).expect_primitive();
                         // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
@@ -739,52 +740,26 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         e_rvalue_ty.prim_to_snap.call()(zero.upcast_ty()).lift()
                     }
                 };
-                discr.upcast_ty()
+                Ok(discr.upcast_ty())
             }
-            // ShallowInitBox
-            // CopyForDeref
-            _k => {
-                // TODO: attach kind of rvalue to the unreachable expression
-                //   in case it is reached
-                self.ty_use(rvalue_ty).unreachable_to_snap()
+            mir::Rvalue::Cast(kind, operand, ty) => {
+                Ok(self.encode_cast_snap(*kind, operand, *ty, curr_ver)?.expr)
             }
+            mir::Rvalue::Len(place) => Ok(self.encode_len_snap((*place).into(), curr_ver)),
+            _ => self.vcx.with_span(span, |vcx| {
+                let error_msg = format!("unsupported rvalue {rvalue:?} might be reached");
+                vcx.handle_error("application.precondition:assertion.false", move |_| {
+                    Some(vec![PrustiError::verification(&error_msg, span.into())])
+                });
+                Ok(self.ty_use(rvalue_ty).unreachable_to_snap())
+            }),
         }
-    }
-
-    fn encode_operand(
-        &mut self,
-        curr_ver: &HashMap<mir::Local, Version<'vir>>,
-        operand: &mir::Operand<'vir>,
-    ) -> ExprRet<'vir> {
-        match operand {
-            mir::Operand::Copy(place) | mir::Operand::Move(place) => {
-                self.encode_place(curr_ver, place)
-            }
-            mir::Operand::Constant(box constant) => self
-                .deps
-                .require_dep::<ConstEnc>(ConstEncTask::Mir {
-                    const_: constant.const_,
-                    encoding_depth: self.encoding_depth,
-                    def_id: self.def_id,
-                })
-                .unwrap()
-                .upcast_ty()
-                .lift(),
-        }
-    }
-
-    fn encode_place(
-        &mut self,
-        curr_ver: &HashMap<mir::Local, Version<'vir>>,
-        place: &mir::Place<'vir>,
-    ) -> ExprRet<'vir> {
-        self.encode_place_with_ref(curr_ver, place).0
     }
 
     fn encode_place_with_ref(
         &mut self,
         curr_ver: &HashMap<mir::Local, Version<'vir>>,
-        place: &mir::Place<'vir>,
+        place: Place<'vir>,
     ) -> (ExprRet<'vir>, Option<ExprRetRef<'vir>>) {
         // TODO: remove (debug)
         assert!(curr_ver.contains_key(&place.local));
@@ -813,8 +788,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         // TODO: factor this out (duplication with impure encoder)?
         for elem in place.projection {
             (expr, place_ref) =
-                self.encode_place_element(place_ty, elem, expr.downcast_ty(), place_ref);
-            place_ty = place_ty.projection_ty(self.vcx.tcx(), elem);
+                self.encode_place_element(place_ty, *elem, expr.downcast_ty(), place_ref);
+            place_ty = place_ty.projection_ty(self.vcx.tcx(), *elem);
         }
         // Can we ever have the use of a projected place?
         assert!(place_ty.variant_index.is_none());
@@ -854,7 +829,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         arg_tys: ty::GenericArgsRef<'vir>,
         args: &[Spanned<mir::Operand<'vir>>],
         curr_ver: &HashMap<mir::Local, Version<'vir>>,
-    ) -> ExprRet<'vir> {
+    ) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
         #[derive(Debug, PartialEq, Eq)]
         enum PrustiBuiltin {
             Forall,
@@ -920,11 +895,11 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         let mk_bool =
             |prim: vir::ExprGenBool<'vir, _, _>| bool.prim_to_snap.call()(prim.upcast_ty());
 
-        match builtin {
+        Ok(match builtin {
             PrustiBuiltin::SnapshotEquality => {
                 assert_eq!(args.len(), 2);
-                let lhs = self.encode_operand(curr_ver, &args[0].node);
-                let rhs = self.encode_operand(curr_ver, &args[1].node);
+                let lhs = self.encode_operand_snap(&args[0].node, curr_ver)?;
+                let rhs = self.encode_operand_snap(&args[1].node, curr_ver)?;
                 mk_bool(self.vcx.mk_eq_expr(lhs, rhs))
             }
             PrustiBuiltin::Forall | PrustiBuiltin::Exists => {
@@ -932,8 +907,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
                 let encoded_args = args
                     .iter()
-                    .map(|oper| self.encode_operand(curr_ver, &oper.node))
-                    .collect::<Vec<_>>();
+                    .map(|oper| self.encode_operand_snap(&oper.node, curr_ver))
+                    .collect::<Result<Vec<_>, _>>()?;
                 // TODO: for now, let's expect this to give us these two:
                 //   - expression for the triggers
                 //   - expression for the body
@@ -1098,7 +1073,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             .fp_is_nan
                     }
                 };
-                let fl = self.encode_operand(curr_ver, &args[0].node);
+                let fl = self.encode_operand_snap(&args[0].node, curr_ver)?;
                 mk_bool(is_nan_fun.call()(fl.downcast_ty()))
             }
             PrustiBuiltin::IsInfinite(fl) => {
@@ -1124,7 +1099,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             .fp_is_infinite
                     }
                 };
-                let fl = self.encode_operand(curr_ver, &args[0].node);
+                let fl = self.encode_operand_snap(&args[0].node, curr_ver)?;
                 mk_bool(is_infinite_fun.call()(fl.downcast_ty()))
             }
             PrustiBuiltin::FlAbs(fl) => {
@@ -1135,11 +1110,13 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     ty::FloatTy::F128 => self.ty_use(self.vcx.tcx().types.f128),
                 }
                 .expect_float();
-                let fl1 = self.encode_operand(curr_ver, &args[0].node).downcast_ty();
+                let fl1 = self
+                    .encode_operand_snap(&args[0].node, curr_ver)?
+                    .downcast_ty();
                 fl_ty.fp_abs.call()(fl1)
             }
         }
-        .upcast_ty()
+        .upcast_ty())
     }
 }
 

@@ -43,7 +43,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             if capability.is_write() {
                 continue; // No permissions are encoded for places with write capabilities currently
             }
-            let (place_res, _snap, _, _) = self.encode_place_snap(*place);
+            let (place_res, _snap, _, _) = self.encode_place_with_snap(*place);
             let ty = (*place).ty(self.pcg_ctxt());
             let task = RustTyDecomposition::from_ty(ty.ty, self.vcx.tcx(), self.def_id);
             let ty_out = self.deps.require_dep::<TyUseImpureEnc>(task).unwrap();
@@ -149,7 +149,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         old_outer: &mut WandOldOuter<'vir>,
     ) -> (vir::ExprSnap<'vir>, mir::PlaceTy<'vir>, TyUseImpure<'vir>) {
         let p = Self::get_place(place);
-        let (_, place_snap, ty, ty_out) = self.encode_place_snap(p);
+        let (_, place_snap, ty, ty_out) = self.encode_place_with_snap(p);
         let place_snap = self.configure_old(place, place_snap, old_outer);
         (place_snap, ty, ty_out)
     }

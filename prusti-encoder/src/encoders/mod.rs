@@ -1,6 +1,7 @@
 mod mir_builtin;
 mod mir_pure;
 mod mir_impure;
+mod mir_shared;
 mod spec;
 mod pure;
 mod local_def;

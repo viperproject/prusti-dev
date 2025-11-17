@@ -28,7 +28,7 @@ impl<'vir, E: TaskEncoder> ImpureEncVisitor<'vir, '_, E> {
     pub fn package_wands(
         &mut self,
         final_borrow_state: &BorrowsState<'_, 'vir>,
-    ) -> Vec<vir::Stmt<'vir>> {
+    ) -> Result<Vec<vir::Stmt<'vir>>, EncodeFullError<'vir, E>> {
         let mut wand_packages = Vec::new();
         let vcx = self.vcx;
         let label = self.new_label("package_post");
@@ -58,8 +58,8 @@ impl<'vir, E: TaskEncoder> ImpureEncVisitor<'vir, '_, E> {
                 );
                 let actions = ug.actions(self.pcg_ctxt()).unwrap();
                 let unblock = self.block(|visitor| {
-                    visitor.pcs_unblock_actions(final_borrow_state, &actions, Some(label));
-                });
+                    visitor.pcs_unblock_actions(final_borrow_state, &actions, Some(label))
+                })?;
                 package_script.extend(unblock);
             }
 
@@ -79,7 +79,7 @@ impl<'vir, E: TaskEncoder> ImpureEncVisitor<'vir, '_, E> {
                     .mk_package_stmt(wand, self.vcx.alloc_slice(&package_script)),
             );
         }
-        wand_packages
+        Ok(wand_packages)
     }
 }
 
