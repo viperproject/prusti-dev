@@ -96,8 +96,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         let label = *label.get_or_insert_with(|| self.new_label("outer_package"));
         let actions = ug.actions(self.pcg_ctxt()).unwrap();
 
-        self.block(|visitor| {
-            visitor.pcs_unblock_actions(borrows_state, &actions, Some(label));
-        })
+        self.block(|visitor| visitor.pcs_unblock_actions(borrows_state, &actions, Some(label)))
+            .unwrap()
     }
 }
