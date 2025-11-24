@@ -266,9 +266,8 @@ impl TaskEncoder for MethodEnc {
                 start_stmts.extend(
                     visitor
                         .from_to_vars
-                        .iter()
-                        .flat_map(|(_, v)| v.iter())
-                        .map(|(_, v)| vcx.mk_local_decl_stmt(v, Some(vcx.mk_bool::<false>()))),
+                        .decls()
+                        .map(|v| vcx.mk_local_decl_stmt(v, Some(vcx.mk_bool::<false>()))),
                 );
                 visitor.encoded_blocks[0] = vcx.mk_cfg_block(
                     &vir::CfgBlockLabelData::Start,

@@ -31,7 +31,7 @@ use prusti_rustc_interface::{
 };
 use prusti_utils::config;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
-use vir::{CastType, CompType};
+use vir::{CastType, CompType, LocalDeclData};
 
 use crate::encoders::{
     self, FunctionCallEnc, TyUseImpureEnc, WandEnc, WandEncTask,
@@ -45,6 +45,54 @@ use crate::encoders::{
 };
 
 use super::WandEncOutput;
+
+#[derive(Clone, Copy)]
+struct FromToVar<'vir> {
+    decl: vir::LocalDeclBool<'vir>,
+    expr: vir::ExprBool<'vir>,
+}
+
+impl<'vir> FromToVar<'vir> {
+    fn new(vcx: &'vir vir::VirCtxt<'vir>, from: mir::BasicBlock, to: mir::BasicBlock) -> Self {
+        let decl = vcx.mk_local_decl(
+            vir::vir_format!(vcx, "_from_bb{}_to_bb{}", from.index(), to.index()),
+            vir::TYPE_BOOL,
+        );
+        let expr = vcx.mk_local_ex(decl);
+        Self { decl, expr }
+    }
+}
+
+#[derive(Default)]
+pub(crate) struct FromToVars<'vir>(FxHashMap<(mir::BasicBlock, mir::BasicBlock), FromToVar<'vir>>);
+
+impl<'vir> FromToVars<'vir> {
+    pub(crate) fn decls(&self) -> impl Iterator<Item = &'vir LocalDeclData<'vir, vir::Bool>> {
+        self.0.values().map(|v| v.decl)
+    }
+
+    fn set_from_to_flag_stmt(
+        &mut self,
+        vcx: &'vir vir::VirCtxt<'vir>,
+        from: mir::BasicBlock,
+        to: mir::BasicBlock,
+    ) -> vir::Stmt<'vir> {
+        let var = self.get_or_create(vcx, from, to);
+        vcx.mk_pure_assign_stmt(var.expr, vcx.mk_bool::<true>())
+    }
+
+    fn get_or_create(
+        &mut self,
+        vcx: &'vir vir::VirCtxt<'vir>,
+        from: mir::BasicBlock,
+        to: mir::BasicBlock,
+    ) -> FromToVar<'vir> {
+        *self
+            .0
+            .entry((from, to))
+            .or_insert_with(|| FromToVar::new(vcx, from, to))
+    }
+}
 
 pub struct ImpureEncVisitor<'vir, 'enc, E: TaskEncoder>
 where
@@ -63,7 +111,7 @@ where
     pub tmp_ctr: usize,
     pub label_ctr: usize,
     pub call_labels: FxHashMap<mir::BasicBlock, (&'vir str, &'vir str)>,
-    pub from_to_vars: FxHashMap<mir::BasicBlock, Vec<(mir::BasicBlock, vir::LocalDeclBool<'vir>)>>,
+    pub from_to_vars: FromToVars<'vir>,
 
     // for the current basic block
     pub current_fpcs: Option<PcgBasicBlock<'enc, 'vir>>,
@@ -395,23 +443,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 let from = choices.from();
                 let conj = successors
                     .iter()
-                    .map(|to| {
-                        let decl = self
-                            .from_to_vars
-                            .get(&from)
-                            .and_then(|tos| tos.iter().find(|(t, _)| t == to))
-                            .map(|(_, decl)| *decl);
-                        let decl = decl.unwrap_or_else(|| {
-                            let name = vir::vir_format!(
-                                self.vcx,
-                                "_from_bb{}_to_bb{}",
-                                from.index(),
-                                to.index()
-                            );
-                            self.vcx.mk_local_decl(name, vir::TYPE_BOOL)
-                        });
-                        self.vcx.mk_local_ex(decl)
-                    })
+                    .map(|to| self.from_to_vars.get_or_create(self.vcx, from, *to).expr)
                     .collect::<Vec<_>>();
                 // Control flow must continue from `choices.from()` to any one of the `successors`
                 self.vcx.mk_disj(self.vcx.alloc_slice(&conj))
@@ -865,14 +897,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     }
 
     fn set_from_to_flag(&mut self, from: mir::BasicBlock, to: mir::BasicBlock) -> vir::Stmt<'vir> {
-        let name = vir::vir_format!(self.vcx, "_from_bb{}_to_bb{}", from.index(), to.index());
-        let decl = self.vcx.mk_local_decl(name, vir::TYPE_BOOL);
-        let tos = self.from_to_vars.entry(from).or_default();
-        debug_assert!(!tos.contains(&(to, decl)));
-        tos.push((to, decl));
-        let local = self.vcx.mk_local_ex(decl);
-        self.vcx
-            .mk_pure_assign_stmt(local, self.vcx.mk_bool::<true>())
+        self.from_to_vars.set_from_to_flag_stmt(self.vcx, from, to)
     }
 }
 
