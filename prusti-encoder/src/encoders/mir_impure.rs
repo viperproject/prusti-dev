@@ -630,6 +630,17 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
     fn pcg_repack(&mut self, repack_op: &RepackOp<'vir>) {
         comment!(self, "[PCG] {repack_op:?}");
+
+        fn should_ignore(repack_op: &RepackOp<'_>) -> bool {
+            match repack_op {
+                RepackOp::RegainLoanedCapability(..) => true,
+                RepackOp::Weaken(weaken) => {
+                    weaken.from_cap().is_exclusive() && weaken.to_cap().is_read()
+                }
+                _ => false,
+            }
+        }
+
         match repack_op {
             RepackOp::Expand(_) | RepackOp::Collapse(_) => {
                 let (place, capability_kind) = match repack_op {
@@ -660,22 +671,24 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     }
                 }
             }
-            RepackOp::Weaken(place, CapabilityKind::Exclusive, CapabilityKind::Write) => {
-                self.pcg_weaken(*place)
+            RepackOp::Weaken(weaken)
+                if weaken.from_cap().is_exclusive() && weaken.to_cap().is_write() =>
+            {
+                self.pcg_weaken(weaken.place())
             }
-            ignored_op @ (RepackOp::RegainLoanedCapability(..)
-            | RepackOp::Weaken(_, CapabilityKind::Exclusive, CapabilityKind::Read)) => {
-                self.stmt(self.vcx.mk_comment_stmt(vir::vir_format!(
-                    self.vcx,
-                    "ignored repack op: {ignored_op:?}"
-                )));
-            }
-            unsupported_op => {
-                self.stmt(self.vcx.mk_comment_stmt(vir::vir_format!(
-                    self.vcx,
-                    "unsupported repack op: {unsupported_op:?}"
-                )));
-                self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
+            other => {
+                if should_ignore(other) {
+                    self.stmt(self.vcx.mk_comment_stmt(vir::vir_format!(
+                        self.vcx,
+                        "ignored repack op: {other:?}"
+                    )));
+                } else {
+                    self.stmt(self.vcx.mk_comment_stmt(vir::vir_format!(
+                        self.vcx,
+                        "unsupported repack op: {other:?}"
+                    )));
+                    self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
+                }
             }
         }
     }
