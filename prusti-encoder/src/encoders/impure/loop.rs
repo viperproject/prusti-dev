@@ -6,7 +6,7 @@ use pcg::{
     pcg::{EvalStmtPhase, PcgNode},
     results::PcgBasicBlock,
     utils::{
-        HasCompilerCtxt, Place, SnapshotLocation, maybe_old::MaybeLabelledPlace,
+        HasCompilerCtxt, HasPlace, Place, maybe_old::MaybeLabelledPlace,
         maybe_remote::MaybeRemotePlace,
     },
 };
@@ -87,19 +87,18 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
     pub(super) fn encode_pcg_node<T: PcgLifetimeProjectionBaseLike<'vir>>(
         &mut self,
-        node: &PcgNode<'vir, MaybeRemotePlace<'vir>, T>,
+        node: &PcgNode<'vir, MaybeLabelledPlace<'vir>, T>,
         wand_rhs: &mut Vec<vir::ExprBool<'vir>>,
         old_outer: &mut WandOldOuter<'vir>,
     ) {
         match node {
-            PcgNode::Place(MaybeRemotePlace::Remote(_)) => unreachable!(),
-            PcgNode::Place(place @ MaybeRemotePlace::Local(_)) => {
-                let p = Self::get_place(*place);
+            PcgNode::Place(place) => {
+                let p = place.place();
                 let ty = (*p).ty(self.local_decls, self.vcx.tcx());
                 let task = RustTyDecomposition::from_ty(ty.ty, self.vcx.tcx(), self.def_id);
                 let ty_out = self.deps.require_dep::<TyUseImpureEnc>(task).unwrap();
                 let p = self.encode_place(p);
-                let p = self.configure_old(*place, p.expr.expect_predicate(), old_outer);
+                let p = self.configure_old((*place).into(), p.expr.expect_predicate(), old_outer);
 
                 let pred = ty_out.ref_to_pred(self.vcx, p, None);
                 wand_rhs.push(pred);
@@ -165,35 +164,11 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 self.mk_wand_outer(expr, old_outer)
             }
             MaybeRemotePlace::Local(MaybeLabelledPlace::Labelled(place)) => {
-                let label = Self::get_location_label(self.vcx, place.at());
+                let label = self.get_location_label(place.at());
                 self.vcx.mk_old(expr, label)
             }
             MaybeRemotePlace::Remote(_) => self.vcx.mk_old_expr(expr),
         }
-    }
-
-    pub(crate) fn get_location_label(
-        vcx: &'vir vir::VirCtxt<'vir>,
-        at: SnapshotLocation,
-    ) -> vir::OldLabel<'vir> {
-        if let SnapshotLocation::BeforeJoin(bb) | SnapshotLocation::Loop(bb) = at {
-            return vir::OldLabel::Block(vir::CfgBlockLabelData::BasicBlock(bb.as_usize()));
-        }
-        let label_identifier = match at {
-            SnapshotLocation::Before(..) => "before",
-            SnapshotLocation::After(..) => "after",
-            SnapshotLocation::BeforeRefReassignment(..) => "before_ref_reassignment",
-            SnapshotLocation::Loop(_) | SnapshotLocation::BeforeJoin(_) => unreachable!(),
-        };
-        let location = at.location();
-        let label = vir::vir_format!(
-            vcx,
-            "_{}_{}_{}",
-            label_identifier,
-            location.block.index(),
-            location.statement_index
-        );
-        vir::OldLabel::Label(label)
     }
 
     fn mk_wand_outer<T: SnapOrRef>(
