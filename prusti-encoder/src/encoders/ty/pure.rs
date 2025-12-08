@@ -106,11 +106,9 @@ pub struct TyPureImmRefData<'vir> {
 #[derive(Debug, Clone, Copy)]
 pub struct TyPureMutRefData<'vir> {
     /// Construct domain from a `Ref` value.
-    pub(super) prim_to_snap: FunctionIdn<'vir, (vir::Ref, vir::PSnap), vir::CSnap>,
+    pub(super) prim_to_snap: FunctionIdn<'vir, vir::Ref, vir::CSnap>,
     /// Function to access the referee.
     pub(super) deref_access: AdtDestructor<'vir, vir::CSnap, vir::Ref>,
-    /// Function to access the snapshot value.
-    pub(super) value_access: AdtDestructor<'vir, vir::CSnap, vir::PSnap>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -220,9 +218,9 @@ impl TaskEncoder for TyPureEnc {
                     let builder = builder.set_adt_builder();
                     TySpecifics::ImmRef(super::kinds::immref::ty_pure(immref, deps, builder)?)
                 }
-                TySpecifics::MutRef(mutref) => {
+                TySpecifics::MutRef(_) => {
                     let builder = builder.set_adt_builder();
-                    TySpecifics::MutRef(super::kinds::mutref::ty_pure(mutref, deps, builder)?)
+                    TySpecifics::MutRef(super::kinds::mutref::ty_pure(builder)?)
                 }
                 TySpecifics::StructLike(structlike) => {
                     let builder = builder.set_adt_builder();

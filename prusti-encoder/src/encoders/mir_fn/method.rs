@@ -5,7 +5,8 @@ use vir::MethodIdn;
 
 use crate::{
     encoders::{
-        Impure, ImpureEncVisitor, MirLocalDefEnc, MirSpecEnc, WandEnc, WandEncTask,
+        Impure, ImpureEncVisitor, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc, WandEnc,
+        WandEncTask,
         mir_fn::{CallTaskDescription, RustSignature},
         ty::generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
     },
@@ -137,7 +138,13 @@ impl TaskEncoder for MethodEnc {
             let span = vcx.tcx().def_span(def_id);
             let trusted = crate::encoders::is_function_trusted(def_id);
 
-            let arg_defs = deps.require_ref_spanned::<MirLocalDefEnc>((def_id, false), span)?;
+            let arg_defs = deps.require_ref_spanned::<MirLocalDefEnc>(
+                MirLocalDefEncTask::Local {
+                    def_id,
+                    all_locals: false,
+                },
+                span,
+            )?;
 
             // Argument count for the Viper method:
             // - one (`Ref`) for the return place;
@@ -165,7 +172,13 @@ impl TaskEncoder for MethodEnc {
             );
             deps.emit_output_ref(def_id, MethodEncOutputRef { method_ref })?;
 
-            let arg_defs = deps.require_dep_spanned::<MirLocalDefEnc>((def_id, false), span)?;
+            let arg_defs = deps.require_dep_spanned::<MirLocalDefEnc>(
+                MirLocalDefEncTask::Local {
+                    def_id,
+                    all_locals: false,
+                },
+                span,
+            )?;
 
             // Method contract. We will need to emit pre- and postconditions for
             // the permissions, the functional spec, and (in the postcondition)
@@ -209,8 +222,13 @@ impl TaskEncoder for MethodEnc {
             let blocks = if let Some(local_def_id) = local_def_id {
                 let body_with_facts = vcx.body_mut().get_impure_fn_body_with_facts(local_def_id);
                 let body = &body_with_facts.body;
-                let local_defs =
-                    deps.require_dep_spanned::<MirLocalDefEnc>((def_id, true), span)?;
+                let local_defs = deps.require_dep_spanned::<MirLocalDefEnc>(
+                    MirLocalDefEncTask::Local {
+                        def_id: local_def_id.to_def_id(),
+                        all_locals: true,
+                    },
+                    span,
+                )?;
 
                 let bc = NllBorrowCheckerImpl::new(vcx.tcx(), &body_with_facts);
                 let pcg_ctxt = pcg::PcgCtxt::new(&body_with_facts.body, vcx.tcx(), &bc);

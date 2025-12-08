@@ -3,7 +3,7 @@ use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDepen
 use vir::{FunctionIdn, Reify};
 
 use crate::encoders::{
-    MirLocalDefEnc, MirPureEnc, MirPureEncTask, MirSpecEnc, Pure, PureKind,
+    MirLocalDefEnc, MirLocalDefEncTask, MirPureEnc, MirPureEncTask, MirSpecEnc, Pure, PureKind,
     mir_fn::{CallTaskDescription, RustSignature},
     ty::generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
 };
@@ -123,7 +123,10 @@ impl TaskEncoder for FunctionEnc {
         vir::with_vcx(|vcx| {
             let def_id = *task_key;
             let trusted = crate::encoders::is_function_trusted(def_id);
-            let local_defs = deps.require_dep::<MirLocalDefEnc>((def_id, true))?;
+            let local_defs = deps.require_dep::<MirLocalDefEnc>(MirLocalDefEncTask::Local {
+                def_id,
+                all_locals: true,
+            })?;
 
             tracing::debug!("encoding {def_id:?}");
 
