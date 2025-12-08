@@ -323,6 +323,23 @@ impl<'tcx> VirCtxt<'tcx> {
         self.mk_old(expr, label.map(OldLabel::Block).unwrap_or(OldLabel::None))
     }
 
+    pub fn maybe_apply_label<'vir, Curr, Next, T: CompType>(
+        &'vir self,
+        expr: ExprGen<'vir, Curr, Next, T>,
+        label: Option<OldLabel<'vir>>,
+    ) -> ExprGen<'vir, Curr, Next, T> {
+        if let Some(label) = label {
+            match label {
+                OldLabel::Block(block) => self.mk_labelled_old_expr(expr, Some(block)),
+                OldLabel::Label(label) => self.mk_local_labelled_old_expr(expr, label),
+                OldLabel::None => self.mk_old_expr(expr),
+                OldLabel::Lhs => self.mk_old_lhs_expr(expr),
+            }
+        } else {
+            expr
+        }
+    }
+
     pub fn mk_local_labelled_old_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
         expr: ExprGen<'vir, Curr, Next, T>,
