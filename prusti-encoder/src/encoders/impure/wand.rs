@@ -18,25 +18,13 @@ type Inputs<'a> = Vec<Input<'a>>;
 type Outputs<'a> = Vec<Output<'a>>;
 
 impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
-    pub(crate) fn without_remote_places(
-        &self,
-        at: &PcgCoupledEdgeKind<'vir>,
-    ) -> Option<(Inputs<'vir>, Outputs<'vir>)> {
-        let inputs = at.inputs(self.pcg_ctxt());
-        if inputs.iter().any(|input| input.is_remote_place()) {
-            None
-        } else {
-            Some((inputs, at.outputs()))
-        }
-    }
-
     pub(super) fn get_abstraction_edges<'a>(
         &self,
         g: &'a BorrowsGraph<'vir>,
     ) -> Vec<(Inputs<'vir>, Outputs<'vir>)> {
         g.coupled_edges()
             .into_iter()
-            .filter_map(|edge| self.without_remote_places(edge.value()))
+            .map(|edge| (edge.value().inputs(self.pcg_ctxt()), edge.value().outputs()))
             .collect()
     }
 
@@ -52,9 +40,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         if package && !edge_to_loop {
             return;
         }
-        let Some((inputs, outputs)) = self.without_remote_places(edge) else {
-            return;
-        };
+        let inputs = edge.inputs(self.pcg_ctxt());
+        let outputs = edge.outputs();
         let mut old_outer = WandOldOuter::Label(label);
         let mut proof_block = Vec::new();
         let mut wand_rhs = Vec::new();

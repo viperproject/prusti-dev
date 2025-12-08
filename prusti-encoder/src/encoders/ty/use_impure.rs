@@ -268,8 +268,11 @@ impl<'vir> TyUseImpureData<'vir> {
     }
 
     /// Calls the predicate (heap) dependent snapshot construction function.
-    pub fn ref_to_snap(&self, self_ref: vir::ExprRef<'vir>) -> vir::ExprSnap<'vir> {
-        (self.impure.ref_to_snap)(self_ref, self.args.get_ty(), self.args.get_const())
+    pub fn ref_to_snap<Curr, Next>(
+        &self,
+        self_ref: vir::ExprGenRef<'vir, Curr, Next>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        self.impure.ref_to_snap.call()(self_ref, self.args.get_ty(), self.args.get_const())
     }
 
     pub fn snapshot(&self) -> vir::TypeSnap<'vir> {
@@ -284,6 +287,7 @@ impl<'vir> TyData<'vir, UseImpureTyDatas> {
         variant: Option<abi::VariantIdx>,
         self_ref: vir::ExprRef<'vir>,
         perm: Option<vir::ExprPerm<'vir>>,
+        label: Option<vir::OldLabel<'vir>>,
     ) -> Vec<vir::Stmt<'vir>> {
         if let Some(variant) = variant {
             return self
@@ -296,7 +300,7 @@ impl<'vir> TyData<'vir, UseImpureTyDatas> {
             TySpecifics::Param(_) | TySpecifics::Primitive(_) => unreachable!(),
             TySpecifics::Opaque(_) => panic!("cannot fold opaque type"),
             TySpecifics::ImmRef(..) => Vec::new(),
-            TySpecifics::MutRef(data) => data.fold(self_ref).into_iter().collect(),
+            TySpecifics::MutRef(data) => data.fold(self_ref, label).into_iter().collect(),
             TySpecifics::StructLike(data) => data.fold(self_ref, perm).collect(),
             TySpecifics::EnumLike(..) => {
                 let pred_app = self.ref_to_pred_app(self_ref, perm);
@@ -311,6 +315,7 @@ impl<'vir> TyData<'vir, UseImpureTyDatas> {
         variant: Option<abi::VariantIdx>,
         self_ref: vir::ExprRef<'vir>,
         perm: Option<vir::ExprPerm<'vir>>,
+        old: Option<vir::OldLabel<'vir>>,
     ) -> Vec<vir::Stmt<'vir>> {
         if let Some(variant) = variant {
             return self
@@ -323,7 +328,7 @@ impl<'vir> TyData<'vir, UseImpureTyDatas> {
             TySpecifics::Param(_) | TySpecifics::Primitive(_) => unreachable!(),
             TySpecifics::Opaque(_) => panic!("cannot unfold opaque type"),
             TySpecifics::ImmRef(..) => Vec::new(),
-            TySpecifics::MutRef(data) => data.unfold(self_ref).into_iter().collect(),
+            TySpecifics::MutRef(data) => data.unfold(self_ref, old).into_iter().collect(),
             TySpecifics::StructLike(data) => data.unfold(self_ref, perm).collect(),
             TySpecifics::EnumLike(..) => {
                 let pred_app = self.ref_to_pred_app(self_ref, perm);
@@ -416,18 +421,28 @@ impl<'vir> TyUseImpureEnum<'vir> {
 impl<'vir> TyUseImpureImmRef<'vir> {}
 
 impl<'vir> TyUseImpureMutRef<'vir> {
-    pub fn deref(&self, self_ref: vir::ExprRef<'vir>) -> vir::ExprRef<'vir> {
-        (self.impure.deref_func)(self_ref, self.args.get_ty(), self.args.get_const())
+    pub fn deref(
+        &self,
+        self_ref: vir::ExprRef<'vir>,
+        label: Option<vir::OldLabel<'vir>>,
+    ) -> vir::ExprRef<'vir> {
+        let base = (self.impure.deref_func)(self_ref, self.args.get_ty(), self.args.get_const());
+        vir::with_vcx(|vcx| vcx.maybe_apply_label(base, label))
     }
 
-    fn fold(&self, _self_ref: vir::ExprRef<'vir>) -> Option<vir::Stmt<'vir>> {
-        // TODO: should the deref of a mut ref be generic or not?
-        // self.caster.cast_to_callee_ctx(self.deref(self_ref))
-        None
+    fn fold(
+        &self,
+        self_ref: vir::ExprRef<'vir>,
+        label: Option<vir::OldLabel<'vir>>,
+    ) -> Option<vir::Stmt<'vir>> {
+        self.caster.cast_to_callee_ctx(self.deref(self_ref, label))
     }
 
-    fn unfold(&self, _self_ref: vir::ExprRef<'vir>) -> Option<vir::Stmt<'vir>> {
-        // self.caster.cast_to_caller_ctx(self.deref(self_ref))
-        None
+    fn unfold(
+        &self,
+        self_ref: vir::ExprRef<'vir>,
+        label: Option<vir::OldLabel<'vir>>,
+    ) -> Option<vir::Stmt<'vir>> {
+        self.caster.cast_to_caller_ctx(self.deref(self_ref, label))
     }
 }
