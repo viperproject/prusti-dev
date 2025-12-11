@@ -519,7 +519,6 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         };
         match &term.kind {
             &mir::TerminatorKind::Goto { target }
-            | &mir::TerminatorKind::Assert { target, .. }
             | &mir::TerminatorKind::FalseEdge {
                 real_target: target,
                 ..
@@ -615,6 +614,83 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 // walk `join` -> `end`
                 let end_update = self.encode_cfg(&new_curr_ver, new_join_point, join_point)?;
                 Ok(stmt_update.merge(phi_update.merge(end_update)))
+            }
+
+            // TODO: there is some code duplication between here and SwitchInt
+            mir::TerminatorKind::Assert {
+                cond,
+                expected,
+                target,
+                ..
+            } => {
+                // encode the condition operand
+                let cond_ty = cond.ty(self.body, self.vcx.tcx());
+                assert_eq!(*cond_ty.kind(), ty::TyKind::Bool);
+                let cond_expr = self.encode_operand_snap(cond, &new_curr_ver)?.downcast_ty();
+                let cond_ty_out = self.ty_use(cond_ty).expect_primitive();
+
+                // if cond == expected: walk the rest of the CFG
+                let ok_update = self.encode_cfg(&new_curr_ver, *target, join_point)?;
+
+                // find locals updated in the "ok" branch, which were also
+                // defined before the branch
+                // TODO: is the unwrap here ok? can ok_update also be None?
+                let mut mod_locals = ok_update
+                    .as_ref()
+                    .unwrap()
+                    .versions
+                    .keys()
+                    .filter(|local| new_curr_ver.contains_key(local))
+                    .copied()
+                    .collect::<Vec<_>>();
+                mod_locals.sort();
+                mod_locals.dedup();
+                let mod_tys = mod_locals
+                    .iter()
+                    .map(|l| self.body.local_decls[*l].ty)
+                    .collect();
+
+                // create a Viper tuple of the updated locals
+                let tuple_ref = self
+                    .deps
+                    .require_dep::<ViperTupleEnc>((self.def_id, mod_tys))
+                    .unwrap();
+                let phi_expr = self.vcx.mk_ternary_expr(
+                    self.vcx.mk_eq_expr(
+                        cond_ty_out.expect_native().snap_to_prim.call()(cond_expr),
+                        cond_ty_out
+                            .expr_from_bits(cond_ty, if *expected { 1 } else { 0 })
+                            .lift(),
+                    ),
+                    self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, ok_update),
+                    self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, None),
+                );
+
+                // assign tuple into a `phi` variable
+                let mut phi_idx = Version {
+                    index: self.phi_ctr,
+                    location,
+                    initialised: None,
+                };
+                phi_idx.initialised = Some(
+                    self.vcx
+                        .mk_local_decl(self.mk_phi(phi_idx), tuple_ref.snapshot()),
+                );
+                self.phi_ctr += 1;
+                let mut phi_update = Update::new();
+                phi_update.binds.push(UpdateBind::Phi(phi_idx, phi_expr));
+
+                // update locals by destructuring `phi` variable
+                // TODO: maybe this is unnecessary, we could instead use tuple
+                //   access directly instead of the locals going forward?
+                for (elem_idx, local) in mod_locals.iter().enumerate() {
+                    let ty = self.get_ty_for_local(*local);
+                    let expr = self.mk_phi_acc(&tuple_ref, phi_idx, elem_idx, ty);
+                    self.bump_version(&mut phi_update, *local, expr, location);
+                    new_curr_ver.insert(*local, phi_update.versions[local]);
+                }
+
+                Ok(stmt_update.merge(Some(phi_update)))
             }
 
             mir::TerminatorKind::Return => Ok(Some(stmt_update)),
