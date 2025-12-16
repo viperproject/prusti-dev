@@ -7,6 +7,7 @@ use crate::encoders::{
         generics::GParams,
         interpretation::real::TyRealLocal,
         use_pure::{TyUsePure, TyUsePureEnc},
+        pure::TyPureRawPtrData
     },
 };
 use pcg::utils::Place;
@@ -27,6 +28,8 @@ use prusti_rustc_interface::{
 };
 use rustc_hash::FxHashMap;
 use std::fmt;
+use prusti_rustc_interface::middle::mir::Mutability;
+use std::{collections::HashMap, fmt};
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, CompType, add_debug_note};
 
@@ -1137,6 +1140,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             RealLe,
             RealGt,
             RealGe,
+            Acc,
         }
 
         let item_name = self.vcx.tcx().item_name(def_id);
@@ -1198,6 +1202,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             (Some("prusti_contracts::Real"), "le") => PrustiBuiltin::RealLe,
             (Some("prusti_contracts::Real"), "gt") => PrustiBuiltin::RealGt,
             (Some("prusti_contracts::Real"), "ge") => PrustiBuiltin::RealGe,
+            (None, "acc") => PrustiBuiltin::Acc,
             (_, other) => panic!("illegal prusti::builtin ({other})"),
         };
 
@@ -1475,6 +1480,15 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         .mk_unary_op_expr(vir::UnOpKind::Neg, real_val.upcast_ty())
                         .downcast_ty(),
                 )
+            PrustiBuiltin::Acc => {
+                let rawptr = self.ty_use(self.vcx.tcx().mk_ty_from_kind(ty::TyKind::RawPtr(self.vcx.tcx().types.u32,// TODO change 
+                    Mutability::Mut, // TODO change
+))).expect_rawptr();
+                let rawptr_val = self
+                    .encode_operand_snap(&args[0].node, curr_ver)?;
+                let derefed = rawptr.deref_access(rawptr_val.downcast_ty());
+                let inner_ty = self.deps.require_dep::<TyUseImpureEnc>(RustTyDecomposition::from_ty(arg_tys[0].expect_ty(), self.vcx.tcx(), GParams::empty())).unwrap();
+                mk_bool(inner_ty.ref_to_pred(self.vcx, derefed, None))
             }
         }
         .upcast_ty())

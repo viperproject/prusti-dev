@@ -37,6 +37,7 @@ impl<'vir> TyDatas<'vir> for PureTyDatas {
     type VariantData = TyPureVariantData<'vir>;
     type EnumData = TyPureEnumData<'vir>;
     type BuiltinData = TyPureBuiltinData<'vir>;
+    type RawPtrData = TyPureRawPtrData<'vir>;
 }
 
 pub type TyPure<'vir> = Ty<'vir, PureTyDatas>;
@@ -46,6 +47,7 @@ pub type TyPurePrimitive<'vir> = <PureTyDatas as TyDatas<'vir>>::PrimitiveData;
 pub type TyPureImmRef<'vir> = <PureTyDatas as TyDatas<'vir>>::ImmRefData;
 pub type TyPureMutRef<'vir> = <PureTyDatas as TyDatas<'vir>>::MutRefData;
 pub type TyPureBuiltin<'vir> = <PureTyDatas as TyDatas<'vir>>::BuiltinData;
+pub type TyPureRawPtr<'vir> = <PureTyDatas as TyDatas<'vir>>::RawPtrData;
 
 #[derive(Debug, Clone, Copy)]
 pub enum TyPureBuiltinData<'vir> {
@@ -170,6 +172,14 @@ pub struct TyPureVariantData<'vir> {
     pub discr: vir::ExprCSnap<'vir>,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct TyPureRawPtrData<'vir> {
+    /// Construct domain from a `RawPtr` value.
+    pub(super) prim_to_snap: FunctionIdn<'vir, vir::Ref, vir::CSnap>,
+    /// Function to access the referee.
+    pub(super) deref_access: AdtDestructor<'vir, vir::CSnap, vir::Ref>,
+}
+
 /// You probably never want to use this, use `TyUsePureEnc` instead.
 /// Note: there should never be a dependency on `TyImpureEnc` inside this
 /// encoder!
@@ -278,6 +288,10 @@ impl TaskEncoder for TyPureEnc {
                 TySpecifics::Builtin(builtin) => {
                     let builder = builder.set_adt_builder();
                     TySpecifics::Builtin(super::kinds::builtin::ty_pure(builtin, builder)?)
+                }
+                TySpecifics::RawPtr(rawptr) => {
+                    let builder = builder.set_adt_builder();
+                    TySpecifics::RawPtr(super::kinds::rawptr::ty_pure(rawptr, deps, builder)?)
                 }
             };
             let output = TyData::new(output_ref, specifics).alloc();

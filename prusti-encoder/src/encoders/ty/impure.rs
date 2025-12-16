@@ -25,6 +25,7 @@ impl<'vir> TyDatas<'vir> for ImpureTyDatas {
     type VariantData = TyImpureVariantData<'vir>;
     type EnumData = TyImpureEnumData<'vir>;
     type BuiltinData = ();
+    type RawPtrData = TyImpureRawPtrData<'vir>;
 }
 
 pub type TyImpure<'vir> = Ty<'vir, ImpureTyDatas>;
@@ -34,6 +35,7 @@ pub type TyImpurePrimitive<'vir> = <ImpureTyDatas as TyDatas<'vir>>::PrimitiveDa
 pub type TyImpureImmRef<'vir> = <ImpureTyDatas as TyDatas<'vir>>::ImmRefData;
 pub type TyImpureMutRef<'vir> = <ImpureTyDatas as TyDatas<'vir>>::MutRefData;
 pub type TyImpureBuiltin<'vir> = <ImpureTyDatas as TyDatas<'vir>>::BuiltinData;
+pub type TyImpureRawPtr<'vir> = <ImpureTyDatas as TyDatas<'vir>>::RawPtrData;
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyImpureImmRefData {}
@@ -73,6 +75,11 @@ pub struct TyImpureEnumData<'vir> {
 #[derive(Debug, Clone, Copy)]
 pub struct TyImpureVariantData<'vir> {
     pub predicate: PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct TyImpureRawPtrData<'vir> {
+    pub deref_func: vir::FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Ref>,
 }
 
 /// You probably never want to use this, use `TyUseImpureEnc` instead.
@@ -187,9 +194,16 @@ impl TaskEncoder for TyImpureEnc {
                 TySpecifics::EnumLike(enumlike) => TySpecifics::EnumLike(
                     super::kinds::enumlike::ty_impure(&ty, enumlike, deps, &mut builder)?,
                 ),
-                TySpecifics::Builtin(builtin) => TySpecifics::Builtin(
-                    super::kinds::builtin::ty_impure(builtin, deps, &mut builder)?,
-                ),
+                TySpecifics::Builtin((_, TyPureBuiltinData::TyPureBuiltinReal(..))) => {
+                    TySpecifics::Builtin(super::interpretation::real::ty_impure(
+                        (),
+                        deps,
+                        &mut builder,
+                    )?)
+                },
+                TySpecifics::RawPtr(rawptr) => TySpecifics::RawPtr(
+                    super::kinds::rawptr::ty_impure(rawptr, deps, &mut builder)?,
+                )
             };
             let output = TyData::new(data, specifics).alloc();
 

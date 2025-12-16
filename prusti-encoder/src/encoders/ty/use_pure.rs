@@ -33,6 +33,7 @@ impl<'vir> TyDatas<'vir> for UsePureTyDatas {
     type VariantData = <PureTyDatas as TyDatas<'vir>>::VariantData;
     type EnumData = <PureTyDatas as TyDatas<'vir>>::EnumData;
     type BuiltinData = <PureTyDatas as TyDatas<'vir>>::BuiltinData;
+    type RawPtrData = TyUsePureRawPtr<'vir>;
 }
 
 pub type TyUsePure<'vir> = Ty<'vir, UsePureTyDatas>;
@@ -73,6 +74,11 @@ pub struct TyUsePureStructData<'vir> {
     #[allow(dead_code)]
     args: GArgsTy<'vir>,
     pure: <PureTyDatas as TyDatas<'vir>>::StructData,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct TyUsePureRawPtr<'vir> {
+    pure: <PureTyDatas as TyDatas<'vir>>::RawPtrData,
 }
 
 /// Encodes a type into the snapshot representation. Takes an arbitrary Rust
@@ -184,6 +190,11 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
                 TySpecifics::EnumLike(self.encode_enumlike(data, ty.0.params))
             }
             TySpecifics::Builtin(data) => TySpecifics::mk_builtin(*data.1),
+            TySpecifics::RawPtr(data) => {
+                TySpecifics::mk_rawptr(TyUsePureRawPtr {
+                    pure: *data.1,
+                })
+            }
         }
     }
 
@@ -355,6 +366,22 @@ impl<'vir> TyUsePureArray<'vir> {
             self.args.get_ty(),
             self.args.get_const(),
         )
+    }
+}
+
+impl<'vir> TyUsePureRawPtr<'vir> {
+    pub fn prim_to_snap<Curr, Next>(
+        &self,
+        ref_: vir::ExprGenRef<'vir, Curr, Next>,
+    ) -> vir::ExprGenCSnap<'vir, Curr, Next> {
+        self.pure.prim_to_snap.call()(ref_)
+    }
+
+    pub fn deref_access<Curr, Next>(
+        &self,
+        snap: vir::ExprGenCSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenRef<'vir, Curr, Next> {
+        self.pure.deref_access.call()(snap)
     }
 }
 

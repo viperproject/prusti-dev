@@ -194,6 +194,7 @@ impl TaskEncoder for MirSpecEnc {
                 .pres
                 .iter()
                 .map(|spec_def_id| {
+                    println!("{:?}", spec_def_id);
                     let expr = deps
                         .require_dep::<crate::encoders::MirPureEnc>(
                             crate::encoders::MirPureEncTask {

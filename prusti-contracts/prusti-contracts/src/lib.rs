@@ -562,4 +562,10 @@ pub fn slice_len<T>(_: &[T]) -> usize {
     0
 }
 
+/// Access to raw pointers
+#[cfg(feature = "prusti")]
+pub fn acc<T>(ptr: *mut T) -> bool {
+    true
+}
+
 pub use private::*;

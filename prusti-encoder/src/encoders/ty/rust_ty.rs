@@ -220,6 +220,7 @@ impl<'tcx> TyDatas<'tcx> for RustTyDatas {
     type EnumData = RustEnumData<'tcx>;
     type VariantData = RustVariantData;
     type BuiltinData = RustBuiltinData;
+    type RawPtrData = LazyRustTy<'tcx>;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -238,6 +239,7 @@ pub type RustPrimitive<'tcx> = <RustTyDatas as TyDatas<'tcx>>::PrimitiveData;
 pub type RustImmRef<'tcx> = <RustTyDatas as TyDatas<'tcx>>::ImmRefData;
 pub type RustMutRef<'tcx> = <RustTyDatas as TyDatas<'tcx>>::MutRefData;
 pub type RustBuiltin<'tcx> = <RustTyDatas as TyDatas<'tcx>>::BuiltinData;
+pub type RustRawPtr<'tcx> = <RustTyDatas as TyDatas<'tcx>>::RawPtrData;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RustTyData<'tcx> {
@@ -513,11 +515,10 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
                     TySpecifics::mk_immref(LazyRustTy(TySpecifics::new_param_ty(1)))
                 }
             },
-            // TODO: add raw pointer support
-            ty::TyKind::RawPtr(..) => TySpecifics::mk_opaque(()),
-            ty::TyKind::Alias(..) | ty::TyKind::Param(_) => {
-                TySpecifics::mk_param(RustParamData::Generic)
-            }
+            ty::TyKind::RawPtr(..) => {
+                TySpecifics::mk_rawptr(LazyRustTy(TySpecifics::new_param_ty(1)))
+            },
+            ty::TyKind::Alias(..) | ty::TyKind::Param(_) => TySpecifics::mk_param(RustParamData::Generic),
             ty::TyKind::Closure(_, args) => {
                 let captured = args.as_closure().upvar_tys();
                 let fields = vir::with_vcx(|vcx| {
