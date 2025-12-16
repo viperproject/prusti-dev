@@ -860,6 +860,13 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         .upcast_ty())
                 }
             }
+            mir::Rvalue::RawPtr(_, place) => {
+                let rvalue_snapshot_encoding = self.ty_use(rvalue_ty);
+                let (_, place_ref) = self.encode_place_with_ref(curr_ver, (*place).into());
+                let e_rvalue_ty = rvalue_snapshot_encoding.expect_rawptr();
+                let place_ref = place_ref.unwrap_or_else(|| self.vcx.mk_null().lazy());
+                Ok(e_rvalue_ty.prim_to_snap(place_ref).upcast_ty())
+            }
             mir::Rvalue::BinaryOp(op, box (l, r)) => {
                 self.encode_binop_snap(rvalue_ty, *op, l, r, curr_ver)
             }
