@@ -1,6 +1,6 @@
 use prusti_interface::specs::typed::ExternSpecKind;
 use prusti_rustc_interface::{
-    middle::ty,
+    middle::{ty, ty::TyKind},
     span::{def_id::DefId, symbol},
 };
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
@@ -8,7 +8,12 @@ use vir::{CastType, HasType};
 
 use crate::encoders::{
     TyUsePureEnc,
-    ty::{RustTyDecomposition, data::TySpecifics, generics::GArgsTyEnc, lifted::TyConstructorEnc},
+    ty::{
+        RustTyDecomposition,
+        data::TySpecifics,
+        generics::{GArgsTyEnc, GParamVariant, traits::TraitEnc},
+        lifted::TyConstructorEnc,
+    },
 };
 
 /// The list of defined parameters in a given context. E.g. the type parameters
@@ -176,7 +181,6 @@ impl<'vir> From<DefId> for GParams<'vir> {
 /// `fn foo<T, U>(x: U)` into the Viper `method foo(x: Ref, T: Type, U: Type)`
 /// (handles the type parameters).
 pub struct GenericParamsEnc;
-
 #[derive(Debug, Clone)]
 pub struct GenericParams<'vir> {
     ty_args: &'vir [vir::TypeTyVal<'vir>],
@@ -250,7 +254,26 @@ impl<'vir> GenericParams<'vir> {
     ) -> vir::ExprTyVal<'vir> {
         if let TySpecifics::Param(()) = &ty.ty.specifics {
             let param = ty.args.expect_param();
-            return self.ty_exprs[self.map_idx(param.index).unwrap()];
+            return match param {
+                GParamVariant::Param(p) => self.ty_exprs[self.map_idx(p.index).unwrap()],
+                GParamVariant::Alias(a) => vir::with_vcx(|vcx| {
+                    let tcx = vcx.tcx();
+                    let trait_did = tcx.associated_item(a.def_id).container_id(tcx);
+                    let trait_data = deps.require_dep::<TraitEnc>(trait_did).unwrap();
+                    let tys = &a
+                        .args
+                        .iter()
+                        .map(|arg| match arg.expect_ty().kind() {
+                            TyKind::Param(p) => self.ty_exprs[self.map_idx(p.index).unwrap()],
+                            _ => self.ty_expr(
+                                deps,
+                                RustTyDecomposition::from_ty(arg.expect_ty(), tcx, ty.args.context),
+                            ),
+                        })
+                        .collect::<Vec<_>>();
+                    (trait_data.type_did_fun_mapping.get(&a.def_id).unwrap())(tys)
+                }),
+            };
         }
         let ty_constructor = deps
             .require_ref::<TyConstructorEnc>(ty.ty)

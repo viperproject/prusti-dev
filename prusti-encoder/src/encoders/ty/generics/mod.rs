@@ -3,6 +3,8 @@ mod params;
 mod casters;
 mod args_ty;
 mod args;
+pub mod traits;
+pub mod trait_impls;
 
 pub use args::*;
 pub use args_ty::*;

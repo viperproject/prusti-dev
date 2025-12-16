@@ -10,6 +10,11 @@ pub struct GArgs<'tcx> {
     pub(super) args: &'tcx [ty::GenericArg<'tcx>],
 }
 
+pub enum GParamVariant<'tcx> {
+    Param(ty::ParamTy),
+    Alias(ty::AliasTy<'tcx>),
+}
+
 impl<'tcx> GArgs<'tcx> {
     pub fn new(context: impl Into<GParams<'tcx>>, args: &'tcx [ty::GenericArg<'tcx>]) -> Self {
         GArgs {
@@ -34,12 +39,11 @@ impl<'tcx> GArgs<'tcx> {
         self.context.normalize(ty)
     }
 
-    pub fn expect_param(self) -> ty::ParamTy {
+    pub fn expect_param(self) -> GParamVariant<'tcx> {
         assert_eq!(self.args.len(), 1);
         match self.args[0].expect_ty().kind() {
-            ty::TyKind::Param(p) => *p,
-            // TODO: this needs to be changed to support type aliases
-            ty::TyKind::Alias(..) => panic!("type aliases are not currently supported"),
+            ty::TyKind::Param(p) => GParamVariant::Param(*p),
+            ty::TyKind::Alias(_k, t) => GParamVariant::Alias(*t),
             other => panic!("expected type parameter, {other:?}"),
         }
     }
