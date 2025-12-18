@@ -7,7 +7,7 @@ fn foo() {
     let p_r_x_2 = &raw mut r_x;
     bar(p_r_x_2);
     unsafe {
-        assert!(**p_r_x_2 == 5); //should fail
+        assert!(**p_r_x == 5); //should fail
     }
 }
 
