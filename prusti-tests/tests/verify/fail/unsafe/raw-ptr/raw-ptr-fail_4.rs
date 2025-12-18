@@ -5,7 +5,7 @@ fn foo() {
     let mut p_x = &raw mut x;
     let p_p_x = &raw mut p_x;
     bar(p_p_x);
-    assert!(x == 5);
+    assert!(x == 5); // should fail
 }
 
 #[requires(acc(x))]

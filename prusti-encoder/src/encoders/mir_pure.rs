@@ -1576,7 +1576,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             PrustiBuiltin::Acc => {
                 let rawptr = self
                     .ty_use(self.vcx.tcx().mk_ty_from_kind(ty::TyKind::RawPtr(
-                        self.vcx.tcx().types.u32, // TODO change
+                        arg_tys[0].expect_ty(),
                         Mutability::Mut,          // TODO change
                     )))
                     .expect_rawptr();
