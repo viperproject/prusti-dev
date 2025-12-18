@@ -23,7 +23,7 @@ pub struct RustTyDecomposition<'tcx> {
 }
 
 impl<'tcx, Ctxt: Copy> HasRegions<'tcx, Ctxt> for RustTyDecomposition<'tcx> {
-    fn regions(&self, _ctxt: Ctxt) -> IndexVec<RegionIdx, PcgRegion<'tcx>> {
+    fn regions(&self, _ctxt: Ctxt) -> IndexVec<RegionIdx, PcgRegion> {
         self.args
             .args()
             .iter()

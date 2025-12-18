@@ -203,7 +203,7 @@ impl TaskEncoder for TyImpureEnc {
                 },
                 TySpecifics::RawPtr(rawptr) => TySpecifics::RawPtr(
                     super::kinds::rawptr::ty_impure(rawptr, deps, &mut builder)?,
-                )
+                ),
             };
             let output = TyData::new(data, specifics).alloc();
 

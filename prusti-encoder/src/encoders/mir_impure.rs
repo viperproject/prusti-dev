@@ -466,13 +466,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
             mir::Rvalue::RawPtr(_, place) => {
                 let e_rvalue_ty = self.ty_use_pure(rvalue_ty);
-                        let (place_expr, ..) =
-                            self.encode_place_with_snap(Place::from(*place));
+                let (place_expr, ..) = self.encode_place_with_snap(Place::from(*place));
 
-                        let inner = e_rvalue_ty.expect_rawptr();
-                        Ok(inner
-                            .prim_to_snap(place_expr.expr.expect_predicate())
-                            .upcast_ty())
+                let inner = e_rvalue_ty.expect_rawptr();
+                Ok(inner
+                    .prim_to_snap(place_expr.expr.expect_predicate())
+                    .upcast_ty())
             }
 
             _ => Err(EncodeRvalueError::UnsupportedRvalue),

@@ -16,6 +16,13 @@ use crate::encoders::{
     MirLocalDefEncTask, MirPureEnc,
     mir_pure::{ExprInput, PureKind},
     ty::{RustTyDecomposition, generics::GParams, use_pure::TyUsePureEnc},
+    MirLocalDefEncTask,
+    MirPureEnc,
+    mir_pure::{
+        MirPureEncOutput::{MirPureEncOutputExpr, MirPureEncOutputPred},
+        PureKind,
+    },
+    ty::{RustTyDecomposition, use_pure::TyUsePureEnc},
 };
 pub struct MirSpecEnc;
 
@@ -194,7 +201,7 @@ impl TaskEncoder for MirSpecEnc {
                 .pres
                 .iter()
                 .map(|spec_def_id| {
-                    let expr = deps
+                    match deps
                         .require_dep::<crate::encoders::MirPureEnc>(
                             crate::encoders::MirPureEncTask {
                                 encoding_depth: 0,
@@ -207,11 +214,14 @@ impl TaskEncoder for MirSpecEnc {
                             },
                         )
                         .unwrap()
-                        .expr
-                        .downcast_ty();
-                    let expr = expr.reify(vcx, (*spec_def_id, pre_args));
-                    let span = vcx.tcx().def_span(spec_def_id);
-                    vcx.with_span(span, |_| to_bool(expr).downcast_ty())
+                    {
+                        MirPureEncOutputExpr(expr) => {
+                            let expr = expr.downcast_ty().reify(vcx, (*spec_def_id, pre_args));
+                            let span = vcx.tcx().def_span(spec_def_id);
+                            vcx.with_span(span, |_| to_bool(expr).downcast_ty())
+                        }
+                        MirPureEncOutputPred(pred) => pred.reify(vcx, (*spec_def_id, pre_args)),
+                    }
                 })
                 .collect::<Vec<vir::ExprBool<'_>>>();
 
@@ -238,7 +248,7 @@ impl TaskEncoder for MirSpecEnc {
                                 span.into(),
                             )])
                         });
-                        let expr = deps
+                        match deps
                             .require_dep::<crate::encoders::MirPureEnc>(
                                 crate::encoders::MirPureEncTask {
                                     encoding_depth: 0,
@@ -249,11 +259,18 @@ impl TaskEncoder for MirSpecEnc {
                                     // TODO: should this be `def_id` or `caller_def_id`
                                     caller_def_id: Some(context_def_id),
                                 },
-                            )?
-                            .expr
-                            .downcast_ty();
-                        let expr = expr.reify(vcx, (*spec_def_id, post_args));
-                        Ok(to_bool(expr).downcast_ty())
+                            )
+                            .unwrap()
+                        {
+                            MirPureEncOutputExpr(expr) => {
+                                let expr = expr.reify(vcx, (*spec_def_id, post_args));
+                                Ok(to_bool(expr.downcast_ty()).downcast_ty())
+                            }
+                            MirPureEncOutputPred(pred) => {
+                                let expr = pred.reify(vcx, (*spec_def_id, post_args));
+                                Ok(expr)
+                            }
+                        }
                     })
                 })
                 .collect::<Result<Vec<vir::ExprBool<'_>>, _>>()?;
@@ -296,7 +313,7 @@ impl TaskEncoder for MirSpecEnc {
                                 },
                             )
                             .unwrap()
-                            .expr
+                            .expect_expr()
                             .downcast_ty();
                         let lhs_expr = lhs_expr.map(|lhs_expr| {
                             PledgeExpr::new(

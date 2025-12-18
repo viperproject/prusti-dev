@@ -377,7 +377,7 @@ impl<'vir> TyData<'vir, UseImpureTyDatas> {
             TySpecifics::EnumLike(..) => {
                 let pred_app = self.ref_to_pred_app(self_ref, perm);
                 vec![vir::with_vcx(|vcx| vcx.mk_fold_stmt(pred_app))]
-            },
+            }
             TySpecifics::RawPtr(_) => Vec::new(),
         }
     }
@@ -429,7 +429,7 @@ impl<'vir> TyData<'vir, UseImpureTyDatas> {
             TySpecifics::EnumLike(..) => {
                 let pred_app = self.ref_to_pred_app(self_ref, perm);
                 vec![vir::with_vcx(|vcx| vcx.mk_unfold_stmt(pred_app))]
-            },
+            }
             TySpecifics::RawPtr(_) => Vec::new(),
         }
     }

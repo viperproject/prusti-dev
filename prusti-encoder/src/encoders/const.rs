@@ -362,7 +362,7 @@ impl TaskEncoder for ConstEnc {
                             kind: PureKind::Constant(promoted),
                             caller_def_id: Some(def_id),
                         };
-                        let expr = deps.require_dep::<MirPureEnc>(task)?.expr;
+                        let expr = deps.require_dep::<MirPureEnc>(task)?.expect_expr();
                         use vir::Reify;
                         Ok((Vec::new(), expr.reify(vcx, (uneval.def, &[])).downcast_ty()))
                     } else {

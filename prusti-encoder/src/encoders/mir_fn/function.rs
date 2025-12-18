@@ -203,7 +203,7 @@ impl TaskEncoder for FunctionEnc {
                         substs,
                         caller_def_id: None,
                     })?
-                    .expr;
+                    .expect_expr();
                 let expr = expr.reify(vcx, (def_id, spec.pre_args));
                 assert!(
                     expr.ty() == return_type,

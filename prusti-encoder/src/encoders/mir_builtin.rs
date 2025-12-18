@@ -492,90 +492,88 @@ impl MirBuiltinEnc {
         l_ty: ty::Ty<'vir>,
         r_ty: ty::Ty<'vir>,
     ) -> Result<vir::Function<'vir>, EncodeFullError<'vir, Self>> {
-        if let ty::TyKind::RawPtr(_, _) = l_ty.kind() && let ty::TyKind::RawPtr(_, _) = r_ty.kind() {
+        if let ty::TyKind::RawPtr(_, _) = l_ty.kind()
+            && let ty::TyKind::RawPtr(_, _) = r_ty.kind()
+        {
             // TODO other operations
-                vir::with_vcx(|vcx| {
-                    let l_ty_task = RustTyDecomposition::from_ty(l_ty, vcx.tcx(), GParams::empty()); // TODO: Is this really correct
-                    let r_ty_task = RustTyDecomposition::from_ty(r_ty, vcx.tcx(), GParams::empty());
-                    let res_ty_task = RustTyDecomposition::from_prim_ty(res_ty);
-                    let e_l_ty = deps.require_dep::<TyUsePureEnc>(l_ty_task)?;
-                    let e_r_ty = deps.require_dep::<TyUsePureEnc>(r_ty_task)?;
-                    let e_l_ty_snap = e_l_ty.snapshot.downcast_ty();
-                    let e_r_ty_snap = e_r_ty.snapshot.downcast_ty();
-                    let e_res_ty = deps.require_dep::<TyUsePureEnc>(res_ty_task)?;
-                    let name = vir::vir_format_identifier!(
-            vcx,
-            "mir_binop_{op:?}_RawPtr_RawPtr",
-        );
-                    let function: FunctionIdn<'_, (vir::CSnap, vir::CSnap), vir::CSnap> = FunctionIdn::new(name, (e_l_ty_snap, e_r_ty_snap), e_res_ty.snapshot.downcast_ty());
-                    deps.emit_output_ref(key, MirBuiltinEncOutputRef::BinOp(function))?;
-                    let lhs_decl = vcx.mk_local_decl("arg1", e_l_ty_snap);
-                    let rhs_decl = vcx.mk_local_decl("arg2", e_r_ty_snap);
-                    let lhs = vcx.mk_local_ex(lhs_decl);
-                    let rhs = vcx.mk_local_ex(rhs_decl);
-                    let lhs = e_l_ty.expect_rawptr().deref_access(lhs);
-                    let rhs = e_r_ty.expect_rawptr().deref_access(rhs);
-                    let val = vcx.mk_eq_expr(lhs, rhs).upcast_ty();
-                    
-        let val = (e_res_ty.expect_primitive().prim_to_snap)(val);
-        
-                    Ok(vcx.mk_function(
-                    function,
-                    (lhs_decl, rhs_decl),
-                    &[],
-                    &[],
-                    None,
-                    Some(val),
-                ))
-                })
-        } else {
-        let l_ty_task = RustTyDecomposition::from_prim_ty(l_ty);
-        let e_l_ty = deps.require_dep::<TyUsePureEnc>(l_ty_task)?;
-        let r_ty_task = RustTyDecomposition::from_prim_ty(r_ty);
-        let e_r_ty = deps.require_dep::<TyUsePureEnc>(r_ty_task)?;
-        let res_ty_task = RustTyDecomposition::from_prim_ty(res_ty);
-        let e_res_ty = deps.require_dep::<TyUsePureEnc>(res_ty_task)?;
-        let prim_l_ty = e_l_ty.expect_primitive();
-        let prim_r_ty = e_r_ty.expect_primitive();
-        let prim_res_ty = e_res_ty.expect_primitive();
-        let e_l_ty_snap = e_l_ty.snapshot.downcast_ty();
-        let e_r_ty_snap = e_r_ty.snapshot.downcast_ty();
-        let e_res_ty_snap = e_res_ty.snapshot.downcast_ty();
+            vir::with_vcx(|vcx| {
+                let l_ty_task = RustTyDecomposition::from_ty(l_ty, vcx.tcx(), GParams::empty()); // TODO: Is this really correct
+                let r_ty_task = RustTyDecomposition::from_ty(r_ty, vcx.tcx(), GParams::empty());
+                let res_ty_task = RustTyDecomposition::from_prim_ty(res_ty);
+                let e_l_ty = deps.require_dep::<TyUsePureEnc>(l_ty_task)?;
+                let e_r_ty = deps.require_dep::<TyUsePureEnc>(r_ty_task)?;
+                let e_l_ty_snap = e_l_ty.snapshot.downcast_ty();
+                let e_r_ty_snap = e_r_ty.snapshot.downcast_ty();
+                let e_res_ty = deps.require_dep::<TyUsePureEnc>(res_ty_task)?;
+                let name = vir::vir_format_identifier!(vcx, "mir_binop_{op:?}_RawPtr_RawPtr",);
+                let function: FunctionIdn<'_, (vir::CSnap, vir::CSnap), vir::CSnap> =
+                    FunctionIdn::new(
+                        name,
+                        (e_l_ty_snap, e_r_ty_snap),
+                        e_res_ty.snapshot.downcast_ty(),
+                    );
+                deps.emit_output_ref(key, MirBuiltinEncOutputRef::BinOp(function))?;
+                let lhs_decl = vcx.mk_local_decl("arg1", e_l_ty_snap);
+                let rhs_decl = vcx.mk_local_decl("arg2", e_r_ty_snap);
+                let lhs = vcx.mk_local_ex(lhs_decl);
+                let rhs = vcx.mk_local_ex(rhs_decl);
+                let lhs = e_l_ty.expect_rawptr().deref_access(lhs);
+                let rhs = e_r_ty.expect_rawptr().deref_access(rhs);
+                let val = vcx.mk_eq_expr(lhs, rhs).upcast_ty();
 
-        let name = vir::vir_format_identifier!(
-            vcx,
-            "mir_binop_{op:?}_{}_{}",
-            int_name(l_ty),
-            int_name(r_ty)
-        );
-        let function = FunctionIdn::new(name, (e_l_ty_snap, e_r_ty_snap), e_res_ty_snap);
-        deps.emit_output_ref(key, MirBuiltinEncOutputRef::BinOp(function))?;
-        let lhs_decl = vcx.mk_local_decl("arg1", e_l_ty_snap);
-        let rhs_decl = vcx.mk_local_decl("arg2", e_r_ty_snap);
-        let lhs = vcx.mk_local_ex(lhs_decl);
-        let rhs = vcx.mk_local_ex(rhs_decl);
-        match prim_l_ty.kind {
-            TyPurePrimDataKind::Native(prim_l_ty) => {
-                let lhs = (prim_l_ty.snap_to_prim)(lhs);
-                let rhs = (prim_r_ty.expect_native().snap_to_prim)(rhs);
-                let (pres, val) = Self::handle_bin_op_native(vcx, lhs, rhs, res_ty, op, l_ty, r_ty);
-                let val = (prim_res_ty.prim_to_snap)(val);
-                Ok(vcx.mk_function(
-                    function,
-                    (lhs_decl, rhs_decl),
-                    vcx.alloc_slice(&pres),
-                    &[],
-                    None,
-                    Some(val),
-                ))
-            }
-            TyPurePrimDataKind::Float(float) => {
-                assert!(matches!(prim_r_ty.kind, TyPurePrimDataKind::Float(_)));
-                let body = Self::handle_bin_op_float(vcx, lhs, rhs, op, float, *prim_res_ty);
-                Ok(vcx.mk_function(function, (lhs_decl, rhs_decl), &[], &[], None, Some(body)))
+                let val = (e_res_ty.expect_primitive().prim_to_snap)(val);
+
+                Ok(vcx.mk_function(function, (lhs_decl, rhs_decl), &[], &[], None, Some(val)))
+            })
+        } else {
+            let l_ty_task = RustTyDecomposition::from_prim_ty(l_ty);
+            let e_l_ty = deps.require_dep::<TyUsePureEnc>(l_ty_task)?;
+            let r_ty_task = RustTyDecomposition::from_prim_ty(r_ty);
+            let e_r_ty = deps.require_dep::<TyUsePureEnc>(r_ty_task)?;
+            let res_ty_task = RustTyDecomposition::from_prim_ty(res_ty);
+            let e_res_ty = deps.require_dep::<TyUsePureEnc>(res_ty_task)?;
+            let prim_l_ty = e_l_ty.expect_primitive();
+            let prim_r_ty = e_r_ty.expect_primitive();
+            let prim_res_ty = e_res_ty.expect_primitive();
+            let e_l_ty_snap = e_l_ty.snapshot.downcast_ty();
+            let e_r_ty_snap = e_r_ty.snapshot.downcast_ty();
+            let e_res_ty_snap = e_res_ty.snapshot.downcast_ty();
+
+            let name = vir::vir_format_identifier!(
+                vcx,
+                "mir_binop_{op:?}_{}_{}",
+                int_name(l_ty),
+                int_name(r_ty)
+            );
+            let function = FunctionIdn::new(name, (e_l_ty_snap, e_r_ty_snap), e_res_ty_snap);
+            deps.emit_output_ref(key, MirBuiltinEncOutputRef::BinOp(function))?;
+            let lhs_decl = vcx.mk_local_decl("arg1", e_l_ty_snap);
+            let rhs_decl = vcx.mk_local_decl("arg2", e_r_ty_snap);
+            let lhs = vcx.mk_local_ex(lhs_decl);
+            let rhs = vcx.mk_local_ex(rhs_decl);
+            match prim_l_ty.kind {
+                TyPurePrimDataKind::Native(prim_l_ty) => {
+                    let lhs = (prim_l_ty.snap_to_prim)(lhs);
+                    let rhs = (prim_r_ty.expect_native().snap_to_prim)(rhs);
+                    let (pres, val) =
+                        Self::handle_bin_op_native(vcx, lhs, rhs, res_ty, op, l_ty, r_ty);
+                    let val = (prim_res_ty.prim_to_snap)(val);
+                    Ok(vcx.mk_function(
+                        function,
+                        (lhs_decl, rhs_decl),
+                        vcx.alloc_slice(&pres),
+                        &[],
+                        None,
+                        Some(val),
+                    ))
+                }
+                TyPurePrimDataKind::Float(float) => {
+                    assert!(matches!(prim_r_ty.kind, TyPurePrimDataKind::Float(_)));
+                    let body = Self::handle_bin_op_float(vcx, lhs, rhs, op, float, *prim_res_ty);
+                    Ok(vcx.mk_function(function, (lhs_decl, rhs_decl), &[], &[], None, Some(body)))
+                }
             }
         }
-    }
     }
 
     fn handle_bin_op_native<'vir>(

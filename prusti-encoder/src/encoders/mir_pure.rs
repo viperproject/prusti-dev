@@ -23,6 +23,7 @@ use prusti_rustc_interface::{
     middle::{
         mir,
         ty::{self, Binder, FnSig, Region, TyKind},
+        mir::Mutability,
     },
     span::{Span, def_id::DefId, source_map::Spanned},
 };
@@ -55,10 +56,20 @@ type ExprRetRef<'vir> = vir::ExprGenRef<'vir, ExprInput<'vir>, vir::ExprKind<'vi
 type ExprRetAny<'vir, T> = vir::ExprGen<'vir, ExprInput<'vir>, vir::ExprKind<'vir>, T>;
 
 #[derive(Clone, Debug)]
-pub struct MirPureEncOutput<'vir> {
+pub enum MirPureEncOutput<'vir> {
     // TODO: is this a good place for argument types?
     //pub arg_tys: &'vir [Type<'vir>],
-    pub expr: ExprRet<'vir>,
+    MirPureEncOutputExpr(ExprRet<'vir>),
+    MirPureEncOutputPred(vir::ExprGenBool<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>),
+}
+
+impl<'vir> MirPureEncOutput<'vir> {
+    pub fn expect_expr(self) -> ExprRet<'vir> {
+        match self {
+            MirPureEncOutput::MirPureEncOutputExpr(expr) => expr,
+            _ => unreachable!(),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -145,31 +156,38 @@ impl TaskEncoder for MirPureEnc {
             let expr_inner = Enc::new(vcx, task_key.0, def_id, caller_def_id, kind, &body, deps)
                 .encode_body()?;
 
-            // We wrap the expression with an additional lazy that will perform
-            // some sanity checks. These requirements cannot be expressed using
-            // only the type system.
-            let ret = RustTyDecomposition::from_ty(body.return_ty(), def_id);
-            let expr = vcx.mk_lazy_expr(
-                vir::vir_format!(vcx, "pure body {def_id:?}"),
-                deps.require_ref::<TyUsePureEnc>(ret)?.snapshot,
-                Box::new(move |vcx, lctx: ExprInput<'_>| {
-                    // check: are we actually providing arguments for the
-                    //   correct `DefId`?
-                    assert_eq!(lctx.0, def_id);
+            match expr_inner {
+                MirPureEncOutput::MirPureEncOutputExpr(expr_inner) => {
+                    // We wrap the expression with an additional lazy that will perform
+                    // some sanity checks. These requirements cannot be expressed using
+                    // only the type system.
+                    let ret = RustTyDecomposition::from_ty(body.return_ty(),  def_id);
+                    let expr = vcx.mk_lazy_expr(
+                        vir::vir_format!(vcx, "pure body {def_id:?}"),
+                        deps.require_ref::<TyUsePureEnc>(ret)?.snapshot,
+                        Box::new(move |vcx, lctx: ExprInput<'_>| {
+                            // check: are we actually providing arguments for the
+                            //   correct `DefId`?
+                            assert_eq!(lctx.0, def_id);
 
-                    // check: are we providing the expected number of arguments?
-                    assert_eq!(lctx.1.len(), body.arg_count);
+                            // check: are we providing the expected number of arguments?
+                            assert_eq!(lctx.1.len(), body.arg_count);
 
-                    use vir::Reify;
-                    expr_inner.kind.reify(vcx, lctx)
-                }),
-            );
-            add_debug_note!(expr.debug_info, "Inner expr: {}", expr_inner.debug_info);
-            Ok(expr)
+                            use vir::Reify;
+                            expr_inner.kind.reify(vcx, lctx)
+                        }),
+                    );
+                    add_debug_note!(expr.debug_info, "Inner expr: {}", expr_inner.debug_info);
+                    Ok(MirPureEncOutput::MirPureEncOutputExpr(expr))
+                }
+                MirPureEncOutput::MirPureEncOutputPred(pred) => {
+                    Ok(MirPureEncOutput::MirPureEncOutputPred(pred))
+                }
+            }
         })?;
         tracing::debug!("finished {def_id:?}");
 
-        Ok(((), MirPureEncOutput { expr }))
+        Ok(((), expr))
     }
 }
 
@@ -309,6 +327,23 @@ impl<'vir: 'enc, 'enc> PureRvalueEnc<'vir> for Enc<'vir, 'enc> {
                 self.encode_constant_snap(constant)?.upcast_ty().lift()
             }
         })
+    }
+}
+
+enum EncodeCfgRes<'vir> {
+    EncodeCfgResUpdate(Update<'vir>),
+    EncodeCfgResPred(
+        vir::ExprGenBool<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>,
+        Option<Update<'vir>>,
+    ),
+}
+
+impl<'vir> EncodeCfgRes<'vir> {
+    fn expect_update(self) -> Update<'vir> {
+        match self {
+            EncodeCfgRes::EncodeCfgResUpdate(update) => update,
+            _ => unreachable!(),
+        }
     }
 }
 
@@ -478,7 +513,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             .unwrap_or_else(|| tuple_ref.mk_unreachable(self.vcx))
     }
 
-    fn encode_body(&mut self) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
+    fn encode_body(&mut self) -> Result<MirPureEncOutput<'vir>, EncodeFullError<'vir, MirPureEnc>> {
         let mut init = Update::new();
         let v0 = Version::default();
         // TODO: what about locals which never have StorageLive (i.e. always_live)?
@@ -495,14 +530,25 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
         let update = self.encode_cfg(&init.versions, mir::START_BLOCK, self.rev_doms.end)?;
 
-        // do we ever panic here? if yes, return the `unreachable_to_snap` expr.
-        let res = init
-            .merge(update)
-            .expect("function unconditionally terminates with unreachable");
-        let ret_version = res.versions.get(&mir::RETURN_PLACE).copied().unwrap_or(v0);
+        if let Some(EncodeCfgRes::EncodeCfgResPred(pred, update)) = update {
+            let res = init
+                .merge(update)
+                .expect("function unconditionally terminates with unreachable");
+            Ok(MirPureEncOutput::MirPureEncOutputPred(
+                self.reify_binds(res, pred),
+            ))
+        } else {
+            // do we ever panic here? if yes, return the `unreachable_to_snap` expr.
+            let res = init
+                .merge(update.map(|s| s.expect_update()))
+                .expect("function unconditionally terminates with unreachable");
+            let ret_version = res.versions.get(&mir::RETURN_PLACE).copied().unwrap_or(v0);
 
-        let ex = self.mk_local_ex(mir::RETURN_PLACE, ret_version);
-        Ok(self.reify_binds(res, ex))
+            let ex = self.mk_local_ex(mir::RETURN_PLACE, ret_version);
+            Ok(MirPureEncOutput::MirPureEncOutputExpr(
+                self.reify_binds(res, ex),
+            ))
+        }
     }
 
     fn encode_cfg(
@@ -510,11 +556,11 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         curr_ver: &FxHashMap<mir::Local, Version<'vir>>,
         curr: mir::BasicBlock,
         join_point: mir::BasicBlock,
-    ) -> Result<Option<Update<'vir>>, EncodeFullError<'vir, MirPureEnc>> {
+    ) -> Result<Option<EncodeCfgRes<'vir>>, EncodeFullError<'vir, MirPureEnc>> {
         if curr == join_point {
             // We are done with the current fragment of the CFG, the rest is
             // handled in a parent call.
-            return Ok(Some(Update::new()));
+            return Ok(Some(EncodeCfgRes::EncodeCfgResUpdate(Update::new())));
         }
 
         // walk block statements first
@@ -543,8 +589,12 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 ..
             }
             | &mir::TerminatorKind::Drop { target, .. } => {
-                let rest_update = self.encode_cfg(&new_curr_ver, target, join_point)?;
-                Ok(stmt_update.merge(rest_update))
+                let rest_update = self
+                    .encode_cfg(&new_curr_ver, target, join_point)?
+                    .map(|rest_encoded| rest_encoded.expect_update());
+                Ok(stmt_update
+                    .merge(rest_update)
+                    .map(EncodeCfgRes::EncodeCfgResUpdate))
             }
 
             mir::TerminatorKind::SwitchInt { discr, targets } => {
@@ -570,7 +620,16 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 // defined before the branch
                 let mut mod_locals = updates
                     .iter()
-                    .flat_map(|update| update.iter().flat_map(|v| v.versions.keys()))
+                    .flat_map(|update| {
+                        update.iter().flat_map(|v| {
+                            (match v {
+                                EncodeCfgRes::EncodeCfgResUpdate(update) => update,
+                                _ => unreachable!(),
+                            })
+                            .versions
+                            .keys()
+                        })
+                    })
                     .filter(|local| new_curr_ver.contains_key(local))
                     .copied()
                     .collect::<Vec<_>>();
@@ -586,7 +645,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .deps
                     .require_dep::<ViperTupleEnc>((self.def_id, mod_tys))
                     .unwrap();
-                let otherwise_update = updates.pop().unwrap();
+                let otherwise_update = updates.pop().unwrap().map(|s| s.expect_update());
                 let phi_expr = targets.iter().zip(updates).fold(
                     self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, otherwise_update),
                     |expr, ((cond_val, _target), branch_update)| {
@@ -599,7 +658,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                                 &tuple_ref,
                                 &mod_locals,
                                 &new_curr_ver,
-                                branch_update,
+                                branch_update.map(|s| s.expect_update()),
                             ),
                             expr,
                         )
@@ -631,8 +690,12 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 }
 
                 // walk `join` -> `end`
-                let end_update = self.encode_cfg(&new_curr_ver, new_join_point, join_point)?;
-                Ok(stmt_update.merge(phi_update.merge(end_update)))
+                let end_update = self
+                    .encode_cfg(&new_curr_ver, new_join_point, join_point)?
+                    .map(|s| s.expect_update());
+                Ok(stmt_update
+                    .merge(phi_update.merge(end_update))
+                    .map(EncodeCfgRes::EncodeCfgResUpdate))
             }
 
             // TODO: there is some code duplication between here and SwitchInt
@@ -712,7 +775,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 Ok(stmt_update.merge(Some(phi_update)))
             }
 
-            mir::TerminatorKind::Return => Ok(Some(stmt_update)),
+            mir::TerminatorKind::Return => Ok(Some(EncodeCfgRes::EncodeCfgResUpdate(stmt_update))),
 
             mir::TerminatorKind::Unreachable => {
                 // will result in generating an unreachable phi merge
@@ -773,21 +836,33 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             .iter()
                             .map(|arg| self.encode_operand_snap(&arg.node, &new_curr_ver))
                             .collect::<Result<Vec<_>, _>>()?;
-                        Ok(pure_func.call_pure(snap_args))
+                        Ok(MirPureEncOutput::MirPureEncOutputExpr(pure_func.call(snap_args)))
                     } else {
                         panic!("call to unknown non-pure function in pure code ({def_id:?})");
                     }
                 };
 
-                let mut term_update = Update::new();
-                assert!(destination.projection.is_empty());
-                self.bump_version(&mut term_update, destination.local, expr?, location);
-                term_update.add_to_map(&mut new_curr_ver);
+                match expr {
+                    MirPureEncOutput::MirPureEncOutputExpr(expr) => {
+                        let mut term_update = Update::new();
+                        assert!(destination.projection.is_empty());
+                        self.bump_version(&mut term_update, destination.local, expr?, location);
+                        term_update.add_to_map(&mut new_curr_ver);
 
-                // walk rest of CFG
-                let end_update = self.encode_cfg(&new_curr_ver, target, join_point)?;
+                        // walk rest of CFG
+                        let end_update = self
+                            .encode_cfg(&new_curr_ver, target, join_point)?
+                            .map(|s| s.expect_update());
 
-                Ok(stmt_update.merge_inner(term_update).merge(end_update))
+                        Ok(stmt_update
+                            .merge_inner(term_update)
+                            .merge(end_update)
+                            .map(EncodeCfgRes::EncodeCfgResUpdate))
+                    }
+                    MirPureEncOutput::MirPureEncOutputPred(pred) => Ok(Some(
+                        EncodeCfgRes::EncodeCfgResPred(pred, Some(stmt_update)),
+                    )),
+                }
             }
 
             k => todo!("terminator kind {k:?}"),
@@ -1123,8 +1198,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         _sig: Binder<'vir, FnSig<'vir>>,
         arg_tys: ty::GenericArgsRef<'vir>,
         args: &[Spanned<mir::Operand<'vir>>],
-        curr_ver: &FxHashMap<mir::Local, Version<'vir>>,
-    ) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
+        curr_ver: &HashMap<mir::Local, Version<'vir>>,
+    ) -> Result<MirPureEncOutput<'vir>, EncodeFullError<'vir, MirPureEnc>> {
         #[derive(Debug, PartialEq, Eq)]
         enum PrustiBuiltin {
             Forall,
@@ -1222,7 +1297,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 assert_eq!(args.len(), 2);
                 let lhs = self.encode_operand_snap(&args[0].node, curr_ver)?;
                 let rhs = self.encode_operand_snap(&args[1].node, curr_ver)?;
-                mk_bool(self.vcx.mk_eq_expr(lhs, rhs))
+                MirPureEncOutput::MirPureEncOutputExpr(
+                    bool.prim_to_snap.call()(self.vcx.mk_eq_expr(lhs, rhs).upcast_ty()).upcast_ty(),
+                )
             }
             PrustiBuiltin::Forall | PrustiBuiltin::Exists => {
                 assert_eq!(arg_tys.len(), 3);
@@ -1309,7 +1386,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         caller_def_id: Some(self.def_id),
                     })
                     .unwrap()
-                    .expr
+                    .expect_expr()
                     // arguments to the closure are
                     // - the closure itself
                     // - the qvars
@@ -1324,7 +1401,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 } else {
                     self.vcx.mk_exists_expr(qvars, &[], body)
                 };
-                mk_bool(res)
+                MirPureEncOutput::MirPureEncOutputExpr(
+                    bool.prim_to_snap.call()(res.upcast_ty()).upcast_ty(),
+                )
             }
             PrustiBuiltin::SliceLen => {
                 assert_eq!(args.len(), 1);
@@ -1415,7 +1494,10 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     }
                 };
                 let fl = self.encode_operand_snap(&args[0].node, curr_ver)?;
-                mk_bool(is_nan_fun.call()(fl.downcast_ty()))
+                MirPureEncOutput::MirPureEncOutputExpr(
+                    bool.prim_to_snap.call()(is_nan_fun.call()(fl.downcast_ty()).upcast_ty())
+                        .upcast_ty(),
+                )
             }
             PrustiBuiltin::IsInfinite(fl) => {
                 let is_infinite_fun = match fl {
@@ -1441,7 +1523,10 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     }
                 };
                 let fl = self.encode_operand_snap(&args[0].node, curr_ver)?;
-                mk_bool(is_infinite_fun.call()(fl.downcast_ty()))
+                MirPureEncOutput::MirPureEncOutputExpr(
+                    bool.prim_to_snap.call()(is_infinite_fun.call()(fl.downcast_ty()).upcast_ty())
+                        .upcast_ty(),
+                )
             }
             PrustiBuiltin::FlAbs(fl) => {
                 let fl_ty = match fl {
@@ -1454,7 +1539,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 let fl1 = self
                     .encode_operand_snap(&args[0].node, curr_ver)?
                     .downcast_ty();
-                fl_ty.fp_abs.call()(fl1)
+                MirPureEncOutput::MirPureEncOutputExpr(fl_ty.fp_abs.call()(fl1).upcast_ty())
             }
             PrustiBuiltin::FlToReal => {
                 let a_ty = args[0].node.ty(self.body, self.vcx.tcx());
@@ -1487,18 +1572,29 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         .mk_unary_op_expr(vir::UnOpKind::Neg, real_val.upcast_ty())
                         .downcast_ty(),
                 )
-            PrustiBuiltin::Acc => {
-                let rawptr = self.ty_use(self.vcx.tcx().mk_ty_from_kind(ty::TyKind::RawPtr(self.vcx.tcx().types.u32,// TODO change 
-                    Mutability::Mut, // TODO change
-))).expect_rawptr();
-                let rawptr_val = self
-                    .encode_operand_snap(&args[0].node, curr_ver)?;
-                let derefed = rawptr.deref_access(rawptr_val.downcast_ty());
-                let inner_ty = self.deps.require_dep::<TyUseImpureEnc>(RustTyDecomposition::from_ty(arg_tys[0].expect_ty(), self.vcx.tcx(), GParams::empty())).unwrap();
-                mk_bool(inner_ty.ref_to_pred(self.vcx, derefed, None))
             }
-        }
-        .upcast_ty())
+            PrustiBuiltin::Acc => {
+                let rawptr = self
+                    .ty_use(self.vcx.tcx().mk_ty_from_kind(ty::TyKind::RawPtr(
+                        self.vcx.tcx().types.u32, // TODO change
+                        Mutability::Mut,          // TODO change
+                    )))
+                    .expect_rawptr();
+                let rawptr_val = self.encode_operand_snap(&args[0].node, curr_ver)?;
+                let derefed = rawptr.deref_access(rawptr_val.downcast_ty());
+                let inner_ty = self
+                    .deps
+                    .require_dep::<TyUseImpureEnc>(RustTyDecomposition::from_ty(
+                        arg_tys[0].expect_ty(),
+                        self.vcx.tcx(),
+                        GParams::empty(),
+                    ))
+                    .unwrap();
+                MirPureEncOutput::MirPureEncOutputPred(
+                    inner_ty.ref_to_pred(self.vcx, derefed, None),
+                )
+            }
+        })
     }
 }
 

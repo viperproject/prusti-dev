@@ -11,8 +11,7 @@ pub(crate) fn ty_pure<'vir>(
     _deps: &mut TaskEncoderDependencies<'vir, TyPureEnc>,
     builder: &mut AdtBuilder<'vir>,
 ) -> Result<TyPureRawPtr<'vir>, EncodeFullError<'vir, TyPureEnc>> {
-    let (field_snaps_to_snap, field_access) =
-        builder.constructor("", vir::TYPE_REF, None);
+    let (field_snaps_to_snap, field_access) = builder.constructor("", vir::TYPE_REF, None);
 
     Ok(TyPureRawPtrData {
         prim_to_snap: field_snaps_to_snap,
