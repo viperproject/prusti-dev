@@ -10,4 +10,4 @@ fn foo() {
 }
 
 #[requires(acc(x))]
-fn bar(x: *mut u32){}
+fn bar(x: *mut u32) {}
