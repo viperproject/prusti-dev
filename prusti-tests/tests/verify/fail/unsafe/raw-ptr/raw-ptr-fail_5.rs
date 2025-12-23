@@ -11,6 +11,6 @@ fn foo() {
     }
 }
 
-#[requires(acc(x))]
-#[ensures(acc(x))]
+#[requires(acc!(*x))]
+#[ensures(acc!(*x))]
 fn bar(x: *mut &mut i32) {}

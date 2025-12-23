@@ -8,7 +8,7 @@ fn foo() {
     assert!(x == 5);
 }
 
-#[requires(acc(x))]
+#[requires(acc!(*x))]
 fn bar(x: *mut &mut u32) {
     unsafe {
         **x = 6;

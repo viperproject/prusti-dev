@@ -6,6 +6,6 @@ fn foo() {
     assert!(x == 5);
 }
 
-#[requires(acc(x))]
-#[ensures(acc(x))]
+#[requires(acc!(*x))]
+#[ensures(acc!(*x))]
 fn bar(x: *mut u32) {}

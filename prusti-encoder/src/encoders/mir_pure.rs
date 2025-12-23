@@ -1284,7 +1284,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             (Some("prusti_contracts::Real"), "le") => PrustiBuiltin::RealLe,
             (Some("prusti_contracts::Real"), "gt") => PrustiBuiltin::RealGt,
             (Some("prusti_contracts::Real"), "ge") => PrustiBuiltin::RealGe,
-            (None, "acc") => PrustiBuiltin::Acc,
+            (None, "prusti_acc") => PrustiBuiltin::Acc,
             (_, other) => panic!("illegal prusti::builtin ({other})"),
         };
 

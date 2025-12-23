@@ -6,5 +6,5 @@ fn foo() {
     x = 6;
 }
 
-#[requires(acc(x))]
+#[requires(acc!(*x))]
 fn bar(x: *mut u32) {}

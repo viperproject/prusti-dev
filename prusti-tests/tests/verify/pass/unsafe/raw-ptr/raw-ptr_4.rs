@@ -8,10 +8,10 @@ fn foo() {
     assert!(x == 6);
 }
 
-#[requires(acc(x))]
-#[requires(unsafe { acc(*x) })]
-#[ensures(acc(x))]
-#[ensures(unsafe { acc(*x) })]
+#[requires(acc!(*x))]
+#[requires(unsafe { acc!(**x) })]
+#[ensures(acc!(*x))]
+#[ensures(unsafe { acc!(**x) })]
 #[ensures(unsafe { *x == old(*x) })]
 // needed otherwise foo does not know that it can access x again, as *x (whose permission we return) of bar might point somewhere else
 #[ensures(unsafe { **x == 6 } )]

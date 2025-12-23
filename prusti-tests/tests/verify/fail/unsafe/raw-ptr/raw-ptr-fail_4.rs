@@ -8,10 +8,10 @@ fn foo() {
     assert!(x == 5); // should fail
 }
 
-#[requires(acc(x))]
-#[requires(unsafe { acc(*x) })]
-#[ensures(acc(x))]
-#[ensures(unsafe { acc(*x) })]
+#[requires(acc!(*x))]
+#[requires(unsafe { acc!(**x) })]
+#[ensures(acc!(*x))]
+#[ensures(unsafe { acc!(**x) })]
 #[ensures(unsafe { *x == old(*x) })] // needed otherwise foo does not know that it can access x again, as *x (whose permission we return) of bar might point somewhere else
 fn bar(x: *mut *mut u32) {
     unsafe {
