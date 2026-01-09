@@ -192,7 +192,7 @@ pub struct GenericParams<'vir> {
     const_exprs: Vec<vir::ExprCSnap<'vir>>,
 
     // maps generic param index to either ty or const index
-    indicies: Vec<Result<usize, usize>>,
+    indices: Vec<Result<usize, usize>>,
 }
 
 impl<'vir> GenericParams<'vir> {
@@ -225,7 +225,7 @@ impl<'vir> GenericParams<'vir> {
     }
 
     fn map_idx(&self, index: u32) -> Result<usize, usize> {
-        let result = self.indicies[index as usize];
+        let result = self.indices[index as usize];
         assert!(
             result.ok().is_none_or(|i| i != usize::MAX),
             "trying to map invalid generic param index {index} (possibly a region?)"
@@ -303,12 +303,12 @@ impl TaskEncoder for GenericParamsEnc {
                 vir::ViperIdent::sanitize(vcx, &format!("{name}${index}")).to_str()
             };
 
-            let mut indicies = vec![Ok(usize::MAX); task_key.params.len()];
+            let mut indices = vec![Ok(usize::MAX); task_key.params.len()];
             let ty_decls = task_key
                 .ty_params()
                 .enumerate()
                 .map(|(i, (gi, param))| {
-                    indicies[gi] = Ok(i);
+                    indices[gi] = Ok(i);
                     vcx.mk_local_decl(sanitize(param.name, param.index), vir::TYPE_TYVAL)
                 })
                 .collect::<Vec<_>>();
@@ -322,7 +322,7 @@ impl TaskEncoder for GenericParamsEnc {
                 .const_params()
                 .enumerate()
                 .map(|(i, (gi, p, ty))| {
-                    indicies[gi] = Err(i);
+                    indices[gi] = Err(i);
                     let ty = RustTyDecomposition::from_prim_ty(ty);
                     let lifted_const = deps.require_ref::<TyUsePureEnc>(ty)?;
                     Ok(vcx.mk_local_decl(
@@ -345,7 +345,7 @@ impl TaskEncoder for GenericParamsEnc {
                 const_args,
                 const_decls,
                 const_exprs,
-                indicies,
+                indices,
             };
             Ok(((), output))
         })

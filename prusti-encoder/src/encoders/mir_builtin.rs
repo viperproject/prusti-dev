@@ -1,14 +1,21 @@
-use prusti_rustc_interface::middle::{mir, ty};
+use prusti_rustc_interface::{
+    middle::{mir, ty},
+    span::{Symbol, def_id::DefId},
+};
 use prusti_utils::config;
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CallableIdn, CastType, FunctionIdn};
+use vir::{CallableIdn, CastType, FunctionIdn, HasType, MethodIdn};
 
-use crate::encoders::ty::{
-    RustTyDecomposition,
-    generics::GParams,
-    interpretation::float::FloatDomain,
-    pure::{TyPurePrimData, TyPurePrimDataKind},
-    use_pure::TyUsePureEnc,
+use crate::encoders::{
+    ConstEnc, TyUseImpureEnc,
+    r#const::ConstEncTask,
+    ty::{
+        RustTyDecomposition, TySpecifics,
+        generics::{GArgs, GParams, GenericParamsEnc},
+        interpretation::float::FloatDomain,
+        pure::{TyPurePrimData, TyPurePrimDataKind},
+        use_pure::TyUsePureEnc,
+    },
 };
 
 pub struct MirBuiltinEnc;
@@ -21,6 +28,7 @@ pub enum MirBuiltinEncError {
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 #[allow(clippy::enum_variant_names)]
 pub enum MirBuiltinEncTask<'tcx> {
+    Unsize(ty::Ty<'tcx>, ty::Ty<'tcx>, DefId),
     Len(ty::Ty<'tcx>),
     UnOp(ty::Ty<'tcx>, mir::UnOp, ty::Ty<'tcx>),
     BinOp(ty::Ty<'tcx>, mir::BinOp, ty::Ty<'tcx>, ty::Ty<'tcx>),
@@ -28,13 +36,27 @@ pub enum MirBuiltinEncTask<'tcx> {
 }
 
 #[derive(Copy, Clone, Debug)]
+pub struct MirBuiltinEncUnsize<'vir> {
+    pub unsize: MethodIdn<'vir, (vir::Ref, vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>,
+    pub undo: MethodIdn<'vir, (vir::Ref, vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>,
+}
+
+#[derive(Copy, Clone, Debug)]
 pub enum MirBuiltinEncOutputRef<'vir> {
+    Unsize(MirBuiltinEncUnsize<'vir>),
     Len(FunctionIdn<'vir, vir::CSnap, vir::CSnap>),
     UnOp(FunctionIdn<'vir, vir::CSnap, vir::CSnap>),
     BinOp(FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::CSnap>),
 }
 impl<'vir> task_encoder::OutputRefAny for MirBuiltinEncOutputRef<'vir> {}
 impl<'vir> MirBuiltinEncOutputRef<'vir> {
+    pub fn unsize(self) -> Option<MirBuiltinEncUnsize<'vir>> {
+        match self {
+            MirBuiltinEncOutputRef::Unsize(unsize) => Some(unsize),
+            _ => None,
+        }
+    }
+
     pub fn len(self) -> Option<FunctionIdn<'vir, vir::CSnap, vir::CSnap>> {
         match self {
             MirBuiltinEncOutputRef::Len(idn) => Some(idn),
@@ -59,7 +81,8 @@ impl<'vir> MirBuiltinEncOutputRef<'vir> {
 
 #[derive(Clone, Debug)]
 pub struct MirBuiltinEncOutput<'vir> {
-    pub function: vir::Function<'vir>,
+    functions: Vec<vir::Function<'vir>>,
+    methods: Vec<vir::Method<'vir>>,
 }
 
 impl TaskEncoder for MirBuiltinEnc {
@@ -80,25 +103,41 @@ impl TaskEncoder for MirBuiltinEnc {
         task_key: &Self::TaskKey<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
-        let function = vir::with_vcx(|vcx| match *task_key {
-            MirBuiltinEncTask::Len(arg_ty) => Self::handle_len(vcx, deps, *task_key, arg_ty),
-            MirBuiltinEncTask::UnOp(res_ty, op, operand_ty) => {
-                assert_eq!(res_ty, operand_ty);
-                Self::handle_un_op(vcx, deps, *task_key, op, operand_ty)
+        vir::with_vcx(|vcx| {
+            let mut functions = Vec::new();
+            let mut methods = Vec::new();
+            match *task_key {
+                MirBuiltinEncTask::Unsize(arg_ty, res_ty, def_id) => {
+                    let (method, method_undo) =
+                        Self::handle_unsize(vcx, deps, *task_key, arg_ty, res_ty, def_id)?;
+                    methods.push(method);
+                    methods.push(method_undo);
+                }
+                MirBuiltinEncTask::Len(arg_ty) => {
+                    functions.push(Self::handle_len(vcx, deps, *task_key, arg_ty)?)
+                }
+                MirBuiltinEncTask::UnOp(res_ty, op, operand_ty) => functions.push(
+                    Self::handle_un_op(vcx, deps, *task_key, op, operand_ty, res_ty)?,
+                ),
+                MirBuiltinEncTask::BinOp(res_ty, op, l_ty, r_ty) => functions.push(
+                    Self::handle_bin_op(vcx, deps, *task_key, res_ty, op, l_ty, r_ty)?,
+                ),
+                MirBuiltinEncTask::CheckedBinOp(res_ty, op, l_ty, r_ty) => functions.push(
+                    Self::handle_checked_bin_op(vcx, deps, *task_key, res_ty, op, l_ty, r_ty)?,
+                ),
             }
-            MirBuiltinEncTask::BinOp(res_ty, op, l_ty, r_ty) => {
-                Self::handle_bin_op(vcx, deps, *task_key, res_ty, op, l_ty, r_ty)
-            }
-            MirBuiltinEncTask::CheckedBinOp(res_ty, op, l_ty, r_ty) => {
-                Self::handle_checked_bin_op(vcx, deps, *task_key, res_ty, op, l_ty, r_ty)
-            }
-        })?;
-        Ok((MirBuiltinEncOutput { function }, ()))
+            Ok((MirBuiltinEncOutput { functions, methods }, ()))
+        })
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
         for output in Self::all_outputs_local_no_errors() {
-            program.add_function(output.function);
+            for function in output.functions {
+                program.add_function(function);
+            }
+            for method in output.methods {
+                program.add_method(method);
+            }
         }
     }
 }
@@ -116,32 +155,232 @@ fn int_name(ty: ty::Ty<'_>) -> &'static str {
 }
 
 impl MirBuiltinEnc {
+    fn handle_unsize<'vir>(
+        vcx: &'vir vir::VirCtxt<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+        key: <Self as TaskEncoder>::TaskKey<'vir>,
+        src_ty: ty::Ty<'vir>,
+        dst_ty: ty::Ty<'vir>,
+        def_id: DefId,
+    ) -> Result<(vir::Method<'vir>, vir::Method<'vir>), EncodeFullError<'vir, Self>> {
+        let name = vir::vir_format_identifier!(vcx, "mir_unsize_{src_ty:?}_to_{dst_ty:?}");
+        let name_undo =
+            vir::vir_format_identifier!(vcx, "mir_undo_unsize_{src_ty:?}_to_{dst_ty:?}");
+
+        let params = GParams::from(def_id);
+        let generics = deps.require_dep::<GenericParamsEnc>(params)?;
+
+        let ty_task = RustTyDecomposition::from_ty(src_ty.peel_refs(), vcx.tcx(), params);
+        let src_array_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?.expect_array();
+        //let src_array_impure = deps.require_dep::<TyUseImpureEnc>(ty_task)?;
+        let ty_task = RustTyDecomposition::from_ty(src_ty, vcx.tcx(), params);
+        let src_ref_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?;
+        let src_ref_impure = deps.require_dep::<TyUseImpureEnc>(ty_task)?;
+
+        let ty_task = RustTyDecomposition::from_ty(dst_ty.peel_refs(), vcx.tcx(), params);
+        let dst_array_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?.expect_array();
+        //let dst_array_impure = deps.require_dep::<TyUseImpureEnc>(ty_task)?;
+        let ty_task = RustTyDecomposition::from_ty(dst_ty, vcx.tcx(), params);
+        let dst_ref_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?;
+        let dst_ref_impure = deps.require_dep::<TyUseImpureEnc>(ty_task)?;
+
+        let ref_src_decl = vcx.mk_local_decl("src", vir::TYPE_REF);
+        let ref_src_ex = vcx.mk_local_ex(ref_src_decl);
+        let ref_dst_decl = vcx.mk_local_decl("dst", vir::TYPE_REF);
+        let ref_dst_ex = vcx.mk_local_ex(ref_dst_decl);
+        let method = MethodIdn::new(
+            name,
+            (
+                ref_src_decl.ty(),
+                ref_dst_decl.ty(),
+                generics.ty_args(),
+                generics.const_args(),
+            ),
+        );
+        let method_undo = MethodIdn::new(
+            name_undo,
+            (
+                ref_src_decl.ty(),
+                ref_dst_decl.ty(),
+                generics.ty_args(),
+                generics.const_args(),
+            ),
+        );
+        deps.emit_output_ref(
+            key,
+            MirBuiltinEncOutputRef::Unsize(MirBuiltinEncUnsize {
+                unsize: method,
+                undo: method_undo,
+            }),
+        )?;
+
+        let snap_src = src_ref_impure.ref_to_snap(ref_src_ex);
+        let snap_dst = dst_ref_impure.ref_to_snap(ref_dst_ex);
+
+        let src_value = match &src_ref_pure.specifics {
+            TySpecifics::ImmRef(data) => data.value_access(snap_src.downcast_ty()),
+            TySpecifics::MutRef(data) => data.deref_snap(snap_src.downcast_ty()),
+            _ => unreachable!(),
+        }
+        .downcast_ty();
+        let dst_value = match &dst_ref_pure.specifics {
+            TySpecifics::ImmRef(data) => data.value_access(snap_dst.downcast_ty()),
+            TySpecifics::MutRef(data) => data.deref_snap(snap_dst.downcast_ty()),
+            _ => unreachable!(),
+        }
+        .downcast_ty();
+
+        let src_len = match src_ty.peel_refs().kind() {
+            ty::TyKind::Array(_, len) => {
+                let const_enc = deps.require_dep::<ConstEnc>(ConstEncTask::Ty {
+                    const_: *len,
+                    ty: vcx.tcx().types.usize,
+                    context: params,
+                })?;
+                let ty_task = RustTyDecomposition::from_prim_ty(vcx.tcx().types.usize);
+                let usize_out = deps.require_dep::<TyUsePureEnc>(ty_task)?.expect_native();
+                (usize_out.snap_to_prim)(const_enc).downcast_ty()
+            }
+            _ => src_array_pure.len(src_value),
+        };
+
+        let mut pres = vec![src_ref_impure.ref_to_pred(vcx, ref_src_ex, None)];
+        let mut posts = vec![dst_ref_impure.ref_to_pred(vcx, ref_dst_ex, None)];
+        let mut pres_undo = vec![dst_ref_impure.ref_to_pred(vcx, ref_dst_ex, None)];
+        let mut posts_undo = vec![src_ref_impure.ref_to_pred(vcx, ref_src_ex, None)];
+        if matches!(src_ty.kind(), ty::TyKind::Ref(_, _, ty::Mutability::Mut))
+            && matches!(dst_ty.kind(), ty::TyKind::Ref(_, _, ty::Mutability::Mut))
+        {
+            // TODO: Move this v into a new method RustTyDecomposition::decompose_local_ctx(?)
+            //   The issue is that we want a `p_Param` predicate instance even
+            //   though we are not actually creating a generic method (which
+            //   would allow us to refer to a type variable like `T$0: Type`),
+            //   but we also don't want to fully monomorphise the predicate to
+            //   the array resp. slice. This might also be needed for the
+            //   indirect encoder, as it seems like a general need for mutref
+            //   targets if they are kept generic?
+            let dummy_param = vcx
+                .tcx()
+                .mk_ty_from_kind(ty::TyKind::Param(ty::ParamTy::new(0, Symbol::intern("T"))));
+            let mut ty_task_param = RustTyDecomposition::from_ty(
+                dummy_param,
+                vcx.tcx(),
+                GParams::new(
+                    vcx.tcx().mk_args(&[dummy_param.into()]),
+                    ty::ParamEnv::empty(),
+                    false,
+                ),
+            );
+            ty_task_param.args =
+                GArgs::new(params, vcx.tcx().mk_args(&[src_ty.peel_refs().into()]));
+            let src_param_impure = deps.require_dep::<TyUseImpureEnc>(ty_task_param)?;
+            ty_task_param.args =
+                GArgs::new(params, vcx.tcx().mk_args(&[dst_ty.peel_refs().into()]));
+            let dst_param_impure = deps.require_dep::<TyUseImpureEnc>(ty_task_param)?;
+
+            pres.push(src_param_impure.ref_to_pred(
+                vcx,
+                src_ref_impure.expect_mutref().deref(ref_src_ex, None),
+                None,
+            ));
+            posts.push(dst_param_impure.ref_to_pred(
+                vcx,
+                dst_ref_impure.expect_mutref().deref(ref_dst_ex, None),
+                None,
+            ));
+            posts.push(vir::expr! {
+                (old([src_ref_impure.expect_mutref().deref(ref_src_ex, None)]))
+                    == ([dst_ref_impure.expect_mutref().deref(ref_dst_ex, None)])
+            });
+            pres_undo.push(dst_param_impure.ref_to_pred(
+                vcx,
+                dst_ref_impure.expect_mutref().deref(ref_dst_ex, None),
+                None,
+            ));
+            posts_undo.push(src_param_impure.ref_to_pred(
+                vcx,
+                src_ref_impure.expect_mutref().deref(ref_src_ex, None),
+                None,
+            ));
+            posts_undo.push(vir::expr! {
+                ([src_ref_impure.expect_mutref().deref(ref_src_ex, None)])
+                    == (old([dst_ref_impure.expect_mutref().deref(ref_dst_ex, None)]))
+            });
+        }
+        posts.extend(&[
+            vir::expr! { (src_len) == ([dst_array_pure.len(dst_value)]) },
+            vir::expr! {
+                forall idx: Int :: {[dst_array_pure.index(dst_value, idx)]}
+                    ([dst_array_pure.index(dst_value, idx)])
+                    == (old([src_array_pure.index(src_value, idx)]))
+            },
+        ]);
+        posts_undo.push(vir::expr! {
+            forall idx: Int :: {[src_array_pure.index(src_value, idx)]}
+                ([src_array_pure.index(src_value, idx)])
+                == (old([dst_array_pure.index(dst_value, idx)]))
+        });
+
+        Ok((
+            vcx.mk_method(
+                method,
+                (
+                    ref_src_decl,
+                    ref_dst_decl,
+                    generics.ty_decls(),
+                    generics.const_decls(),
+                ),
+                &[],
+                vcx.alloc_slice(&pres),
+                vcx.alloc_slice(&posts),
+                None,
+            ),
+            vcx.mk_method(
+                method_undo,
+                (
+                    ref_src_decl,
+                    ref_dst_decl,
+                    generics.ty_decls(),
+                    generics.const_decls(),
+                ),
+                &[],
+                vcx.alloc_slice(&pres_undo),
+                vcx.alloc_slice(&posts_undo),
+                None,
+            ),
+        ))
+    }
+
     fn handle_len<'vir>(
         vcx: &'vir vir::VirCtxt<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
         key: <Self as TaskEncoder>::TaskKey<'vir>,
         arg_ty: ty::Ty<'vir>,
     ) -> Result<vir::Function<'vir>, EncodeFullError<'vir, Self>> {
-        let ty_task = RustTyDecomposition::from_prim_ty(arg_ty);
-        let arg_ty = deps.require_dep::<TyUsePureEnc>(ty_task)?;
+        let ty_task = RustTyDecomposition::from_ty(arg_ty, vcx.tcx(), GParams::empty()); // TODO: context ...
+        let arg_ty_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?;
 
         let ty_task = RustTyDecomposition::from_prim_ty(vcx.tcx().types.usize);
-        let res_ty = deps.require_dep::<TyUsePureEnc>(ty_task)?;
+        let res_ty_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?;
 
-        let name = vir::vir_format_identifier!(vcx, "mir_len"); // TODO: name (Slice or Array)
-        let arg_ty_snap = arg_ty.snapshot.downcast_ty();
-        let res_ty_snap = res_ty.snapshot.downcast_ty();
+        let name = vir::vir_format_identifier!(vcx, "mir_len_{arg_ty:?}");
+        let arg_ty_snap = arg_ty_pure.snapshot.downcast_ty();
+        let res_ty_snap = res_ty_pure.snapshot.downcast_ty();
         let function = FunctionIdn::new(name, arg_ty_snap, res_ty_snap);
         deps.emit_output_ref(key, MirBuiltinEncOutputRef::Len(function))?;
 
         let snap_arg_decl = vcx.mk_local_decl("arg", arg_ty_snap);
-        /*let prim_res_ty = e_ty.expect_primitive();
-        let snap_arg = vcx.mk_local_ex(snap_arg_decl);
-        let prim_arg = (prim_res_ty.snap_to_prim)(snap_arg);
-        let mut val =
-            (prim_res_ty.prim_to_snap)(vcx.mk_unary_op_expr(vir::UnOpKind::from(op), prim_arg));
-        */
-        Ok(vcx.mk_function(function, (snap_arg_decl,), &[], &[], None, None))
+        let snap_arg_ex = vcx.mk_local_ex(snap_arg_decl);
+        Ok(vcx.mk_function(
+            function,
+            (snap_arg_decl,),
+            &[],
+            &[],
+            None,
+            Some((res_ty_pure.expect_primitive().prim_to_snap)(
+                arg_ty_pure.expect_array().len(snap_arg_ex).upcast_ty(),
+            )),
+        ))
     }
 
     fn handle_un_op<'vir>(
@@ -149,45 +388,94 @@ impl MirBuiltinEnc {
         deps: &mut TaskEncoderDependencies<'vir, Self>,
         key: <Self as TaskEncoder>::TaskKey<'vir>,
         op: mir::UnOp,
-        ty: ty::Ty<'vir>,
+        operand_ty: ty::Ty<'vir>,
+        res_ty: ty::Ty<'vir>,
     ) -> Result<vir::Function<'vir>, EncodeFullError<'vir, Self>> {
-        let ty_task = RustTyDecomposition::from_prim_ty(ty);
-        let e_ty = deps.require_dep::<TyUsePureEnc>(ty_task)?;
+        match op {
+            mir::UnOp::Neg | mir::UnOp::Not => {
+                assert_eq!(res_ty, operand_ty);
+                let ty_task = RustTyDecomposition::from_prim_ty(operand_ty);
+                let e_ty = deps.require_dep::<TyUsePureEnc>(ty_task)?;
 
-        let name = vir::vir_format_identifier!(vcx, "mir_unop_{op:?}_{}", int_name(ty));
-        let e_ty_snap = e_ty.snapshot.downcast_ty();
-        let function = FunctionIdn::new(name, e_ty_snap, e_ty_snap);
-        deps.emit_output_ref(key, MirBuiltinEncOutputRef::UnOp(function))?;
+                let name =
+                    vir::vir_format_identifier!(vcx, "mir_unop_{op:?}_{}", int_name(operand_ty));
+                let e_ty_snap = e_ty.snapshot.downcast_ty();
+                let function = FunctionIdn::new(name, e_ty_snap, e_ty_snap);
+                deps.emit_output_ref(key, MirBuiltinEncOutputRef::UnOp(function))?;
 
-        let snap_arg_decl = vcx.mk_local_decl("arg", e_ty_snap);
-        let prim_res_ty = e_ty.expect_primitive();
-        let snap_arg = vcx.mk_local_ex(snap_arg_decl);
-        let body = match prim_res_ty.kind {
-            TyPurePrimDataKind::Native(native) => {
-                let prim_arg = (native.snap_to_prim)(snap_arg);
-                let mut val = (prim_res_ty.prim_to_snap)(
-                    vcx.mk_unary_op_expr(vir::UnOpKind::from(op), prim_arg),
-                );
-                // Can overflow when doing `- iN::MIN -> iN::MIN`. There is no
-                // `CheckedUnOp`, instead the compiler puts an `TerminatorKind::Assert`
-                // before in debug mode. We should still produce the correct result in
-                // release mode, which the code under this branch does.
-                if op == mir::UnOp::Neg && ty.is_signed() {
-                    let bound = vcx.get_min_int(ty.kind());
-                    // `snap_to_prim(arg) == -iN::MIN`
-                    let cond = vcx.mk_eq_expr(prim_arg.downcast_ty(), bound);
-                    // `snap_to_prim(arg) == -iN::MIN ? arg :
-                    // prim_to_snap(-snap_to_prim(arg))`
-                    val = vcx.mk_ternary_expr(cond, snap_arg, val)
-                }
-                val
+                let snap_arg_decl = vcx.mk_local_decl("arg", e_ty_snap);
+                let prim_res_ty = e_ty.expect_primitive();
+                let snap_arg = vcx.mk_local_ex(snap_arg_decl);
+                let body = match prim_res_ty.kind {
+                    TyPurePrimDataKind::Native(native) => {
+                        let prim_arg = (native.snap_to_prim)(snap_arg);
+                        let mut val = (prim_res_ty.prim_to_snap)(
+                            vcx.mk_unary_op_expr(vir::UnOpKind::from(op), prim_arg),
+                        );
+                        // Can overflow when doing `- iN::MIN -> iN::MIN`. There is no
+                        // `CheckedUnOp`, instead the compiler puts an `TerminatorKind::Assert`
+                        // before in debug mode. We should still produce the correct result in
+                        // release mode, which the code under this branch does.
+                        if op == mir::UnOp::Neg && operand_ty.is_signed() {
+                            let bound = vcx.get_min_int(operand_ty.kind());
+                            // `snap_to_prim(arg) == -iN::MIN`
+                            let cond = vcx.mk_eq_expr(prim_arg.downcast_ty(), bound);
+                            // `snap_to_prim(arg) == -iN::MIN ? arg :
+                            // prim_to_snap(-snap_to_prim(arg))`
+                            val = vcx.mk_ternary_expr(cond, snap_arg, val)
+                        }
+                        val
+                    }
+                    TyPurePrimDataKind::Float(float) => {
+                        assert!(matches!(op, mir::UnOp::Neg));
+                        (float.fp_neg)(snap_arg)
+                    }
+                };
+                Ok(vcx.mk_function(function, (snap_arg_decl,), &[], &[], None, Some(body)))
             }
-            TyPurePrimDataKind::Float(float) => {
-                assert!(matches!(op, mir::UnOp::Neg));
-                (float.fp_neg)(snap_arg)
+            mir::UnOp::PtrMetadata => {
+                // TODO: the task key for this should not store the region
+                //   (e.g. len for &[bool] is currently &'3 [bool] depending on the callsite region)
+                let ty_task = RustTyDecomposition::from_ty(operand_ty, vcx.tcx(), GParams::empty());
+                let operand_ref_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?;
+                let ty_task = RustTyDecomposition::from_prim_ty(res_ty);
+                let res_ty_enc = deps.require_dep::<TyUsePureEnc>(ty_task)?;
+
+                let name = vir::vir_format_identifier!(vcx, "mir_unop_{op:?}_{operand_ty:?}");
+                let operand_ty_snap = operand_ref_pure.snapshot.downcast_ty();
+                let res_ty_snap = res_ty_enc.snapshot.downcast_ty();
+                let function = FunctionIdn::new(name, operand_ty_snap, res_ty_snap);
+                deps.emit_output_ref(key, MirBuiltinEncOutputRef::UnOp(function))?;
+
+                let snap_arg_decl = vcx.mk_local_decl("arg", operand_ty_snap);
+
+                let body = match operand_ty.peel_refs().kind() {
+                    ty::TyKind::Slice(..) | ty::TyKind::Array(..) => {
+                        let ty_task = RustTyDecomposition::from_ty(
+                            operand_ty.peel_refs(),
+                            vcx.tcx(),
+                            GParams::empty(),
+                        );
+                        let operand_array_pure =
+                            deps.require_dep::<TyUsePureEnc>(ty_task)?.expect_array();
+                        let snap_arg = vcx.mk_local_ex(snap_arg_decl);
+                        let prim_res_ty = res_ty_enc.expect_primitive();
+                        let operand_value = match &operand_ref_pure.specifics {
+                            TySpecifics::ImmRef(data) => data.value_access(snap_arg),
+                            TySpecifics::MutRef(data) => data.deref_snap(snap_arg),
+                            _ => unreachable!(),
+                        }
+                        .downcast_ty();
+                        Some((prim_res_ty.prim_to_snap)(
+                            operand_array_pure.len(operand_value).upcast_ty(),
+                        ))
+                    }
+                    _ => None,
+                };
+
+                Ok(vcx.mk_function(function, (snap_arg_decl,), &[], &[], None, body))
             }
-        };
-        Ok(vcx.mk_function(function, (snap_arg_decl,), &[], &[], None, Some(body)))
+        }
     }
 
     fn handle_bin_op<'vir>(
