@@ -296,6 +296,11 @@ macro_rules! expr_inner {
         $crate::expr_inner!(@expr_one; $($lhs)*),
         $crate::expr_inner!(@expr_one; $($rhs)*),
     ) };
+    (@expr_one; ( $($cond:tt)+ ) ? ( $($e_then:tt)+ ) : ( $($e_else:tt)+ )) => { vcx!().mk_ternary_expr(
+        $crate::expr_inner!(@expr_one; $($cond)*),
+        $crate::expr_inner!(@expr_one; $($e_then)*),
+        $crate::expr_inner!(@expr_one; $($e_else)*),
+    ) };
     (@expr_one; ( $($lhs:tt)+ ) && ( $($rhs:tt)+ )) => { vcx!().mk_conj(&[
         $crate::expr_inner!(@expr_one; $($lhs)*),
         $crate::expr_inner!(@expr_one; $($rhs)*),
@@ -327,6 +332,9 @@ macro_rules! expr_inner {
     (@expr_one; ( $($lhs:tt)+ ) in ( $($rhs:tt)+ )) => { vcx!().mk_set_in_expr(
         $crate::expr_inner!(@expr_one; $($lhs)*),
         $crate::expr_inner!(@expr_one; $($rhs)*),
+    ) };
+    (@expr_one; old( $($inner:tt)+ )) => { vcx!().mk_old_expr(
+        $crate::expr_inner!(@expr_one; $($inner)*),
     ) };
     (@expr_one; null) => { vcx!().mk_null() };
     (@expr_one; true) => { vcx!().mk_bool::<true>() };

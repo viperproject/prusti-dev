@@ -457,4 +457,8 @@ pub fn f128_abs(fl: f128) -> f128 {
     fl
 }
 
+pub fn slice_len<T>(_slice: &[T]) -> usize {
+    0
+}
+
 pub use private::*;

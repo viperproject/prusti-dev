@@ -32,7 +32,7 @@ impl From<mir::UnOp> for UnOpKind {
         match value {
             mir::UnOp::Not => UnOpKind::Not,
             mir::UnOp::Neg => UnOpKind::Neg,
-            mir::UnOp::PtrMetadata => todo!(),
+            mir::UnOp::PtrMetadata => unreachable!(),
         }
     }
 }

@@ -897,6 +897,13 @@ impl<'tcx> VirCtxt<'tcx> {
         self.alloc(StmtGenData::new(self.alloc(StmtKindGenData::Label(label))))
     }
 
+    pub fn mk_inhale_stmt<'vir, Curr, Next>(
+        &'vir self,
+        expr: ExprGenBool<'vir, Curr, Next>,
+    ) -> StmtGen<'vir, Curr, Next> {
+        self.alloc(StmtGenData::new(self.alloc(StmtKindGenData::Inhale(expr))))
+    }
+
     pub fn mk_assume_false_stmt<'vir, Curr, Next>(
         &'vir self,
     ) -> TerminatorStmtGen<'vir, Curr, Next> {

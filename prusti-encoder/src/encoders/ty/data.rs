@@ -12,6 +12,8 @@ pub trait TyDatas<'vir>: Debug + Clone + Copy {
     type ParamData: Debug + Clone + 'vir = ();
     type OpaqueData: Debug + Clone + 'vir = ();
 
+    type ArrayData: Debug + Clone + 'vir = ();
+
     type PrimitiveData: Debug + Clone + 'vir = ();
 
     type ImmRefData: Debug + Clone + 'vir = ();
@@ -33,6 +35,7 @@ pub struct TyData<'vir, D: TyDatas<'vir>> {
 }
 
 pub enum TySpecifics<'vir, D: TyDatas<'vir>> {
+    ArrayLike(ArrayData<'vir, D>),
     Param(D::ParamData),
     Opaque(D::OpaqueData),
     Primitive(D::PrimitiveData),
@@ -40,6 +43,12 @@ pub enum TySpecifics<'vir, D: TyDatas<'vir>> {
     MutRef(D::MutRefData),
     StructLike(StructData<'vir, D>),
     EnumLike(EnumData<'vir, D>),
+}
+
+pub struct ArrayData<'vir, D: TyDatas<'vir>> {
+    pub data: D::ArrayData,
+    pub slice: bool,
+    pub inhabited: bool,
 }
 
 pub struct StructData<'vir, D: TyDatas<'vir>> {
@@ -144,6 +153,17 @@ impl<'vir, D: TyDatas<'vir>> TyData<'vir, D> {
     }
 
     #[track_caller]
+    pub fn expect_array(&self) -> &ArrayData<'vir, D>
+    where
+        Self: Debug,
+    {
+        match &self.specifics {
+            TySpecifics::ArrayLike(data) => data,
+            _ => panic!("expected array (was {self:?})"),
+        }
+    }
+
+    #[track_caller]
     pub fn expect_immref(&self) -> &D::ImmRefData
     where
         Self: Debug,
@@ -241,6 +261,21 @@ impl<'vir, D: TyDatas<'vir>> TyData<'vir, D> {
     }
 }
 
+impl<'vir, D: TyDatas<'vir>> ArrayData<'vir, D> {
+    pub fn zip<D2: TyDatas<'vir>>(
+        &'vir self,
+        other: &'vir ArrayData<'vir, D2>,
+    ) -> ArrayData<'vir, (D, D2)> {
+        assert_eq!(self.inhabited, other.inhabited);
+        assert_eq!(self.slice, other.slice);
+        ArrayData {
+            slice: self.slice,
+            data: (&self.data, &other.data),
+            inhabited: self.inhabited,
+        }
+    }
+}
+
 impl<'vir, D: TyDatas<'vir>> StructData<'vir, D> {
     pub fn zip<D2: TyDatas<'vir>>(
         &'vir self,
@@ -279,6 +314,7 @@ impl<'vir, D1: TyDatas<'vir>, D2: TyDatas<'vir>> TyDatas<'vir> for (D1, D2) {
     type TyData = (&'vir D1::TyData, &'vir D2::TyData);
     type ParamData = (&'vir D1::ParamData, &'vir D2::ParamData);
     type OpaqueData = (&'vir D1::OpaqueData, &'vir D2::OpaqueData);
+    type ArrayData = (&'vir D1::ArrayData, &'vir D2::ArrayData);
     type PrimitiveData = (&'vir D1::PrimitiveData, &'vir D2::PrimitiveData);
     type ImmRefData = (&'vir D1::ImmRefData, &'vir D2::ImmRefData);
     type MutRefData = (&'vir D1::MutRefData, &'vir D2::MutRefData);
@@ -312,9 +348,16 @@ impl<'vir, D: TyDatas<'vir>> Clone for $container<'vir, D> {
 
 impl<'vir, D: TyDatas<'vir>> PartialEq for $container<'vir, D>
 where
-    D::TyData: PartialEq, D::ParamData: PartialEq, D::OpaqueData: PartialEq,
-    D::PrimitiveData: PartialEq, D::ImmRefData: PartialEq, D::MutRefData: PartialEq,
-    D::StructData: PartialEq, D::FieldData: PartialEq, D::EnumData: PartialEq,
+    D::TyData: PartialEq,
+    D::ParamData: PartialEq,
+    D::OpaqueData: PartialEq,
+    D::ArrayData: PartialEq,
+    D::PrimitiveData: PartialEq,
+    D::ImmRefData: PartialEq,
+    D::MutRefData: PartialEq,
+    D::StructData: PartialEq,
+    D::FieldData: PartialEq,
+    D::EnumData: PartialEq,
     D::VariantData: PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
@@ -324,16 +367,32 @@ where
 
 impl<'vir, D: TyDatas<'vir>> Eq for $container<'vir, D>
 where
-    D::TyData: Eq, D::ParamData: Eq, D::OpaqueData: Eq, D::PrimitiveData: Eq,
-    D::ImmRefData: Eq, D::MutRefData: Eq, D::StructData: Eq,
-    D::FieldData: Eq, D::EnumData: Eq, D::VariantData: Eq,
+    D::TyData: Eq,
+    D::ParamData: Eq,
+    D::OpaqueData: Eq,
+    D::ArrayData: Eq,
+    D::PrimitiveData: Eq,
+    D::ImmRefData: Eq,
+    D::MutRefData: Eq,
+    D::StructData: Eq,
+    D::FieldData: Eq,
+    D::EnumData: Eq,
+    D::VariantData: Eq,
 {}
 
 impl<'vir, D: TyDatas<'vir>> Hash for $container<'vir, D>
 where
-    D::TyData: Hash, D::ParamData: Hash, D::OpaqueData: Hash, D::PrimitiveData: Hash,
-    D::ImmRefData: Hash, D::MutRefData: Hash, D::StructData: Hash,
-    D::FieldData: Hash, D::EnumData: Hash, D::VariantData: Hash,
+    D::TyData: Hash,
+    D::ParamData: Hash,
+    D::OpaqueData: Hash,
+    D::ArrayData: Hash,
+    D::PrimitiveData: Hash,
+    D::ImmRefData: Hash,
+    D::MutRefData: Hash,
+    D::StructData: Hash,
+    D::FieldData: Hash,
+    D::EnumData: Hash,
+    D::VariantData: Hash,
 {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.data.hash(state);
@@ -368,6 +427,7 @@ impl<'vir, D: TyDatas<'vir>> $container<'vir, D> {
 
 impls!(TyData { specifics: TySpecifics<'vir, D> });
 impl_zip!(TyData.specifics);
+impls!(ArrayData { slice: bool });
 impls!(StructData { fields: Vec<D::FieldData> });
 impls!(EnumData { variants: Vec<VariantData<'vir, D>> });
 impls!(VariantData { inner: StructData<'vir, D> });
@@ -376,6 +436,7 @@ impl_zip!(VariantData.inner);
 impl<'vir, D: TyDatas<'vir>> Debug for TySpecifics<'vir, D> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::ArrayLike(arg0) => f.debug_tuple("Array").field(arg0).finish(),
             Self::Param(arg0) => f.debug_tuple("Param").field(arg0).finish(),
             Self::Opaque(arg0) => f.debug_tuple("Opaque").field(arg0).finish(),
             Self::Primitive(arg0) => f.debug_tuple("Primitive").field(arg0).finish(),
@@ -390,6 +451,7 @@ impl<'vir, D: TyDatas<'vir>> Debug for TySpecifics<'vir, D> {
 impl<'vir, D: TyDatas<'vir>> Clone for TySpecifics<'vir, D> {
     fn clone(&self) -> Self {
         match self {
+            Self::ArrayLike(arg0) => Self::ArrayLike(arg0.clone()),
             Self::Param(arg0) => Self::Param(arg0.clone()),
             Self::Opaque(arg0) => Self::Opaque(arg0.clone()),
             Self::Primitive(arg0) => Self::Primitive(arg0.clone()),
@@ -404,6 +466,7 @@ impl<'vir, D: TyDatas<'vir>> Clone for TySpecifics<'vir, D> {
 impl<'vir, D: TyDatas<'vir>> PartialEq for TySpecifics<'vir, D>
 where
     D::TyData: PartialEq,
+    D::ArrayData: PartialEq,
     D::ParamData: PartialEq,
     D::OpaqueData: PartialEq,
     D::PrimitiveData: PartialEq,
@@ -418,6 +481,7 @@ where
         match (self, other) {
             (Self::Param(l0), Self::Param(r0)) => l0 == r0,
             (Self::Opaque(l0), Self::Opaque(r0)) => l0 == r0,
+            (Self::ArrayLike(l0), Self::ArrayLike(r0)) => l0 == r0,
             (Self::Primitive(l0), Self::Primitive(r0)) => l0 == r0,
             (Self::ImmRef(l0), Self::ImmRef(r0)) => l0 == r0,
             (Self::MutRef(l0), Self::MutRef(r0)) => l0 == r0,
@@ -431,6 +495,7 @@ where
 impl<'vir, D: TyDatas<'vir>> Eq for TySpecifics<'vir, D>
 where
     D::TyData: Eq,
+    D::ArrayData: Eq,
     D::ParamData: Eq,
     D::OpaqueData: Eq,
     D::PrimitiveData: Eq,
@@ -446,6 +511,7 @@ where
 impl<'vir, D: TyDatas<'vir>> Hash for TySpecifics<'vir, D>
 where
     D::TyData: Hash,
+    D::ArrayData: Hash,
     D::ParamData: Hash,
     D::OpaqueData: Hash,
     D::PrimitiveData: Hash,
@@ -470,6 +536,7 @@ impl<'vir, D: TyDatas<'vir>> TySpecifics<'vir, D> {
         match (self, other) {
             (Param(d1), Param(d2)) => Param((d1, d2)),
             (Opaque(d1), Opaque(d2)) => Opaque((d1, d2)),
+            (ArrayLike(d1), ArrayLike(d2)) => ArrayLike(d1.zip(d2)),
             (Primitive(d1), Primitive(d2)) => Primitive((d1, d2)),
             (ImmRef(d1), ImmRef(d2)) => ImmRef((d1, d2)),
             (MutRef(d1), MutRef(d2)) => MutRef((d1, d2)),

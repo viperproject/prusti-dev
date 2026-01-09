@@ -20,7 +20,7 @@ use prusti_rustc_interface::{
     index::IndexVec,
     middle::{
         mir,
-        ty::{self, Binder, FnSig, TyKind},
+        ty::{self, Binder, FnSig, Region, TyKind},
     },
     span::{Span, def_id::DefId, source_map::Spanned},
 };
@@ -866,8 +866,10 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             }),
         }
     }
+
     fn encode_place_element(
         &mut self,
+        curr_ver: &HashMap<mir::Local, Version<'vir>>,
         place_ty: mir::PlaceTy<'vir>,
         elem: mir::PlaceElem<'vir>,
         encoded_place: EncodedPlace<'vir>,
@@ -922,6 +924,27 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .map(|pr| struct_like[field_idx].field_ref(pr));
                 EncodedPlace::new(proj_app, place_ref)
             }
+            mir::ProjectionElem::Index(idx) => {
+                let e_ty = self.deps.require_dep::<TyUseImpureEnc>(ty_task).unwrap();
+                let array_like = e_ty.expect_array();
+                let e_ty_pure = self.deps.require_dep::<TyUsePureEnc>(ty_task).unwrap();
+                let proj = e_ty_pure.expect_array();
+                let idx = self
+                    .encode_place_with_ref(curr_ver, mir::Place::from(idx).into())
+                    .snap;
+                let usize_ty = self.ty_use(self.vcx.tcx().types.usize);
+                let idx = usize_ty
+                    .expect_primitive()
+                    .expect_native()
+                    .snap_to_prim
+                    .call()(idx.downcast_ty())
+                .downcast_ty();
+                let proj_app = proj.index(encoded_place.snap.downcast_ty(), idx);
+                let place_ref = encoded_place
+                    .place_ref
+                    .map(|pr| array_like.ref_to_index_ref(pr, idx));
+                EncodedPlace::new(proj_app, place_ref)
+            }
             mir::ProjectionElem::Downcast(..) => encoded_place,
             _ => todo!("Unsupported ProjectionElem {:?}", elem),
         }
@@ -961,7 +984,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         let mut encoded_place = EncodedPlace::new(expr, place_ref);
         // TODO: factor this out (duplication with impure encoder)?
         for elem in place.projection {
-            encoded_place = self.encode_place_element(place_ty, *elem, encoded_place);
+            encoded_place = self.encode_place_element(curr_ver, place_ty, *elem, encoded_place);
             place_ty = place_ty.projection_ty(self.vcx.tcx(), *elem);
         }
         // Can we ever have the use of a projected place?
@@ -998,6 +1021,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             Forall,
             Exists,
             SnapshotEquality,
+            SliceLen,
             ModeStart(Mode),
             ModeEnd(Mode),
             IsNaN(ty::FloatTy),
@@ -1016,6 +1040,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             "forall" => PrustiBuiltin::Forall,
             "exists" => PrustiBuiltin::Exists,
             "snapshot_equality" => PrustiBuiltin::SnapshotEquality,
+            "slice_len" => PrustiBuiltin::SliceLen,
             "old_start" => PrustiBuiltin::ModeStart(Mode::Old),
             "old_end" => PrustiBuiltin::ModeEnd(Mode::Old),
             "rel_start" => PrustiBuiltin::ModeStart(Mode::Rel(
@@ -1167,6 +1192,25 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 };
                 mk_bool(res)
             }
+            PrustiBuiltin::SliceLen => {
+                assert_eq!(args.len(), 1);
+                let op = self.encode_operand_snap(&args[0].node, curr_ver)?;
+                let slice_ty = self
+                    .vcx
+                    .tcx()
+                    .mk_ty_from_kind(TyKind::Slice(arg_tys[0].expect_ty()));
+                let ref_slice_ty = self.vcx.tcx().mk_ty_from_kind(TyKind::Ref(
+                    Region::new_var(self.vcx.tcx(), 0usize.into()),
+                    slice_ty,
+                    ty::Mutability::Not,
+                ));
+                let ref_ty_out = self.ty_use(ref_slice_ty).expect_immref();
+                let slice_ty_out = self.ty_use(slice_ty).expect_array();
+                let prim =
+                    slice_ty_out.len(ref_ty_out.value_access(op.downcast_ty()).downcast_ty());
+                let usize_ = self.ty_use(self.vcx.tcx().types.usize).expect_primitive();
+                usize_.prim_to_snap.call()(prim.upcast_ty())
+            }
             PrustiBuiltin::ModeStart(mode) => {
                 match mode {
                     Mode::Old => {
@@ -1188,7 +1232,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         self.before_expiry_mode = true;
                     }
                 }
-                mk_bool(self.vcx.mk_bool::<true>().lift()) //TODO what value do we return?
+                mk_bool(self.vcx.mk_bool::<true>().lift()) // TODO: what value do we return?
             }
             PrustiBuiltin::ModeEnd(mode) => {
                 match mode {
@@ -1211,7 +1255,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         self.before_expiry_mode = false;
                     }
                 }
-                mk_bool(self.vcx.mk_bool::<true>().lift()) //TODO what value do we return?
+                mk_bool(self.vcx.mk_bool::<true>().lift()) // TODO: what value do we return?
             }
             PrustiBuiltin::IsNaN(fl) => {
                 let is_nan_fun = match fl {
