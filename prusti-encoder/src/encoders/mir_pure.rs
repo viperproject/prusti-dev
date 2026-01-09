@@ -1577,7 +1577,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 let rawptr = self
                     .ty_use(self.vcx.tcx().mk_ty_from_kind(ty::TyKind::RawPtr(
                         arg_tys[0].expect_ty(),
-                        Mutability::Mut,          // TODO change
+                        Mutability::Mut, // TODO change
                     )))
                     .expect_rawptr();
                 let rawptr_val = self.encode_operand_snap(&args[0].node, curr_ver)?;

@@ -7,6 +7,6 @@ fn foo() {
     assert!(x == 5);
 }
 
-#[requires(#[prusti::frac(1/2)] acc!(*x))]
-#[ensures(#[prusti::frac(1/2)] acc!(*x))]
+#[requires(acc!(*x, 1/2))]
+#[ensures(acc!(*x, 1/2))]
 fn bar(x: *mut i32) {}

@@ -564,14 +564,17 @@ pub fn slice_len<T>(_: &[T]) -> usize {
 
 /// Access to raw pointers
 #[cfg(feature = "prusti")]
-pub fn prusti_acc<T>(ptr: *mut T) -> bool {
+pub fn prusti_acc<T>(ptr: *mut T, frac: i64) -> bool {
     true
 }
 
 #[macro_export]
 macro_rules! acc {
     (*$access:expr) => {
-        prusti_acc($access);
+        prusti_acc($access, 1);
+    };
+    (*$access:expr, $frac:expr) => {
+        prusti_acc($access, $frac);
     };
 }
 
