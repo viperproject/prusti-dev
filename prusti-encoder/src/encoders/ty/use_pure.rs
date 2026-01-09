@@ -25,6 +25,7 @@ impl<'vir> TyDatas<'vir> for UsePureTyDatas {
     type TyData = TyUsePureRef<'vir>;
     type OpaqueData = <PureTyDatas as TyDatas<'vir>>::OpaqueData;
     type ParamData = <PureTyDatas as TyDatas<'vir>>::ParamData;
+    type ArrayData = TyUsePureArrayData<'vir>;
     type PrimitiveData = <PureTyDatas as TyDatas<'vir>>::PrimitiveData;
     type ImmRefData = TyUsePureImmRef<'vir>;
     type MutRefData = TyUsePureMutRef<'vir>;
@@ -35,6 +36,7 @@ impl<'vir> TyDatas<'vir> for UsePureTyDatas {
 }
 
 pub type TyUsePure<'vir> = Ty<'vir, UsePureTyDatas>;
+pub type TyUsePureArray<'vir> = ArrayData<'vir, UsePureTyDatas>;
 pub type TyUsePureStruct<'vir> = StructData<'vir, UsePureTyDatas>;
 pub type TyUsePureEnum<'vir> = EnumData<'vir, UsePureTyDatas>;
 
@@ -50,6 +52,14 @@ pub struct TyUsePureMutRef<'vir> {
     caster: FieldCaster<'vir>,
     pure: <PureTyDatas as TyDatas<'vir>>::MutRefData,
     inner: TyImpure<'vir>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct TyUsePureArrayData<'vir> {
+    caster: FieldCaster<'vir>,
+    #[allow(dead_code)]
+    args: GArgsTy<'vir>,
+    pure: <PureTyDatas as TyDatas<'vir>>::ArrayData,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -168,6 +178,9 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
                     inner: self.deps.require_dep::<TyImpureEnc>(inner_ty.ty).unwrap(),
                 })
             }
+            TySpecifics::ArrayLike(data) => {
+                TySpecifics::ArrayLike(self.encode_array(data, ty.0.params))
+            }
             TySpecifics::StructLike(data) => {
                 TySpecifics::StructLike(self.encode_structlike(data, ty.0.params))
             }
@@ -186,6 +199,22 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
         self.deps
             .require_dep::<GArgsCastEnc<Pure>>(normalized)
             .unwrap()
+    }
+
+    fn encode_array(
+        &mut self,
+        data: &ArrayData<'vir, (RustTyDatas, PureTyDatas)>,
+        params: GParams<'vir>,
+    ) -> ArrayData<'vir, UsePureTyDatas> {
+        let caster = self.encode_normalized(*data.0, params);
+        let slice = data.slice;
+        let inhabited = data.inhabited;
+        let data = TyUsePureArrayData {
+            caster,
+            args: self.args_t,
+            pure: *data.data.1,
+        };
+        ArrayData::new(data, inhabited, slice)
     }
 
     fn encode_structlike(
@@ -303,6 +332,24 @@ impl<'vir> TyUsePureMutRef<'vir> {
         } else {
             vcx.mk_bool::<false>().lazy()
         }
+    }
+}
+
+impl<'vir> TyUsePureArray<'vir> {
+    pub fn len<Curr, Next>(
+        &self,
+        snap: vir::ExprGenCSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenInt<'vir, Curr, Next> {
+        self.pure.len.call()(snap)
+    }
+
+    pub fn index<Curr, Next>(
+        &self,
+        snap: vir::ExprGenCSnap<'vir, Curr, Next>,
+        index: vir::ExprGenInt<'vir, Curr, Next>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        let res = self.pure.index_access.call()(snap, index);
+        self.caster.cast_to_caller_ctx(res.upcast_ty())
     }
 }
 

@@ -76,10 +76,10 @@ pub fn test_entrypoint<'tcx>(
     // functions, because even when Prusti is configured to use the monomorphic
     // it will still use `MirPolyImpureEnc` directly sometimes (see usages
     // earlier in this file).
-    program.header("user methods");
+    program.header("user functions");
     crate::encoders::FunctionCallEnc::emit_outputs(&mut program);
 
-    program.header("user functions");
+    program.header("user methods");
     crate::encoders::MethodCallEnc::emit_outputs(&mut program);
 
     program.header("MIR builtins");

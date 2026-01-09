@@ -42,6 +42,15 @@ fn sanitize_char(c: char) -> Option<String> {
         '-' => Some("$hyp$".to_string()),
         '(' => Some("$lp$".to_string()),
         ')' => Some("$rp$".to_string()),
+        '[' => Some("$lb$".to_string()),
+        ']' => Some("$rb$".to_string()),
+        '{' => Some("$lc$".to_string()),
+        '}' => Some("$rc$".to_string()),
+        '?' => Some("$qm$".to_string()),
+        ';' => Some("$sc$".to_string()),
+        '#' => Some("$oc$".to_string()),
+        '/' => Some("$fs$".to_string()),
+        '*' => Some("$as$".to_string()),
         _ => None,
     }
 }

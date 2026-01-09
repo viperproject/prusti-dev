@@ -17,6 +17,7 @@ pub(super) type ImpureTyDatas = ViperTyDatas<Impure>;
 impl<'vir> TyDatas<'vir> for ImpureTyDatas {
     type TyData = TyImpureRef<'vir>;
     type PrimitiveData = ();
+    type ArrayData = TyImpureArrayData<'vir>;
     type ImmRefData = TyImpureImmRefData;
     type MutRefData = TyImpureMutRefData<'vir>;
     type FieldData = TyImpureFieldData<'vir>;
@@ -38,6 +39,18 @@ pub struct TyImpureImmRefData {}
 #[derive(Debug, Clone, Copy)]
 pub struct TyImpureMutRefData<'vir> {
     pub deref_func: vir::FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Ref>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct TyImpureArrayData<'vir> {
+    pub index_access: vir::FunctionIdn<'vir, (vir::Ref, vir::Int), vir::Ref>,
+    #[allow(dead_code)]
+    pub index_frame:
+        vir::FunctionIdn<'vir, (vir::Ref, vir::Int, vir::ManyTyVal, vir::ManyCSnap), vir::CSnap>,
+    #[allow(dead_code)]
+    pub index_predicate: PredicateIdn<'vir, (vir::Ref, vir::Int, vir::ManyTyVal, vir::ManyCSnap)>,
+    pub method_fold: vir::MethodIdn<'vir, (vir::Int, vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>,
+    pub method_unfold: vir::MethodIdn<'vir, (vir::Int, vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -89,6 +102,7 @@ pub struct TyImpureEncLocal<'vir> {
     pub function_snap: vir::Function<'vir>,
     pub ref_to_field_refs: Vec<vir::Function<'vir>>,
     pub method_assign: vir::Method<'vir>,
+    pub methods: Vec<vir::Method<'vir>>,
 }
 
 impl TaskEncoder for TyImpureEnc {
@@ -162,6 +176,15 @@ impl TaskEncoder for TyImpureEnc {
                 TySpecifics::Opaque(opaque) => TySpecifics::Opaque(
                     super::kinds::opaque::ty_impure(opaque, deps, &mut builder)?,
                 ),
+                TySpecifics::ArrayLike(array) => {
+                    TySpecifics::ArrayLike(super::kinds::arraylike::ty_impure(
+                        &ty,
+                        array,
+                        deps,
+                        &mut builder,
+                        snap_func_ident,
+                    )?)
+                }
                 TySpecifics::Primitive(prim) => TySpecifics::Primitive(
                     super::kinds::primitive::ty_impure(prim, deps, &mut builder)?,
                 ),
@@ -203,6 +226,9 @@ impl TaskEncoder for TyImpureEnc {
                 program.add_predicate(pred);
             }
             program.add_method(output.method_assign);
+            for method in output.methods {
+                program.add_method(method);
+            }
         }
     }
 }
@@ -401,13 +427,16 @@ impl<'vir> PredicateBuilderInner<'vir> {
         ident
     }
 
-    pub(crate) fn build(self) -> TyImpureEncLocal<'vir> {
+    pub(crate) fn build(mut self) -> TyImpureEncLocal<'vir> {
+        // TODO: don't rely on assignment being index 0, use separate field...
+        let method_assign = self.methods.remove(0);
         TyImpureEncLocal {
             fields: self.fields,
             predicates: self.predicates,
             function_snap: self.function_snap.unwrap(),
             ref_to_field_refs: self.functions,
-            method_assign: self.methods[0],
+            method_assign,
+            methods: self.methods,
         }
     }
 }

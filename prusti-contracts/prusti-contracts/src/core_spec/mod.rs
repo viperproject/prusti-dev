@@ -1,4 +1,5 @@
 use crate::*;
+
 pub mod eq;
 pub mod float;
 
@@ -18,3 +19,10 @@ pub(super) mod type_eq {
 #[extern_spec(core::panicking)]
 #[requires(false)]
 fn panic(expr: &'static str) -> !;
+
+#[extern_spec]
+impl<T> [T] {
+    #[pure]
+    #[ensures(result == slice_len(self))]
+    fn len(&self) -> usize;
+}

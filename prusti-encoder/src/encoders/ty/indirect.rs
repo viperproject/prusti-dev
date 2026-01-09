@@ -65,7 +65,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                 // Here, `T` could be instantiated as `&'a mut i32` in which
                 // case we would want a wand with `i32(result) --* opaque_behind_a(x)`.
                 // This is why we should return `opaque_behind_a(x)` here.
-                TySpecifics::Param(_) | TySpecifics::Opaque(_) => (),
+                TySpecifics::Param(_) | TySpecifics::Opaque(_) | TySpecifics::ArrayLike(_) => (),
                 TySpecifics::MutRef((data, ref_domain)) => {
                     let inner_ty = data.decompose_normalize(ty.args);
                     predicate_applications.push(vcx.mk_lazy_expr(
