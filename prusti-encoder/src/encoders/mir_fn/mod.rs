@@ -31,6 +31,7 @@ impl<'tcx> CallTaskDescription<'tcx> {
     }
 }
 
+// TODO: this should be a "crate" encoder, which will deps.require all the methods in the crate
 pub fn encode_all_in_crate<'tcx>(tcx: ty::TyCtxt<'tcx>) {
     for def_id in tcx.hir_body_owners() {
         tracing::debug!("test_entrypoint item: {def_id:?}");

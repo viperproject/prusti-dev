@@ -141,27 +141,24 @@ impl<'vir> Debug for DomainFunctionData<'vir> {
 
 impl<'vir, Curr, Next> Debug for AdtGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        writeln!(f, "  adt {}", self.name)?;
+        write!(f, "adt {}", self.name)?;
         if !self.typarams.is_empty() {
             write!(f, "[")?;
             fmt_comma_sep_display(f, self.typarams)?;
             write!(f, "]")?;
         }
         writeln!(f, " {{")?;
-        for constructor in self.constructors {
-            writeln!(f, "{constructor:?}")?;
-        }
-        writeln!(f, "  }}")
+        self.constructors.iter().try_for_each(|c| c.fmt(f))?;
+        writeln!(f, "}}")
     }
 }
 
 impl<'vir, Curr, Next> Debug for AdtConstructorGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "    {}(", self.name)?;
-        fmt_comma_sep(f, self.args)?;
-        write!(f, ")")?;
         assert!(self.axiom.is_none());
-        Ok(())
+        write!(f, "  {}(", self.name)?;
+        fmt_comma_sep(f, self.args)?;
+        writeln!(f, ")")
     }
 }
 
