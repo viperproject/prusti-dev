@@ -7,6 +7,6 @@ fn foo() {
     assert!(x == 5);
 }
 
-#[requires(acc!(*x, 1/2))]
-#[ensures(acc!(*x, 1/2))]
+#[requires(acc!(*x, Real::from_f64(0.5)))]
+#[ensures(acc!(*x, Real::from_f64(0.5)))]
 fn bar(x: *mut i32) {}

@@ -190,11 +190,7 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
                 TySpecifics::EnumLike(self.encode_enumlike(data, ty.0.params))
             }
             TySpecifics::Builtin(data) => TySpecifics::mk_builtin(*data.1),
-            TySpecifics::RawPtr(data) => {
-                TySpecifics::mk_rawptr(TyUsePureRawPtr {
-                    pure: *data.1,
-                })
-            }
+            TySpecifics::RawPtr(data) => TySpecifics::mk_rawptr(TyUsePureRawPtr { pure: *data.1 }),
         }
     }
 

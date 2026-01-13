@@ -7,7 +7,6 @@ use crate::encoders::{
         generics::GParams,
         interpretation::real::TyRealLocal,
         use_pure::{TyUsePure, TyUsePureEnc},
-        pure::TyPureRawPtrData
     },
 };
 use pcg::utils::Place;
@@ -29,8 +28,7 @@ use prusti_rustc_interface::{
 };
 use rustc_hash::FxHashMap;
 use std::fmt;
-use prusti_rustc_interface::middle::mir::Mutability;
-use std::{collections::HashMap, fmt};
+use std::{collections::HashMap};
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, CompType, add_debug_note};
 
@@ -853,9 +851,19 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         term_update.add_to_map(&mut new_curr_ver);
 
                         // walk rest of CFG
-                        let end_update = self
-                            .encode_cfg(&new_curr_ver, target, join_point)?
-                            .map(|s| s.expect_update());
+                        let end_update =
+                            self.encode_cfg(&new_curr_ver, target, join_point);
+
+                        if let Ok(Some(EncodeCfgRes::EncodeCfgResPred(pred, end_update))) =
+                            end_update
+                        {
+                            return Ok(Some(EncodeCfgRes::EncodeCfgResPred(
+                                pred,
+                                stmt_update.merge_inner(term_update).merge(end_update),
+                            )));
+                        }
+
+                        let end_update = end_update?.map(|s| s.expect_update());
 
                         Ok(stmt_update
                             .merge_inner(term_update)
@@ -1293,8 +1301,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
         let bool = self.ty_use(self.vcx.tcx().types.bool);
         let bool = bool.expect_primitive();
-        let mk_bool =
-            |prim: vir::ExprGenBool<'vir, _, _>| bool.prim_to_snap.call()(prim.upcast_ty());
+        let real = self.ty_use_real();
+        let mk_bool = |prim: vir::ExprGenBool<'vir, _, _>| {
+            bool.prim_to_snap.call()(prim.upcast_ty())
+        };
+        let mk_perm = |real_val: vir::ExprGenSnap<'vir, _, _>| {
+            real.snap_to_perm.call()(real_val.downcast_ty())
+        };
+
         Ok(match builtin {
             PrustiBuiltin::SnapshotEquality => {
                 assert_eq!(args.len(), 2);
@@ -1551,7 +1565,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .encode_operand_snap(&args[0].node, curr_ver)?
                     .downcast_ty();
                 let res = fl_ty.fp_to_real.call()(fl);
-                MirPureEncOutput::MirPureEncOutputExpr(self.ty_use_real().perm_to_snap.call()(res).upcast_ty())
+                MirPureEncOutput::MirPureEncOutputExpr(
+                    self.ty_use_real().perm_to_snap.call()(res).upcast_ty(),
+                )
             }
             PrustiBuiltin::RealMul => self.encode_real_op(vir::BinOpKind::Mul, args, curr_ver)?,
             PrustiBuiltin::RealSub => self.encode_real_op(vir::BinOpKind::Sub, args, curr_ver)?,
@@ -1593,9 +1609,12 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         GParams::empty(),
                     ))
                     .unwrap();
-                MirPureEncOutput::MirPureEncOutputPred(
-                    inner_ty.ref_to_pred(self.vcx, derefed, None),
-                )
+                let perm = mk_perm(self.encode_operand_snap(&args[1].node, curr_ver)?);
+                MirPureEncOutput::MirPureEncOutputPred(inner_ty.ref_to_pred(
+                    self.vcx,
+                    derefed,
+                    Some(perm),
+                ))
             }
         })
     }

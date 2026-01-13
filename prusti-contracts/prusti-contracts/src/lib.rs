@@ -564,7 +564,7 @@ pub fn slice_len<T>(_: &[T]) -> usize {
 
 /// Access to raw pointers
 #[cfg(feature = "prusti")]
-pub fn prusti_acc<T>(ptr: *mut T, frac: i64) -> bool {
+pub fn prusti_acc<T>(ptr: *mut T, frac: Real) -> bool {
     true
 }
 
