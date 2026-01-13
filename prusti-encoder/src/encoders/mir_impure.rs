@@ -1389,6 +1389,22 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     )))));
                 }
                 mir::StatementKind::Assign(box (dest, rvalue)) => {
+
+                    self.vcx.handle_error("exhale.failed:insufficient.permission", move |_| {
+                            Some(vec![PrustiError::verification(
+                                "There might be insufficient permission",
+                                span.into(),
+                            )])
+                    });
+
+                    self.vcx.handle_error("application.precondition:insufficient.permission", move |_| {
+                            Some(vec![PrustiError::verification(
+                                "There might be insufficient permission",
+                                span.into(),
+                            )])
+                    });
+
+
                     // What are we assigning to?
                     let proj_enc = self
                         .encode_place(Place::from(*dest))
