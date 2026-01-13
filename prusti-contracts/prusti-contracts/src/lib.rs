@@ -571,7 +571,7 @@ pub fn prusti_acc<T>(ptr: *mut T, frac: Real) -> bool {
 #[macro_export]
 macro_rules! acc {
     (*$access:expr) => {
-        prusti_acc($access, 1);
+        prusti_acc($access, Real::from_f64(1.0));
     };
     (*$access:expr, $frac:expr) => {
         prusti_acc($access, $frac);
