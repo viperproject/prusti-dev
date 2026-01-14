@@ -21,8 +21,8 @@ use prusti_rustc_interface::{
     index::IndexVec,
     middle::{
         mir,
-        ty::{self, Binder, FnSig, Region, TyKind},
         mir::Mutability,
+        ty::{self, Binder, FnSig, Region, TyKind},
     },
     span::{Span, def_id::DefId, source_map::Spanned},
 };
@@ -745,35 +745,37 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, None),
                 );
 
-                // assign tuple into a `phi` variable
-                let mut phi_idx = Version {
-                    index: self.phi_ctr,
-                    location,
-                    initialised: None,
-                };
-                phi_idx.initialised = Some(
-                    self.vcx
-                        .mk_local_decl(self.mk_phi(phi_idx), tuple_ref.snapshot()),
-                );
-                self.phi_ctr += 1;
-                let mut phi_update = Update::new();
-                phi_update.binds.push(UpdateBind::Phi(phi_idx, phi_expr));
+                        // assign tuple into a `phi` variable
+                        let mut phi_idx = Version {
+                            index: self.phi_ctr,
+                            location,
+                            initialised: None,
+                        };
+                        phi_idx.initialised = Some(
+                            self.vcx
+                                .mk_local_decl(self.mk_phi(phi_idx), tuple_ref.snapshot()),
+                        );
+                        self.phi_ctr += 1;
+                        let mut phi_update = Update::new();
+                        phi_update.binds.push(UpdateBind::Phi(phi_idx, phi_expr));
 
-                // update locals by destructuring `phi` variable
-                // TODO: maybe this is unnecessary, we could instead use tuple
-                //   access directly instead of the locals going forward?
-                for (elem_idx, local) in mod_locals.iter().enumerate() {
-                    let ty = self.get_ty_for_local(*local);
-                    let expr = self.mk_phi_acc(&tuple_ref, phi_idx, elem_idx, ty);
-                    self.bump_version(&mut phi_update, *local, expr, location);
-                    new_curr_ver.insert(*local, phi_update.versions[local]);
+                        // update locals by destructuring `phi` variable
+                        // TODO: maybe this is unnecessary, we could instead use tuple
+                        //   access directly instead of the locals going forward?
+                        for (elem_idx, local) in mod_locals.iter().enumerate() {
+                            let ty = self.get_ty_for_local(*local);
+                            let expr = self.mk_phi_acc(&tuple_ref, phi_idx, elem_idx, ty);
+                            self.bump_version(&mut phi_update, *local, expr, location);
+                            new_curr_ver.insert(*local, phi_update.versions[local]);
+                        }
+
+                        Ok(stmt_update
+                            .merge(Some(phi_update))
+                            .map(EncodeCfgRes::EncodeCfgResUpdate))
+                    }
+                    Some(p) => Ok(Some(p)),
+                    _ => unreachable!(),
                 }
-
-                Ok(stmt_update.merge(Some(phi_update)).map(EncodeCfgRes::EncodeCfgResUpdate))
-            }
-            Some(p) => Ok(Some(p)),
-            _ => unreachable!()
-        }
             }
 
             mir::TerminatorKind::Return => Ok(Some(EncodeCfgRes::EncodeCfgResUpdate(stmt_update))),
@@ -837,7 +839,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             .iter()
                             .map(|arg| self.encode_operand_snap(&arg.node, &new_curr_ver))
                             .collect::<Result<Vec<_>, _>>()?;
-                        Ok(MirPureEncOutput::MirPureEncOutputExpr(pure_func.call(snap_args)))
+                        Ok(MirPureEncOutput::MirPureEncOutputExpr(
+                            pure_func.call(snap_args),
+                        ))
                     } else {
                         panic!("call to unknown non-pure function in pure code ({def_id:?})");
                     }
@@ -950,7 +954,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 let rvalue_snapshot_encoding = self.ty_use(rvalue_ty);
                 let encoded_place = self.encode_place_with_ref(curr_ver, (*place).into());
                 let e_rvalue_ty = rvalue_snapshot_encoding.expect_rawptr();
-                let place_ref = encoded_place.place_ref.unwrap_or_else(|| self.vcx.mk_null().lazy());
+                let place_ref = encoded_place
+                    .place_ref
+                    .unwrap_or_else(|| self.vcx.mk_null().lazy());
                 Ok(e_rvalue_ty.prim_to_snap(place_ref).upcast_ty())
             }
             mir::Rvalue::BinaryOp(op, box (l, r)) => {
@@ -1047,6 +1053,21 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             .unwrap();
                         let val_expr = inner_ty.ref_to_snap(val_expr);
                         let val_expr = caster.cast_to_caller_ctx(val_expr);
+                        EncodedPlace::new(val_expr, encoded_place.place_ref)
+                    }
+                    TyKind::RawPtr(inner_ty, _) => {
+                        let e_ty = self
+                            .deps
+                            .require_dep::<TyUsePureEnc>(ty_task)
+                            .unwrap()
+                            .expect_rawptr();
+                        let inner_ty = vir::with_vcx(|vcx| {
+                            RustTyDecomposition::from_ty(*inner_ty, vcx.tcx(), self.context)
+                        });
+                        let inner_ty_out =
+                            self.deps.require_dep::<TyUseImpureEnc>(inner_ty).unwrap();
+                        let val_expr =
+                            e_ty.deref_snap(encoded_place.snap.downcast_ty(), inner_ty_out);
                         EncodedPlace::new(val_expr, encoded_place.place_ref)
                     }
                     _ => unreachable!(),
@@ -1439,7 +1460,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 let prim =
                     slice_ty_out.len(ref_ty_out.value_access(op.downcast_ty()).downcast_ty());
                 let usize_ = self.ty_use(self.vcx.tcx().types.usize).expect_primitive();
-                MirPureEncOutput::MirPureEncOutputExpr(usize_.prim_to_snap.call()(prim.upcast_ty()).upcast_ty())
+                MirPureEncOutput::MirPureEncOutputExpr(
+                    usize_.prim_to_snap.call()(prim.upcast_ty()).upcast_ty(),
+                )
             }
             PrustiBuiltin::ModeStart(mode) => {
                 match mode {

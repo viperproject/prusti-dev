@@ -6,12 +6,10 @@ fn foo() {
     let p_x = r_x as *mut i32;
     bar(r_x);
     unsafe {
-        *p_x = 5;
+        assert!(*p_x == 5);
     }
 }
 
 fn bar(x: &mut i32) {
-    unsafe {
-        *x = 6;
-    }
+    *x = 6;
 }

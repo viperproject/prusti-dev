@@ -2,7 +2,7 @@ use task_encoder::{EncodeFullResult, TaskEncoder};
 use vir::CastType;
 
 use crate::encoders::{
-    Pure,
+    Impure, Pure,
     ty::{
         LazyRustTy, RustTyDatas,
         generics::{GArgs, GArgsCastEnc, GArgsTyEnc, GParams},
@@ -378,6 +378,14 @@ impl<'vir> TyUsePureRawPtr<'vir> {
         snap: vir::ExprGenCSnap<'vir, Curr, Next>,
     ) -> vir::ExprGenRef<'vir, Curr, Next> {
         self.pure.deref_access.call()(snap)
+    }
+
+    pub fn deref_snap<Curr, Next>(
+        &self,
+        snap: vir::ExprGenCSnap<'vir, Curr, Next>,
+        inner_ty: &TyData<'vir, UseTyDatas<Impure>>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        inner_ty.ref_to_snap(self.deref_access(snap))
     }
 }
 

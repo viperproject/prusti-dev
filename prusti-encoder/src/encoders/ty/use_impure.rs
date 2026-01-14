@@ -186,14 +186,10 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
                 TySpecifics::EnumLike(self.encode_enumlike(data, ty.0.params))
             }
             TySpecifics::Builtin(..) => TySpecifics::mk_builtin(()),
-            TySpecifics::RawPtr(data) => {
-                TySpecifics::mk_rawptr(
-                    TyUseImpureRawPtrData {
-                        args: self.args_t,
-                        impure: *data.1,
-                    }
-                )
-            } 
+            TySpecifics::RawPtr(data) => TySpecifics::mk_rawptr(TyUseImpureRawPtrData {
+                args: self.args_t,
+                impure: *data.1,
+            }),
         };
         let data = TyUseImpureData {
             args: self.args_t,

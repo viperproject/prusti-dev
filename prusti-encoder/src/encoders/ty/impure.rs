@@ -200,7 +200,7 @@ impl TaskEncoder for TyImpureEnc {
                         deps,
                         &mut builder,
                     )?)
-                },
+                }
                 TySpecifics::RawPtr(rawptr) => TySpecifics::RawPtr(
                     super::kinds::rawptr::ty_impure(rawptr, deps, &mut builder)?,
                 ),

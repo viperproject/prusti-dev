@@ -471,7 +471,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 let inner = e_rvalue_ty.expect_rawptr();
                 Ok(inner
                     .prim_to_snap(place_expr.expr.expect_predicate())
-                    .upcast_ty())
+                    .upcast_ty()
+                    .into())
             }
 
             _ => Err(EncodeRvalueError::UnsupportedRvalue),
@@ -1177,7 +1178,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                                 snap: None,
                             }
                         }
-                    },
+                    }
                     _ => unreachable!(),
                 }
             }
