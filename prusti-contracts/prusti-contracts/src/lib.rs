@@ -573,6 +573,9 @@ macro_rules! acc {
     (*$access:expr) => {
         prusti_acc($access, Real::from_f64(1.0));
     };
+    (*$access:expr, $nom:literal/$denom:literal) => {
+        prusti_acc($access, Real::from_f64($nom) / Real::from_f64($denom));
+    };
     (*$access:expr, $frac:expr) => {
         prusti_acc($access, $frac);
     };
