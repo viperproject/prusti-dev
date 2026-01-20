@@ -1620,12 +1620,10 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             PrustiBuiltin::NewReal => {
                 let a0_ty = args[0].node.ty(self.body, self.vcx.tcx());
                 let a0_ty_use = self.ty_use(a0_ty);
-                let lhs_snap = self
-                    .encode_operand_snap(&args[0].node, curr_ver)?;
+                let lhs_snap = self.encode_operand_snap(&args[0].node, curr_ver)?;
                 let a1_ty = args[1].node.ty(self.body, self.vcx.tcx());
                 let a1_ty_use = self.ty_use(a1_ty);
-                let rhs_snap = self
-                    .encode_operand_snap(&args[1].node, curr_ver)?;
+                let rhs_snap = self.encode_operand_snap(&args[1].node, curr_ver)?;
                 let lhs = a0_ty_use.expect_native().snap_to_prim.call()(lhs_snap.downcast_ty());
                 let rhs = a1_ty_use.expect_native().snap_to_prim.call()(rhs_snap.downcast_ty());
                 MirPureEncOutput::MirPureEncOutputExpr(real.perm_to_snap.call()(
