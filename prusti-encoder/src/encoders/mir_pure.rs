@@ -1244,6 +1244,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             IsInfinite(ty::FloatTy),
             FlAbs(ty::FloatTy),
             FlToReal,
+            NewReal,
             RealMul,
             RealEq,
             RealSub,
@@ -1316,6 +1317,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             (Some("prusti_contracts::Real"), "le") => PrustiBuiltin::RealLe,
             (Some("prusti_contracts::Real"), "gt") => PrustiBuiltin::RealGt,
             (Some("prusti_contracts::Real"), "ge") => PrustiBuiltin::RealGe,
+            (Some("prusti_contracts::Real"), "new") => PrustiBuiltin::NewReal,
             (None, "prusti_acc") => PrustiBuiltin::Acc,
             (_, other) => panic!("illegal prusti::builtin ({other})"),
         };
@@ -1613,6 +1615,22 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     self.vcx
                         .mk_unary_op_expr(vir::UnOpKind::Neg, real_val.upcast_ty())
                         .downcast_ty(),
+                ).upcast_ty())
+            }
+            PrustiBuiltin::NewReal => {
+                let a0_ty = args[0].node.ty(self.body, self.vcx.tcx());
+                let a0_ty_use = self.ty_use(a0_ty);
+                let lhs_snap = self
+                    .encode_operand_snap(&args[0].node, curr_ver)?;
+                let a1_ty = args[1].node.ty(self.body, self.vcx.tcx());
+                let a1_ty_use = self.ty_use(a1_ty);
+                let rhs_snap = self
+                    .encode_operand_snap(&args[1].node, curr_ver)?;
+                let lhs = a0_ty_use.expect_native().snap_to_prim.call()(lhs_snap.downcast_ty());
+                let rhs = a1_ty_use.expect_native().snap_to_prim.call()(rhs_snap.downcast_ty());
+                MirPureEncOutput::MirPureEncOutputExpr(real.perm_to_snap.call()(
+                    (self.vcx.
+                    mk_bin_op_expr(vir::BinOpKind::FractionalPerm, lhs, rhs)).downcast_ty()
                 ).upcast_ty())
             }
             PrustiBuiltin::Acc => {

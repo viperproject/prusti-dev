@@ -382,6 +382,10 @@ mod private {
         fn from(_: f128) -> Self {
             panic!();
         }
+
+        pub fn new(nom: i64, denom: i64) -> Self {
+            panic!()
+        }
     }
 
     impl Sub for Real {
@@ -574,7 +578,7 @@ macro_rules! acc {
         prusti_acc($access, Real::from_f64(1.0));
     };
     (*$access:expr, $nom:literal/$denom:literal) => {
-        prusti_acc($access, Real::from_f64($nom) / Real::from_f64($denom));
+        prusti_acc($access, Real::new($nom, $denom));
     };
     (*$access:expr, $frac:expr) => {
         prusti_acc($access, $frac);
