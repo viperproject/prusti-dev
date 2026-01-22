@@ -135,6 +135,7 @@ fn main() {
             // Silicon
             java_class!("viper.silicon.Silicon", vec![
                 constructor!("(Lviper/silver/reporter/Reporter;Lscala/collection/immutable/Seq;)V"),
+                field!("lifetimeState"),
             ]),
             java_class!("viper.silicon.SiliconFrontend", vec![
                 constructor!("(Lviper/silver/reporter/Reporter;Lch/qos/logback/classic/Logger;)V"),
@@ -148,11 +149,14 @@ fn main() {
             ]),
             // Silver
             java_class!("viper.silver.frontend.SilFrontend", vec![
+                method!("init"),
                 method!("setVerifier"),
                 method!("verification"),
                 method!("getVerificationResult"),
                 method!("setState"),
                 method!("verifier"),
+                method!("config"),
+                method!("parseCommandLine"),
                 trait_field!("_verifier"),
                 trait_field!("_program"),
             ]),
