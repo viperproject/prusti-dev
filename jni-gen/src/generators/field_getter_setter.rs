@@ -66,7 +66,7 @@ fn class_field_lookup<'a>(
 
 fn generate_field_getter(class: &ClassName, field_name: &str, type_signature: &str) -> String {
     let rust_getter_name = format!("get_{}", java_identifier_to_rust(field_name));
-    let parameter_type = generate_jni_type(type_signature);
+    let return_type = generate_return_jni_type(type_signature);
 
     let mut code: Vec<String> = vec![];
     code.push(format!(
@@ -76,12 +76,12 @@ fn generate_field_getter(class: &ClassName, field_name: &str, type_signature: &s
     ));
     code.push("///".to_string());
     code.push(format!(
-        "/// Return type and Java signature: `{parameter_type}` (`{type_signature}`)"
+        "/// Return type and Java signature: `{return_type}` (`{type_signature}`)"
     ));
     code.push(format!("pub fn {rust_getter_name}("));
     code.push("    &self,".to_string());
     code.push("    receiver: JObject<'a>,".to_string());
-    code.push(format!(") -> JNIResult<{parameter_type}> {{"));
+    code.push(format!(") -> JNIResult<{return_type}> {{"));
     code.push(format!("    let class_name = \"{}\";", class.path()));
     code.push(format!("    let field_name = \"{field_name}\";"));
     code.push(format!("    let return_signature = \"{type_signature}\";"));
