@@ -19,13 +19,69 @@ use log::{debug, error, info};
 use std::{
     collections::{hash_map::DefaultHasher, HashSet},
     hash::{Hash, Hasher},
+    marker::PhantomData,
     path::PathBuf,
     thread::ScopedJoinHandle,
 };
 use viper_sys::wrappers::{scala, viper::*};
 
-pub struct Verifier<'a> {
+mod lifetime_state {
+    /// The JVM object for the underlying verifier has been created, but not yet configured.
+    pub(crate) struct Instantiated;
+
+    /// The verifier has been configured, and verification has started on a
+    /// Viper program.
+    pub struct Started;
+}
+
+use lifetime_state::*;
+
+/// Implementations of this trait correspond to the different states of the
+/// underlying Viper verifier. See [`lifetime_state::Instantiated`] and
+/// [`lifetime_state::Started`].
+pub(crate) trait LifetimeState {
+    /// Silicon tracks the lifetime state of the verifier explicitly via a value
+    /// of a Scala enumeration type.  Implementations of LifetimeState should
+    /// provide the class name of the corresponding Scala enumeration value that
+    /// would be used in Silicon: if Silicon is used, then Prusti will verify
+    /// that the Silicon's enumeration value is consistent with the tracked
+    /// state in the [`Verifier`] object (see [`Verifier::assert_verifier_state_and_invariants`]).
+    const SILICON_JAVA_CLASSNAME: &'static str;
+
+    /// Asserts properties that should hold when the verifier is in this state.
+    fn assert_state_invariants<'a>(
+        _jni_utils: &JniUtils<'a>,
+        _frontend_wrapper: &silver::frontend::SilFrontend<'a>,
+        _frontend_instance: JObject<'a>,
+    ) {
+    }
+}
+
+impl LifetimeState for Instantiated {
+    const SILICON_JAVA_CLASSNAME: &'static str =
+        "viper.silicon.Silicon$LifetimeState$Instantiated$";
+}
+
+impl LifetimeState for Started {
+    const SILICON_JAVA_CLASSNAME: &'static str = "viper.silicon.Silicon$LifetimeState$Started$";
+
+    fn assert_state_invariants<'a>(
+        jni_utils: &JniUtils<'a>,
+        frontend_wrapper: &silver::frontend::SilFrontend<'a>,
+        frontend_instance: JObject<'a>,
+    ) {
+        let config = jni_utils.unwrap_result(frontend_wrapper.call_config(frontend_instance));
+        assert!(!config.is_null(), "config is null");
+    }
+}
+
+pub(crate) trait TransitionsTo<Next: LifetimeState> {}
+
+impl TransitionsTo<Started> for Instantiated {}
+
+pub struct Verifier<'a, State = Started> {
     env: &'a JNIEnv<'a>,
+    backend: VerificationBackend,
     verifier_wrapper: silver::verifier::Verifier<'a>,
     verifier_instance: JObject<'a>,
     frontend_wrapper: silver::frontend::SilFrontend<'a>,
@@ -33,9 +89,53 @@ pub struct Verifier<'a> {
     jni: JniUtils<'a>,
     ast_utils: AstUtils<'a>,
     smt_manager: SmtManager,
+    _marker: PhantomData<State>,
 }
 
-impl<'a> Verifier<'a> {
+impl<'a, State> Verifier<'a, State> {
+    /// Asserts that the underlying Viper verifier is an a state that is
+    /// consistent with `ExpectedState` (this does not take the current state into account).
+    fn assert_verifier_state_and_invariants<ExpectedState: LifetimeState>(&self) {
+        if let VerificationBackend::Silicon = self.backend {
+            let wrapper = silicon::Silicon::with(self.env);
+            let jni_state = self
+                .jni
+                .unwrap_result(wrapper.get_lifetimeState(self.verifier_instance));
+            assert_eq!(
+                self.jni.class_name(jni_state),
+                ExpectedState::SILICON_JAVA_CLASSNAME,
+            );
+            ExpectedState::assert_state_invariants(
+                &self.jni,
+                &self.frontend_wrapper,
+                self.frontend_instance,
+            );
+        }
+    }
+
+    /// Asserts that the underlying Viper verifier is in a state that is
+    /// consistent with the current state of the [`Verifier`] object.
+    fn assert_lifetime_state_consistency(&self)
+    where
+        State: LifetimeState,
+    {
+        self.assert_verifier_state_and_invariants::<State>();
+    }
+
+    /// Verifies that the underlying Viper verifier state corresponds to to
+    /// `Next`, and returns an instance of [`Verifier`] representing that the
+    /// underlying Viper verifier is in that state.
+    fn transition_state_to<Next: LifetimeState>(self) -> Verifier<'a, Next>
+    where
+        State: TransitionsTo<Next>,
+    {
+        self.assert_verifier_state_and_invariants::<Next>();
+        // SAFETY: Only ghost state changes
+        unsafe { std::mem::transmute(self) }
+    }
+}
+
+impl<'a> Verifier<'a, Instantiated> {
     pub fn new(
         env: &'a JNIEnv,
         backend: VerificationBackend,
@@ -66,6 +166,7 @@ impl<'a> Verifier<'a> {
 
             let backend_unwrapped = Self::instantiate_verifier(backend, env, reporter, debug_info);
             let backend_instance = jni.unwrap_result(backend_unwrapped);
+            assert!(!backend_instance.is_null(), "backend_instance is null");
 
             let logger_singleton =
                 jni.unwrap_result(silver::logger::SilentLogger_object::with(env).singleton());
@@ -90,10 +191,9 @@ impl<'a> Verifier<'a> {
             frontend_wrapper
                 .call_setVerifier(frontend_instance, backend_instance)
                 .unwrap();
-            let verifier_option = jni.new_option(Some(backend_instance));
 
             frontend_wrapper
-                .set___verifier(frontend_instance, verifier_option)
+                .call_init(frontend_instance, backend_instance)
                 .unwrap();
 
             Ok(frontend_instance)
@@ -102,6 +202,8 @@ impl<'a> Verifier<'a> {
         let verifier_instance = jni.unwrap_result(env.with_local_frame(16, || {
             let verifier_instance =
                 jni.unwrap_result(frontend_wrapper.call_verifier(frontend_instance));
+
+            assert!(!verifier_instance.is_null(), "verifier_instance is null");
 
             let consistency_check_state = silver::frontend::DefaultStates::with(env)
                 .call_ConsistencyCheck()
@@ -120,7 +222,7 @@ impl<'a> Verifier<'a> {
             Ok(verifier_instance)
         }));
 
-        Verifier {
+        let verifier = Verifier {
             env,
             verifier_wrapper,
             verifier_instance,
@@ -129,7 +231,11 @@ impl<'a> Verifier<'a> {
             jni,
             ast_utils,
             smt_manager,
-        }
+            backend,
+            _marker: PhantomData,
+        };
+        verifier.assert_lifetime_state_consistency();
+        verifier
     }
 
     #[tracing::instrument(level = "debug", skip_all)]
@@ -149,7 +255,7 @@ impl<'a> Verifier<'a> {
 
     #[must_use]
     #[tracing::instrument(level = "debug", skip_all)]
-    pub fn parse_command_line(self, args: &[String]) -> Self {
+    pub fn parse_command_line(self, args: &[String]) -> Verifier<'a, Started> {
         self.ast_utils.with_local_frame(16, || {
             let args = self.jni.new_seq(
                 &args
@@ -158,23 +264,15 @@ impl<'a> Verifier<'a> {
                     .collect::<Vec<JObject>>(),
             );
             self.jni.unwrap_result(
-                self.verifier_wrapper
-                    .call_parseCommandLine(self.verifier_instance, args),
+                self.frontend_wrapper
+                    .call_parseCommandLine(self.frontend_instance, args),
             );
         });
-        self
+        self.transition_state_to::<Started>()
     }
+}
 
-    #[must_use]
-    #[tracing::instrument(level = "debug", skip_all)]
-    pub fn start(self) -> Self {
-        self.ast_utils.with_local_frame(16, || {
-            self.jni
-                .unwrap_result(self.verifier_wrapper.call_start(self.verifier_instance));
-        });
-        self
-    }
-
+impl<'a> Verifier<'a> {
     #[tracing::instrument(name = "viper::verify", level = "debug", skip_all)]
     pub fn verify(
         &mut self,
@@ -228,6 +326,7 @@ impl<'a> Verifier<'a> {
             let program_option = self.jni.new_option(Some(program.to_jobject()));
             self.jni.unwrap_result(self.frontend_wrapper.set___program(self.frontend_instance, program_option));
 
+            self.assert_lifetime_state_consistency();
             run_timed!("Viper verification", debug,
                 self.jni.unwrap_result(self.frontend_wrapper.call_verification(self.frontend_instance));
                 let viper_result_option = self.jni.unwrap_result(self.frontend_wrapper.call_getVerificationResult(self.frontend_instance));
@@ -263,13 +362,15 @@ impl<'a> Verifier<'a> {
             }
         })
     }
+}
 
+impl<'a, State> Verifier<'a, State> {
     pub fn verifier_instance(&self) -> &JObject<'a> {
         &self.verifier_instance
     }
 }
 
-impl Drop for Verifier<'_> {
+impl<State> Drop for Verifier<'_, State> {
     fn drop(&mut self) {
         // Tell the verifier to stop its threads.
         self.jni

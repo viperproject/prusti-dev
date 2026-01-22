@@ -49,7 +49,7 @@ impl<'a> Backend<'a> {
 
 #[allow(clippy::disallowed_types)]
 fn verify_and_poll_msgs(
-    verifier: &mut viper::Verifier,
+    verifier: &mut viper::Verifier<'_>,
     verification_context: &viper::VerificationContext,
     viper_program: viper::Program,
     procedures: std::collections::HashSet<String>,

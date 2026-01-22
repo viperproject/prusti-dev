@@ -101,6 +101,5 @@ impl<'a> VerificationContext<'a> {
 
         Verifier::new(&self.env, backend, report_path, smt_manager)
             .parse_command_line(&verifier_args)
-            .start()
     }
 }

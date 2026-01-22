@@ -196,7 +196,5 @@ where
             ws_send.send(msg).await.unwrap();
         }
         ws_send.close().await.unwrap();
-        // receive the client close to complete the handshake
-        ws_recv.next().await.unwrap().unwrap();
     })
 }
