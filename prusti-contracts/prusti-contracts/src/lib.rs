@@ -382,7 +382,9 @@ mod private {
         fn from(_: f128) -> Self {
             panic!();
         }
+    }
 
+    impl Real {
         pub fn new(nom: i64, denom: i64) -> Self {
             panic!()
         }
