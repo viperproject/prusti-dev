@@ -8,9 +8,9 @@ fn foo() {
     assert!(x == 6);
 }
 
-#[requires(acc!(*y))]
+#[requires(acc(*y))]
 #[requires(y == z)]
-#[ensures(acc!(*y))]
+#[ensures(acc(*y))]
 #[ensures(unsafe { *y == 6 })]
 fn bar(y: *mut u32, z: *mut u32) {
     unsafe {
