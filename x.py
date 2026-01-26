@@ -3,32 +3,30 @@
 """A wrapper for cargo that sets up the Prusti environment."""
 
 import sys
+# NOTE: requires a minimum of Python 3.8 to run
+
 if sys.version_info[0] < 3:
     print('You need to run this script with Python 3.')
+    sys.exit(1)
+
+if sys.version_info[1] < 8: # needed to support trailing = in f-strings
+    print('You need to run this script with Python 3.8 or above.')
     sys.exit(1)
 
 import os
 import platform
 import subprocess
 import glob
-import csv
 import logging
 from pathlib import Path
-import time
-import json
-import signal
 import shutil
-import traceback
-import datetime
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'scripts'))
 import reporting
-from reporting import (
-    report, error
-)
+from reporting import error
 import benchmark
 from helper_functions import (
-    get_env, run_command, extract_test_compile_flags
+    get_env, run_command
 )
 import verify_test
 
