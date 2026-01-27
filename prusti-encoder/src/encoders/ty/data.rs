@@ -24,6 +24,8 @@ pub trait TyDatas<'vir>: Debug + Clone + Copy {
 
     type EnumData: Debug + Clone + 'vir = ();
     type VariantData: Debug + Clone + 'vir = ();
+
+    type BuiltinData: Debug + Clone + 'vir = ();
 }
 
 pub type Ty<'vir, D> = &'vir TyData<'vir, D>;
@@ -43,6 +45,7 @@ pub enum TySpecifics<'vir, D: TyDatas<'vir>> {
     MutRef(D::MutRefData),
     StructLike(StructData<'vir, D>),
     EnumLike(EnumData<'vir, D>),
+    Builtin(D::BuiltinData),
 }
 
 pub struct ArrayData<'vir, D: TyDatas<'vir>> {
@@ -118,6 +121,10 @@ impl<'vir, D: TyDatas<'vir>> TySpecifics<'vir, D> {
         variants: Vec<VariantData<'vir, D>>,
     ) -> Self {
         Self::EnumLike(EnumData::new(data, inhabited, variants))
+    }
+
+    pub fn mk_builtin(data: D::BuiltinData) -> Self {
+        Self::Builtin(data)
     }
 
     pub fn is_param(&self) -> bool {
@@ -218,6 +225,17 @@ impl<'vir, D: TyDatas<'vir>> TyData<'vir, D> {
         match &self.specifics {
             TySpecifics::EnumLike(data) => data,
             _ => panic!("expected enum-like (was {self:?})"),
+        }
+    }
+
+    #[track_caller]
+    pub fn expect_builtin(&self) -> &D::BuiltinData
+    where
+        Self: Debug,
+    {
+        match &self.specifics {
+            TySpecifics::Builtin(data) => data,
+            _ => panic!("expected primitive (was {self:?})"),
         }
     }
 
@@ -322,6 +340,7 @@ impl<'vir, D1: TyDatas<'vir>, D2: TyDatas<'vir>> TyDatas<'vir> for (D1, D2) {
     type StructData = (&'vir D1::StructData, &'vir D2::StructData);
     type VariantData = (&'vir D1::VariantData, &'vir D2::VariantData);
     type EnumData = (&'vir D1::EnumData, &'vir D2::EnumData);
+    type BuiltinData = (&'vir D1::BuiltinData, &'vir D2::BuiltinData);
 }
 
 // Deref implementations
@@ -359,6 +378,7 @@ where
     D::FieldData: PartialEq,
     D::EnumData: PartialEq,
     D::VariantData: PartialEq,
+    D::BuiltinData: PartialEq
 {
     fn eq(&self, other: &Self) -> bool {
         self.data == other.data $(&& self.$field == other.$field)?
@@ -378,6 +398,7 @@ where
     D::FieldData: Eq,
     D::EnumData: Eq,
     D::VariantData: Eq,
+    D::BuiltinData: Eq
 {}
 
 impl<'vir, D: TyDatas<'vir>> Hash for $container<'vir, D>
@@ -393,6 +414,7 @@ where
     D::FieldData: Hash,
     D::EnumData: Hash,
     D::VariantData: Hash,
+    D::BuiltinData: Hash
 {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.data.hash(state);
@@ -444,6 +466,7 @@ impl<'vir, D: TyDatas<'vir>> Debug for TySpecifics<'vir, D> {
             Self::MutRef(arg0) => f.debug_tuple("MutRef").field(arg0).finish(),
             Self::StructLike(arg0) => f.debug_tuple("StructLike").field(arg0).finish(),
             Self::EnumLike(arg0) => f.debug_tuple("EnumLike").field(arg0).finish(),
+            Self::Builtin(arg0) => f.debug_tuple("Builtin").field(arg0).finish(),
         }
     }
 }
@@ -459,6 +482,7 @@ impl<'vir, D: TyDatas<'vir>> Clone for TySpecifics<'vir, D> {
             Self::MutRef(arg0) => Self::MutRef(arg0.clone()),
             Self::StructLike(arg0) => Self::StructLike(arg0.clone()),
             Self::EnumLike(arg0) => Self::EnumLike(arg0.clone()),
+            Self::Builtin(arg0) => Self::Builtin(arg0.clone()),
         }
     }
 }
@@ -476,6 +500,7 @@ where
     D::FieldData: PartialEq,
     D::EnumData: PartialEq,
     D::VariantData: PartialEq,
+    D::BuiltinData: PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
@@ -487,6 +512,7 @@ where
             (Self::MutRef(l0), Self::MutRef(r0)) => l0 == r0,
             (Self::StructLike(l0), Self::StructLike(r0)) => l0 == r0,
             (Self::EnumLike(l0), Self::EnumLike(r0)) => l0 == r0,
+            (Self::Builtin(l0), Self::Builtin(r0)) => l0 == r0,
             _ => false,
         }
     }
@@ -505,6 +531,7 @@ where
     D::FieldData: Eq,
     D::EnumData: Eq,
     D::VariantData: Eq,
+    D::BuiltinData: Eq,
 {
 }
 
@@ -521,6 +548,7 @@ where
     D::FieldData: Hash,
     D::EnumData: Hash,
     D::VariantData: Hash,
+    D::BuiltinData: Hash,
 {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         core::mem::discriminant(self).hash(state);
@@ -542,6 +570,7 @@ impl<'vir, D: TyDatas<'vir>> TySpecifics<'vir, D> {
             (MutRef(d1), MutRef(d2)) => MutRef((d1, d2)),
             (StructLike(d1), StructLike(d2)) => StructLike(d1.zip(d2)),
             (EnumLike(d1), EnumLike(d2)) => EnumLike(d1.zip(d2)),
+            (Builtin(d1), Builtin(d2)) => Builtin((d1, d2)),
             _ => panic!("Mismatched TySpecifics variants"),
         }
     }

@@ -285,7 +285,7 @@ impl<'tcx> EnvQuery<'tcx> {
     }
 
     /// Given some procedure `proc_def_id` which is called, this method returns the actual method which will be executed when `proc_def_id` is defined on a trait.
-    /// Returns `None` if this method can not be found or the provided `proc_def_id` is no trait item.
+    /// Returns `None` if this method can not be found or the provided `proc_def_id` is no trait item. Returns `proc_def_id` if a default implementation is called.
     #[tracing::instrument(level = "debug", skip(self))]
     pub fn find_impl_of_trait_method_call(
         self,
@@ -324,6 +324,14 @@ impl<'tcx> EnvQuery<'tcx> {
                             }
                         }
                     }
+                    if self
+                        .tcx
+                        .associated_item(proc_def_id)
+                        .defaultness(self.tcx)
+                        .has_value()
+                    {
+                        return Some(proc_def_id);
+                    }
                     unreachable!()
                 }
                 _ => None,
@@ -331,6 +339,40 @@ impl<'tcx> EnvQuery<'tcx> {
         } else {
             None
         }
+    }
+
+    /// Given a definition id of a function (def_id) and some substs applied for a call (arg_tys), this method returns if the function call calls a function in the crate specified (crate_name)
+    pub fn is_function_in_crate(
+        self,
+        def_id: DefId,
+        arg_tys: GenericArgsRef<'tcx>,
+        crate_name: &'tcx str,
+    ) -> bool {
+        let actual_impl = self.find_impl_of_trait_method_call(def_id, arg_tys);
+        actual_impl.map_or_else(
+            || {
+                let did_crate_name = self.tcx.crate_name(def_id.krate);
+                did_crate_name.as_str() == crate_name
+            },
+            |x| self.tcx.crate_name(x.krate).as_str() == crate_name,
+        )
+    }
+
+    /// Given an adt definition (adt), this method returns if the adt is defined in the crate specified (crate_name)
+    pub fn is_adt_in_crate(self, adt: ty::AdtDef<'tcx>, crate_name: &'tcx str) -> bool {
+        let did_crate_name = self.tcx.crate_name(adt.did().krate);
+        did_crate_name.as_str() == crate_name
+    }
+
+    /// Given a definition id `def_id`, returns
+    /// None if `def_id` is not an associated item within
+    /// an implementation; Some(ty_name) where `ty_name` is
+    /// the type name of the implementation if
+    /// `def_id` is an associated item.
+    pub fn find_impl_type_name(self, def_id: DefId) -> Option<String> {
+        self.tcx()
+            .impl_of_assoc(def_id)
+            .map(|i| self.tcx().type_of(i).instantiate_identity().to_string())
     }
 
     /// Given a call to `called_def_id` from within `caller_def_id`, returns
