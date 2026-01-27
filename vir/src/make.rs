@@ -686,7 +686,7 @@ impl<'tcx> VirCtxt<'tcx> {
         &'vir self,
         ident: FunctionIdn<'vir, A, impl CompType>,
         unique: bool,
-        interpretation: Option<&'static str>,
+        interpretation: Option<&'vir str>,
     ) -> DomainFunction<'vir> {
         let params = A::params(ident.arity());
         self.alloc(DomainFunctionData {

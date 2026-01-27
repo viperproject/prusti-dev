@@ -6,12 +6,14 @@ use crate::encoders::{
     ty::{
         RustTyDecomposition,
         generics::GParams,
+        interpretation::real::TyRealLocal,
         use_pure::{TyUsePure, TyUsePureEnc},
     },
 };
 use pcg::utils::Place;
 use prusti_interface::{
     PrustiError,
+    environment::EnvQuery,
     specs::{specifications::SpecQuery, typed::ExternSpecKind},
 };
 use prusti_rustc_interface::{
@@ -351,6 +353,15 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     fn ty_use(&mut self, ty: ty::Ty<'vir>) -> TyUsePure<'vir> {
         let ty_task = RustTyDecomposition::from_ty(ty, self.vcx.tcx(), self.context);
         self.deps.require_dep::<TyUsePureEnc>(ty_task).unwrap()
+    }
+
+    fn ty_use_real(&mut self) -> &'vir TyRealLocal<'vir> {
+        let ty_task = RustTyDecomposition::from_real();
+        self.deps
+            .require_dep::<TyUsePureEnc>(ty_task)
+            .unwrap()
+            .expect_builtin()
+            .expect_real()
     }
 
     fn get_ty_for_local(&mut self, local: mir::Local) -> vir::TypeSnap<'vir> {
@@ -721,7 +732,21 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         |def_spec| def_spec.kind.is_pure().unwrap_or_default(),
                     )
                     .unwrap_or_default();
-                    if is_pure {
+
+                    let env_query = EnvQuery::new(self.vcx.tcx());
+                    if env_query.is_function_in_crate(def_id, arg_tys, "prusti_contracts") {
+                        let sig = self.vcx.tcx().fn_sig(def_id);
+                        let sig = sig.instantiate_identity();
+                        let actual_impl = env_query.find_impl_of_trait_method_call(def_id, arg_tys);
+                        self.encode_prusti_builtin(
+                            def_id,
+                            actual_impl,
+                            sig,
+                            arg_tys,
+                            args,
+                            &new_curr_ver,
+                        )
+                    } else if is_pure {
                         let pure_func = self
                             .deps
                             .require_dep::<FunctionCallEnc>(CallTaskDescription::new(
@@ -734,17 +759,16 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             .iter()
                             .map(|arg| self.encode_operand_snap(&arg.node, &new_curr_ver))
                             .collect::<Result<Vec<_>, _>>()?;
-                        pure_func.call(snap_args)
+                        Ok(pure_func.call(snap_args))
                     } else {
-                        let sig = self.vcx.tcx().fn_sig(def_id);
-                        let sig = sig.instantiate_identity();
-                        self.encode_prusti_builtin(def_id, sig, arg_tys, args, &new_curr_ver)?
+                        let item_name = self.vcx.tcx().item_name(def_id);
+                        panic!("call to unknown non-pure function in pure code ({item_name})");
                     }
                 };
 
                 let mut term_update = Update::new();
                 assert!(destination.projection.is_empty());
-                self.bump_version(&mut term_update, destination.local, expr, location);
+                self.bump_version(&mut term_update, destination.local, expr?, location);
                 term_update.add_to_map(&mut new_curr_ver);
 
                 // walk rest of CFG
@@ -1008,9 +1032,73 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         encoded_place
     }
 
+    fn encode_real_op(
+        &mut self,
+        bin_op: vir::BinOpKind,
+        args: &[Spanned<mir::Operand<'vir>>],
+        curr_ver: &HashMap<mir::Local, Version<'vir>>,
+    ) -> Result<
+        vir::ExprGenCSnap<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>,
+        EncodeFullError<'vir, MirPureEnc>,
+    > {
+        let real = self.ty_use_real();
+        let real1 = real.snap_to_perm.call()(
+            self.encode_operand_snap(&args[0].node, curr_ver)?
+                .downcast_ty(),
+        );
+        let real2 = real.snap_to_perm.call()(
+            self.encode_operand_snap(&args[1].node, curr_ver)?
+                .downcast_ty(),
+        );
+        Ok(real.perm_to_snap.call()(
+            self.vcx.mk_bin_op_expr(bin_op, real1, real2).downcast_ty(),
+        ))
+    }
+
+    fn encode_real_cmp(
+        &mut self,
+        bin_op: vir::BinOpKind,
+        args: &[Spanned<mir::Operand<'vir>>],
+        curr_ver: &HashMap<mir::Local, Version<'vir>>,
+    ) -> Result<
+        vir::ExprGenCSnap<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>,
+        EncodeFullError<'vir, MirPureEnc>,
+    > {
+        let real = self.ty_use_real();
+        let bool = self.ty_use(self.vcx.tcx().types.bool);
+        let bool = bool.expect_primitive();
+        let a0_ty = args[0].node.ty(self.body, self.vcx.tcx());
+        let real1 = self
+            .encode_operand_snap(&args[0].node, curr_ver)?
+            .downcast_ty();
+        let real1_deref = real.snap_to_perm.call()(
+            self.ty_use(a0_ty)
+                .expect_immref()
+                .value_access(real1)
+                .downcast_ty(),
+        );
+
+        let a1_ty = args[1].node.ty(self.body, self.vcx.tcx());
+        let real2 = self
+            .encode_operand_snap(&args[1].node, curr_ver)?
+            .downcast_ty();
+        let real2_deref = real.snap_to_perm.call()(
+            self.ty_use(a1_ty)
+                .expect_immref()
+                .value_access(real2)
+                .downcast_ty(),
+        );
+        Ok(bool.prim_to_snap.call()(
+            self.vcx
+                .mk_bin_op_expr_inner(bin_op, real1_deref.as_dyn(), real2_deref.as_dyn())
+                .downcast_ty(),
+        ))
+    }
+
     fn encode_prusti_builtin(
         &mut self,
         def_id: DefId,
+        actual_impl: Option<DefId>,
         _sig: Binder<'vir, FnSig<'vir>>,
         arg_tys: ty::GenericArgsRef<'vir>,
         args: &[Spanned<mir::Operand<'vir>>],
@@ -1027,23 +1115,35 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             IsNaN(ty::FloatTy),
             IsInfinite(ty::FloatTy),
             FlAbs(ty::FloatTy),
+            FlToReal,
+            RealMul,
+            RealEq,
+            RealSub,
+            RealAdd,
+            RealDiv,
+            RealNeg,
+            RealLt,
+            RealLe,
+            RealGt,
+            RealGe,
         }
 
-        let crate_name = self.vcx.tcx().crate_name(def_id.krate);
         let item_name = self.vcx.tcx().item_name(def_id);
-        if crate_name.as_str() != "prusti_contracts" {
-            panic!("call to unknown non-pure function in pure code ({crate_name}::{item_name})");
-        }
+        let env_query = EnvQuery::new(self.vcx.tcx());
 
         // TODO: this probably isn't necessary
-        let builtin = match item_name.as_str() {
-            "forall" => PrustiBuiltin::Forall,
-            "exists" => PrustiBuiltin::Exists,
-            "snapshot_equality" => PrustiBuiltin::SnapshotEquality,
-            "slice_len" => PrustiBuiltin::SliceLen,
-            "old_start" => PrustiBuiltin::ModeStart(Mode::Old),
-            "old_end" => PrustiBuiltin::ModeEnd(Mode::Old),
-            "rel_start" => PrustiBuiltin::ModeStart(Mode::Rel(
+        let builtin = match (
+            env_query
+                .find_impl_type_name(actual_impl.unwrap_or(def_id))
+                .as_deref(),
+            item_name.as_str(),
+        ) {
+            (None, "forall") => PrustiBuiltin::Forall,
+            (None, "exists") => PrustiBuiltin::Exists,
+            (None, "snapshot_equality") => PrustiBuiltin::SnapshotEquality,
+            (None, "old_start") => PrustiBuiltin::ModeStart(Mode::Old),
+            (None, "old_end") => PrustiBuiltin::ModeEnd(Mode::Old),
+            (None, "rel_start") => PrustiBuiltin::ModeStart(Mode::Rel(
                 arg_tys[0]
                     .expect_const()
                     .to_value()
@@ -1052,7 +1152,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .unwrap()
                     .to_bits_unchecked() as usize,
             )),
-            "rel_end" => PrustiBuiltin::ModeEnd(Mode::Rel(
+            (None, "rel_end") => PrustiBuiltin::ModeEnd(Mode::Rel(
                 arg_tys[0]
                     .expect_const()
                     .to_value()
@@ -1061,28 +1161,39 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .unwrap()
                     .to_bits_unchecked() as usize,
             )),
-            "before_expiry_start" => PrustiBuiltin::ModeStart(Mode::BeforeExpiry),
-            "before_expiry_end" => PrustiBuiltin::ModeEnd(Mode::BeforeExpiry),
-            "f16_is_nan" => PrustiBuiltin::IsNaN(ty::FloatTy::F16),
-            "f32_is_nan" => PrustiBuiltin::IsNaN(ty::FloatTy::F32),
-            "f64_is_nan" => PrustiBuiltin::IsNaN(ty::FloatTy::F64),
-            "f128_is_nan" => PrustiBuiltin::IsNaN(ty::FloatTy::F128),
-            "f16_is_infinite" => PrustiBuiltin::IsInfinite(ty::FloatTy::F16),
-            "f32_is_infinite" => PrustiBuiltin::IsInfinite(ty::FloatTy::F32),
-            "f64_is_infinite" => PrustiBuiltin::IsInfinite(ty::FloatTy::F64),
-            "f128_is_infinite" => PrustiBuiltin::IsInfinite(ty::FloatTy::F128),
-            "f16_abs" => PrustiBuiltin::FlAbs(ty::FloatTy::F16),
-            "f32_abs" => PrustiBuiltin::FlAbs(ty::FloatTy::F32),
-            "f64_abs" => PrustiBuiltin::FlAbs(ty::FloatTy::F64),
-            "f128_abs" => PrustiBuiltin::FlAbs(ty::FloatTy::F128),
-            other => panic!("illegal prusti::builtin ({other})"),
+            (None, "slice_len") => PrustiBuiltin::SliceLen,
+            (None, "before_expiry_start") => PrustiBuiltin::ModeStart(Mode::BeforeExpiry),
+            (None, "before_expiry_end") => PrustiBuiltin::ModeEnd(Mode::BeforeExpiry),
+            (None, "f16_is_nan") => PrustiBuiltin::IsNaN(ty::FloatTy::F16),
+            (None, "f32_is_nan") => PrustiBuiltin::IsNaN(ty::FloatTy::F32),
+            (None, "f64_is_nan") => PrustiBuiltin::IsNaN(ty::FloatTy::F64),
+            (None, "f128_is_nan") => PrustiBuiltin::IsNaN(ty::FloatTy::F128),
+            (None, "f16_is_infinite") => PrustiBuiltin::IsInfinite(ty::FloatTy::F16),
+            (None, "f32_is_infinite") => PrustiBuiltin::IsInfinite(ty::FloatTy::F32),
+            (None, "f64_is_infinite") => PrustiBuiltin::IsInfinite(ty::FloatTy::F64),
+            (None, "f128_is_infinite") => PrustiBuiltin::IsInfinite(ty::FloatTy::F128),
+            (None, "f16_abs") => PrustiBuiltin::FlAbs(ty::FloatTy::F16),
+            (None, "f32_abs") => PrustiBuiltin::FlAbs(ty::FloatTy::F32),
+            (None, "f64_abs") => PrustiBuiltin::FlAbs(ty::FloatTy::F64),
+            (None, "f128_abs") => PrustiBuiltin::FlAbs(ty::FloatTy::F128),
+            (Some("prusti_contracts::Real"), "from") => PrustiBuiltin::FlToReal,
+            (Some("prusti_contracts::Real"), "mul") => PrustiBuiltin::RealMul,
+            (Some("prusti_contracts::Real"), "eq") => PrustiBuiltin::RealEq,
+            (Some("prusti_contracts::Real"), "sub") => PrustiBuiltin::RealSub,
+            (Some("prusti_contracts::Real"), "add") => PrustiBuiltin::RealAdd,
+            (Some("prusti_contracts::Real"), "div") => PrustiBuiltin::RealDiv,
+            (Some("prusti_contracts::Real"), "neg") => PrustiBuiltin::RealNeg,
+            (Some("prusti_contracts::Real"), "lt") => PrustiBuiltin::RealLt,
+            (Some("prusti_contracts::Real"), "le") => PrustiBuiltin::RealLe,
+            (Some("prusti_contracts::Real"), "gt") => PrustiBuiltin::RealGt,
+            (Some("prusti_contracts::Real"), "ge") => PrustiBuiltin::RealGe,
+            (_, other) => panic!("illegal prusti::builtin ({other})"),
         };
 
         let bool = self.ty_use(self.vcx.tcx().types.bool);
         let bool = bool.expect_primitive();
         let mk_bool =
             |prim: vir::ExprGenBool<'vir, _, _>| bool.prim_to_snap.call()(prim.upcast_ty());
-
         Ok(match builtin {
             PrustiBuiltin::SnapshotEquality => {
                 assert_eq!(args.len(), 2);
@@ -1321,6 +1432,38 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .encode_operand_snap(&args[0].node, curr_ver)?
                     .downcast_ty();
                 fl_ty.fp_abs.call()(fl1)
+            }
+            PrustiBuiltin::FlToReal => {
+                let a_ty = args[0].node.ty(self.body, self.vcx.tcx());
+                let fl_ty = self.ty_use(a_ty).expect_float();
+                let fl = self
+                    .encode_operand_snap(&args[0].node, curr_ver)?
+                    .downcast_ty();
+                let res = fl_ty.fp_to_real.call()(fl);
+                self.ty_use_real().perm_to_snap.call()(res)
+            }
+            PrustiBuiltin::RealMul => self.encode_real_op(vir::BinOpKind::Mul, args, curr_ver)?,
+            PrustiBuiltin::RealSub => self.encode_real_op(vir::BinOpKind::Sub, args, curr_ver)?,
+            PrustiBuiltin::RealAdd => self.encode_real_op(vir::BinOpKind::Add, args, curr_ver)?,
+            PrustiBuiltin::RealDiv => {
+                self.encode_real_op(vir::BinOpKind::DivRationalRational, args, curr_ver)?
+            }
+            PrustiBuiltin::RealEq => self.encode_real_cmp(vir::BinOpKind::CmpEq, args, curr_ver)?,
+            PrustiBuiltin::RealLt => self.encode_real_cmp(vir::BinOpKind::CmpLt, args, curr_ver)?,
+            PrustiBuiltin::RealLe => self.encode_real_cmp(vir::BinOpKind::CmpLe, args, curr_ver)?,
+            PrustiBuiltin::RealGt => self.encode_real_cmp(vir::BinOpKind::CmpGt, args, curr_ver)?,
+            PrustiBuiltin::RealGe => self.encode_real_cmp(vir::BinOpKind::CmpGe, args, curr_ver)?,
+            PrustiBuiltin::RealNeg => {
+                let real = self.ty_use_real();
+                let real_val = real.snap_to_perm.call()(
+                    self.encode_operand_snap(&args[0].node, curr_ver)?
+                        .downcast_ty(),
+                );
+                real.perm_to_snap.call()(
+                    self.vcx
+                        .mk_unary_op_expr(vir::UnOpKind::Neg, real_val.upcast_ty())
+                        .downcast_ty(),
+                )
             }
         }
         .upcast_ty())
