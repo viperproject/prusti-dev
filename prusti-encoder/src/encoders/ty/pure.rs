@@ -14,7 +14,10 @@ use vir::{
     DomainIdnSnap, FunctionIdn, Type,
 };
 
-use crate::encoders::Pure;
+use crate::encoders::{
+    Pure,
+    ty::{RustBuiltinData, interpretation::real},
+};
 
 use super::{
     RustTy, ViperTyDatas,
@@ -36,6 +39,7 @@ impl<'vir> TyDatas<'vir> for PureTyDatas {
     type StructData = TyPureStructData<'vir>;
     type VariantData = TyPureVariantData<'vir>;
     type EnumData = TyPureEnumData<'vir>;
+    type BuiltinData = TyPureBuiltinData<'vir>;
 }
 
 pub type TyPure<'vir> = Ty<'vir, PureTyDatas>;
@@ -44,6 +48,19 @@ pub type TyPureOpaque<'vir> = <PureTyDatas as TyDatas<'vir>>::OpaqueData;
 pub type TyPurePrimitive<'vir> = <PureTyDatas as TyDatas<'vir>>::PrimitiveData;
 pub type TyPureImmRef<'vir> = <PureTyDatas as TyDatas<'vir>>::ImmRefData;
 pub type TyPureMutRef<'vir> = <PureTyDatas as TyDatas<'vir>>::MutRefData;
+
+#[derive(Debug, Clone, Copy)]
+pub enum TyPureBuiltinData<'vir> {
+    TyPureBuiltinReal(real::TyRealLocal<'vir>),
+}
+
+impl<'vir> TyPureBuiltinData<'vir> {
+    pub fn expect_real(&'vir self) -> &'vir real::TyRealLocal<'vir> {
+        match &self {
+            TyPureBuiltinData::TyPureBuiltinReal(ty_real_local) => ty_real_local,
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyPureOpaqueData<'vir> {
@@ -246,6 +263,10 @@ impl TaskEncoder for TyPureEnc {
                     TySpecifics::EnumLike(super::kinds::enumlike::ty_pure(
                         task_key, enumlike, deps, builder,
                     )?)
+                }
+                TySpecifics::Builtin(RustBuiltinData::BuiltinReal) => {
+                    let builder = builder.set_adt_builder();
+                    TySpecifics::Builtin(real::ty_pure(builder)?)
                 }
             };
             let output = TyData::new(output_ref, task_key.inhabited, specifics).alloc();

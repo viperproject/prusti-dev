@@ -679,6 +679,9 @@ fn main() {
             java_class!("viper.silver.ast.PermDiv", vec![
                 constructor!(),
             ]),
+            java_class!("viper.silver.ast.PermPermDiv", vec![
+                constructor!(),
+            ]),
             java_class!("viper.silver.ast.Positioned", vec![
                 method!("pos"),
             ]),
