@@ -142,6 +142,8 @@ mod private {
     /// it should not be constructed from running rust code, hence the private unit inside
     pub struct Int(());
 
+    pub struct Real(());
+
     #[non_exhaustive]
     #[derive(PartialEq, Eq, Copy, Clone)]
     pub struct Ghost<T> {
@@ -152,6 +154,7 @@ mod private {
 #[cfg(feature = "prusti")]
 mod private {
     use core::{marker::PhantomData, ops::*};
+    use std::cmp::Ordering;
 
     /// A macro for defining a closure with a specification.
     pub use prusti_contracts_proc_macros::{closure, pure};
@@ -347,6 +350,103 @@ mod private {
 
     impl<T> DerefMut for Ghost<T> {
         fn deref_mut(&mut self) -> &mut T {
+            panic!()
+        }
+    }
+
+    /// a mathematical real type
+    /// it should not be constructed from running rust code, hence the private unit inside
+    #[derive(Eq, Copy, Clone)]
+    pub struct Real(());
+
+    impl From<f16> for Real {
+        fn from(value: f16) -> Self {
+            panic!();
+        }
+    }
+
+    impl From<f32> for Real {
+        fn from(value: f32) -> Self {
+            panic!();
+        }
+    }
+
+    impl From<f64> for Real {
+        fn from(value: f64) -> Self {
+            panic!();
+        }
+    }
+
+    impl From<f128> for Real {
+        fn from(value: f128) -> Self {
+            panic!();
+        }
+    }
+
+    impl Sub for Real {
+        type Output = Real;
+
+        fn sub(self, _: Self) -> Self {
+            panic!()
+        }
+    }
+
+    impl PartialEq for Real {
+        fn eq(&self, _: &Self) -> bool {
+            panic!()
+        }
+    }
+
+    impl Mul for Real {
+        type Output = Real;
+
+        fn mul(self, _: Self) -> Self {
+            panic!()
+        }
+    }
+
+    impl Add for Real {
+        type Output = Real;
+
+        fn add(self, _: Self) -> Self {
+            panic!()
+        }
+    }
+
+    impl Div for Real {
+        type Output = Real;
+
+        fn div(self, _: Self) -> Self {
+            panic!()
+        }
+    }
+
+    impl Neg for Real {
+        type Output = Real;
+
+        fn neg(self) -> Self {
+            panic!()
+        }
+    }
+
+    impl PartialOrd for Real {
+        fn partial_cmp(&self, oher: &Self) -> Option<Ordering> {
+            panic!()
+        }
+
+        fn lt(&self, oher: &Self) -> bool {
+            panic!()
+        }
+
+        fn le(&self, oher: &Self) -> bool {
+            panic!()
+        }
+
+        fn gt(&self, oher: &Self) -> bool {
+            panic!()
+        }
+
+        fn ge(&self, oher: &Self) -> bool {
             panic!()
         }
     }

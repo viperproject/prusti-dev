@@ -58,6 +58,7 @@ pub enum BinOpKind {
     Mul,
     Div,
     DivRational,
+    DivRationalRational,
     Mod,
     // Set ops
     SetUnion,

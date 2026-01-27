@@ -172,6 +172,7 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
             TySpecifics::EnumLike(data) => {
                 TySpecifics::EnumLike(self.encode_enumlike(data, ty.0.params))
             }
+            TySpecifics::Builtin(..) => TySpecifics::mk_builtin(()),
         };
         let data = TyUseImpureData {
             args: self.args_t,
@@ -329,7 +330,9 @@ impl<'vir> TyData<'vir, UseImpureTyDatas> {
                 .collect();
         };
         match &self.specifics {
-            TySpecifics::Param(_) | TySpecifics::Primitive(_) => unreachable!(),
+            TySpecifics::Param(_) | TySpecifics::Primitive(_) | TySpecifics::Builtin(_) => {
+                unreachable!()
+            }
             TySpecifics::Opaque(_) => panic!("cannot fold opaque type"),
             TySpecifics::ArrayLike(array) => {
                 let index = index.expect("cannot fold array type without index");
@@ -376,7 +379,9 @@ impl<'vir> TyData<'vir, UseImpureTyDatas> {
                 .collect();
         };
         match &self.specifics {
-            TySpecifics::Param(_) | TySpecifics::Primitive(_) => unreachable!(),
+            TySpecifics::Param(_) | TySpecifics::Primitive(_) | TySpecifics::Builtin(_) => {
+                unreachable!()
+            }
             TySpecifics::Opaque(_) => panic!("cannot unfold opaque type"),
             TySpecifics::ArrayLike(array) => {
                 let index = index.expect("cannot unfold array type without index");

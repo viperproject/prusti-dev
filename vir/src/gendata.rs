@@ -41,6 +41,7 @@ impl<'vir, Curr, Next> BinOpGenData<'vir, Curr, Next> {
                 self.lhs.ty().downcast_ty()
             }
             BinOpKind::DivRational => crate::TYPE_PERM.upcast_ty(),
+            BinOpKind::DivRationalRational => crate::TYPE_PERM.upcast_ty(),
 
             BinOpKind::SetUnion => return self.lhs.ty(),
         };

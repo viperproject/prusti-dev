@@ -867,6 +867,16 @@ impl<'a> AstFactory<'a> {
         )
     }
 
+    pub fn perm_perm_div(&self, left: Expr, right: Expr) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            ast::PermPermDiv,
+            left.to_jobject(),
+            right.to_jobject()
+        )
+    }
+
     pub fn current_perm(&self, loc: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::CurrentPerm, loc.to_jobject())
     }

@@ -67,6 +67,7 @@ impl<'vir, Curr, Next> Debug for BinOpGenData<'vir, Curr, Next> {
                 BinOpKind::Mul => "*",
                 BinOpKind::Div => "\\",
                 BinOpKind::DivRational => "/",
+                BinOpKind::DivRationalRational => "/",
                 BinOpKind::Mod => "%",
                 BinOpKind::SetUnion => "union",
                 BinOpKind::SetIn => "in",

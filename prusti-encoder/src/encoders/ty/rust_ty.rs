@@ -2,6 +2,7 @@ use std::ops::Deref;
 
 use itertools::Itertools;
 use pcg::borrow_pcg::region_projection::{HasRegions, PcgRegion, RegionIdx};
+use prusti_interface::environment::EnvQuery;
 use prusti_rustc_interface::{
     abi, hir,
     index::{self, IndexVec},
@@ -70,6 +71,20 @@ impl<'tcx> RustTyDecomposition<'tcx> {
     ) -> Self {
         let (ty, args) = TyData::<'tcx, RustTyDatas>::from_ty(ty, tcx, context.into());
         Self { ty, args }
+    }
+
+    pub fn from_real() -> Self {
+        let name = "Real";
+        let params = GParams::empty();
+        let data = RustTyData {
+            name: symbol::Symbol::intern(name),
+            params,
+        };
+        let specifics = TySpecifics::Builtin(RustBuiltinData::BuiltinReal);
+        Self {
+            ty: TyData::<'tcx, RustTyDatas>::new(data, true, specifics).alloc(),
+            args: GArgs::new(params, &[]),
+        }
     }
 
     /// Same as `from_ty` to get a `RustTyDecomposition` for use in encoding,
@@ -199,6 +214,12 @@ impl<'tcx> TyDatas<'tcx> for RustTyDatas {
     type FieldData = RustFieldData<'tcx>;
     type EnumData = RustEnumData<'tcx>;
     type VariantData = RustVariantData;
+    type BuiltinData = RustBuiltinData;
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum RustBuiltinData {
+    BuiltinReal,
 }
 
 /// An internal representation of a `ty::Ty`. Contains all that we care about
@@ -512,21 +533,28 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
                 fid: abi::FieldIdx::from_usize(0),
                 ty: LazyRustTy(Self::new_param_ty(0)),
             }];
-            return TySpecifics::mk_structlike((), true, fields);
-        }
-
-        match adt.adt_kind() {
-            ty::AdtKind::Struct => {
-                let data = Self::from_struct(adt.non_enum_variant());
-                Self::StructLike(data)
+            TySpecifics::mk_structlike((), true, fields)
+        } else if vir::with_vcx(|vcx| {
+            EnvQuery::new(vcx.tcx()).is_adt_in_crate(adt, "prusti_contracts")
+        }) {
+            match adt.non_enum_variant().name.to_string().as_str() {
+                "Real" => Self::Builtin(RustBuiltinData::BuiltinReal),
+                s => panic!("Found unrecognized builtin {}", s),
             }
-            ty::AdtKind::Enum => {
-                let data = Self::from_enum(adt);
-                Self::EnumLike(data)
-            }
-            ty::AdtKind::Union => {
-                // TODO: add union support
-                Self::mk_opaque(())
+        } else {
+            match adt.adt_kind() {
+                ty::AdtKind::Struct => {
+                    let data = Self::from_struct(adt.non_enum_variant());
+                    Self::StructLike(data)
+                }
+                ty::AdtKind::Enum => {
+                    let data = Self::from_enum(adt);
+                    Self::EnumLike(data)
+                }
+                ty::AdtKind::Union => {
+                    // TODO: add union support
+                    Self::mk_opaque(())
+                }
             }
         }
     }
