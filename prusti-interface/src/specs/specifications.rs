@@ -4,7 +4,10 @@ use super::typed::{
     DefSpecificationMap, GhostBegin, GhostEnd, LoopSpecification, ProcedureSpecification,
     PrustiAssertion, PrustiAssumption, PrustiRefutation, TypeSpecification,
 };
-use crate::{data::ProcedureDefId, specs::typed::Refinable};
+use crate::{
+    data::ProcedureDefId,
+    specs::typed::{Refinable, SpecConstraintKind},
+};
 use prusti_rustc_interface::{
     hir::def_id::DefId,
     middle::ty::{self, GenericArgsRef},
@@ -197,6 +200,16 @@ impl<'tcx> Specifications<'tcx> {
                 .get_proc_spec(&query.referred_def_id())
                 .map(|spec| &spec.base_spec)
         })
+    }
+
+    pub fn get_proc_spec_constrained<'a>(
+        &'a self,
+        query: &SpecQuery<'tcx>,
+        constraint: SpecConstraintKind,
+    ) -> Option<&'a ProcedureSpecification> {
+        self.user_typed_specs
+            .get_proc_spec(&query.referred_def_id())
+            .and_then(|spec| spec.specs_with_constraints.get(&constraint))
     }
 
     fn is_refined(&self, query: &SpecQuery<'tcx>) -> bool {

@@ -5,7 +5,7 @@ use prusti_interface::{
     specs::{specifications::find_trait_method_substs, typed::Pledge},
 };
 use prusti_rustc_interface::{
-    middle::mir,
+    middle::{mir, ty},
     span::{Span, def_id::DefId},
 };
 
@@ -15,7 +15,11 @@ use vir::{CastType, HasType, Reify};
 use crate::encoders::{
     MirLocalDefEncTask, MirPureEnc,
     mir_pure::{ExprInput, PureKind},
-    ty::{RustTyDecomposition, generics::GParams, use_pure::TyUsePureEnc},
+    ty::{
+        RustTyDecomposition,
+        generics::{GArgs, GArgsTyEnc, GParams, r#trait::TraitEnc},
+        use_pure::TyUsePureEnc,
+    },
 };
 pub struct MirSpecEnc;
 
@@ -208,11 +212,14 @@ impl TaskEncoder for MirSpecEnc {
                         .unwrap()
                         .expr
                         .downcast_ty();
-                    let expr = expr.reify(vcx, (*spec_def_id, pre_args));
+                    let expr = to_bool(expr.reify(vcx, (*spec_def_id, pre_args))).downcast_ty();
+
+                    let expr = refine_spec_expr(deps, vcx, expr, def_id, *spec_def_id);
+
                     let span = vcx.tcx().def_span(spec_def_id);
-                    vcx.with_span(span, |_| to_bool(expr).downcast_ty())
+                    vcx.with_span(span, |_| expr)
                 })
-                .collect::<Vec<vir::ExprBool<'_>>>();
+                .collect::<Vec<_>>();
 
             let post_args = match enc_mode {
                 MirSpecEncMode::Impure => {
@@ -251,8 +258,10 @@ impl TaskEncoder for MirSpecEnc {
                             )?
                             .expr
                             .downcast_ty();
-                        let expr = expr.reify(vcx, (*spec_def_id, post_args));
-                        Ok(to_bool(expr).downcast_ty())
+                        let expr =
+                            to_bool(expr.reify(vcx, (*spec_def_id, post_args))).downcast_ty();
+                        let expr = refine_spec_expr(deps, vcx, expr, def_id, *spec_def_id);
+                        Ok(expr)
                     })
                 })
                 .collect::<Result<Vec<vir::ExprBool<'_>>, _>>()?;
@@ -330,5 +339,41 @@ impl TaskEncoder for MirSpecEnc {
             };
             Ok(((), data))
         })
+    }
+}
+
+fn refine_spec_expr<'vir>(
+    deps: &mut TaskEncoderDependencies<'vir, MirSpecEnc>,
+    vcx: &'vir vir::VirCtxt<'vir>,
+    expr: vir::ExprBool<'vir>,
+    def_id: DefId,
+    spec_def_id: DefId,
+) -> vir::ExprBool<'vir> {
+    let clauses = vcx.body_mut().get_caller_bounds(spec_def_id);
+    let ctx = GParams::from(def_id);
+
+    let mut antecedents = Vec::new();
+    for clause in clauses {
+        // Only support trait bounds
+        if let ty::ClauseKind::Trait(trait_pred) = clause.kind().skip_binder() {
+            let trait_ = deps.require_ref::<TraitEnc>(trait_pred.def_id()).unwrap();
+
+            let trait_args_enc = deps
+                .require_dep::<GArgsTyEnc>(GArgs::new(ctx, trait_pred.trait_ref.args))
+                .unwrap();
+
+            let trait_tys = trait_args_enc.get_ty();
+            let trait_consts = trait_args_enc.get_const();
+
+            let impl_check = (trait_.impl_fun)(trait_tys, trait_consts);
+            antecedents.push(impl_check);
+        }
+    }
+
+    if antecedents.is_empty() {
+        expr
+    } else {
+        vcx.mk_bin_op_expr(vir::BinOpKind::Implies, vcx.mk_conj(&antecedents), expr)
+            .downcast_ty()
     }
 }

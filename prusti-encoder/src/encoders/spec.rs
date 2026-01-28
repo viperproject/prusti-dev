@@ -3,7 +3,8 @@ use std::cell::RefCell;
 use prusti_interface::specs::{
     specifications::SpecQuery,
     typed::{
-        DefSpecificationMap, ExternSpecKind, Pledge, ProcedureSpecification, SpecificationItem,
+        DefSpecificationMap, ExternSpecKind, Pledge, ProcedureSpecification, SpecConstraintKind,
+        SpecificationItem,
     },
 };
 use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
@@ -44,6 +45,20 @@ where
             .get_and_refine_proc_spec(vcx.tcx(), query)
             .map(f)
     })
+}
+
+pub fn with_proc_spec_constrained<'tcx, F, R>(
+    query: SpecQuery<'tcx>,
+    constraint: SpecConstraintKind,
+    f: F,
+) -> Option<R>
+where
+    F: FnOnce(&ProcedureSpecification) -> R,
+{
+    vir::with_vcx(|vcx| vcx.specs.as_ref().unwrap())
+        .borrow_mut()
+        .get_proc_spec_constrained(&query, constraint)
+        .map(f)
 }
 
 pub fn is_function_trusted(def_id: DefId) -> bool {
@@ -115,6 +130,24 @@ impl TaskEncoder for SpecEnc {
                 },
             )
             .unwrap_or((None, &[], &[], &[]));
+
+            let (refined_pres, refined_posts) = with_proc_spec_constrained(
+                SpecQuery::GetProcKind(
+                    task_key.0,
+                    ty::List::identity_for_item(vcx.tcx(), task_key.0),
+                ),
+                SpecConstraintKind::ResolveGenericParamTraitBounds,
+                |specs| {
+                    let refined_pres = get_spec_items(vcx, &specs.pres);
+                    let refined_posts = get_spec_items(vcx, &specs.posts);
+                    (refined_pres, refined_posts)
+                },
+            )
+            .unwrap_or((&[], &[]));
+
+            let pres_combined = vcx.alloc_slice(&[pres, refined_pres].concat());
+            let posts_combined = vcx.alloc_slice(&[posts, refined_posts].concat());
+
             let pledges = vcx.alloc_slice(
                 &pledges
                     .iter()
@@ -125,8 +158,8 @@ impl TaskEncoder for SpecEnc {
                 (),
                 SpecEncOutput {
                     extern_spec,
-                    pres,
-                    posts,
+                    pres: pres_combined,
+                    posts: posts_combined,
                     pledges,
                 },
             ))
