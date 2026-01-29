@@ -41,11 +41,7 @@ pub(crate) fn ty_pure<'vir>(
                 builder,
             )?;
 
-            Ok(VariantData::new(
-                TyPureVariantData { discr },
-                variant.inhabited,
-                specifics,
-            ))
+            Ok(VariantData::new(TyPureVariantData { discr }, specifics))
         })
         .collect::<Result<Vec<_>, _>>()?;
 
@@ -58,7 +54,6 @@ pub(crate) fn ty_pure<'vir>(
             discr_prim: *discr_prim,
             snap_to_discr_snap,
         },
-        data.inhabited,
         variants,
     ))
 }
@@ -121,7 +116,7 @@ pub(crate) fn ty_impure<'vir>(
                 variant.1.discr,
                 VariantData::new(TyImpureVariantData {
                     predicate: variant_pred,
-                }, variant.inhabited, inner)
+                }, inner)
             ))
         })
         .collect::<Result<Vec<_>, _>>()?;
@@ -164,7 +159,6 @@ pub(crate) fn ty_impure<'vir>(
             discr: fdisc_func,
             discr_ty: discr_ty_impure,
         },
-        data.inhabited,
         variants.into_iter().map(|v| v.3).collect::<Vec<_>>(),
     ))
 }
