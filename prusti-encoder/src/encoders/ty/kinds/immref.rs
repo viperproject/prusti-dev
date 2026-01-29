@@ -4,7 +4,7 @@ use crate::encoders::ty::{
     pure::{AdtBuilder, TyPureEnc, TyPureImmRef, TyPureImmRefData},
 };
 use task_encoder::{EncodeFullError, TaskEncoderDependencies};
-use vir::{CastType, HasType};
+use vir::CastType;
 
 pub(crate) fn ty_pure<'vir>(
     _data: &RustImmRef<'vir>,
@@ -35,39 +35,17 @@ pub(crate) fn ty_impure<'vir>(
     let ref_field = builder.field("val", snap_type);
 
     // main predicate
-    let self_pred = builder
-        .inner
-        .predicate::<(vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>(
-            "",
-            (
-                ref_self_decl.ty(),
-                builder.params.ty_args(),
-                builder.params.const_args(),
-            ),
-            (
-                ref_self_decl,
-                builder.params.ty_decls(),
-                builder.params.const_decls(),
-            ),
-            Some(vir::expr! {
-                acc((ref_self).[ref_field])
-                // TODO: pure typeof assertions do not currently work
-                // && (([generic_typeof]([data.1.value_access]([ref_field](ref_self)))) == ([builder.params.ty_exprs()[0]]))
-            }), // TODO: use generic args?
-        );
+    builder.mk_predicate(
+        "",
+        Some(vir::expr! {
+            acc((ref_self).[ref_field])
+            // TODO: pure typeof assertions do not currently work
+            // && (([generic_typeof]([data.1.value_access]([ref_field](ref_self)))) == ([builder.params.ty_exprs()[0]]))
+        }), // TODO: use generic args?
+    );
 
     // Ref-to-snap
-    builder.function_snap = Some(builder.mk_function::<(vir::Ref, vir::ManyTyVal, vir::ManyCSnap), _>(
-        "snap",
-        (ref_self_decl.ty(), builder.params.ty_args(), builder.params.const_args()),
-        snap_type,
-        (ref_self_decl, builder.params.ty_decls(), builder.params.const_decls()),
-        &[vir::expr! { acc([self_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) }],
-        &[], // vir::expr! { ([generic_typeof]([data.1.value_access](result: [snap_type]))) == ([builder.params.ty_exprs()[0]]) }],
-        Some(vir::expr! {
-            unfolding ([self_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) in ([ref_field](ref_self))
-        }),
-    ).1);
+    builder.mk_snap_function(Some(vir::expr! { [ref_field](ref_self) }));
 
     Ok(TyImpureImmRefData {})
 }

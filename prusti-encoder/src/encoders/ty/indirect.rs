@@ -2,7 +2,7 @@ use pcg::borrow_pcg::region_projection::LifetimeProjection;
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, Reify};
 
-use crate::encoders::ty::RustTyDecomposition;
+use crate::encoders::{TyUseImpureEnc, ty::RustTyDecomposition};
 
 use super::{data::TySpecifics, use_pure::TyUsePureEnc};
 
@@ -67,14 +67,14 @@ impl TaskEncoder for IndirectPredicatesEnc {
                 // This is why we should return `opaque_behind_a(x)` here.
                 TySpecifics::Param(_) | TySpecifics::Opaque(_) | TySpecifics::ArrayLike(_) => (),
                 TySpecifics::MutRef((data, ref_domain)) => {
-                    let inner_ty = data.decompose_normalize(ty.args);
+                    let inner_ty = data.decompose_context(ty.ty.params, ty.args);
+                    let inner_impure = deps.require_dep::<TyUseImpureEnc>(inner_ty)?;
                     predicate_applications.push(vcx.mk_lazy_expr(
                         "ref_indirect",
                         vir::TYPE_BOOL,
                         Box::new(move |vcx, self_expr: vir::ExprSnap<'vir>| {
-                            ref_domain
-                                .inner_predicate(vcx, self_expr.downcast_ty())
-                                .kind
+                            let addr = ref_domain.deref_access(self_expr.downcast_ty());
+                            inner_impure.ref_to_pred(vcx, addr, None).kind
                         }),
                     ));
                     if let Some(new_projection) =
@@ -94,7 +94,10 @@ impl TaskEncoder for IndirectPredicatesEnc {
                                             inner_expr
                                                 .reify(
                                                     vcx,
-                                                    ref_domain.deref_snap(self_expr.downcast_ty()),
+                                                    inner_impure.ref_to_snap(
+                                                        ref_domain
+                                                            .deref_access(self_expr.downcast_ty()),
+                                                    ),
                                                 )
                                                 .kind
                                         }),

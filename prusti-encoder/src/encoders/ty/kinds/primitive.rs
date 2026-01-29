@@ -9,7 +9,7 @@ use crate::encoders::ty::{
 };
 use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullError, TaskEncoderDependencies};
-use vir::{CastType, HasType, VirCtxt};
+use vir::{CastType, VirCtxt};
 
 pub(crate) fn ty_pure<'vir>(
     vcx: &'vir VirCtxt<'vir>,
@@ -92,29 +92,10 @@ pub(crate) fn ty_impure<'vir>(
     let prim_field = builder.field("val", snap_type);
 
     // main predicate
-    let self_pred = builder.predicate::<vir::Ref>(
-        "",
-        ref_self_decl.ty(),
-        (ref_self_decl,),
-        Some(vir::expr! { acc((ref_self).[prim_field]) }),
-    );
+    builder.mk_predicate("", Some(vir::expr! { acc((ref_self).[prim_field]) }));
 
     // Ref-to-snap
-    builder.function_snap = Some(
-        builder
-            .mk_function::<vir::Ref, _>(
-                "snap",
-                ref_self_decl.ty(),
-                snap_type,
-                (ref_self_decl,),
-                &[vir::expr! { acc([self_pred](ref_self)) }],
-                &[],
-                Some(vir::expr! {
-                    unfolding ([self_pred](ref_self)) in ([prim_field](ref_self))
-                }),
-            )
-            .1,
-    );
+    builder.mk_snap_function(Some(vir::expr! { [prim_field](ref_self) }));
 
     Ok(())
 }
