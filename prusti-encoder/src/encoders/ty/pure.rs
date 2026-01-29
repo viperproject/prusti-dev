@@ -14,10 +14,7 @@ use vir::{
     DomainIdnSnap, FunctionIdn, Type,
 };
 
-use crate::encoders::{
-    Pure,
-    ty::{RustBuiltinData, interpretation::real},
-};
+use crate::encoders::{Pure, ty::interpretation::real};
 
 use super::{
     RustTy, ViperTyDatas,
@@ -48,16 +45,19 @@ pub type TyPureOpaque<'vir> = <PureTyDatas as TyDatas<'vir>>::OpaqueData;
 pub type TyPurePrimitive<'vir> = <PureTyDatas as TyDatas<'vir>>::PrimitiveData;
 pub type TyPureImmRef<'vir> = <PureTyDatas as TyDatas<'vir>>::ImmRefData;
 pub type TyPureMutRef<'vir> = <PureTyDatas as TyDatas<'vir>>::MutRefData;
+pub type TyPureBuiltin<'vir> = <PureTyDatas as TyDatas<'vir>>::BuiltinData;
 
 #[derive(Debug, Clone, Copy)]
 pub enum TyPureBuiltinData<'vir> {
     TyPureBuiltinReal(real::TyRealLocal<'vir>),
+    TyPureBuiltinGhost,
 }
 
 impl<'vir> TyPureBuiltinData<'vir> {
     pub fn expect_real(&'vir self) -> &'vir real::TyRealLocal<'vir> {
         match &self {
             TyPureBuiltinData::TyPureBuiltinReal(ty_real_local) => ty_real_local,
+            _ => panic!(),
         }
     }
 }
@@ -272,9 +272,9 @@ impl TaskEncoder for TyPureEnc {
                         task_key, enumlike, deps, builder,
                     )?)
                 }
-                TySpecifics::Builtin(RustBuiltinData::BuiltinReal) => {
+                TySpecifics::Builtin(builtin) => {
                     let builder = builder.set_adt_builder();
-                    TySpecifics::Builtin(real::ty_pure(builder)?)
+                    TySpecifics::Builtin(super::kinds::builtin::ty_pure(builtin, builder)?)
                 }
             };
             let output = TyData::new(output_ref, task_key.inhabited, specifics).alloc();
@@ -445,12 +445,11 @@ impl<'vir> TyPureBuilder<'vir> {
 
     pub(crate) fn build(self) -> TyPureEncLocal<'vir> {
         let unreachable_to_snap = vir::with_vcx(|vcx| {
-            let false_ = vcx.alloc_array(&[vcx.mk_bool::<false>()]);
             vcx.mk_function(
                 self.unreachable_to_snap,
                 (self.params.ty_decls(), self.params.const_decls()),
-                false_,
-                false_,
+                &[],
+                vcx.alloc_array(&[vcx.mk_bool::<false>()]),
                 None,
                 None,
             )

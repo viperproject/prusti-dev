@@ -27,6 +27,8 @@ pub type FunctionGen<'vir, Curr, Next> = &'vir crate::gendata::FunctionGenData<'
 pub type GotoIfGen<'vir, Curr, Next> = &'vir crate::gendata::GotoIfGenData<'vir, Curr, Next>;
 pub type GotoIfTargetGen<'vir, Curr, Next> =
     &'vir crate::gendata::GotoIfTargetGenData<'vir, Curr, Next>;
+pub type InhaleExhaleGen<'vir, Curr, Next> =
+    &'vir crate::gendata::InhaleExhaleGenData<'vir, Curr, Next>;
 pub type LazyGen<'vir, Curr, Next> = &'vir crate::gendata::LazyGenData<'vir, Curr, Next>;
 pub type LetGen<'vir, Curr, Next> = &'vir crate::gendata::LetGenData<'vir, Curr, Next>;
 pub type MethodGen<'vir, Curr, Next> = &'vir crate::gendata::MethodGenData<'vir, Curr, Next>;

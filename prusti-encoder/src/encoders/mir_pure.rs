@@ -719,6 +719,12 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 target,
                 ..
             } => {
+                let Some(target) = *target else {
+                    // target is none if the call diverges (i.e. returns !), in
+                    // this case treat it just like an unreachable terminator.
+                    return Ok(None);
+                };
+
                 let func_ty = func.ty(self.body, self.vcx.tcx());
                 let (def_id, arg_tys) = RustSignature::get_def_id_and_caller_substs(func_ty);
                 let expr = {
@@ -762,8 +768,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             .collect::<Result<Vec<_>, _>>()?;
                         Ok(pure_func.call(snap_args))
                     } else {
-                        let item_name = self.vcx.tcx().item_name(def_id);
-                        panic!("call to unknown non-pure function in pure code ({item_name})");
+                        panic!("call to unknown non-pure function in pure code ({def_id:?})");
                     }
                 };
 
@@ -773,7 +778,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 term_update.add_to_map(&mut new_curr_ver);
 
                 // walk rest of CFG
-                let end_update = self.encode_cfg(&new_curr_ver, target.unwrap(), join_point)?;
+                let end_update = self.encode_cfg(&new_curr_ver, target, join_point)?;
 
                 Ok(stmt_update.merge_inner(term_update).merge(end_update))
             }

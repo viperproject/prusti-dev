@@ -270,7 +270,7 @@ pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
     PredicateApp(PredicateAppGen<'vir, Curr, Next>), // TODO: this should not be used instead of acc?
     Wand(WandGen<'vir, Curr, Next>),
     // domain func app
-    // inhale/exhale
+    InhaleExhale(InhaleExhaleGen<'vir, Curr, Next>),
     Lazy(LazyGen<'vir, Curr, Next>),
 
     // Adt ops
@@ -305,6 +305,7 @@ impl<'vir, Curr, Next> ExprKindGenData<'vir, Curr, Next> {
             ExprKindGenData::FuncApp(a) => a.result_ty,
             ExprKindGenData::PredicateApp(_) => crate::TYPE_BOOL.as_dyn(),
             ExprKindGenData::Wand(..) => crate::TYPE_BOOL.as_dyn(),
+            ExprKindGenData::InhaleExhale(..) => crate::TYPE_BOOL.as_dyn(),
             ExprKindGenData::Lazy(l) => l.ty,
             ExprKindGenData::AdtDestructor(_, destr) => destr.ty,
             ExprKindGenData::AdtDiscriminator(_, _) => crate::TYPE_BOOL.as_dyn(),
@@ -371,6 +372,12 @@ impl<'vir, Curr: 'vir, Next: 'vir> serde::Deserialize<'vir> for LazyGenData<'vir
     {
         panic!("cannot deserialize lazy expression")
     }
+}
+
+#[derive(VirHash, VirReify, VirSerde)]
+pub struct InhaleExhaleGenData<'vir, Curr: 'vir, Next: 'vir> {
+    pub inhale: ExprGenBool<'vir, Curr, Next>,
+    pub exhale: ExprGenBool<'vir, Curr, Next>,
 }
 
 #[derive(VirHash, VirReify, VirSerde)]

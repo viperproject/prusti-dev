@@ -1,4 +1,5 @@
 #![no_std]
+#![allow(internal_features)]
 #![cfg_attr(feature = "prusti", feature(unboxed_closures, tuple_trait))]
 #![feature(auto_traits)]
 #![feature(negative_impls)]
@@ -360,25 +361,25 @@ mod private {
     pub struct Real(());
 
     impl From<f16> for Real {
-        fn from(value: f16) -> Self {
+        fn from(_: f16) -> Self {
             panic!();
         }
     }
 
     impl From<f32> for Real {
-        fn from(value: f32) -> Self {
+        fn from(_: f32) -> Self {
             panic!();
         }
     }
 
     impl From<f64> for Real {
-        fn from(value: f64) -> Self {
+        fn from(_: f64) -> Self {
             panic!();
         }
     }
 
     impl From<f128> for Real {
-        fn from(value: f128) -> Self {
+        fn from(_: f128) -> Self {
             panic!();
         }
     }
@@ -430,23 +431,23 @@ mod private {
     }
 
     impl PartialOrd for Real {
-        fn partial_cmp(&self, oher: &Self) -> Option<Ordering> {
+        fn partial_cmp(&self, _: &Self) -> Option<Ordering> {
             panic!()
         }
 
-        fn lt(&self, oher: &Self) -> bool {
+        fn lt(&self, _: &Self) -> bool {
             panic!()
         }
 
-        fn le(&self, oher: &Self) -> bool {
+        fn le(&self, _: &Self) -> bool {
             panic!()
         }
 
-        fn gt(&self, oher: &Self) -> bool {
+        fn gt(&self, _: &Self) -> bool {
             panic!()
         }
 
-        fn ge(&self, oher: &Self) -> bool {
+        fn ge(&self, _: &Self) -> bool {
             panic!()
         }
     }
@@ -507,36 +508,36 @@ pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
 }
 
 /// Checks if a float is NaN
-pub fn f16_is_nan(fl: f16) -> bool {
+pub fn f16_is_nan(_: f16) -> bool {
     true
 }
 
-pub fn f32_is_nan(fl: f32) -> bool {
+pub fn f32_is_nan(_: f32) -> bool {
     true
 }
 
-pub fn f64_is_nan(fl: f64) -> bool {
+pub fn f64_is_nan(_: f64) -> bool {
     true
 }
 
-pub fn f128_is_nan(fl: f128) -> bool {
+pub fn f128_is_nan(_: f128) -> bool {
     true
 }
 
 /// Checks if a float is infinite
-pub fn f16_is_infinite(fl: f16) -> bool {
+pub fn f16_is_infinite(_: f16) -> bool {
     true
 }
 
-pub fn f32_is_infinite(fl: f32) -> bool {
+pub fn f32_is_infinite(_: f32) -> bool {
     true
 }
 
-pub fn f64_is_infinite(fl: f64) -> bool {
+pub fn f64_is_infinite(_: f64) -> bool {
     true
 }
 
-pub fn f128_is_infinite(fl: f128) -> bool {
+pub fn f128_is_infinite(_: f128) -> bool {
     true
 }
 
@@ -557,7 +558,7 @@ pub fn f128_abs(fl: f128) -> f128 {
     fl
 }
 
-pub fn slice_len<T>(_slice: &[T]) -> usize {
+pub fn slice_len<T>(_: &[T]) -> usize {
     0
 }
 
