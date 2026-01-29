@@ -172,17 +172,17 @@ impl MirBuiltinEnc {
         let src_ty_inner = src_ty.peel_refs();
         let dst_ty_inner = dst_ty.peel_refs();
 
-        let ty_task = RustTyDecomposition::from_ty(src_ty_inner, vcx.tcx(), params);
+        let ty_task = RustTyDecomposition::from_ty(src_ty_inner, params);
         let src_array_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?.expect_array();
 
-        let src_ty = RustTyDecomposition::from_ty(src_ty, vcx.tcx(), params);
+        let src_ty = RustTyDecomposition::from_ty(src_ty, params);
         let src_ref_pure = deps.require_dep::<TyUsePureEnc>(src_ty)?;
         let src_ref_impure = deps.require_dep::<TyUseImpureEnc>(src_ty)?;
 
-        let ty_task = RustTyDecomposition::from_ty(dst_ty_inner, vcx.tcx(), params);
+        let ty_task = RustTyDecomposition::from_ty(dst_ty_inner, params);
         let dst_array_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?.expect_array();
 
-        let dst_ty = RustTyDecomposition::from_ty(dst_ty, vcx.tcx(), params);
+        let dst_ty = RustTyDecomposition::from_ty(dst_ty, params);
         let dst_ref_pure = deps.require_dep::<TyUsePureEnc>(dst_ty)?;
         let dst_ref_impure = deps.require_dep::<TyUseImpureEnc>(dst_ty)?;
 
@@ -341,7 +341,7 @@ impl MirBuiltinEnc {
         key: <Self as TaskEncoder>::TaskKey<'vir>,
         arg_ty: ty::Ty<'vir>,
     ) -> Result<vir::Function<'vir>, EncodeFullError<'vir, Self>> {
-        let ty_task = RustTyDecomposition::from_ty(arg_ty, vcx.tcx(), GParams::empty()); // TODO: context ...
+        let ty_task = RustTyDecomposition::from_ty(arg_ty, GParams::empty()); // TODO: context ...
         let arg_ty_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?;
 
         let ty_task = RustTyDecomposition::from_prim_ty(vcx.tcx().types.usize);
@@ -420,7 +420,7 @@ impl MirBuiltinEnc {
             mir::UnOp::PtrMetadata => {
                 // TODO: the task key for this should not store the region
                 //   (e.g. len for &[bool] is currently &'3 [bool] depending on the callsite region)
-                let ty_task = RustTyDecomposition::from_ty(operand_ty, vcx.tcx(), GParams::empty());
+                let ty_task = RustTyDecomposition::from_ty(operand_ty, GParams::empty());
                 let operand_ref_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?;
                 let ty_task = RustTyDecomposition::from_prim_ty(res_ty);
                 let res_ty_enc = deps.require_dep::<TyUsePureEnc>(ty_task)?;
@@ -435,11 +435,8 @@ impl MirBuiltinEnc {
 
                 let body = match operand_ty.peel_refs().kind() {
                     ty::TyKind::Slice(..) | ty::TyKind::Array(..) => {
-                        let ty_task = RustTyDecomposition::from_ty(
-                            operand_ty.peel_refs(),
-                            vcx.tcx(),
-                            GParams::empty(),
-                        );
+                        let ty_task =
+                            RustTyDecomposition::from_ty(operand_ty.peel_refs(), GParams::empty());
                         let operand_array_pure =
                             deps.require_dep::<TyUsePureEnc>(ty_task)?.expect_array();
                         let snap_arg = vcx.mk_local_ex(snap_arg_decl);
@@ -794,7 +791,7 @@ impl MirBuiltinEnc {
             int_name(l_ty),
             int_name(r_ty)
         );
-        let res_ty_task = RustTyDecomposition::from_ty(res_ty, vcx.tcx(), GParams::empty());
+        let res_ty_task = RustTyDecomposition::from_ty(res_ty, GParams::empty());
         let e_res_ty = deps.require_dep::<TyUsePureEnc>(res_ty_task)?;
         let e_res_ty_snap = e_res_ty.snapshot.downcast_ty();
         let function = FunctionIdn::new(name, (e_l_ty_snap, e_r_ty_snap), e_res_ty_snap);

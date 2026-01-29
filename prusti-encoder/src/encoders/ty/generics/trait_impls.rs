@@ -85,7 +85,6 @@ impl TaskEncoder for TraitImplEnc {
                         deps,
                         RustTyDecomposition::from_ty(
                             tcx.type_of(impl_item.def_id).instantiate_identity(),
-                            tcx,
                             GParams::from(impl_item.def_id),
                         ),
                     );

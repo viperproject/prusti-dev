@@ -43,6 +43,7 @@ pub type TyUseImpureEnum<'vir> = EnumData<'vir, UseImpureTyDatas>;
 pub struct TyUseImpureData<'vir> {
     args: GArgsTy<'vir>,
     impure: <ImpureTyDatas as TyDatas<'vir>>::TyData,
+    maybe_inhabited: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -119,7 +120,7 @@ impl TaskEncoder for TyUseImpureEnc {
 
         let ty_impure = deps.require_dep::<TyImpureEnc>(task_key.ty)?;
         let mut walker = TyUseImpureWalker::new(deps, task_key.args);
-        let ty_use_impure = walker.encode_ty(task_key.ty.zip(ty_impure));
+        let ty_use_impure = walker.encode_ty(task_key.ty.zip(ty_impure), task_key.maybe_inhabited);
         Ok(((), ty_use_impure.alloc()))
     }
 
@@ -143,6 +144,7 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
     fn encode_ty(
         &mut self,
         ty: TyData<'vir, (RustTyDatas, ImpureTyDatas)>,
+        maybe_inhabited: bool,
     ) -> TyData<'vir, UseImpureTyDatas> {
         let specifics = match &ty.specifics {
             TySpecifics::Param(..) => TySpecifics::mk_param(()),
@@ -179,8 +181,9 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
         let data = TyUseImpureData {
             args: self.args_t,
             impure: *ty.1,
+            maybe_inhabited,
         };
-        TyData::new(data, ty.inhabited, specifics)
+        TyData::new(data, specifics)
     }
 
     fn encode_normalized(
@@ -202,13 +205,12 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
     ) -> ArrayData<'vir, UseImpureTyDatas> {
         let caster = self.encode_normalized(*data.0, params);
         let slice = data.slice;
-        let inhabited = data.inhabited;
         let data = TyUseImpureArrayData {
             args: self.args_t,
             impure: *data.data.1,
             element_caster: caster,
         };
-        ArrayData::new(data, inhabited, slice)
+        ArrayData::new(data, slice)
     }
 
     fn encode_structlike(
@@ -229,13 +231,12 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
                 }
             })
             .collect::<Vec<_>>();
-        let inhabited = data.inhabited;
         let data = TyUseImpureStructData {
             args: self.args_t,
             ref_to_pred,
             impure: *data.1,
         };
-        StructData::new(data, inhabited, fields)
+        StructData::new(data, fields)
     }
 
     fn encode_enumlike(
@@ -249,15 +250,14 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
             .map(|variant| {
                 let structlike =
                     self.encode_structlike(&variant.inner, variant.1.predicate, params);
-                VariantData::new((), variant.inhabited, structlike)
+                VariantData::new((), structlike)
             })
             .collect::<Vec<_>>();
-        let inhabited = data.inhabited;
         let data = TyUseImpureEnumData {
             args: self.args_t,
             impure: *data.1,
         };
-        EnumData::new(data, inhabited, variants)
+        EnumData::new(data, variants)
     }
 }
 
@@ -285,7 +285,7 @@ impl<'vir> TyUseImpureData<'vir> {
         self_ref: vir::ExprRef<'vir>,
         perm: Option<vir::ExprPerm<'vir>>,
     ) -> vir::ExprBool<'vir> {
-        if self.impure.inhabited {
+        if self.maybe_inhabited {
             vcx.mk_predicate_app_expr(self.ref_to_pred_app(self_ref, perm))
         } else {
             vcx.mk_bool::<false>()

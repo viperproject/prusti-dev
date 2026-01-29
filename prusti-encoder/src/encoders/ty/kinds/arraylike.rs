@@ -35,7 +35,6 @@ pub(crate) fn ty_pure<'vir>(
             len,
             ref_to_index_ref,
         },
-        data.inhabited,
         data.slice,
     ))
 }
@@ -181,7 +180,6 @@ pub(crate) fn ty_impure<'vir>(
             method_fold,
             method_unfold,
         },
-        data.inhabited,
         data.slice,
     ))
 }

@@ -19,6 +19,7 @@ use super::{
 pub struct RustTyDecomposition<'tcx> {
     pub ty: RustTy<'tcx>,
     pub args: GArgs<'tcx>,
+    pub maybe_inhabited: bool,
 }
 
 impl<'tcx, Ctxt> HasRegions<'tcx, Ctxt> for RustTyDecomposition<'tcx> {
@@ -64,26 +65,20 @@ impl<'tcx> RustTyDecomposition<'tcx> {
     /// unfolding), one should walk the `decomp.ty.specifics` and call
     /// `RustFieldData::decompose_compare_normalize` with `decomp.ty.params`
     /// and `decomp.args`.
-    pub fn from_ty(
-        ty: ty::Ty<'tcx>,
-        tcx: ty::TyCtxt<'tcx>,
-        context: impl Into<GParams<'tcx>>,
-    ) -> Self {
-        let (ty, args) = TyData::<'tcx, RustTyDatas>::from_ty(ty, tcx, context.into());
-        Self { ty, args }
+    pub fn from_ty(ty: ty::Ty<'tcx>, context: impl Into<GParams<'tcx>>) -> Self {
+        TyData::<'tcx, RustTyDatas>::from_ty(ty, context.into())
     }
 
     pub fn from_real() -> Self {
-        let name = "Real";
-        let params = GParams::empty();
         let data = RustTyData {
-            name: symbol::Symbol::intern(name),
-            params,
+            name: symbol::Symbol::intern("Real"),
+            params: GParams::empty(),
         };
         let specifics = TySpecifics::Builtin(RustBuiltinData::BuiltinReal);
         Self {
-            ty: TyData::<'tcx, RustTyDatas>::new(data, true, specifics).alloc(),
-            args: GArgs::new(params, &[]),
+            ty: TyData::<'tcx, RustTyDatas>::new(data, specifics).alloc(),
+            args: GArgs::new(GParams::empty(), &[]),
+            maybe_inhabited: true,
         }
     }
 
@@ -91,8 +86,7 @@ impl<'tcx> RustTyDecomposition<'tcx> {
     /// but requires fewer arguments when the type is known to be primitive.
     pub fn from_prim_ty(ty: ty::Ty<'tcx>) -> Self {
         assert!(ty.is_primitive());
-        let (ty, args) = TyData::<'tcx, RustTyDatas>::from_prim_ty(ty);
-        Self { ty, args }
+        TyData::<'tcx, RustTyDatas>::from_prim_ty(ty)
     }
 }
 
@@ -133,7 +127,7 @@ impl<'tcx> LazyRustTy<'tcx> {
     /// decomposing the field of the struct would yield `TySpecifics::Param`
     /// with arguments `<T>` (i.e. the `i32` from the context is lost).
     pub fn decompose(&self, params: GParams<'tcx>) -> RustTyDecomposition<'tcx> {
-        vir::with_vcx(|vcx| RustTyDecomposition::from_ty(self.0, vcx.tcx(), params))
+        RustTyDecomposition::from_ty(self.0, params)
     }
 
     /// Decomposes the field's type into a `RustTyDecomposition` (to be used
@@ -159,10 +153,8 @@ impl<'tcx> LazyRustTy<'tcx> {
     /// removing definitional generics. For example a `Foo<i32>` with definition
     /// `struct Foo<T>(T);` would yield `i32` instead of `T` when called on the
     /// field of `Foo`.
-    fn decompose_normalize(&self, args: GArgs<'tcx>) -> RustTyDecomposition<'tcx> {
-        vir::with_vcx(|vcx| {
-            RustTyDecomposition::from_ty(args.normalize(self.0), vcx.tcx(), args.context())
-        })
+    pub(super) fn decompose_normalize(&self, args: GArgs<'tcx>) -> RustTyDecomposition<'tcx> {
+        RustTyDecomposition::from_ty(args.normalize(self.0), args.context())
     }
 
     /// Similarly to `Self::decompose`, this decomposes the fields type.
@@ -200,7 +192,7 @@ impl<'tcx> LazyRustTy<'tcx> {
         let TySpecifics::Param(..) = &param.specifics else {
             return None;
         };
-        let RustTyDecomposition { ty, args } = self.decompose_normalize(args);
+        let RustTyDecomposition { ty, args, .. } = self.decompose_normalize(args);
         if let TySpecifics::Param(..) = &ty.specifics {
             None
         } else {
@@ -294,11 +286,7 @@ impl<'tcx> Deref for RustFieldData<'tcx> {
 }
 
 impl<'tcx> TyData<'tcx, RustTyDatas> {
-    fn from_ty(
-        ty: ty::Ty<'tcx>,
-        tcx: ty::TyCtxt<'tcx>,
-        context: GParams<'tcx>,
-    ) -> (RustTy<'tcx>, GArgs<'tcx>) {
+    fn from_ty(ty: ty::Ty<'tcx>, context: GParams<'tcx>) -> RustTyDecomposition<'tcx> {
         // We normalize since we may be translating a type such as the field of
         // `struct MyStruct<T: Iterator<Item = i32>>(T::Item);` where `ty` is
         // `T::Item` and `context` is `<T: Iterator<Item = i32>>`. In this case
@@ -314,11 +302,16 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             params,
         };
         let specifics = TySpecifics::from_ty(ty);
-        let inhabited = !ty.is_privately_uninhabited(tcx, ty::TypingEnv::fully_monomorphized());
-        (Self::new(data, inhabited, specifics).alloc(), args)
+        let maybe_inhabited =
+            vir::with_vcx(|vcx| !ty.is_privately_uninhabited(vcx.tcx(), context.typing_env()));
+        RustTyDecomposition {
+            ty: Self::new(data, specifics).alloc(),
+            args,
+            maybe_inhabited,
+        }
     }
 
-    fn from_prim_ty(ty: ty::Ty<'tcx>) -> (RustTy<'tcx>, GArgs<'tcx>) {
+    fn from_prim_ty(ty: ty::Ty<'tcx>) -> RustTyDecomposition<'tcx> {
         let name = Self::prim_ty_name(ty);
         let (params, args) = Self::identity_for_prim_ty(ty);
         let args = GArgs::new(params, args);
@@ -327,7 +320,11 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             params,
         };
         let specifics = TySpecifics::from_prim_ty(ty);
-        (Self::new(data, true, specifics).alloc(), args)
+        RustTyDecomposition {
+            ty: Self::new(data, specifics).alloc(),
+            args,
+            maybe_inhabited: true,
+        }
     }
 
     fn ty_name(ty: ty::Ty<'tcx>) -> String {
@@ -488,16 +485,14 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
                         ty: LazyRustTy(Self::new_param_ty(i as u32)),
                     })
                     .collect::<Vec<_>>();
-                TySpecifics::mk_structlike((), true, fields)
+                TySpecifics::mk_structlike((), fields)
             }
             ty::TyKind::Array(_, _) => TySpecifics::ArrayLike(ArrayData {
                 slice: false,
-                inhabited: true,
                 data: LazyRustTy(Self::new_param_ty(1)),
             }),
             ty::TyKind::Slice(_) => TySpecifics::ArrayLike(ArrayData {
                 slice: true,
-                inhabited: true,
                 data: LazyRustTy(Self::new_param_ty(0)),
             }),
             ty::TyKind::Ref(_, _, mutability) => match mutability {
@@ -522,13 +517,13 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
                         ty: LazyRustTy(ty),
                     })
                     .collect::<Vec<_>>();
-                TySpecifics::mk_structlike((), true, fields)
+                TySpecifics::mk_structlike((), fields)
             }
             ty::TyKind::Never => {
                 let data = vir::with_vcx(|vcx| RustEnumData {
                     discr: vcx.tcx().types.isize,
                 });
-                TySpecifics::mk_enumlike(data, false, Vec::new())
+                TySpecifics::mk_enumlike(data, Vec::new())
             }
             // TODO: add str support
             ty::TyKind::Str => TySpecifics::mk_opaque(()),
@@ -548,7 +543,7 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
                 fid: abi::FieldIdx::from_usize(0),
                 ty: LazyRustTy(Self::new_param_ty(0)),
             }];
-            TySpecifics::mk_structlike((), true, fields)
+            TySpecifics::mk_structlike((), fields)
         } else if vir::with_vcx(|vcx| {
             EnvQuery::new(vcx.tcx()).is_adt_in_crate(adt, "prusti_contracts")
         }) {
@@ -577,7 +572,7 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
 
     fn from_struct(variant: &ty::VariantDef) -> StructData<'tcx, RustTyDatas> {
         let fields = Self::from_fields(&variant.fields);
-        StructData::new((), true, fields)
+        StructData::new((), fields)
     }
 
     fn from_enum(adt: ty::AdtDef<'tcx>) -> EnumData<'tcx, RustTyDatas> {
@@ -596,12 +591,11 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
                             vid,
                             discr_val: discr.val,
                         },
-                        true,
-                        StructData::new((), true, fields),
+                        StructData::new((), fields),
                     )
                 })
                 .collect::<Vec<_>>();
-            EnumData::new(data, true, variants)
+            EnumData::new(data, variants)
         })
     }
 

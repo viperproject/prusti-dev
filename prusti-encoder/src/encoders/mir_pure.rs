@@ -142,7 +142,7 @@ impl TaskEncoder for MirPureEnc {
             // We wrap the expression with an additional lazy that will perform
             // some sanity checks. These requirements cannot be expressed using
             // only the type system.
-            let ret = RustTyDecomposition::from_ty(body.return_ty(), vcx.tcx(), def_id);
+            let ret = RustTyDecomposition::from_ty(body.return_ty(), def_id);
             let expr = vcx.mk_lazy_expr(
                 vir::vir_format!(vcx, "pure body {def_id:?}"),
                 deps.require_ref::<TyUsePureEnc>(ret)?.snapshot,
@@ -352,7 +352,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     }
 
     fn ty_use(&mut self, ty: ty::Ty<'vir>) -> TyUsePure<'vir> {
-        let ty_task = RustTyDecomposition::from_ty(ty, self.vcx.tcx(), self.context);
+        let ty_task = RustTyDecomposition::from_ty(ty, self.context);
         self.deps.require_dep::<TyUsePureEnc>(ty_task).unwrap()
     }
 
@@ -367,7 +367,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
     fn get_ty_for_local(&mut self, local: mir::Local) -> vir::TypeSnap<'vir> {
         let ty = self.body.local_decls[local].ty;
-        let ty_task = RustTyDecomposition::from_ty(ty, self.vcx.tcx(), self.context);
+        let ty_task = RustTyDecomposition::from_ty(ty, self.context);
         self.deps
             .require_ref::<TyUsePureEnc>(ty_task)
             .unwrap()
@@ -931,8 +931,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         let e_ty = e_ty.expect_mutref();
                         let val_expr = e_ty.deref_access(encoded_place.snap.downcast_ty());
                         // TODO: avoid all of this by using shallow and deep snapshots
-                        let ty_task =
-                            RustTyDecomposition::from_ty(place_ty.ty, self.vcx.tcx(), self.context);
+                        let ty_task = RustTyDecomposition::from_ty(place_ty.ty, self.context);
                         let inner = ty_task.ty.expect_mutref();
                         let normalized =
                             inner.decompose_compare_normalize(ty_task.ty.params, ty_task.args);
