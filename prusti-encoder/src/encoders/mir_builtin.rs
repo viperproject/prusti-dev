@@ -1,6 +1,6 @@
 use prusti_rustc_interface::{
     middle::{mir, ty},
-    span::{Symbol, def_id::DefId},
+    span::def_id::DefId,
 };
 use prusti_utils::config;
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
@@ -11,7 +11,7 @@ use crate::encoders::{
     r#const::ConstEncTask,
     ty::{
         RustTyDecomposition, TySpecifics,
-        generics::{GArgs, GParams, GenericParamsEnc},
+        generics::{GParams, GenericParamsEnc},
         interpretation::float::FloatDomain,
         pure::{TyPurePrimData, TyPurePrimDataKind},
         use_pure::TyUsePureEnc,
@@ -170,19 +170,22 @@ impl MirBuiltinEnc {
         let params = GParams::from(def_id);
         let generics = deps.require_dep::<GenericParamsEnc>(params)?;
 
-        let ty_task = RustTyDecomposition::from_ty(src_ty.peel_refs(), vcx.tcx(), params);
-        let src_array_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?.expect_array();
-        //let src_array_impure = deps.require_dep::<TyUseImpureEnc>(ty_task)?;
-        let ty_task = RustTyDecomposition::from_ty(src_ty, vcx.tcx(), params);
-        let src_ref_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?;
-        let src_ref_impure = deps.require_dep::<TyUseImpureEnc>(ty_task)?;
+        let src_ty_inner = src_ty.peel_refs();
+        let dst_ty_inner = dst_ty.peel_refs();
 
-        let ty_task = RustTyDecomposition::from_ty(dst_ty.peel_refs(), vcx.tcx(), params);
+        let ty_task = RustTyDecomposition::from_ty(src_ty_inner, vcx.tcx(), params);
+        let src_array_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?.expect_array();
+
+        let src_ty = RustTyDecomposition::from_ty(src_ty, vcx.tcx(), params);
+        let src_ref_pure = deps.require_dep::<TyUsePureEnc>(src_ty)?;
+        let src_ref_impure = deps.require_dep::<TyUseImpureEnc>(src_ty)?;
+
+        let ty_task = RustTyDecomposition::from_ty(dst_ty_inner, vcx.tcx(), params);
         let dst_array_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?.expect_array();
-        //let dst_array_impure = deps.require_dep::<TyUseImpureEnc>(ty_task)?;
-        let ty_task = RustTyDecomposition::from_ty(dst_ty, vcx.tcx(), params);
-        let dst_ref_pure = deps.require_dep::<TyUsePureEnc>(ty_task)?;
-        let dst_ref_impure = deps.require_dep::<TyUseImpureEnc>(ty_task)?;
+
+        let dst_ty = RustTyDecomposition::from_ty(dst_ty, vcx.tcx(), params);
+        let dst_ref_pure = deps.require_dep::<TyUsePureEnc>(dst_ty)?;
+        let dst_ref_impure = deps.require_dep::<TyUseImpureEnc>(dst_ty)?;
 
         let ref_src_decl = vcx.mk_local_decl("src", vir::TYPE_REF);
         let ref_src_ex = vcx.mk_local_ex(ref_src_decl);
@@ -219,18 +222,18 @@ impl MirBuiltinEnc {
 
         let src_value = match &src_ref_pure.specifics {
             TySpecifics::ImmRef(data) => data.value_access(snap_src.downcast_ty()),
-            TySpecifics::MutRef(data) => data.deref_snap(snap_src.downcast_ty()),
+            TySpecifics::MutRef(data) => data.value_access(snap_src.downcast_ty()),
             _ => unreachable!(),
         }
         .downcast_ty();
         let dst_value = match &dst_ref_pure.specifics {
             TySpecifics::ImmRef(data) => data.value_access(snap_dst.downcast_ty()),
-            TySpecifics::MutRef(data) => data.deref_snap(snap_dst.downcast_ty()),
+            TySpecifics::MutRef(data) => data.value_access(snap_dst.downcast_ty()),
             _ => unreachable!(),
         }
         .downcast_ty();
 
-        let src_len = match src_ty.peel_refs().kind() {
+        let src_len = match src_ty_inner.kind() {
             ty::TyKind::Array(_, len) => {
                 let const_enc = deps.require_dep::<ConstEnc>(ConstEncTask::Ty {
                     const_: *len,
@@ -248,34 +251,16 @@ impl MirBuiltinEnc {
         let mut posts = vec![dst_ref_impure.ref_to_pred(vcx, ref_dst_ex, None)];
         let mut pres_undo = vec![dst_ref_impure.ref_to_pred(vcx, ref_dst_ex, None)];
         let mut posts_undo = vec![src_ref_impure.ref_to_pred(vcx, ref_src_ex, None)];
-        if matches!(src_ty.kind(), ty::TyKind::Ref(_, _, ty::Mutability::Mut))
-            && matches!(dst_ty.kind(), ty::TyKind::Ref(_, _, ty::Mutability::Mut))
-        {
-            // TODO: Move this v into a new method RustTyDecomposition::decompose_local_ctx(?)
-            //   The issue is that we want a `p_Param` predicate instance even
-            //   though we are not actually creating a generic method (which
-            //   would allow us to refer to a type variable like `T$0: Type`),
-            //   but we also don't want to fully monomorphise the predicate to
-            //   the array resp. slice. This might also be needed for the
-            //   indirect encoder, as it seems like a general need for mutref
-            //   targets if they are kept generic?
-            let dummy_param = vcx
-                .tcx()
-                .mk_ty_from_kind(ty::TyKind::Param(ty::ParamTy::new(0, Symbol::intern("T"))));
-            let mut ty_task_param = RustTyDecomposition::from_ty(
-                dummy_param,
-                vcx.tcx(),
-                GParams::new(
-                    vcx.tcx().mk_args(&[dummy_param.into()]),
-                    ty::ParamEnv::empty(),
-                    false,
-                ),
-            );
-            ty_task_param.args =
-                GArgs::new(params, vcx.tcx().mk_args(&[src_ty.peel_refs().into()]));
+        if src_ty.ty.specifics.is_mutref() && dst_ty.ty.specifics.is_mutref() {
+            let ty_task_param = src_ty
+                .ty
+                .expect_mutref()
+                .decompose_context(src_ty.ty.params, src_ty.args);
             let src_param_impure = deps.require_dep::<TyUseImpureEnc>(ty_task_param)?;
-            ty_task_param.args =
-                GArgs::new(params, vcx.tcx().mk_args(&[dst_ty.peel_refs().into()]));
+            let ty_task_param = dst_ty
+                .ty
+                .expect_mutref()
+                .decompose_context(src_ty.ty.params, dst_ty.args);
             let dst_param_impure = deps.require_dep::<TyUseImpureEnc>(ty_task_param)?;
 
             pres.push(src_param_impure.ref_to_pred(
@@ -462,7 +447,7 @@ impl MirBuiltinEnc {
                         let prim_res_ty = res_ty_enc.expect_primitive();
                         let operand_value = match &operand_ref_pure.specifics {
                             TySpecifics::ImmRef(data) => data.value_access(snap_arg),
-                            TySpecifics::MutRef(data) => data.deref_snap(snap_arg),
+                            TySpecifics::MutRef(data) => data.value_access(snap_arg),
                             _ => unreachable!(),
                         }
                         .downcast_ty();

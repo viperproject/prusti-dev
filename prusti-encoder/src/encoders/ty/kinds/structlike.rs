@@ -38,11 +38,32 @@ pub(super) fn ty_pure_variant<'vir>(
         .collect::<Result<Vec<_>, _>>()?;
     let field_tys = builder.vcx.alloc_slice(&field_tys);
     let (field_snaps_to_snap, des) = builder.constructor(prefix, field_tys, discr);
+
+    let ref_self_decl = builder.vcx.mk_local_decl("self", vir::TYPE_REF);
+    let ref_self = builder.vcx.mk_local_ex(ref_self_decl);
+    let params = builder.params.clone();
+
     assert_eq!(des.len(), data.fields.len());
     let des = des
         .iter()
-        .map(|read| TyPureFieldData {
-            read: read.downcast_ty(),
+        .enumerate()
+        .map(|(idx, read)| {
+            let args = (ref_self_decl.ty(), params.ty_args(), params.const_args());
+            let params = (ref_self_decl, params.ty_decls(), params.const_decls());
+            let ref_to_field_ref = builder
+                .function::<(vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Ref>(
+                    &format!("{prefix}field_{idx}"),
+                    args,
+                    vir::TYPE_REF,
+                    params,
+                    &[],
+                    &[vir::expr! { ((ref_self) == (null)) == ((result: Ref) == (null)) }],
+                    None,
+                );
+            TyPureFieldData {
+                read: read.downcast_ty(),
+                ref_to_field_ref,
+            }
         })
         .collect::<Vec<_>>();
     Ok(StructData::new(
@@ -60,25 +81,10 @@ pub(crate) fn ty_impure<'vir>(
     deps: &mut TaskEncoderDependencies<'vir, TyImpureEnc>,
     builder: &mut PredicateBuilder<'vir>,
 ) -> Result<StructData<'vir, ImpureTyDatas>, EncodeFullError<'vir, TyImpureEnc>> {
-    let (data, self_pred, snap_expr) = ty_impure_variant("", task_key, data, deps, builder)?;
-
-    let ref_self_decl = builder.ref_self_decl();
-    let ref_self = builder.vcx.mk_local_ex(ref_self_decl);
+    let (data, _, snap_expr) = ty_impure_variant("", task_key, data, deps, builder)?;
 
     // Ref-to-snap
-    builder.function_snap = Some(
-        builder
-            .mk_function::<(vir::Ref, vir::ManyTyVal, vir::ManyCSnap), _>(
-                "snap",
-                (ref_self_decl.ty(), builder.params.ty_args(), builder.params.const_args()),
-                builder.csnap_type(),
-                (ref_self_decl, builder.params.ty_decls(), builder.params.const_decls()),
-                &[vir::expr! { acc([self_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) }],
-                &[],
-                Some(snap_expr),
-            )
-            .1,
-    );
+    builder.mk_snap_function(Some(snap_expr));
     Ok(data)
 }
 
@@ -108,30 +114,11 @@ pub(crate) fn ty_impure_variant<'vir>(
     let ref_self = builder.vcx.mk_local_ex(ref_self_decl);
 
     // Ref-to-Ref function for every field
-    let field_accessors = fields
+    let field_accessors = data
+        .fields
         .iter()
-        .enumerate()
-        .map(|(idx, _field)| {
-            let ref_to_field_ref = builder
-                .inner
-                .function::<(vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Ref>(
-                    &format!("{prefix}field_{idx}"),
-                    (
-                        ref_self_decl.ty(),
-                        builder.params.ty_args(),
-                        builder.params.const_args(),
-                    ),
-                    vir::TYPE_REF,
-                    (
-                        ref_self_decl,
-                        builder.params.ty_decls(),
-                        builder.params.const_decls(),
-                    ),
-                    &[], // TODO: should have a read permission here!
-                    &[vir::expr! { ((ref_self) == (null)) == ((result: Ref) == (null)) }],
-                    None,
-                );
-            TyImpureFieldData { ref_to_field_ref }
+        .map(|field| TyImpureFieldData {
+            ref_to_field_ref: field.1.ref_to_field_ref,
         })
         .collect::<Vec<_>>();
 
@@ -140,48 +127,30 @@ pub(crate) fn ty_impure_variant<'vir>(
     if !prefix.is_empty() {
         pred_name = format!("{prefix}owned");
     }
-    let pred_owned = builder
-        .inner
-        .predicate::<(vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>(
-            &pred_name,
-            (
-                ref_self_decl.ty(),
-                builder.params.ty_args(),
-                builder.params.const_args(),
-            ),
-            (
-                ref_self_decl,
-                builder.params.ty_decls(),
-                builder.params.const_decls(),
-            ),
-            Some(
-                builder.vcx.mk_conj(
-                    &fields
-                        .iter()
-                        .zip(&field_accessors)
-                        .map(|(field, accessor)| {
-                            let TyImpureFieldData { ref_to_field_ref } = accessor;
-                            field.ref_to_pred(
-                                builder.vcx,
-                                ref_to_field_ref(
-                                    ref_self,
-                                    builder.params.ty_exprs(),
-                                    builder.params.const_exprs(),
-                                ),
-                                None,
-                            )
-                        })
-                        .collect::<Vec<_>>(),
-                ),
-            ),
-        );
+    let pred_expr = builder.vcx.mk_conj(
+        &fields
+            .iter()
+            .zip(&field_accessors)
+            .map(|(field, TyImpureFieldData { ref_to_field_ref })| {
+                field.ref_to_pred(
+                    builder.vcx,
+                    ref_to_field_ref(
+                        ref_self,
+                        builder.params.ty_exprs(),
+                        builder.params.const_exprs(),
+                    ),
+                    None,
+                )
+            })
+            .collect::<Vec<_>>(),
+    );
+    let pred_owned = builder.mk_predicate(&pred_name, Some(pred_expr));
 
     // Ref-to-snap
     let snap_args: Vec<&'vir vir::ExprGenData<'vir, (), !, vir::Snap>> = fields
         .iter()
         .zip(&field_accessors)
-        .map(|(field, accessor)| {
-            let TyImpureFieldData { ref_to_field_ref } = accessor;
+        .map(|(field, TyImpureFieldData { ref_to_field_ref })| {
             field.ref_to_snap(ref_to_field_ref(
                 ref_self,
                 builder.params.ty_exprs(),
@@ -189,9 +158,7 @@ pub(crate) fn ty_impure_variant<'vir>(
             ))
         })
         .collect::<Vec<_>>();
-    let variant_snap_expr = vir::expr! {
-        unfolding ([pred_owned](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) in ([data.1.field_snaps_to_snap](..[snap_args.as_slice()]))
-    };
+    let variant_snap_expr = data.1.field_snaps_to_snap.call()(snap_args.as_slice());
 
     Ok((
         StructData::new((), data.inhabited, field_accessors),

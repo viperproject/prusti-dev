@@ -124,10 +124,31 @@ impl<'tcx> LazyRustTy<'tcx> {
 
 impl<'tcx> LazyRustTy<'tcx> {
     /// Decomposes the field's type into a `RustTyDecomposition` (to be used
-    /// when recursing over the fields of a containing `RustTy`).
+    /// when recursing over the fields of a containing `RustTy` to construct
+    /// e.g. a predicate - i.e. when the definition of the predicate is
+    /// independent of the context/generic args).
     /// The passed `params` should be those of the containing `RustTy::params`.
+    ///
+    /// For example a `Foo<i32>` with definition `struct Foo<T>(T);`, then
+    /// decomposing the field of the struct would yield `TySpecifics::Param`
+    /// with arguments `<T>` (i.e. the `i32` from the context is lost).
     pub fn decompose(&self, params: GParams<'tcx>) -> RustTyDecomposition<'tcx> {
         vir::with_vcx(|vcx| RustTyDecomposition::from_ty(self.0, vcx.tcx(), params))
+    }
+
+    /// Decomposes the field's type into a `RustTyDecomposition` (to be used
+    /// when recursing over the fields of a containing `RustTy`
+    /// non-transparently, e.g. when predicates of fields should be added
+    /// directly to a method itself).
+    /// The passed `args` should be those of the containing `RustTyDecomposition::args`.
+    pub fn decompose_context(
+        &self,
+        params: GParams<'tcx>,
+        args: GArgs<'tcx>,
+    ) -> RustTyDecomposition<'tcx> {
+        let mut decomp = self.decompose(params);
+        decomp.args = decomp.args.substitute(args);
+        decomp
     }
 
     /// Decomposes the field's type into a `RustTyDecomposition` (to be used
@@ -138,19 +159,11 @@ impl<'tcx> LazyRustTy<'tcx> {
     /// removing definitional generics. For example a `Foo<i32>` with definition
     /// `struct Foo<T>(T);` would yield `i32` instead of `T` when called on the
     /// field of `Foo`.
-    pub fn decompose_normalize(&self, args: GArgs<'tcx>) -> RustTyDecomposition<'tcx> {
+    fn decompose_normalize(&self, args: GArgs<'tcx>) -> RustTyDecomposition<'tcx> {
         vir::with_vcx(|vcx| {
             RustTyDecomposition::from_ty(args.normalize(self.0), vcx.tcx(), args.context())
         })
     }
-
-    // TODO: see comment in the `unsize` handler of `mir_builtin.rs`
-    //pub fn decompose_local_ctx(&self, _args: GArgs<'tcx>) -> RustTyDecomposition<'tcx> {
-    //    todo!()
-    //    // let dummy_param = vcx.tcx().mk_ty_from_kind(ty::TyKind::Param(ty::ParamTy::new(0, Symbol::intern("T"))));
-    //    // let mut ty_task = RustTyDecomposition::from_ty(dummy_param, vcx.tcx(), GParams::new(vcx.tcx().mk_args(&[dummy_param.into()]), ty::ParamEnv::empty(), false));
-    //    // ty_task.args = GArgs::new(params, vcx.tcx().mk_args(&[src_ty.peel_refs().into()]));
-    //}
 
     /// Similarly to `Self::decompose`, this decomposes the fields type.
     /// However, it tries to normalize the type first and only returns a
