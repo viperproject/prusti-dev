@@ -139,6 +139,12 @@ impl<'tcx> GParams<'tcx> {
         self.params
     }
 
+    pub fn typing_env(self) -> ty::TypingEnv<'tcx> {
+        let mut env = ty::TypingEnv::fully_monomorphized();
+        env.param_env = self.env;
+        env
+    }
+
     fn params<T>(
         self,
         f: impl Fn(ty::GenericArg<'tcx>) -> Option<T>,
@@ -267,7 +273,7 @@ impl<'vir> GenericParams<'vir> {
                             TyKind::Param(p) => self.ty_exprs[self.map_idx(p.index).unwrap()],
                             _ => self.ty_expr(
                                 deps,
-                                RustTyDecomposition::from_ty(arg.expect_ty(), tcx, ty.args.context),
+                                RustTyDecomposition::from_ty(arg.expect_ty(), ty.args.context),
                             ),
                         })
                         .collect::<Vec<_>>();
