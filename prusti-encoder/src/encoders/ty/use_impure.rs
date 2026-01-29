@@ -1,6 +1,6 @@
 use prusti_rustc_interface::abi;
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::PredicateIdn;
+use vir::{CastType, PredicateIdn};
 
 use crate::encoders::{
     Impure,
@@ -61,6 +61,7 @@ pub struct TyUseImpureMutRef<'vir> {
     caster: FieldCaster<'vir>,
     args: GArgsTy<'vir>,
     impure: <ImpureTyDatas as TyDatas<'vir>>::MutRefData,
+    ref_to_snap: vir::FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -161,6 +162,7 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
                     caster,
                     args: self.args_t,
                     impure: *data.1,
+                    ref_to_snap: ty.1.ref_to_snap,
                 })
             }
             TySpecifics::ArrayLike(data) => {
@@ -338,7 +340,7 @@ impl<'vir> TyData<'vir, UseImpureTyDatas> {
                 let index = index.expect("cannot fold array type without index");
                 array
                     .element_caster
-                    .cast_to_callee_ctx((array.impure.index_access)(self_ref, index))
+                    .cast_to_callee_ctx(array.ref_to_index_ref(self_ref, index))
                     .into_iter()
                     .chain([vir::with_vcx(|vcx| {
                         vcx.alloc(vir::StmtData::new(vcx.alloc(
@@ -399,7 +401,7 @@ impl<'vir> TyData<'vir, UseImpureTyDatas> {
                 .chain(
                     array
                         .element_caster
-                        .cast_to_caller_ctx((array.impure.index_access)(self_ref, index)),
+                        .cast_to_caller_ctx(array.ref_to_index_ref(self_ref, index)),
                 )
                 .collect()
             }
@@ -415,12 +417,19 @@ impl<'vir> TyData<'vir, UseImpureTyDatas> {
 }
 
 impl<'vir> TyUseImpureArray<'vir> {
+    /// Get the (Ref) address of an index. Identical to the function one would
+    /// call in `use_pure`.
     pub fn ref_to_index_ref<Curr, Next>(
         &self,
         self_ref: vir::ExprGenRef<'vir, Curr, Next>,
         index: vir::ExprGenInt<'vir, Curr, Next>,
     ) -> vir::ExprGenRef<'vir, Curr, Next> {
-        self.data.impure.index_access.call()(self_ref, index)
+        self.data.impure.ref_to_index_ref.call()(
+            self_ref,
+            index,
+            self.args.get_ty(),
+            self.args.get_const(),
+        )
     }
 }
 
@@ -477,7 +486,8 @@ impl<'vir> TyUseImpureStruct<'vir> {
 }
 
 impl<'vir> TyUseImpureField<'vir> {
-    /// Get the (Ref) address of a field.
+    /// Get the (Ref) address of a field. Identical to the function one would
+    /// call in `use_pure`.
     pub fn field_ref<Curr, Next>(
         &self,
         self_ref: vir::ExprGenRef<'vir, Curr, Next>,
@@ -512,8 +522,14 @@ impl<'vir> TyUseImpureMutRef<'vir> {
         self_ref: vir::ExprRef<'vir>,
         label: Option<vir::OldLabel<'vir>>,
     ) -> vir::ExprRef<'vir> {
-        let base = (self.impure.deref_func)(self_ref, self.args.get_ty(), self.args.get_const());
-        vir::with_vcx(|vcx| vcx.maybe_apply_label(base, label))
+        let snap = self.ref_to_snap.call()(self_ref, self.args.get_ty(), self.args.get_const())
+            .downcast_ty();
+        let deref = self.impure.pure.deref_access.call()(snap);
+        vir::with_vcx(|vcx| vcx.maybe_apply_label(deref, label))
+    }
+
+    pub fn prim_to_snap_assign(&self, self_ref: vir::ExprRef<'vir>) -> vir::ExprCSnap<'vir> {
+        (self.impure.arbitrary_value)(self_ref)
     }
 
     fn fold(

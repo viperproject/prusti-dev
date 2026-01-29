@@ -1,6 +1,5 @@
 use crate::encoders::{
-    FunctionCallEnc, MirLocalDefEnc, MirLocalDefEncOutput, MirLocalDefEncTask, TyUseImpureEnc,
-    ViperTupleEnc,
+    FunctionCallEnc, MirLocalDefEnc, MirLocalDefEncOutput, MirLocalDefEncTask, ViperTupleEnc,
     mir_fn::{CallTaskDescription, RustSignature},
     mir_shared::PureRvalueEnc,
     ty::{
@@ -245,6 +244,7 @@ struct Enc<'vir: 'enc, 'enc> {
     rel1_mode: bool,
     before_expiry_mode: bool,
     local_defs: MirLocalDefEncOutput<'vir>,
+    impure_context: bool,
 }
 
 struct EncodedPlace<'vir> {
@@ -347,6 +347,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             rel1_mode: false,
             before_expiry_mode: false,
             local_defs,
+            impure_context: matches!(kind, PureKind::Spec(_)),
         }
     }
 
@@ -834,7 +835,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     let place_ref = encoded_place
                         .place_ref
                         .unwrap_or_else(|| self.vcx.mk_null().lazy());
-                    Ok(e_rvalue_ty.prim_to_snap(place_ref).upcast_ty())
+                    Ok(e_rvalue_ty
+                        .prim_to_snap(place_ref, encoded_place.snap)
+                        .upcast_ty())
                 } else {
                     let e_rvalue_ty = rvalue_snapshot_encoding.expect_immref();
                     // For shared borrows we want to use just the snapshot
@@ -898,61 +901,61 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         elem: mir::PlaceElem<'vir>,
         encoded_place: EncodedPlace<'vir>,
     ) -> EncodedPlace<'vir> {
-        let ty_task =
-            vir::with_vcx(|vcx| RustTyDecomposition::from_ty(place_ty.ty, vcx.tcx(), self.context));
+        let e_ty = self.ty_use(place_ty.ty);
         match elem {
             mir::ProjectionElem::Deref => {
                 assert!(place_ty.variant_index.is_none());
                 match place_ty.ty.kind() {
                     TyKind::Adt(adt, _) if adt.is_box() => {
-                        let e_ty_impure = self.deps.require_dep::<TyUseImpureEnc>(ty_task).unwrap();
-                        let struct_like = e_ty_impure.expect_variant_opt(place_ty.variant_index);
-                        let e_ty_pure = self.deps.require_dep::<TyUsePureEnc>(ty_task).unwrap();
-                        let proj = e_ty_pure.expect_variant_opt(place_ty.variant_index)
-                            [abi::FieldIdx::ZERO];
+                        let proj =
+                            e_ty.expect_variant_opt(place_ty.variant_index)[abi::FieldIdx::ZERO];
                         let proj_app = proj.read(encoded_place.snap.downcast_ty());
-                        let place_ref = encoded_place
-                            .place_ref
-                            .map(|pr| struct_like[abi::FieldIdx::ZERO].field_ref(pr));
+                        let place_ref = encoded_place.place_ref.map(|pr| proj.field_ref(pr));
                         EncodedPlace::new(proj_app, place_ref)
                     }
                     TyKind::Ref(.., ty::Mutability::Not) => {
-                        let e_ty = self
-                            .deps
-                            .require_dep::<TyUsePureEnc>(ty_task)
-                            .unwrap()
-                            .expect_immref();
+                        let e_ty = e_ty.expect_immref();
                         let val_expr = e_ty.value_access(encoded_place.snap.downcast_ty());
                         EncodedPlace::new(val_expr, encoded_place.place_ref)
                     }
                     TyKind::Ref(.., ty::Mutability::Mut) => {
-                        let e_ty = self
+                        assert!(
+                            self.impure_context,
+                            "mutable deref is not allowed in a pure context (e.g. pure functions)"
+                        );
+                        let e_ty = e_ty.expect_mutref();
+                        let val_expr = e_ty.deref_access(encoded_place.snap.downcast_ty());
+                        // TODO: avoid all of this by using shallow and deep snapshots
+                        let ty_task =
+                            RustTyDecomposition::from_ty(place_ty.ty, self.vcx.tcx(), self.context);
+                        let inner = ty_task.ty.expect_mutref();
+                        let normalized =
+                            inner.decompose_compare_normalize(ty_task.ty.params, ty_task.args);
+                        let caster = self
                             .deps
-                            .require_dep::<TyUsePureEnc>(ty_task)
-                            .unwrap()
-                            .expect_mutref();
-                        let val_expr = e_ty.deref_snap(encoded_place.snap.downcast_ty());
+                            .require_dep::<crate::GArgsCastEnc<crate::Pure>>(normalized)
+                            .unwrap();
+                        let inner_ty_task =
+                            inner.decompose_context(ty_task.ty.params, ty_task.args);
+                        let inner_ty = self
+                            .deps
+                            .require_dep::<crate::encoders::TyUseImpureEnc>(inner_ty_task)
+                            .unwrap();
+                        let val_expr = inner_ty.ref_to_snap(val_expr);
+                        let val_expr = caster.cast_to_caller_ctx(val_expr);
                         EncodedPlace::new(val_expr, encoded_place.place_ref)
                     }
                     _ => unreachable!(),
                 }
             }
             mir::ProjectionElem::Field(field_idx, _ty) => {
-                let e_ty = self.deps.require_dep::<TyUseImpureEnc>(ty_task).unwrap();
-                let struct_like = e_ty.expect_variant_opt(place_ty.variant_index);
-                let e_ty_pure = self.deps.require_dep::<TyUsePureEnc>(ty_task).unwrap();
-                let proj = e_ty_pure.expect_variant_opt(place_ty.variant_index)[field_idx];
+                let proj = e_ty.expect_variant_opt(place_ty.variant_index)[field_idx];
                 let proj_app = proj.read(encoded_place.snap.downcast_ty());
-                let place_ref = encoded_place
-                    .place_ref
-                    .map(|pr| struct_like[field_idx].field_ref(pr));
+                let place_ref = encoded_place.place_ref.map(|pr| proj.field_ref(pr));
                 EncodedPlace::new(proj_app, place_ref)
             }
             mir::ProjectionElem::Index(idx) => {
-                let e_ty = self.deps.require_dep::<TyUseImpureEnc>(ty_task).unwrap();
-                let array_like = e_ty.expect_array();
-                let e_ty_pure = self.deps.require_dep::<TyUsePureEnc>(ty_task).unwrap();
-                let proj = e_ty_pure.expect_array();
+                let proj = e_ty.expect_array();
                 let idx = self
                     .encode_place_with_ref(curr_ver, mir::Place::from(idx).into())
                     .snap;
@@ -966,7 +969,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 let proj_app = proj.index(encoded_place.snap.downcast_ty(), idx);
                 let place_ref = encoded_place
                     .place_ref
-                    .map(|pr| array_like.ref_to_index_ref(pr, idx));
+                    .map(|pr| proj.ref_to_index_ref(pr, idx));
                 EncodedPlace::new(proj_app, place_ref)
             }
             mir::ProjectionElem::Downcast(..) => encoded_place,
