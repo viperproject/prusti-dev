@@ -277,7 +277,7 @@ impl TaskEncoder for TyPureEnc {
                     TySpecifics::Builtin(super::kinds::builtin::ty_pure(builtin, builder)?)
                 }
             };
-            let output = TyData::new(output_ref, task_key.inhabited, specifics).alloc();
+            let output = TyData::new(output_ref, specifics).alloc();
             Ok((builder.build(), output))
         })
     }
