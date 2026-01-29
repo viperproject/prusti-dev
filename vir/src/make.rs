@@ -168,6 +168,10 @@ cfg_if! {
                         m.remove(qvar.name);
                     }
                 }
+                ExprKindGenData::InhaleExhale(InhaleExhaleGenData { inhale, exhale }) => {
+                    check_expr_bindings(m, inhale.as_dyn());
+                    check_expr_bindings(m, exhale.as_dyn());
+                }
                 ExprKindGenData::Wand(WandGenData { lhs, rhs }) => {
                     check_expr_bindings(m, lhs.as_dyn());
                     check_expr_bindings(m, rhs.as_dyn());
@@ -613,6 +617,16 @@ impl<'tcx> VirCtxt<'tcx> {
         self.alloc(ExprGenData::new(
             self.alloc(ExprKindGenData::Const(self.alloc(value))),
         ))
+    }
+
+    pub fn mk_inhale_exhale_expr<'vir, Curr, Next>(
+        &'vir self,
+        inhale: ExprGenBool<'vir, Curr, Next>,
+        exhale: ExprGenBool<'vir, Curr, Next>,
+    ) -> ExprGenBool<'vir, Curr, Next> {
+        self.alloc(ExprGenData::new(self.alloc(ExprKindGenData::InhaleExhale(
+            self.alloc(InhaleExhaleGenData { inhale, exhale }),
+        ))))
     }
 
     pub fn mk_todo_expr<'vir, Curr, Next, T: CompType>(

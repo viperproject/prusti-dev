@@ -233,6 +233,7 @@ impl<'tcx> TyDatas<'tcx> for RustTyDatas {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RustBuiltinData {
     BuiltinReal,
+    BuiltinGhost,
 }
 
 /// An internal representation of a `ty::Ty`. Contains all that we care about
@@ -244,6 +245,7 @@ pub type RustParam<'tcx> = <RustTyDatas as TyDatas<'tcx>>::ParamData;
 pub type RustPrimitive<'tcx> = <RustTyDatas as TyDatas<'tcx>>::PrimitiveData;
 pub type RustImmRef<'tcx> = <RustTyDatas as TyDatas<'tcx>>::ImmRefData;
 pub type RustMutRef<'tcx> = <RustTyDatas as TyDatas<'tcx>>::MutRefData;
+pub type RustBuiltin<'tcx> = <RustTyDatas as TyDatas<'tcx>>::BuiltinData;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RustTyData<'tcx> {
@@ -552,7 +554,8 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
         }) {
             match adt.non_enum_variant().name.to_string().as_str() {
                 "Real" => Self::Builtin(RustBuiltinData::BuiltinReal),
-                s => panic!("Found unrecognized builtin {}", s),
+                "Ghost" => Self::Builtin(RustBuiltinData::BuiltinGhost),
+                s => panic!("Found unrecognized builtin {s}"),
             }
         } else {
             match adt.adt_kind() {
