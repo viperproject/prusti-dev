@@ -418,14 +418,13 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         .into()
                 }
                 TyKind::Ref(.., ty::Mutability::Mut) => {
-                    let e_rvalue_ty = self.ty_use_pure(rvalue_ty);
                     let p_rvalue_ty = self.ty_use_impure(rvalue_ty);
                     let (place_expr, _, _, _) = self.encode_place_with_snap(Place::from(*place));
 
-                    let inner = e_rvalue_ty.expect_mutref();
+                    let inner = p_rvalue_ty.expect_mutref();
                     let place_ref = place_expr.expr.expect_predicate();
                     EncodedRvalue {
-                        expr: inner.prim_to_snap(place_ref).upcast_ty(),
+                        expr: inner.prim_to_snap_assign(place_ref).upcast_ty(),
                         post_assign_folds: Some(Box::new(move |lhs_place| {
                             p_rvalue_ty.fold(None, lhs_place, None, None, None)
                         })),

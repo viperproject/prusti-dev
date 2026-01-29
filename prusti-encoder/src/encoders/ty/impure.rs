@@ -1,7 +1,7 @@
 use std::ops::{Deref, DerefMut};
 
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CallableIdn, CastType, FunctionIdn, HasType, MethodIdn, PredicateIdn};
+use vir::{CastType, FunctionIdn, HasType, MethodIdn, PredicateIdn};
 
 use crate::encoders::{Impure, ty::use_impure::TyUseImpure};
 
@@ -40,12 +40,16 @@ pub struct TyImpureImmRefData {}
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyImpureMutRefData<'vir> {
-    pub deref_func: vir::FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Ref>,
+    pub pure: <PureTyDatas as TyDatas<'vir>>::MutRefData,
+    /// For use in constructing a snapshot from just a `Ref`.
+    pub arbitrary_value: vir::FunctionIdn<'vir, vir::Ref, vir::CSnap>,
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyImpureArrayData<'vir> {
-    pub index_access: vir::FunctionIdn<'vir, (vir::Ref, vir::Int), vir::Ref>,
+    /// Function to access the ref at the given index.
+    pub ref_to_index_ref:
+        vir::FunctionIdn<'vir, (vir::Ref, vir::Int, vir::ManyTyVal, vir::ManyCSnap), vir::Ref>,
     #[allow(dead_code)]
     pub index_frame:
         vir::FunctionIdn<'vir, (vir::Ref, vir::Int, vir::ManyTyVal, vir::ManyCSnap), vir::CSnap>,
@@ -102,7 +106,7 @@ pub struct TyImpureEncLocal<'vir> {
     pub fields: Vec<vir::FieldDyn<'vir>>,
     pub predicates: Vec<vir::Predicate<'vir>>,
     pub function_snap: vir::Function<'vir>,
-    pub ref_to_field_refs: Vec<vir::Function<'vir>>,
+    pub functions: Vec<vir::Function<'vir>>,
     pub method_assign: vir::Method<'vir>,
     pub methods: Vec<vir::Method<'vir>>,
 }
@@ -136,26 +140,6 @@ impl TaskEncoder for TyImpureEnc {
             let ref_self_decl = builder.ref_self_decl();
             let ref_self = vcx.mk_local_ex(ref_self_decl);
 
-            let self_pred_ident = builder.inner.predicate_ident(
-                "",
-                (
-                    ref_self_decl.ty(),
-                    builder.params.ty_args(),
-                    builder.params.const_args(),
-                ),
-            );
-            let snap_func_ident = builder
-                .inner
-                .function_ident::<(vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>(
-                    "snap",
-                    (
-                        ref_self_decl.ty(),
-                        builder.params.ty_args(),
-                        builder.params.const_args(),
-                    ),
-                    snapshot,
-                );
-
             // assign method
             let value_decl = vcx.mk_local_decl("value", snapshot);
             let value = vcx.mk_local_ex(value_decl);
@@ -166,8 +150,8 @@ impl TaskEncoder for TyImpureEnc {
                 (ref_self_decl, builder.params.ty_decls(), builder.params.const_decls(), value_decl),
                 &[],
                 &[
-                    vir::expr! { [self_pred_ident](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]) },
-                    vir::expr! { ([snap_func_ident](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) == (value) },
+                    vir::expr! { [builder.ref_to_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]) },
+                    vir::expr! { ([builder.ref_to_snap](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) == (value) },
                 ],
             );
 
@@ -178,15 +162,9 @@ impl TaskEncoder for TyImpureEnc {
                 TySpecifics::Opaque(opaque) => TySpecifics::Opaque(
                     super::kinds::opaque::ty_impure(opaque, deps, &mut builder)?,
                 ),
-                TySpecifics::ArrayLike(array) => {
-                    TySpecifics::ArrayLike(super::kinds::arraylike::ty_impure(
-                        &ty,
-                        array,
-                        deps,
-                        &mut builder,
-                        snap_func_ident,
-                    )?)
-                }
+                TySpecifics::ArrayLike(array) => TySpecifics::ArrayLike(
+                    super::kinds::arraylike::ty_impure(&ty, array, deps, &mut builder)?,
+                ),
                 TySpecifics::Primitive(prim) => TySpecifics::Primitive(
                     super::kinds::primitive::ty_impure(prim, deps, &mut builder)?,
                 ),
@@ -212,8 +190,8 @@ impl TaskEncoder for TyImpureEnc {
             };
             let data = TyImpureRef {
                 inhabited: ty.inhabited,
-                ref_to_pred: self_pred_ident,
-                ref_to_snap: snap_func_ident.cast_ty(snap_func_ident.arity()),
+                ref_to_pred: builder.ref_to_pred,
+                ref_to_snap: builder.ref_to_snap,
                 method_assign,
             };
             let output = TyData::new(data, ty.inhabited, specifics).alloc();
@@ -227,7 +205,7 @@ impl TaskEncoder for TyImpureEnc {
             for field in output.fields {
                 program.add_field(field);
             }
-            for field_projection in output.ref_to_field_refs {
+            for field_projection in output.functions {
                 program.add_function(field_projection);
             }
             program.add_function(output.function_snap);
@@ -245,6 +223,9 @@ impl TaskEncoder for TyImpureEnc {
 pub(crate) struct PredicateBuilder<'vir> {
     pub(super) params: GenericParams<'vir>,
     snapshot: vir::TypeSnap<'vir>,
+    pub(super) ref_to_pred: PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>,
+    pub(super) ref_to_snap:
+        FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
 
     pub(super) inner: PredicateBuilderInner<'vir>,
 }
@@ -272,27 +253,75 @@ impl<'vir> PredicateBuilder<'vir> {
     ) -> Self {
         let params = deps.require_dep::<GenericParamsEnc>(ty.params).unwrap();
         let name = vir::vir_format!(vcx, "p_{}", ty.name());
+        let inner = PredicateBuilderInner {
+            vcx,
+            name,
+            fields: Vec::new(),
+            functions: Vec::new(),
+            methods: Vec::new(),
+            predicates: Vec::new(),
+            function_snap: None,
+        };
+
+        let ref_self_decl = inner.ref_self_decl();
+        let args = (ref_self_decl.ty(), params.ty_args(), params.const_args());
+        let ref_to_pred = inner.predicate_ident("", args);
+        let ref_to_snap = inner.function_ident("snap", args, snapshot);
+
         PredicateBuilder {
             params,
             snapshot,
-            inner: PredicateBuilderInner {
-                vcx,
-                name,
-                fields: Vec::new(),
-                functions: Vec::new(),
-                methods: Vec::new(),
-                predicates: Vec::new(),
-                function_snap: None,
-            },
+            ref_to_pred,
+            ref_to_snap,
+            inner,
         }
-    }
-
-    pub(crate) fn snap_type(&self) -> vir::TypeSnap<'vir> {
-        self.snapshot
     }
 
     pub(crate) fn csnap_type(&self) -> vir::TypeCSnap<'vir> {
         self.snapshot.downcast_ty()
+    }
+
+    pub(crate) fn mk_predicate(
+        &mut self,
+        name: &str,
+        expr: Option<vir::ExprBool<'vir>>,
+    ) -> PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap)> {
+        let ref_self_decl = self.ref_self_decl();
+        let args = (
+            ref_self_decl.ty(),
+            self.params.ty_args(),
+            self.params.const_args(),
+        );
+        let params = (
+            ref_self_decl,
+            self.params.ty_decls(),
+            self.params.const_decls(),
+        );
+        self.inner.predicate(name, args, params, expr)
+    }
+
+    /// Creates the `snap` function, sets the precondition to
+    /// `acc(ref_to_pred(self, ...))`, and the body as
+    /// `unfolding acc(ref_to_pred(self, ...)) in inner`. Note that the `inner`
+    /// will be wrapped in an unfolding and should not include it.
+    pub(crate) fn mk_snap_function(&mut self, inner: Option<vir::ExprCSnap<'vir>>) {
+        let ref_self_decl = self.ref_self_decl();
+        let ref_self = self.vcx.mk_local_ex(ref_self_decl);
+        let params = (
+            ref_self_decl,
+            self.params.ty_decls(),
+            self.params.const_decls(),
+        );
+        let pred = vir::expr! {
+            acc([self.ref_to_pred](ref_self, [..[self.params.ty_exprs()]], [..[self.params.const_exprs()]]))
+        };
+        let expr = inner.map(|e| vir::expr! {
+            unfolding ([self.ref_to_pred](ref_self, [..[self.params.ty_exprs()]], [..[self.params.const_exprs()]])) in (e)
+        }.upcast_ty());
+        let function = self
+            .inner
+            .mk_function(self.ref_to_snap, params, &[pred], &[], expr);
+        self.inner.function_snap = Some(function);
     }
 }
 
@@ -335,12 +364,11 @@ impl<'vir> PredicateBuilderInner<'vir> {
     }
 
     pub(crate) fn predicate_ident<A: vir::Arity>(
-        &mut self,
+        &self,
         name: &str,
         args: A::Tys<'vir>,
     ) -> vir::PredicateIdn<'vir, A> {
         let name = self.ident_str(name);
-
         vir::PredicateIdn::new(vir::ViperIdent::new(name), args)
     }
 
@@ -358,7 +386,7 @@ impl<'vir> PredicateBuilderInner<'vir> {
     }
 
     pub(crate) fn function_ident<A: vir::Arity, T: vir::CompType>(
-        &mut self,
+        &self,
         name: &str,
         args: A::Tys<'vir>,
         ret: vir::Type<'vir, T>,
@@ -368,29 +396,21 @@ impl<'vir> PredicateBuilderInner<'vir> {
         vir::FunctionIdn::new(vir::ViperIdent::new(name), args, ret)
     }
 
-    #[allow(clippy::too_many_arguments)]
-    pub(crate) fn mk_function<A: vir::Arity, T: vir::CompType>(
+    fn mk_function<A: vir::Arity, T: vir::CompType>(
         &self,
-        name: &str,
-        args: A::Tys<'vir>,
-        ret: vir::Type<'vir, T>,
+        ident: FunctionIdn<'vir, A, T>,
         params: A::Locals<'_, 'vir>,
         pres: &[vir::ExprBool<'vir>],
         posts: &[vir::ExprBool<'vir>],
         expr: Option<vir::Expr<'vir, T>>,
-    ) -> (vir::FunctionIdn<'vir, A, T>, vir::Function<'vir>) {
-        let name = self.ident_str(name);
-        let ident = vir::FunctionIdn::new(vir::ViperIdent::new(name), args, ret);
-        (
+    ) -> vir::Function<'vir> {
+        self.vcx.mk_function(
             ident,
-            self.vcx.mk_function(
-                ident,
-                params,
-                self.vcx.alloc_slice(pres),
-                self.vcx.alloc_slice(posts),
-                None,
-                expr,
-            ),
+            params,
+            self.vcx.alloc_slice(pres),
+            self.vcx.alloc_slice(posts),
+            None,
+            expr,
         )
     }
 
@@ -405,8 +425,10 @@ impl<'vir> PredicateBuilderInner<'vir> {
         posts: &[vir::ExprBool<'vir>],
         expr: Option<vir::Expr<'vir, T>>,
     ) -> vir::FunctionIdn<'vir, A, T> {
-        let (ident, function) = self.mk_function(name, args, ret, params, pres, posts, expr);
-        self.functions.push(function);
+        let name = self.ident_str(name);
+        let ident = vir::FunctionIdn::new(vir::ViperIdent::new(name), args, ret);
+        self.functions
+            .push(self.mk_function(ident, params, pres, posts, expr));
         ident
     }
 
@@ -443,7 +465,7 @@ impl<'vir> PredicateBuilderInner<'vir> {
             fields: self.fields,
             predicates: self.predicates,
             function_snap: self.function_snap.unwrap(),
-            ref_to_field_refs: self.functions,
+            functions: self.functions,
             method_assign,
             methods: self.methods,
         }
