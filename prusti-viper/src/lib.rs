@@ -436,6 +436,7 @@ impl<'vir, 'v, T: vir::CompType> ToViper<'vir, 'v> for vir::Expr<'vir, T> {
             vir::ExprKindData::Ternary(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Unfolding(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::UnOp(v) => v.to_viper_with_span(ctx, self.span),
+            vir::ExprKindData::InhaleExhale(v) => v.to_viper_with_span(ctx, self.span),
 
             vir::ExprKindData::AdtDestructor(recv, field) => {
                 let type_map = ctx.adt_type_map(recv.ty().kind());
@@ -658,6 +659,16 @@ impl<'vir, 'v> ToViperVec<'vir, 'v> for vir::GotoIf<'vir> {
                 ctx.ast.seqn(&[stmt], &[])
             },
         ))
+    }
+}
+
+impl<'vir, 'v> ToViper<'vir, 'v> for vir::InhaleExhale<'vir> {
+    type Output = viper::Expr<'v>;
+    fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
+        ctx.ast.inhale_exhale_pred(
+            self.inhale.to_viper_no_pos(ctx),
+            self.exhale.to_viper_no_pos(ctx),
+        )
     }
 }
 

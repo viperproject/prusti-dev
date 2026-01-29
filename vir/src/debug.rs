@@ -185,6 +185,7 @@ impl<'vir, Curr, Next> Debug for ExprKindGenData<'vir, Curr, Next> {
             Self::SetLiteral(e) => e.fmt(f),
             Self::FuncApp(e) => e.fmt(f),
             Self::Let(e) => e.fmt(f),
+            Self::InhaleExhale(e) => write!(f, "[{:?}, {:?}]", e.inhale, e.exhale),
             Self::Lazy(e) => write!(f, "%%/*{}*/", e.name),
             Self::Local(e) => e.fmt(f),
             Self::Old(e) => e.fmt(f),

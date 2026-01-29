@@ -297,6 +297,7 @@ pub type ForallData<'vir> = crate::gendata::ForallGenData<'vir, (), !>;
 pub type FuncAppData<'vir> = crate::gendata::FuncAppGenData<'vir, (), !>;
 pub type FunctionData<'vir> = crate::gendata::FunctionGenData<'vir, (), !>;
 pub type GotoIfData<'vir> = crate::gendata::GotoIfGenData<'vir, (), !>;
+pub type InhaleExhaleData<'vir> = crate::gendata::InhaleExhaleGenData<'vir, (), !>;
 pub type LetData<'vir> = crate::gendata::LetGenData<'vir, (), !>;
 pub type MethodData<'vir> = crate::gendata::MethodGenData<'vir, (), !>;
 pub type MethodBodyData<'vir> = crate::gendata::MethodBodyGenData<'vir, (), !>;

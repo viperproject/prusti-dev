@@ -1725,37 +1725,6 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                         })
                     })
             }
-            // If we are not checking for overflows, encode an overflow-checking
-            // assertion as a goto.
-            mir::TerminatorKind::Assert { msg, target, .. }
-                if !config::check_overflows()
-                    && matches!(
-                        **msg,
-                        mir::AssertMessage::Overflow(..) | mir::AssertMessage::OverflowNeg(..)
-                    ) =>
-            {
-                const REAL_TARGET_SUCC_IDX: usize = 0;
-                // Ensure that the terminator succ that we use for the repacks is the correct one
-                assert_eq!(
-                    &self.current_fpcs.as_ref().unwrap().terminator.succs[REAL_TARGET_SUCC_IDX]
-                        .block(),
-                    target
-                );
-                let current_fpcs = self.current_fpcs.take().unwrap();
-                let borrows =
-                    current_fpcs.statements.last().unwrap().states[EvalStmtPhase::PostMain].clone();
-                self.pcs_succ(
-                    &borrows,
-                    &current_fpcs.terminator.succs[REAL_TARGET_SUCC_IDX],
-                );
-                self.current_fpcs = Some(current_fpcs);
-                let set_flag = self.set_from_to_flag(location.block, *target);
-                self.stmt(set_flag);
-                self.vcx.mk_goto_stmt(
-                    self.vcx
-                        .alloc(vir::CfgBlockLabelData::BasicBlock(target.as_usize())),
-                )
-            }
             mir::TerminatorKind::Assert {
                 cond,
                 expected,
@@ -1785,33 +1754,48 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                 let expected = self.vcx.mk_const_expr(vir::ConstData::Bool(*expected));
                 let assert = self.vcx.mk_eq_expr(enc, expected);
                 let error_msg = match **msg {
-                    mir::AssertMessage::BoundsCheck { .. } => "bounds check may fail",
+                    mir::AssertMessage::BoundsCheck { .. } => Some("bounds check may fail"),
+                    mir::AssertMessage::Overflow(..) | mir::AssertMessage::OverflowNeg(..)
+                        if !config::check_overflows() =>
+                    {
+                        // If we are not checking for overflows, encode an overflow-checking
+                        // assertion as an assume instead.
+                        None
+                    }
                     mir::AssertMessage::Overflow(..) | mir::AssertMessage::OverflowNeg(..) => {
-                        "operation may overflow"
+                        Some("operation may overflow")
                     }
                     mir::AssertMessage::DivisionByZero(..)
-                    | mir::AssertMessage::RemainderByZero(..) => "division by zero may occur",
+                    | mir::AssertMessage::RemainderByZero(..) => Some("division by zero may occur"),
                     mir::AssertMessage::ResumedAfterReturn(..) => {
-                        "execution may continue after return"
+                        Some("execution may continue after return")
                     }
                     mir::AssertMessage::ResumedAfterPanic(..) => {
-                        "execution may continue after panic"
+                        Some("execution may continue after panic")
                     }
                     mir::AssertMessage::MisalignedPointerDereference { .. } => {
-                        "misaligned pointer may be dereferenced"
+                        Some("misaligned pointer may be dereferenced")
                     }
-                    mir::AssertKind::ResumedAfterDrop(..) => "execution may continue after drop",
-                    mir::AssertKind::NullPointerDereference => "null pointer may be dereferenced",
+                    mir::AssertKind::ResumedAfterDrop(..) => {
+                        Some("execution may continue after drop")
+                    }
+                    mir::AssertKind::NullPointerDereference => {
+                        Some("null pointer may be dereferenced")
+                    }
                     mir::AssertKind::InvalidEnumConstruction(..) => {
-                        "invalid enum construction may occur"
+                        Some("invalid enum construction may occur")
                     }
                 };
-                self.vcx.with_span(span, |vcx| {
-                    vcx.handle_error("exhale.failed:assertion.false", move |_| {
-                        Some(vec![PrustiError::verification(error_msg, span.into())])
+                if let Some(error_msg) = error_msg {
+                    self.vcx.with_span(span, |vcx| {
+                        vcx.handle_error("exhale.failed:assertion.false", move |_| {
+                            Some(vec![PrustiError::verification(error_msg, span.into())])
+                        });
+                        self.stmt(self.vcx.mk_exhale_stmt(assert));
                     });
-                    self.stmt(self.vcx.mk_exhale_stmt(assert));
-                });
+                } else {
+                    self.stmt(self.vcx.mk_inhale_stmt(assert));
+                }
                 let set_flag = self.set_from_to_flag(location.block, *target);
                 self.stmt(set_flag);
                 let target_bb = self

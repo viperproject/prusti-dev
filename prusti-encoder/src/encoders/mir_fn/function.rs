@@ -190,7 +190,12 @@ impl TaskEncoder for FunctionEnc {
             let ret_type_assertions = generics.ty_assertion(deps, snap, ret.rust_ty);
             */
             let mut posts = Vec::new(); // vec![ret_type_assertions];
-            posts.extend(spec.posts);
+            posts.extend(spec.posts.into_iter().map(|post| {
+                // use inhale-exhale expression to prevent viper checking that
+                // the function body expression satisfies the postcondition:
+                // that's checked in the method encoding of this function.
+                vcx.mk_inhale_exhale_expr(post, vcx.mk_bool::<true>())
+            }));
 
             let func_args = local_defs.local_decl_args().collect::<Vec<_>>();
             let function = vcx.mk_function(

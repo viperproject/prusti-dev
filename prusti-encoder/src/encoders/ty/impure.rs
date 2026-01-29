@@ -180,13 +180,9 @@ impl TaskEncoder for TyImpureEnc {
                 TySpecifics::EnumLike(enumlike) => TySpecifics::EnumLike(
                     super::kinds::enumlike::ty_impure(&ty, enumlike, deps, &mut builder)?,
                 ),
-                TySpecifics::Builtin((_, TyPureBuiltinData::TyPureBuiltinReal(..))) => {
-                    TySpecifics::Builtin(super::interpretation::real::ty_impure(
-                        (),
-                        deps,
-                        &mut builder,
-                    )?)
-                }
+                TySpecifics::Builtin(builtin) => TySpecifics::Builtin(
+                    super::kinds::builtin::ty_impure(builtin, deps, &mut builder)?,
+                ),
             };
             let data = TyImpureRef {
                 inhabited: ty.inhabited,

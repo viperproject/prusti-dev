@@ -2,7 +2,6 @@ use prusti_rustc_interface::{
     middle::{mir, ty},
     span::def_id::DefId,
 };
-use prusti_utils::config;
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CallableIdn, CastType, FunctionIdn, HasType, MethodIdn};
 
@@ -838,12 +837,9 @@ impl MirBuiltinEnc {
         let wrapped_val = vcx.mk_local_ex(wrapped_val_decl);
         let wrapped_val_snap = (e_rvalue_pure_ty.prim_to_snap)(wrapped_val.upcast_ty());
         // Overflowed?
-        let overflowed = if config::check_overflows() {
-            vcx.mk_bin_op_expr(vir::BinOpKind::CmpNe, wrapped_val, val)
-                .downcast_ty()
-        } else {
-            vcx.mk_bool::<false>()
-        };
+        let overflowed = vcx
+            .mk_bin_op_expr(vir::BinOpKind::CmpNe, wrapped_val, val)
+            .downcast_ty();
         let overflowed_snap = bool_cons(overflowed);
         // `tuple(prim_to_snap(wrapped_val), wrapped_val != val)`
         let tuple = e_res_ty.expect_structlike().field_snaps_to_snap(vec![

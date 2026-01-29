@@ -55,6 +55,9 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
             ExprKindGenData::Local(v) => vcx.alloc(ExprKindGenData::Local(v)),
             ExprKindGenData::Const(v) => vcx.alloc(ExprKindGenData::Const(v)),
             ExprKindGenData::Result(t) => vcx.alloc(ExprKindGenData::Result(t)),
+            ExprKindGenData::InhaleExhale(v) => {
+                vcx.alloc(ExprKindGenData::InhaleExhale(v.reify(vcx, lctx)))
+            }
             ExprKindGenData::Lazy(v) => (v.func)(vcx, lctx),
 
             ExprKindGenData::AdtDestructor(v, field) => {
