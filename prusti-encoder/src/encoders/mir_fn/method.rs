@@ -5,8 +5,7 @@ use vir::MethodIdn;
 
 use crate::{
     encoders::{
-        Impure, ImpureEncVisitor, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc, WandEnc,
-        WandEncTask,
+        Impure, ImpureEncVisitor, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc, WandUseEnc,
         mir_fn::{CallTaskDescription, RustSignature},
         ty::generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
     },
@@ -187,12 +186,7 @@ impl TaskEncoder for MethodEnc {
             let mut posts = Vec::new();
             let spec = deps.require_dep_spanned::<MirSpecEnc>((def_id, false), span)?;
             let function_data = FunctionData::new(def_id, params.rust_params(), None);
-            let wands = deps.require_dep_spanned::<WandEnc>(
-                WandEncTask {
-                    data: function_data,
-                },
-                span,
-            )?;
+            let wands = deps.require_dep_spanned::<WandUseEnc>(function_data, span)?;
 
             let gparams = GParams::from(def_id);
             // Add direct resources for inputs and outputs to the pre- and

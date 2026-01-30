@@ -4,8 +4,8 @@ use crate::encoders::{
     ty::{RustTyDecomposition, generics::GParams, indirect::IndirectPredicatesEnc},
 };
 use pcg::borrow_pcg::{
-    FunctionData, FunctionShape, FunctionShapeInput, FunctionShapeNode, FunctionShapeOutput,
-    MakeFunctionShapeError, state::BorrowsState, unblock_graph::UnblockGraph,
+    FunctionData, FunctionShapeInput, FunctionShapeNode, FunctionShapeOutput, state::BorrowsState,
+    unblock_graph::UnblockGraph,
 };
 use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
@@ -17,7 +17,43 @@ use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDe
 use vir::HasType;
 
 /// Encodes the magic wands given a function signature.
-pub struct WandEnc;
+pub struct WandUseEnc;
+
+pub type WandEncOutput<'vir> = WandEncOutputData<'vir, FunctionData<'vir>>;
+
+impl TaskEncoder for WandUseEnc {
+    task_encoder::encoder_cache!(WandUseEnc);
+
+    type TaskDescription<'vir> = FunctionData<'vir>;
+
+    type OutputFullDependency<'vir> = WandEncOutput<'vir>;
+
+    const ENCODER_NAME: &'static str = "wand use encoder";
+
+    fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
+        *task
+    }
+
+    fn do_encode_full<'vir>(
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+    ) -> EncodeFullResult<'vir, Self> {
+        deps.emit_output_ref(*task_key, ())?;
+        let result = deps.require_dep::<WandEnc>(task_key.def_id())?;
+        Ok((
+            (),
+            WandEncOutput {
+                function_data: *task_key,
+                inputs: result.inputs,
+                outputs: result.outputs,
+                wands: result.wands,
+            },
+        ))
+    }
+}
+
+/// Encodes the magic wands given a function signature.
+struct WandEnc;
 
 #[derive(Clone, Debug)]
 pub enum WandEncError {
@@ -86,9 +122,9 @@ impl<'vir, E: TaskEncoder> ImpureEncVisitor<'vir, '_, E> {
 type EncodedPledges<'vir> = Vec<EncodedPledge<'vir>>;
 
 #[derive(Clone)]
-pub struct WandEncOutput<'vir> {
+pub struct WandEncOutputData<'vir, T> {
     /// Information about the corresponding function.
-    function_data: FunctionData<'vir>,
+    function_data: T,
 
     /// The lifetime projections of all arguments to the function.
     inputs: Vec<FunctionShapeInput>,
@@ -268,24 +304,6 @@ impl<'vir> WandEncOutput<'vir> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct WandEncTask<'tcx> {
-    pub data: FunctionData<'tcx>,
-}
-
-impl<'tcx> WandEncTask<'tcx> {
-    pub fn def_id(&self) -> DefId {
-        self.data.def_id()
-    }
-
-    pub fn function_shape(
-        &self,
-        vcx: &vir::VirCtxt<'tcx>,
-    ) -> Result<FunctionShape, MakeFunctionShapeError> {
-        self.data.shape(vcx.tcx())
-    }
-}
-
 pub type WandRhsKey = FunctionShapeInput;
 pub type WandLhsKey = FunctionShapeNode;
 
@@ -311,18 +329,16 @@ impl<'vir> WandData<'vir> {
 impl TaskEncoder for WandEnc {
     task_encoder::encoder_cache!(WandEnc);
 
-    type TaskDescription<'vir> = WandEncTask<'vir>;
+    type TaskDescription<'vir> = DefId;
 
-    type TaskKey<'vir> = WandEncTask<'vir>;
-
-    type OutputFullDependency<'vir> = WandEncOutput<'vir>;
+    type OutputFullDependency<'vir> = WandEncOutputData<'vir, DefId>;
 
     type EncodingError = WandEncError;
 
     const ENCODER_NAME: &'static str = "wand encoder";
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
-        task.clone()
+        *task
     }
 
     fn do_encode_full<'vir>(
@@ -331,9 +347,11 @@ impl TaskEncoder for WandEnc {
     ) -> EncodeFullResult<'vir, Self> {
         deps.emit_output_ref(task_key.clone(), ())?;
         vir::with_vcx(|vcx| {
-            let def_id = task_key.def_id();
+            let def_id = *task_key;
 
-            let shape = task_key.function_shape(vcx).map_err(|e| {
+            let params = ty::GenericArgs::identity_for_item(vcx.tcx(), def_id);
+            let function_data = FunctionData::new(def_id, params, None);
+            let shape = function_data.shape(vcx.tcx()).map_err(|e| {
                 EncodeFullError::EncodingError(
                     WandEncError::Unsupported(format!("function shape: {e:?}")),
                     None,
@@ -353,8 +371,8 @@ impl TaskEncoder for WandEnc {
                 assert!(spec.pledges.is_empty());
                 return Ok((
                     (),
-                    WandEncOutput {
-                        function_data: task_key.data,
+                    WandEncOutputData {
+                        function_data: def_id,
                         inputs,
                         outputs,
                         wands: vec![],
@@ -377,13 +395,15 @@ impl TaskEncoder for WandEnc {
                     WandData::new(targets, sources, pledges.clone())
                 })
                 .collect();
-            let output: WandEncOutput<'vir> = WandEncOutput {
-                function_data: task_key.data,
-                inputs,
-                outputs,
-                wands,
-            };
-            Ok(((), output))
+            Ok((
+                (),
+                WandEncOutputData {
+                    function_data: def_id,
+                    inputs,
+                    outputs,
+                    wands,
+                },
+            ))
         })
     }
 }
