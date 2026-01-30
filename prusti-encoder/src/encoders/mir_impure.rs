@@ -39,7 +39,7 @@ use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, CompType, LocalDeclData};
 
 use crate::encoders::{
-    self, FunctionCallEnc, MirBuiltinEnc, MirBuiltinEncTask, TyUseImpureEnc, WandEnc, WandEncTask,
+    self, FunctionCallEnc, MirBuiltinEnc, MirBuiltinEncTask, TyUseImpureEnc, WandUseEnc,
     mir_fn::{CallTaskDescription, RustSignature},
     mir_shared::PureRvalueEnc,
     ty::{
@@ -726,9 +726,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 // TODO: closures
                 let wands = self
                     .deps
-                    .require_dep::<WandEnc>(WandEncTask {
-                        data: call.function_data().unwrap(),
-                    })
+                    .require_dep::<WandUseEnc>(call.function_data().unwrap())
                     .unwrap();
                 let bb = &self.body[call.location().block];
                 let terminator = bb.terminator.as_ref().unwrap();
