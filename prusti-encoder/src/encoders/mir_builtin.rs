@@ -622,69 +622,24 @@ impl MirBuiltinEnc {
                             .mk_bin_op_expr(vir::BinOpKind::Or, arg1_cond, arg2_cond)
                             .downcast_ty::<vir::Bool>();
                         pres.push(pre);
-                        // The Rust and Viper (SMT) semantics for `\` and `%` do not
-                        // match up when `arg1 < 0`, encode this difference.
-                        if matches!(op, Div) {
-                            // `arg1 >= 0 ? arg1 \ arg2 : arg2 >= 0 ? (arg1 - 1) \ arg2 + 1 : (arg1 - 1) \ arg2 - 1`
-                            let lhs_sub = vcx.mk_bin_op_expr(
-                                vir::BinOpKind::Sub,
-                                lhs.downcast_ty(),
-                                vcx.mk_int::<1>(),
-                            );
-                            let common_div = vcx
-                                .mk_bin_op_expr_inner(op_kind, lhs_sub.as_dyn(), rhs.as_dyn())
-                                .downcast_ty();
-                            let neg_pos = vcx.mk_bin_op_expr(
-                                vir::BinOpKind::Add,
-                                common_div,
-                                vcx.mk_int::<1>(),
-                            );
-                            let neg_neg = vcx.mk_bin_op_expr(
-                                vir::BinOpKind::Sub,
-                                common_div,
-                                vcx.mk_int::<1>(),
-                            );
-                            let rhs_pos = vcx
-                                .mk_bin_op_expr(
-                                    vir::BinOpKind::CmpGe,
-                                    rhs.downcast_ty(),
-                                    vcx.mk_int::<0>(),
-                                )
-                                .downcast_ty();
-                            let negative = vcx.mk_ternary_expr(rhs_pos, neg_pos, neg_neg);
-                            let lhs_pos = vcx
-                                .mk_bin_op_expr(
-                                    vir::BinOpKind::CmpGe,
-                                    lhs.downcast_ty(),
-                                    vcx.mk_int::<0>(),
-                                )
-                                .downcast_ty();
-                            val = vcx.mk_ternary_expr(lhs_pos, val, negative);
-                        } else {
-                            // `arg1 >= 0 ? arg1 % arg2 : (arg1 % arg2) - (arg2 >= 0 ? arg2 : -arg2)`
-                            let rhs_pos = vcx
-                                .mk_bin_op_expr(
-                                    vir::BinOpKind::CmpGe,
-                                    rhs.downcast_ty(),
-                                    vcx.mk_int::<0>(),
-                                )
-                                .downcast_ty();
-                            let rhs_abs = vcx.mk_ternary_expr(
-                                rhs_pos,
-                                rhs,
-                                vcx.mk_unary_op_expr(vir::UnOpKind::Neg, rhs),
-                            );
-                            let negative =
-                                vcx.mk_bin_op_expr(vir::BinOpKind::Sub, viper_val, rhs_abs);
-                            let lhs_pos = vcx
-                                .mk_bin_op_expr(
-                                    vir::BinOpKind::CmpGe,
-                                    lhs.downcast_ty(),
-                                    vcx.mk_int::<0>(),
-                                )
-                                .downcast_ty();
-                            val = vcx.mk_ternary_expr(lhs_pos, val, negative);
-                        }
+
+                        // In SMTLib/Viper `\` and `%` round towards negative
+                        // infinity, whereas Rust rounds to zero. Therefore, in
+                        // the negative case where this matters, we flip the
+                        // sign to get the opposite rounding.
+                        let lhs_neg = vcx.mk_unary_op_expr(vir::UnOpKind::Neg, lhs);
+                        let val_inv_neg = vcx
+                            .mk_bin_op_expr_inner(op_kind, lhs_neg.as_dyn(), rhs.as_dyn())
+                            .downcast_ty();
+                        // -(-arg1 `op` arg2)
+                        let val_neg = vcx.mk_unary_op_expr(vir::UnOpKind::Neg, val_inv_neg);
+                        let lhs_pos = vcx.mk_bin_op_expr(
+                            vir::BinOpKind::CmpGe,
+                            lhs.downcast_ty(),
+                            vcx.mk_int::<0>(),
+                        );
+                        // arg1 >= 0 ? arg1 `op` arg2 : -(-arg1 `op` arg2)
+                        val = vcx.mk_ternary_expr(lhs_pos.downcast_ty(), val, val_neg);
                     }
                     (pres, val)
                 }

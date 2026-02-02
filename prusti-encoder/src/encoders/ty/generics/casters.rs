@@ -245,8 +245,8 @@ impl TaskEncoder for CastersEnc<Impure> {
             let self_expr = vcx.mk_local_ex(self_decl);
             let decls = (self_decl, generics.ty_decls(), generics.const_decls());
 
-            let predicate_ref = deps.require_dep::<TyImpureEnc>(concrete)?;
-            let generic_ref = deps.require_dep::<TyImpureEnc>(param)?;
+            let predicate_ref = deps.require_ref::<TyImpureEnc>(concrete)?;
+            let generic_ref = deps.require_ref::<TyImpureEnc>(param)?;
 
             let concrete_predicate = (predicate_ref.ref_to_pred)(
                 self_expr,

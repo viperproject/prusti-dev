@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use prusti_interface::{
     PrustiError,
     specs::{specifications::find_trait_method_substs, typed::Pledge},
@@ -12,24 +14,61 @@ use vir::{CastType, HasType, Reify};
 
 use crate::encoders::{
     MirLocalDefEncTask, MirPureEnc,
-    mir_pure::PureKind,
+    mir_pure::{ExprInput, PureKind},
     ty::{RustTyDecomposition, use_pure::TyUsePureEnc},
 };
 pub struct MirSpecEnc;
 
-/// The VIR expression and span corresponding to an `assert_on_expiry`
-/// predicate. It will be conjoined to the left-hand side of the wand for the
-/// encoded pledge.
-#[derive(Clone, Copy, Debug)]
-pub struct PledgeExpiryObligation<'vir> {
-    pub expr: vir::ExprBool<'vir>,
-    #[allow(unused)]
-    pub span: Span,
+/// The VIR expression and span corresponding to either the lhs or rhs of a
+/// pledge. It will be conjoined to the permission expression of the
+/// corresponding side of the wand for the encoded pledge.
+#[derive(Debug, Clone, Copy)]
+pub struct PledgeExpr<'vir> {
+    did: DefId,
+    expr: vir::ExprGenBool<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>,
 }
 
-impl<'vir> PledgeExpiryObligation<'vir> {
-    pub fn new(expr: vir::ExprBool<'vir>, span: Span) -> Self {
-        Self { expr, span }
+#[derive(Debug, Clone, Copy)]
+pub struct PledgeArgs<'vir>(&'vir [vir::ExprSnap<'vir>]);
+
+impl<'vir> std::ops::Index<mir::Local> for PledgeArgs<'vir> {
+    type Output = vir::ExprSnap<'vir>;
+
+    fn index(&self, index: mir::Local) -> &Self::Output {
+        if index == mir::RETURN_PLACE {
+            self.0.last().unwrap()
+        } else {
+            &self.0[index.as_usize() - 1]
+        }
+    }
+}
+
+impl<'vir> PledgeExpr<'vir> {
+    pub fn new(
+        did: DefId,
+        expr: vir::ExprGenBool<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>,
+    ) -> Self {
+        Self { did, expr }
+    }
+
+    pub fn pledge_args<T: Borrow<vir::ExprSnap<'vir>>>(
+        result: vir::ExprSnap<'vir>,
+        args: impl IntoIterator<Item = T>,
+    ) -> PledgeArgs<'vir> {
+        let all_args = args
+            .into_iter()
+            .map(|a| *a.borrow())
+            .chain([result])
+            .collect::<Vec<_>>();
+        vir::with_vcx(|vcx| PledgeArgs(vcx.alloc_slice(&all_args)))
+    }
+
+    pub fn expr(&self, args: PledgeArgs<'vir>) -> vir::ExprBool<'vir> {
+        vir::with_vcx(|vcx| self.expr.reify(vcx, (self.did, args.0)))
+    }
+
+    pub fn span(&self) -> Span {
+        vir::with_vcx(|vcx| vcx.tcx().def_span(self.did))
     }
 }
 
@@ -39,27 +78,9 @@ impl<'vir> PledgeExpiryObligation<'vir> {
 pub struct EncodedPledge<'vir> {
     /// The VIR expression and span corresponding to the `assert_on_expiry`
     /// predicate, if present.
-    pub expiry_obligation: Option<PledgeExpiryObligation<'vir>>,
-    pub spec: vir::ExprBool<'vir>,
-    pub span: Span,
-}
-
-impl<'vir> EncodedPledge<'vir> {
-    pub fn expiry_obligation_expr(&self) -> Option<vir::ExprBool<'vir>> {
-        self.expiry_obligation.map(|lhs| lhs.expr)
-    }
-
-    pub fn new(
-        lhs: Option<PledgeExpiryObligation<'vir>>,
-        rhs: vir::ExprBool<'vir>,
-        span: Span,
-    ) -> Self {
-        Self {
-            expiry_obligation: lhs,
-            spec: rhs,
-            span,
-        }
-    }
+    pub expiry_obligation: Option<PledgeExpr<'vir>>,
+    /// The pure rhs of the wand.
+    pub expiry_postcondition: PledgeExpr<'vir>,
 }
 
 #[derive(Clone)]
@@ -202,13 +223,6 @@ impl TaskEncoder for MirSpecEnc {
                     })
                 })
                 .collect::<Result<Vec<vir::ExprBool<'_>>, _>>()?;
-            let pledge_args = vcx.alloc_slice(
-                &pre_args
-                    .iter()
-                    .map(|arg| vcx.mk_old_expr(arg))
-                    .chain([local_defs[mir::RETURN_PLACE].impure_snap])
-                    .collect::<Vec<_>>(),
-            );
             let pledges = specs
                 .pledges
                 .iter()
@@ -233,7 +247,7 @@ impl TaskEncoder for MirSpecEnc {
                             )
                             .unwrap()
                             .expr
-                            .downcast_ty()
+                            .downcast_ty::<vir::CSnap>()
                         });
                         let rhs_expr = deps
                             .require_dep::<crate::encoders::MirPureEnc>(
@@ -251,29 +265,26 @@ impl TaskEncoder for MirSpecEnc {
                             .expr
                             .downcast_ty();
                         let lhs_expr = lhs_expr.map(|lhs_expr| {
-                            lhs_expr.reify(vcx, (lhs_def_id.unwrap(), pledge_args))
+                            PledgeExpr::new(
+                                lhs_def_id.unwrap(),
+                                to_bool.call()(lhs_expr).downcast_ty(),
+                            )
                         });
-                        let rhs_expr = rhs_expr.reify(vcx, (*rhs_def_id, pledge_args));
                         let rhs_span = vcx.tcx().def_span(rhs_def_id);
-                        EncodedPledge::new(
-                            lhs_expr.map(|lhs_expr| {
-                                let lhs_span = vcx.tcx().def_span(lhs_def_id.unwrap());
-                                PledgeExpiryObligation::new(
-                                    vcx.with_span(lhs_span, |_| to_bool(lhs_expr).downcast_ty()),
-                                    lhs_span,
-                                )
-                            }),
-                            vcx.with_span(rhs_span, |vcx| {
-                                vcx.handle_error("exhale.failed:assertion.false", move |_| {
-                                    Some(vec![PrustiError::verification(
-                                        "pledge postcondition might not hold",
-                                        rhs_span.into(),
-                                    )])
-                                });
-                                to_bool(rhs_expr).downcast_ty()
-                            }),
-                            rhs_span,
-                        )
+                        let rhs_expr = vcx.with_span(rhs_span, move |vcx| {
+                            vcx.handle_error("exhale.failed:assertion.false", move |_| {
+                                Some(vec![PrustiError::verification(
+                                    "pledge postcondition might not hold",
+                                    rhs_span.into(),
+                                )])
+                            });
+                            to_bool.call()(rhs_expr).downcast_ty()
+                        });
+                        let rhs_expr = PledgeExpr::new(*rhs_def_id, rhs_expr);
+                        EncodedPledge {
+                            expiry_obligation: lhs_expr,
+                            expiry_postcondition: rhs_expr,
+                        }
                     },
                 )
                 .collect::<Vec<_>>();

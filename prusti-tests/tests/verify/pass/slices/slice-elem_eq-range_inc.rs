@@ -1,6 +1,7 @@
 // ignore-test: slicing with RangeInclusive (e.g. [x..=y]) currently not supported
 
 #![feature(const_panic)]
+#![feature(slice_index_methods)]
 
 use prusti_contracts::*;
 
@@ -16,12 +17,17 @@ use prusti_contracts::*;
 //     pub const fn end(&self) -> &usize;
 // }
 
+#[extern_spec]
+impl<T> std::slice::SliceIndex<[T]> for std::ops::Range<usize> {
+    #[ensures( result.len() == self.end - self.start )]
+    #[ensures( forall(|i: usize| (0 <= i && i < result.len()) ==> result[i] === slice[i+self.start]) )]
+    fn index(self, slice: &[T]) -> &[T];
+}
 
 #[extern_spec]
-impl<T> std::ops::Index<std::ops::Range<usize>> for [T] {
-    #[ensures( result.len() == index.end - index.start )]
-    #[ensures( forall(|i: usize| (0 <= i && i < result.len()) ==> result[i] == self[i+index.start]) )]
-    fn index(&self, index: std::ops::Range<usize>) -> &[T];
+impl<T, I: std::slice::SliceIndex<[T]>> std::ops::Index<I> for [T] {
+    #[ensures( result === <I as std::slice::SliceIndex<[T]>>::index(index, self) )]
+    fn index(&self, index: I) -> &I::Output;
 }
 
 fn main() {}
