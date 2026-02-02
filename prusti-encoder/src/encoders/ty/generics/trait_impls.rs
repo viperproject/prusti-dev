@@ -36,8 +36,10 @@ impl TaskEncoder for TraitImplEnc {
         vir::with_vcx(|vcx| {
             let tcx = vcx.tcx();
 
-            let ctx = GParams::from(*task_key);
+            let all_impls = tcx.trait_impls_in_crate(task_key.krate);
+            let idx = all_impls.iter().position(|did| did == task_key).unwrap();
 
+            let ctx = GParams::from(*task_key);
             let params = deps.require_dep::<GenericParamsEnc>(ctx)?;
 
             let trait_ref = tcx.impl_trait_ref(task_key).unwrap().instantiate_identity();
@@ -48,7 +50,9 @@ impl TaskEncoder for TraitImplEnc {
 
             let mut axs = Vec::new();
 
-            let struct_ty = tcx.type_of(task_key).instantiate_identity();
+            let implementing_ty = tcx.type_of(task_key).instantiate_identity();
+            let implementing_ty = RustTyDecomposition::from_ty(implementing_ty, *task_key);
+            let implementing_ty = implementing_ty.ty.name();
 
             let impl_fun = trait_data.impl_fun;
             let trait_ty_decls = params
@@ -60,7 +64,7 @@ impl TaskEncoder for TraitImplEnc {
 
             axs.push(
                 vcx.mk_domain_axiom(
-                    vir_format_identifier!(vcx, "{}_impl_{}", trait_data.trait_name, struct_ty),
+                    vir_format_identifier!(vcx, "{}_impl_{idx}_{implementing_ty}", trait_data.trait_name),
                     vir::expr! {forall ..[trait_ty_decls] :: {[impl_fun(trait_tys)]} [impl_fun(trait_tys)]}
                 )
             );
@@ -103,10 +107,9 @@ impl TaskEncoder for TraitImplEnc {
                     axs.push(vcx.mk_domain_axiom(
                         vir_format_identifier!(
                             vcx,
-                            "{}_Assoc_{}_{}",
+                            "{}_Assoc_{idx}_{}_{implementing_ty}",
                             trait_data.trait_name,
                             tcx.item_name(impl_item.def_id),
-                            struct_ty
                         ),
                         vir::expr! {forall ..[trait_ty_decls] :: {[assoc_fun(trait_tys)]} ([assoc_fun(trait_tys)]) == (assoc_type_expr)}
                     ));
@@ -116,9 +119,8 @@ impl TaskEncoder for TraitImplEnc {
                 vcx.mk_domain(
                     vir_format_identifier!(
                         vcx,
-                        "t_{}_{}",
+                        "t_{idx}_{}_{implementing_ty}",
                         trait_data.trait_name,
-                        tcx.type_of(*task_key).instantiate_identity().to_string()
                     ),
                     &[],
                     vcx.alloc_slice(&axs),
