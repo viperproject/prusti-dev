@@ -45,7 +45,7 @@ pub enum Mode {
 }
 
 // TODO: does this need to be `&'vir [..]`?
-type ExprInput<'vir> = (DefId, &'vir [vir::ExprSnap<'vir>]);
+pub type ExprInput<'vir> = (DefId, &'vir [vir::ExprSnap<'vir>]);
 type ExprRet<'vir> = vir::ExprGenSnap<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
 type ExprRetRef<'vir> = vir::ExprGenRef<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
 type ExprRetAny<'vir, T> = vir::ExprGen<'vir, ExprInput<'vir>, vir::ExprKind<'vir>, T>;
