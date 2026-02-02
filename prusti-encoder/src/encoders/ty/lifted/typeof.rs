@@ -3,7 +3,7 @@ use vir::FunctionIdn;
 
 use crate::encoders::ty::{RustTy, pure::TyPureEnc};
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct TypeOfEncOutputRef<'vir> {
     /// Returns the Viper representation of the type of a snapshot-encoded value
     pub typeof_function: vir::FunctionIdn<'vir, vir::Snap, vir::TyVal>,

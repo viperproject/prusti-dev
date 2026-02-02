@@ -1,6 +1,6 @@
 use crate::encoders::{
     ImpureEncVisitor, MirLocalDefEncOutput, MirSpecEnc,
-    pure::spec::EncodedPledge,
+    pure::spec::{EncodedPledge, PledgeArgs, PledgeExpr},
     ty::{RustTyDecomposition, generics::GParams, indirect::IndirectPredicatesEnc},
 };
 use pcg::borrow_pcg::{
@@ -9,7 +9,7 @@ use pcg::borrow_pcg::{
 };
 use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
-    data_structures::fx::{FxHashMap, FxHashSet},
+    data_structures::fx::FxHashSet,
     middle::{mir, ty},
     span::def_id::DefId,
 };
@@ -30,25 +30,17 @@ impl<'vir, E: TaskEncoder> ImpureEncVisitor<'vir, '_, E> {
         final_borrow_state: &BorrowsState<'_, 'vir>,
     ) -> Result<Vec<vir::Stmt<'vir>>, EncodeFullError<'vir, E>> {
         let mut wand_packages = Vec::new();
-        let vcx = self.vcx;
         let label = self.new_label("package_post");
-        let snap_lhs = |l| {
-            let ld: crate::encoders::LocalDef<'vir> = self.local_defs.locals[l];
-            if l == mir::RETURN_PLACE {
-                vcx.mk_local_labelled_old_expr(ld.impure_snap, label)
-            } else {
-                vcx.mk_old_expr(ld.impure_snap)
-            }
-        };
-        let snap_rhs = |l| {
-            let ld: crate::encoders::LocalDef<'vir> = self.local_defs.locals[l];
-            vcx.mk_old_expr(ld.impure_snap)
-        };
+        let result = self.local_defs.locals[mir::RETURN_PLACE].impure_snap;
+        let result = self.vcx.mk_local_labelled_old_expr(result, label);
+        let args = self
+            .local_defs
+            .args()
+            .map(|a| self.vcx.mk_old_expr(a.impure_snap));
+        let args = PledgeExpr::pledge_args(result, args);
 
         for wand_data in self.wands.viper_wands() {
-            let wand = self
-                .wands
-                .mk_wand(&wand_data, snap_lhs, snap_rhs, vcx, self.deps);
+            let wand = self.wands.mk_wand(&wand_data, args, self.vcx, self.deps);
             let mut package_script = Vec::new();
             for rhs in wand_data.rhs.iter() {
                 let ug = UnblockGraph::for_node(
@@ -63,7 +55,12 @@ impl<'vir, E: TaskEncoder> ImpureEncVisitor<'vir, '_, E> {
                 package_script.extend(unblock);
             }
 
-            for EncodedPledge { spec, span, .. } in wand_data.pledges.iter().copied() {
+            for EncodedPledge {
+                expiry_postcondition,
+                ..
+            } in &wand_data.pledges
+            {
+                let span = expiry_postcondition.span();
                 self.vcx.with_span(span, |vcx| {
                     vcx.handle_error("exhale.failed:assertion.false", move |_| {
                         Some(vec![PrustiError::verification(
@@ -71,7 +68,7 @@ impl<'vir, E: TaskEncoder> ImpureEncVisitor<'vir, '_, E> {
                             span.into(),
                         )])
                     });
-                    package_script.push(vcx.mk_exhale_stmt(spec));
+                    package_script.push(vcx.mk_exhale_stmt(expiry_postcondition.expr(args)));
                 });
             }
             wand_packages.push(
@@ -192,26 +189,22 @@ impl<'vir> WandEncOutput<'vir> {
         local_defs: &'a MirLocalDefEncOutput<'vir>,
         deps: &'a mut TaskEncoderDependencies<'vir, E>,
     ) -> impl Iterator<Item = vir::ExprBool<'vir>> + 'a {
+        let wand_result =
+            vcx.mk_local_decl("wand_result", local_defs[mir::RETURN_PLACE].local_snap.ty());
+        let wand_result_expr = vcx.mk_local_ex(wand_result);
+        let args = local_defs
+            .args()
+            .map(|arg| vcx.mk_old_expr(arg.impure_snap));
+        let args = PledgeExpr::pledge_args(wand_result_expr, args);
+
         // TODO: wands for late-bound regions
-        self.viper_wands().into_iter().map(|wand_data| {
-            let mut snaps = FxHashMap::default();
-            let snap_lhs = |i| {
-                snaps
-                    .entry(i)
-                    .or_insert_with(|| {
-                        let name = vir::vir_format!(vcx, "wand{:?}", i);
-                        let decl = vcx.mk_local_decl(name, local_defs[i].local_snap.ty());
-                        (decl, vcx.mk_local_ex(decl))
-                    })
-                    .1
-            };
-            let snap_rhs = |i| vcx.mk_old_expr(local_defs[i].impure_snap);
-            let wand = self.mk_wand(&wand_data, snap_lhs, snap_rhs, vcx, deps);
-            snaps
-                .into_iter()
-                .fold(vcx.mk_wand_expr(wand), |acc, (local, (name, _))| {
-                    vcx.mk_let_expr(name, local_defs[local].impure_snap, acc)
-                })
+        self.viper_wands().into_iter().map(move |wand_data| {
+            let wand = self.mk_wand(&wand_data, args, vcx, deps);
+            vcx.mk_let_expr(
+                wand_result,
+                local_defs[mir::RETURN_PLACE].impure_snap,
+                vcx.mk_wand_expr(wand),
+            )
         })
     }
 
@@ -222,18 +215,17 @@ impl<'vir> WandEncOutput<'vir> {
         label_post: &'vir str,
         visitor: &mut ImpureEncVisitor<'vir, '_, E>,
     ) {
-        let vcx = visitor.vcx;
-        let snap_lhs = |l: mir::Local| {
-            if l == mir::RETURN_PLACE {
-                vcx.mk_local_labelled_old_expr(arguments[l.as_usize()], label_post)
-            } else {
-                vcx.mk_local_labelled_old_expr(arguments[l.as_usize()], label_pre)
-            }
-        };
-        let snap_rhs =
-            |l: mir::Local| vcx.mk_local_labelled_old_expr(arguments[l.as_usize()], label_pre);
+        let result = visitor
+            .vcx
+            .mk_local_labelled_old_expr(arguments[mir::RETURN_PLACE.as_usize()], label_post);
+        let args = (1..arguments.len()).map(|l| {
+            visitor
+                .vcx
+                .mk_local_labelled_old_expr(arguments[l], label_pre)
+        });
+        let args = PledgeExpr::pledge_args(result, args);
         for wand_data in self.viper_wands() {
-            let wand = self.mk_wand(&wand_data, snap_lhs, snap_rhs, vcx, visitor.deps);
+            let wand = self.mk_wand(&wand_data, args, visitor.vcx, visitor.deps);
             visitor.stmt(visitor.vcx.mk_apply_stmt(wand));
         }
     }
@@ -241,27 +233,30 @@ impl<'vir> WandEncOutput<'vir> {
     fn mk_wand<'a, E: TaskEncoder>(
         &'a self,
         wand_data: &WandData<'vir>,
-        mut snap_lhs: impl FnMut(mir::Local) -> vir::ExprSnap<'vir>,
-        mut snap_rhs: impl FnMut(mir::Local) -> vir::ExprSnap<'vir>,
+        pledge_args: PledgeArgs<'vir>,
         vcx: &'vir vir::VirCtxt<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, E>,
     ) -> vir::Wand<'vir> {
         debug_assert!(!wand_data.lhs.is_empty());
-        let rhs = wand_data
-            .rhs
-            .iter()
-            .map(|g| self.encode_predicates_for_function_shape_node(vcx, deps, *g, &mut snap_rhs));
-        let rhs = rhs.chain(wand_data.pledges.iter().map(|pledge| pledge.spec));
+        let rhs = wand_data.rhs.iter().map(|g| {
+            self.encode_predicates_for_function_shape_node(vcx, deps, *g, |i| pledge_args[i])
+        });
+        let rhs = rhs.chain(
+            wand_data
+                .pledges
+                .iter()
+                .map(|pledge| pledge.expiry_postcondition.expr(pledge_args)),
+        );
         let rhs = vcx.mk_conj(vcx.alloc_slice(&rhs.collect::<Vec<_>>()));
-        let lhs = wand_data
-            .lhs
-            .iter()
-            .map(|g| self.encode_predicates_for_function_shape_node(vcx, deps, *g, &mut snap_lhs));
+        let lhs = wand_data.lhs.iter().map(|g| {
+            self.encode_predicates_for_function_shape_node(vcx, deps, *g, |i| pledge_args[i])
+        });
         let lhs = lhs.chain(
             wand_data
                 .pledges
                 .iter()
-                .filter_map(|pledge| pledge.expiry_obligation_expr()),
+                .filter_map(|pledge| pledge.expiry_obligation)
+                .map(|expr| expr.expr(pledge_args)),
         );
         let lhs = vcx.mk_conj(vcx.alloc_slice(&lhs.collect::<Vec<_>>()));
         vcx.mk_wand(lhs, rhs)

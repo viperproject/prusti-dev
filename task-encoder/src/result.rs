@@ -73,7 +73,7 @@ where
         match self {
             Self::EncodingError(err) => helper.field("EncodingError", err),
             Self::EnqueueingError(err) => helper.field("EnqueueingError", err),
-            Self::DependencyError(..) => helper.field("DependencyError", &""),
+            Self::DependencyError(stack) => helper.field("DependencyError", stack),
             Self::CyclicError => helper.field("CyclicError", &""),
         };
         helper.finish()

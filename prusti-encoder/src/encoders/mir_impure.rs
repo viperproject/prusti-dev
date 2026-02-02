@@ -858,6 +858,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 RepackOp::Weaken(weaken) => {
                     weaken.from_cap().is_exclusive() && weaken.to_cap().is_read()
                 }
+                RepackOp::StorageDead(..) => true,
                 _ => false,
             }
         }
@@ -1612,77 +1613,91 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     .encode_place(Place::from(*destination))
                     .expr
                     .expect_predicate();
-                if is_pure {
-                    let pure_func = self
-                        .deps
-                        .require_dep::<FunctionCallEnc>(CallTaskDescription::new(
-                            self.def_id,
-                            caller_substs,
-                            func_def_id,
-                        ))
-                        .unwrap();
-                    let snap_args = args
-                        .iter()
-                        .map(|arg| {
-                            self.vcx.with_span(arg.span, |_| {
-                                self.encode_operand_snap(&arg.node, &()).unwrap()
+                self.vcx.with_span(terminator.source_info.span, |vcx| {
+                    if is_pure {
+                        let pure_func = self
+                            .deps
+                            .require_dep::<FunctionCallEnc>(CallTaskDescription::new(
+                                self.def_id,
+                                caller_substs,
+                                func_def_id,
+                            ))
+                            .unwrap();
+                        let snap_args = args
+                            .iter()
+                            .map(|arg| {
+                                self.vcx.with_span(arg.span, |_| {
+                                    self.encode_operand_snap(&arg.node, &()).unwrap()
+                                })
                             })
-                        })
-                        .collect::<Vec<_>>();
-                    let pure_func_app = pure_func.call(snap_args);
+                            .collect::<Vec<_>>();
+                        let pure_func_app = pure_func.call(snap_args);
 
-                    let return_ty = destination.ty(self.local_decls, self.vcx.tcx()).ty;
-                    let assign_stmt = self.ty_use_impure(return_ty).apply_method_assign(
-                        self.vcx,
-                        dest,
-                        pure_func_app,
-                    );
+                        let return_ty = destination.ty(self.local_decls, self.vcx.tcx()).ty;
+                        let assign_stmt = self.ty_use_impure(return_ty).apply_method_assign(
+                            self.vcx,
+                            dest,
+                            pure_func_app,
+                        );
 
-                    self.stmt(assign_stmt);
-                } else {
-                    vir::with_vcx(|vcx| {
-                        vcx.with_span(terminator.source_info.span, |vcx| {
-                            let Ok(func_out) = self.deps.require_dep::<encoders::MethodCallEnc>(
-                                CallTaskDescription::new(self.def_id, caller_substs, func_def_id),
-                            ) else {
-                                self.current_terminator = Some(
-                                    self.vcx
-                                        .mk_dummy_stmt(vir::vir_format!(self.vcx, "recursion",)),
+                        vcx.handle_error(
+                            "application.precondition:assertion.false",
+                            move |reason_span_opt| {
+                                let mut error = PrustiError::verification(
+                                    "precondition might not hold",
+                                    span.into(),
                                 );
-                                return;
-                            };
-
-                            let method_in = args
-                                .iter()
-                                .map(|arg| self.encode_operand(&arg.node).unwrap())
-                                .collect::<Vec<_>>();
-
-                            let call = func_out.call(method_in, dest);
-
-                            let label_pre = self.new_label("pre");
-                            vcx.handle_error(
-                                "call.precondition:assertion.false",
-                                move |reason_span_opt| {
-                                    let mut error = PrustiError::verification(
-                                        "precondition might not hold",
-                                        span.into(),
+                                if let Some(reason_span) = reason_span_opt {
+                                    error.add_note_mut(
+                                        "the failing precondition is here",
+                                        Some(reason_span.into()),
                                     );
-                                    if let Some(reason_span) = reason_span_opt {
-                                        error.add_note_mut(
-                                            "the failing precondition is here",
-                                            Some(reason_span.into()),
-                                        );
-                                    }
-                                    Some(vec![error])
-                                },
+                                }
+                                Some(vec![error])
+                            },
+                        );
+                        self.stmt(assign_stmt);
+                    } else {
+                        let Ok(func_out) = self.deps.require_dep::<encoders::MethodCallEnc>(
+                            CallTaskDescription::new(self.def_id, caller_substs, func_def_id),
+                        ) else {
+                            self.current_terminator = Some(
+                                self.vcx
+                                    .mk_dummy_stmt(vir::vir_format!(self.vcx, "recursion",)),
                             );
-                            self.stmts(call);
-                            let label_post = self.new_label("post");
-                            self.call_labels
-                                .insert(location.block, (label_pre, label_post));
-                        })
-                    });
-                }
+                            return;
+                        };
+
+                        let method_in = args
+                            .iter()
+                            .map(|arg| self.encode_operand(&arg.node).unwrap())
+                            .collect::<Vec<_>>();
+
+                        let call = func_out.call(method_in, dest);
+
+                        let label_pre = self.new_label("pre");
+                        vcx.handle_error(
+                            "call.precondition:assertion.false",
+                            move |reason_span_opt| {
+                                let mut error = PrustiError::verification(
+                                    "precondition might not hold",
+                                    span.into(),
+                                );
+                                if let Some(reason_span) = reason_span_opt {
+                                    error.add_note_mut(
+                                        "the failing precondition is here",
+                                        Some(reason_span.into()),
+                                    );
+                                }
+                                Some(vec![error])
+                            },
+                        );
+                        self.stmts(call);
+                        let label_post = self.new_label("post");
+                        self.call_labels
+                            .insert(location.block, (label_pre, label_post));
+                    }
+                });
 
                 target
                     .map(|target| {

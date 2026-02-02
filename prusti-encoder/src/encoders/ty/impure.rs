@@ -114,6 +114,7 @@ impl TaskEncoder for TyImpureEnc {
     task_encoder::encoder_cache!(TyImpureEnc);
     type TaskDescription<'vir> = RustTy<'vir>;
 
+    type OutputRef<'vir> = TyImpureRef<'vir>;
     type OutputFullDependency<'vir> = TyImpure<'vir>;
     type OutputFullLocal<'vir> = TyImpureEncLocal<'vir>;
 
@@ -127,7 +128,6 @@ impl TaskEncoder for TyImpureEnc {
         task_key: &Self::TaskKey<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
-        deps.emit_output_ref(*task_key, ())?;
         let snap = deps.require_dep::<TyPureEnc>(*task_key)?;
         let snapshot = (snap.domain)();
 
@@ -153,6 +153,13 @@ impl TaskEncoder for TyImpureEnc {
                     vir::expr! { ([builder.ref_to_snap](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) == (value) },
                 ],
             );
+
+            let data = TyImpureRef {
+                ref_to_pred: builder.ref_to_pred,
+                ref_to_snap: builder.ref_to_snap,
+                method_assign,
+            };
+            deps.emit_output_ref(*task_key, data)?;
 
             let specifics = match &ty.specifics {
                 TySpecifics::Param(param) => {
@@ -182,11 +189,6 @@ impl TaskEncoder for TyImpureEnc {
                 TySpecifics::Builtin(builtin) => TySpecifics::Builtin(
                     super::kinds::builtin::ty_impure(builtin, deps, &mut builder)?,
                 ),
-            };
-            let data = TyImpureRef {
-                ref_to_pred: builder.ref_to_pred,
-                ref_to_snap: builder.ref_to_snap,
-                method_assign,
             };
             let output = TyData::new(data, specifics).alloc();
 
