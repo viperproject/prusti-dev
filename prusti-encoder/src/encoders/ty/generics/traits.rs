@@ -1,9 +1,13 @@
 use prusti_rustc_interface::{middle::ty::AssocKind, span::def_id::DefId};
 use rustc_hash::FxHashMap;
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{FunctionIdn, vir_format_identifier};
+use vir::{CallableIdn, FunctionIdn, vir_format_identifier};
 
-use crate::encoders::ty::generics::{GParams, GenericParamsEnc};
+use crate::encoders::ty::{
+    RustTyDecomposition,
+    generics::{GParams, GenericParamsEnc},
+    lifted::TyConstructorEnc,
+};
 
 pub struct TraitEnc;
 
@@ -12,6 +16,12 @@ pub struct TraitData<'vir> {
     pub trait_name: &'vir str,
     pub type_did_fun_mapping: FxHashMap<DefId, FunctionIdn<'vir, vir::ManyTyVal, vir::TyVal>>,
     pub impl_fun: FunctionIdn<'vir, vir::ManyTyVal, vir::Bool>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TraitEncOutput<'vir> {
+    trait_domain: vir::Domain<'vir>,
+    impl_fun: vir::Function<'vir>,
 }
 
 impl TaskEncoder for TraitEnc {
@@ -24,11 +34,12 @@ impl TaskEncoder for TraitEnc {
     type TaskDescription<'vir> = DefId;
 
     type OutputFullDependency<'vir> = TraitData<'vir>;
-    type OutputFullLocal<'vir> = vir::Domain<'vir>;
+    type OutputFullLocal<'vir> = TraitEncOutput<'vir>;
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for dom in TraitEnc::all_outputs_local_no_errors() {
-            program.add_domain(dom);
+        for trait_enc in TraitEnc::all_outputs_local_no_errors() {
+            program.add_domain(trait_enc.trait_domain);
+            program.add_function(trait_enc.impl_fun);
         }
     }
 
@@ -64,17 +75,44 @@ impl TaskEncoder for TraitEnc {
                     )
                 })
                 .collect::<FxHashMap<_, _>>();
-            let mut funcs = type_did_fun_mapping
+            let funcs = type_did_fun_mapping
                 .values()
                 .map(|function_idn| vcx.mk_domain_function(*function_idn, false, None))
                 .collect::<Vec<_>>();
-            let impl_fun = FunctionIdn::new(
+
+            let impl_fun_idn = FunctionIdn::new(
                 vir_format_identifier!(vcx, "{}_impl", trait_name),
                 vcx.alloc_slice(&(vec![vir::TYPE_TYVAL; params.ty_exprs().len()])),
                 vir::TYPE_BOOL,
             );
-            let impl_fun_data = vcx.mk_domain_function(impl_fun, false, None);
-            funcs.push(impl_fun_data);
+
+            let impl_fun_body = {
+                let mut checks = Vec::new();
+                for impl_did in tcx.all_impls(*task_key) {
+                    let implementing_ty = tcx.type_of(impl_did).instantiate_identity();
+                    let implementing_ty = RustTyDecomposition::from_ty(implementing_ty, impl_did);
+
+                    let impl_type = deps.require_ref::<TyConstructorEnc>(implementing_ty.ty)?;
+
+                    let type_check = vcx.mk_adt_discriminator_expr(
+                        params.ty_exprs()[0],
+                        impl_type.ty_constructor.name().to_str(),
+                    );
+                    checks.push(type_check);
+                }
+
+                vcx.mk_disj(&checks)
+            };
+
+            let impl_fun = vcx.mk_function(
+                impl_fun_idn,
+                (params.ty_decls(),),
+                &[],
+                &[],
+                None,
+                Some(impl_fun_body),
+            );
+
             let trait_domain = vcx.mk_domain(
                 vir_format_identifier!(vcx, "t_{}", trait_name),
                 &[],
@@ -83,11 +121,14 @@ impl TaskEncoder for TraitEnc {
                 None,
             );
             Ok((
-                trait_domain,
+                TraitEncOutput {
+                    trait_domain,
+                    impl_fun,
+                },
                 TraitData {
                     trait_name,
                     type_did_fun_mapping,
-                    impl_fun,
+                    impl_fun: impl_fun_idn,
                 },
             ))
         })

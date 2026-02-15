@@ -54,20 +54,11 @@ impl TaskEncoder for TraitImplEnc {
             let implementing_ty = RustTyDecomposition::from_ty(implementing_ty, *task_key);
             let implementing_ty = implementing_ty.ty.name();
 
-            let impl_fun = trait_data.impl_fun;
             let trait_ty_decls = params
                 .ty_decls()
                 .iter()
                 .map(|dec| dec.upcast_ty())
                 .collect::<Vec<_>>();
-            let trait_tys = args.get_ty();
-
-            axs.push(
-                vcx.mk_domain_axiom(
-                    vir_format_identifier!(vcx, "{}_impl_{idx}_{implementing_ty}", trait_data.trait_name),
-                    vir::expr! {forall ..[trait_ty_decls] :: {[impl_fun(trait_tys)]} [impl_fun(trait_tys)]}
-                )
-            );
 
             tcx.associated_items(*task_key)
                 .in_definition_order()
