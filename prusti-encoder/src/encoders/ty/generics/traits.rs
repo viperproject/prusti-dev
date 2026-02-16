@@ -1,13 +1,9 @@
 use prusti_rustc_interface::{middle::ty::AssocKind, span::def_id::DefId};
 use rustc_hash::FxHashMap;
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{AdtDestructorWrapper, CallableIdn, FunctionIdn, vir_format_identifier};
+use vir::{CastType, Dyn, FunctionIdn, vir_format_identifier};
 
-use crate::encoders::ty::{
-    RustTyDecomposition,
-    generics::{GParams, GenericParamsEnc},
-    lifted::TyConstructorEnc,
-};
+use crate::encoders::ty::generics::{GArgs, GArgsTyEnc, GParams, GenericParamsEnc};
 
 pub struct TraitEnc;
 
@@ -103,31 +99,37 @@ impl TaskEncoder for TraitEnc {
             );
 
             let impl_fun_body = {
-                let impl_type_expr = params.ty_exprs()[0];
-
                 let mut trait_impl_checks = Vec::new();
+
                 for impl_did in tcx.all_impls(*task_key) {
-                    let implementing_ty = tcx.type_of(impl_did).instantiate_identity();
-                    let implementing_ty = RustTyDecomposition::from_ty(implementing_ty, impl_did);
+                    let impl_ctx = GParams::from(impl_did);
+                    let impl_params = deps.require_dep::<GenericParamsEnc>(impl_ctx)?;
 
-                    let impl_type = deps.require_ref::<TyConstructorEnc>(implementing_ty.ty)?;
+                    let impl_trait_ref =
+                        tcx.impl_trait_ref(impl_did).unwrap().instantiate_identity();
+                    let impl_args =
+                        deps.require_dep::<GArgsTyEnc>(GArgs::new(impl_ctx, impl_trait_ref.args))?;
 
-                    let type_check = vcx.mk_adt_discriminator_expr(
-                        impl_type_expr,
-                        impl_type.ty_constructor.name().to_str(),
+                    let mut conjuncts = Vec::new();
+
+                    for (trait_ty_param, impl_arg_val) in
+                        params.ty_exprs().iter().zip(impl_args.get_ty())
+                    {
+                        conjuncts.push(vcx.mk_eq_expr(*trait_ty_param, *impl_arg_val));
+                    }
+
+                    // Create an "exists" for each generic of the impl block
+                    let trait_ty_decls = vcx.alloc_slice(
+                        impl_params
+                            .ty_decls()
+                            .iter()
+                            .map(|dec| dec.upcast_ty::<Dyn>())
+                            .collect::<Vec<_>>()
+                            .as_slice(),
                     );
-                    trait_impl_checks.push(type_check);
+                    let exists = vcx.mk_exists_expr(&trait_ty_decls, &[], vcx.mk_conj(&conjuncts));
+                    trait_impl_checks.push(exists);
                 }
-
-                // Check for types outside of the known type enumeration
-                let unknown_type_check = {
-                    let type_check = vcx.mk_adt_discriminator_expr(impl_type_expr, "Unknown_type");
-                    let unknown_type_destructor =
-                        vcx.mk_adt_destructor("non_unit", vir::TYPE_TYVAL, vir::TYPE_INT);
-                    let unknown_type_id = unknown_type_destructor.call()(impl_type_expr);
-                    vcx.mk_conj(&[type_check, impl_fun_unknown_idn(unknown_type_id)])
-                };
-                trait_impl_checks.push(unknown_type_check);
 
                 vcx.mk_disj(&trait_impl_checks)
             };
