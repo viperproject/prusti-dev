@@ -1,4 +1,7 @@
-use prusti_rustc_interface::{middle::ty::AssocKind, span::def_id::DefId};
+use prusti_rustc_interface::{
+    middle::ty::{self, AssocKind},
+    span::def_id::DefId,
+};
 use rustc_hash::FxHashMap;
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, Dyn, FunctionIdn, vir_format_identifier};
@@ -124,7 +127,29 @@ impl TaskEncoder for TraitEnc {
                         conjuncts.push(vcx.mk_eq_expr(*trait_ty_param, *impl_arg_val));
                     }
 
-                    // TODO: Add checks for the trait bounds
+                    for trait_pred in impl_ctx
+                        .typing_env()
+                        .param_env
+                        .caller_bounds()
+                        .iter()
+                        .filter_map(ty::Clause::as_trait_clause)
+                        .map(ty::Binder::skip_binder)
+                    {
+                        let required_trait_impl_fun = {
+                            let required_trait = trait_pred.def_id();
+                            if required_trait == *task_key {
+                                // Avoid recursive calls to the trait encoder for the same trait
+                                impl_fun_idn
+                            } else {
+                                deps.require_dep::<Self>(trait_pred.def_id())?.impl_fun
+                            }
+                        };
+                        let predicate_args = deps.require_dep::<GArgsTyEnc>(GArgs::new(
+                            impl_ctx,
+                            trait_pred.trait_ref.args,
+                        ))?;
+                        conjuncts.push(required_trait_impl_fun(predicate_args.get_ty()));
+                    }
 
                     // Create an "exists" for each generic of the impl block
                     let trait_ty_decls = vcx.alloc_slice(
@@ -135,7 +160,7 @@ impl TaskEncoder for TraitEnc {
                             .collect::<Vec<_>>()
                             .as_slice(),
                     );
-                    let exists = vcx.mk_exists_expr(&trait_ty_decls, &[], vcx.mk_conj(&conjuncts));
+                    let exists = vcx.mk_exists_expr(trait_ty_decls, &[], vcx.mk_conj(&conjuncts));
                     trait_impl_checks.push(exists);
                 }
 
