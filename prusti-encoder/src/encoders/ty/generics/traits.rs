@@ -3,7 +3,7 @@ use prusti_rustc_interface::{
     span::def_id::DefId,
 };
 use rustc_hash::FxHashMap;
-use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, Dyn, FunctionIdn, vir_format_identifier};
 
 use crate::encoders::ty::generics::{GArgs, GArgsTyEnc, GParams, GenericParamsEnc};
@@ -16,6 +16,12 @@ pub struct TraitData<'vir> {
     pub type_did_fun_mapping: FxHashMap<DefId, FunctionIdn<'vir, vir::ManyTyVal, vir::TyVal>>,
     pub impl_fun: FunctionIdn<'vir, vir::ManyTyVal, vir::Bool>,
 }
+
+#[derive(Debug, Clone)]
+pub struct TraitImplRef<'vir> {
+    pub impl_fun: FunctionIdn<'vir, vir::ManyTyVal, vir::Bool>,
+}
+impl OutputRefAny for TraitImplRef<'_> {}
 
 #[derive(Debug, Clone)]
 pub struct TraitEncOutput<'vir> {
@@ -34,6 +40,7 @@ impl TaskEncoder for TraitEnc {
     type TaskDescription<'vir> = DefId;
 
     type OutputFullDependency<'vir> = TraitData<'vir>;
+    type OutputRef<'vir> = TraitImplRef<'vir>;
     type OutputFullLocal<'vir> = TraitEncOutput<'vir>;
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
@@ -48,7 +55,6 @@ impl TaskEncoder for TraitEnc {
         task_key: &Self::TaskKey<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
-        deps.emit_output_ref(*task_key, ())?;
         vir::with_vcx(|vcx| {
             let tcx = vcx.tcx();
             let params = deps.require_dep::<GenericParamsEnc>(GParams::from(*task_key))?;
@@ -85,6 +91,15 @@ impl TaskEncoder for TraitEnc {
                 vcx.alloc_slice(&(vec![vir::TYPE_TYVAL; params.ty_exprs().len()])),
                 vir::TYPE_BOOL,
             );
+
+            // Emit the impl function reference early, so that it can be used in the trait bounds
+            // without causing dependency cycles.
+            deps.emit_output_ref(
+                *task_key,
+                TraitImplRef {
+                    impl_fun: impl_fun_idn,
+                },
+            )?;
 
             let impl_fun_unknown_idn: FunctionIdn<'vir, (vir::ManyTyVal, vir::Int), vir::Bool> = {
                 // Omit the Self type as it is known to be the "Unknown_type"
@@ -135,15 +150,8 @@ impl TaskEncoder for TraitEnc {
                         .filter_map(ty::Clause::as_trait_clause)
                         .map(ty::Binder::skip_binder)
                     {
-                        let required_trait_impl_fun = {
-                            let required_trait = trait_pred.def_id();
-                            if required_trait == *task_key {
-                                // Avoid recursive calls to the trait encoder for the same trait
-                                impl_fun_idn
-                            } else {
-                                deps.require_dep::<Self>(trait_pred.def_id())?.impl_fun
-                            }
-                        };
+                        let required_trait_impl_fun =
+                            deps.require_ref::<Self>(trait_pred.def_id())?.impl_fun;
                         let predicate_args = deps.require_dep::<GArgsTyEnc>(GArgs::new(
                             impl_ctx,
                             trait_pred.trait_ref.args,
@@ -165,6 +173,7 @@ impl TaskEncoder for TraitEnc {
                 }
 
                 {
+                    // Add a case for unknown types that might implement the trait
                     let non_unit_decl = vcx.mk_local_decl("non_unit", vir::TYPE_INT);
                     let non_unit_ex = vcx.mk_local_ex(non_unit_decl);
                     let unknown: FunctionIdn<'_, vir::Int, vir::TyVal> = FunctionIdn::new(
