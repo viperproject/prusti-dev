@@ -83,15 +83,21 @@ impl TaskEncoder for TraitEnc {
                 vir::TYPE_BOOL,
             );
 
-            let impl_fun_unknown_idn: FunctionIdn<'vir, vir::Int, vir::Bool> = FunctionIdn::new(
-                vir_format_identifier!(vcx, "{trait_name}_impl_unknown"),
-                vir::TYPE_INT,
-                vir::TYPE_BOOL,
-            );
-
+            let impl_fun_unknown_idn: FunctionIdn<'vir, (vir::ManyTyVal, vir::Int), vir::Bool> = {
+                // Omit the Self type as it is known to be the "Unknown_type"
+                let unknown_params = vec![vir::TYPE_TYVAL; params.ty_exprs().len() - 1];
+                FunctionIdn::new(
+                    vir_format_identifier!(vcx, "{trait_name}_impl_unknown"),
+                    (vcx.alloc_slice(&unknown_params), vir::TYPE_INT),
+                    vir::TYPE_BOOL,
+                )
+            };
             let impl_fun_unknown = vcx.mk_function(
                 impl_fun_unknown_idn,
-                (vcx.mk_local_decl("non_unit", vir::TYPE_INT),),
+                (
+                    vcx.alloc_slice(&params.ty_decls()[1..]),
+                    vcx.mk_local_decl("non_unit", vir::TYPE_INT),
+                ),
                 &[],
                 &[],
                 None,
@@ -118,6 +124,8 @@ impl TaskEncoder for TraitEnc {
                         conjuncts.push(vcx.mk_eq_expr(*trait_ty_param, *impl_arg_val));
                     }
 
+                    // TODO: Add checks for the trait bounds
+
                     // Create an "exists" for each generic of the impl block
                     let trait_ty_decls = vcx.alloc_slice(
                         impl_params
@@ -130,6 +138,9 @@ impl TaskEncoder for TraitEnc {
                     let exists = vcx.mk_exists_expr(&trait_ty_decls, &[], vcx.mk_conj(&conjuncts));
                     trait_impl_checks.push(exists);
                 }
+
+                // TODO: Add a check for the unknown type
+                {}
 
                 vcx.mk_disj(&trait_impl_checks)
             };
