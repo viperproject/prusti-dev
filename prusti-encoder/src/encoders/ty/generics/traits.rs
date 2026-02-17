@@ -139,8 +139,27 @@ impl TaskEncoder for TraitEnc {
                     trait_impl_checks.push(exists);
                 }
 
-                // TODO: Add a check for the unknown type
-                {}
+                {
+                    let non_unit_decl = vcx.mk_local_decl("non_unit", vir::TYPE_INT);
+                    let non_unit_ex = vcx.mk_local_ex(non_unit_decl);
+                    let unknown: FunctionIdn<'_, vir::Int, vir::TyVal> = FunctionIdn::new(
+                        vir::vir_format_identifier!(vcx, "Unknown_type"),
+                        vir::TYPE_INT,
+                        vir::TYPE_TYVAL,
+                    );
+                    let self_is_unknown =
+                        vcx.mk_eq_expr(params.ty_exprs()[0], unknown(non_unit_ex));
+
+                    let unknown_impls = impl_fun_unknown_idn(&params.ty_exprs()[1..], non_unit_ex);
+
+                    let exists_unknown = vcx.mk_exists_expr(
+                        vcx.alloc_slice(&[non_unit_decl]),
+                        &[],
+                        vcx.mk_conj(&[self_is_unknown, unknown_impls]),
+                    );
+
+                    trait_impl_checks.push(exists_unknown);
+                }
 
                 vcx.mk_disj(&trait_impl_checks)
             };
