@@ -4,9 +4,13 @@ use prusti_rustc_interface::{
 };
 use rustc_hash::FxHashMap;
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies};
-use vir::{CastType, Dyn, FunctionIdn, vir_format_identifier};
+use vir::{CallableIdn, CastType, Dyn, FunctionIdn, vir_format_identifier};
 
-use crate::encoders::ty::generics::{GArgs, GArgsTyEnc, GParams, GenericParamsEnc};
+use crate::encoders::ty::{
+    RustTyDecomposition,
+    generics::{GArgs, GArgsTyEnc, GParams, GenericParamsEnc},
+    lifted::TyConstructorEnc,
+};
 
 pub struct TraitEnc;
 
@@ -126,50 +130,64 @@ impl TaskEncoder for TraitEnc {
                 let mut trait_impl_checks = Vec::new();
 
                 for impl_did in tcx.all_impls(*task_key) {
-                    let impl_ctx = GParams::from(impl_did);
-                    let impl_params = deps.require_dep::<GenericParamsEnc>(impl_ctx)?;
+                    // let impl_ctx = GParams::from(impl_did);
+                    // let impl_params = deps.require_dep::<GenericParamsEnc>(impl_ctx)?;
 
-                    let impl_trait_ref =
-                        tcx.impl_trait_ref(impl_did).unwrap().instantiate_identity();
-                    let impl_args =
-                        deps.require_dep::<GArgsTyEnc>(GArgs::new(impl_ctx, impl_trait_ref.args))?;
+                    // let impl_trait_ref =
+                    //     tcx.impl_trait_ref(impl_did).unwrap().instantiate_identity();
+                    // dbg!(&impl_trait_ref.args);
 
-                    let mut conjuncts = Vec::new();
+                    let implementing_ty = tcx.type_of(impl_did).instantiate_identity();
 
-                    for (trait_ty_param, impl_arg_val) in
-                        params.ty_exprs().iter().zip(impl_args.get_ty())
-                    {
-                        conjuncts.push(vcx.mk_eq_expr(*trait_ty_param, *impl_arg_val));
-                    }
+                    // Collect the locations of the generic parameters of the impl block from the
+                    // `Self` type and the trait arguments. This will allos us to refer to them
+                    // when encoding the trait bounds of the impl block.
+                    let mut generics_map = HashMap::new();
 
-                    for trait_pred in impl_ctx
-                        .typing_env()
-                        .param_env
-                        .caller_bounds()
-                        .iter()
-                        .filter_map(ty::Clause::as_trait_clause)
-                        .map(ty::Binder::skip_binder)
-                    {
-                        let required_trait_impl_fun =
-                            deps.require_ref::<Self>(trait_pred.def_id())?.impl_fun;
-                        let predicate_args = deps.require_dep::<GArgsTyEnc>(GArgs::new(
-                            impl_ctx,
-                            trait_pred.trait_ref.args,
-                        ))?;
-                        conjuncts.push(required_trait_impl_fun(predicate_args.get_ty()));
-                    }
+                    let self_check_expr = encode_type(
+                        vcx,
+                        deps,
+                        &mut generics_map,
+                        impl_did,
+                        params.ty_exprs()[0], // Self type
+                        implementing_ty,
+                    );
+
+                    trait_impl_checks.push(self_check_expr);
+
+                    // let impl_args =
+                    //     deps.require_dep::<GArgsTyEnc>(GArgs::new(impl_ctx, impl_trait_ref.args))?;
+
+                    // let mut conjuncts = Vec::new();
+                    //
+                    // for trait_pred in impl_ctx
+                    //     .typing_env()
+                    //     .param_env
+                    //     .caller_bounds()
+                    //     .iter()
+                    //     .filter_map(ty::Clause::as_trait_clause)
+                    //     .map(ty::Binder::skip_binder)
+                    // {
+                    //     let required_trait_impl_fun =
+                    //         deps.require_ref::<Self>(trait_pred.def_id())?.impl_fun;
+                    //     let predicate_args = deps.require_dep::<GArgsTyEnc>(GArgs::new(
+                    //         impl_ctx,
+                    //         trait_pred.trait_ref.args,
+                    //     ))?;
+                    //     conjuncts.push(required_trait_impl_fun(predicate_args.get_ty()));
+                    // }
 
                     // Create an "exists" for each generic of the impl block
-                    let trait_ty_decls = vcx.alloc_slice(
-                        impl_params
-                            .ty_decls()
-                            .iter()
-                            .map(|dec| dec.upcast_ty::<Dyn>())
-                            .collect::<Vec<_>>()
-                            .as_slice(),
-                    );
-                    let exists = vcx.mk_exists_expr(trait_ty_decls, &[], vcx.mk_conj(&conjuncts));
-                    trait_impl_checks.push(exists);
+                    // let trait_ty_decls = vcx.alloc_slice(
+                    //     impl_params
+                    //         .ty_decls()
+                    //         .iter()
+                    //         .map(|dec| dec.upcast_ty::<Dyn>())
+                    //         .collect::<Vec<_>>()
+                    //         .as_slice(),
+                    // );
+                    // let exists = vcx.mk_exists_expr(trait_ty_decls, &[], vcx.mk_conj(&conjuncts));
+                    // trait_impl_checks.push(exists);
                 }
 
                 {
@@ -228,4 +246,49 @@ impl TaskEncoder for TraitEnc {
             ))
         })
     }
+}
+
+fn encode_type<'vir>(
+    vcx: &'vir vir::VirCtxt<'vir>,
+    deps: &mut TaskEncoderDependencies<'vir, TraitEnc>,
+    generic_map: &mut HashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
+    def_id: DefId,
+    base: vir::ExprTyVal<'vir>,
+    ty: ty::Ty<'vir>,
+) -> vir::ExprGenBool<'vir, (), !> {
+    let decomp = RustTyDecomposition::from_ty(ty, def_id);
+
+    if decomp.ty.specifics.is_param() {
+        let generic_arg = decomp.args.args()[0];
+        return if generic_map.contains_key(&generic_arg) {
+            // If we have already seen this generic parameter, add an equality check to ensure it
+            // is consistent with previous occurrences
+            vcx.mk_eq_expr(base, generic_map[&decomp.args.args()[0]])
+        } else {
+            // If this is the first time we see this generic parameter, add it to the map and
+            // continue encoding
+            generic_map.insert(decomp.args.args()[0], base);
+            vir::expr! {vcx; true}
+        };
+    }
+    let ty_enc = deps.require_ref::<TyConstructorEnc>(decomp.ty).unwrap();
+
+    let discr_check = vcx.mk_adt_discriminator_expr(base, ty_enc.ty_constructor.name().to_str());
+
+    // Walk the type and recursively encode all inner types
+    let inner_tys = decomp
+        .args
+        .args()
+        .into_iter()
+        .cloned()
+        .filter_map(ty::GenericArg::as_type);
+
+    let mut conjuncts = vec![discr_check];
+    for (i, inner_ty) in inner_tys.into_iter().enumerate() {
+        let new_base = ty_enc.ty_param_accessors[i].call()(base);
+        let inner_ty_check = encode_type(vcx, deps, generic_map, def_id, new_base, inner_ty);
+        conjuncts.push(inner_ty_check);
+    }
+
+    vcx.mk_conj(&conjuncts)
 }
