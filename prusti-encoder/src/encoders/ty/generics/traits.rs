@@ -137,54 +137,53 @@ impl TaskEncoder for TraitEnc {
                     // `Self` type and the trait arguments. This will allos us to refer to them
                     // when encoding the trait bounds of the impl block.
                     let mut generics_map = HashMap::new();
+                    let mut checks = Vec::new();
 
-                    // Add generics of the trait arguments to the map
-                    generics_map.extend(
-                        params
-                            .rust_params()
-                            .iter()
-                            .zip(enc_params.ty_exprs().iter().copied())
-                            .skip(1), // Skip the Self type
-                    );
+                    let trait_ref = tcx.impl_trait_ref(impl_did).unwrap().instantiate_identity();
+                    let rust_impl_args = trait_ref.args.iter().filter_map(|arg| arg.as_type());
 
-                    let impl_self_ty = tcx.type_of(impl_did).instantiate_identity();
-                    let self_ty_expr = enc_params.ty_exprs()[0];
-                    // Encode the Self type check and collect the generic parameters mentioned
-                    let self_ty_check = encode_type_check(
-                        vcx,
-                        deps,
-                        &mut generics_map,
-                        impl_ctx,
-                        self_ty_expr,
-                        impl_self_ty,
-                    );
+                    for (&ty_expr, rust_ty) in enc_params.ty_exprs().iter().zip(rust_impl_args) {
+                        let check = encode_type_check(
+                            vcx,
+                            deps,
+                            &mut generics_map,
+                            impl_ctx,
+                            ty_expr,
+                            rust_ty,
+                        );
+                        checks.push(check);
+                    }
 
                     // Construct the trait bound checks for this impl block
-                    let trait_bound_checks = Vec::new();
+                    for trait_pred in impl_ctx
+                        .typing_env()
+                        .param_env
+                        .caller_bounds()
+                        .iter()
+                        .filter_map(ty::Clause::as_trait_clause)
+                        .map(ty::Binder::skip_binder)
+                    {
+                        let required_trait_impl_fun =
+                            deps.require_ref::<Self>(trait_pred.def_id())?.impl_fun;
+                        let args = trait_pred
+                            .trait_ref
+                            .args
+                            .iter()
+                            .map(|arg| {
+                                generics_map.get(&arg).copied().unwrap_or_else(|| {
+                                    todo!("Encode for non-generic arguments in trait bounds")
+                                })
+                            })
+                            .collect::<Vec<_>>();
+                        checks.push(required_trait_impl_fun(&args));
+                    }
 
-                    // for trait_pred in impl_ctx
-                    //     .typing_env()
-                    //     .param_env
-                    //     .caller_bounds()
-                    //     .iter()
-                    //     .filter_map(ty::Clause::as_trait_clause)
-                    //     .map(ty::Binder::skip_binder)
-                    // {
-                    //     let required_trait_impl_fun =
-                    //         deps.require_ref::<Self>(trait_pred.def_id())?.impl_fun;
-                    //     let predicate_args = deps.require_dep::<GArgsTyEnc>(GArgs::new(
-                    //         impl_ctx,
-                    //         trait_pred.trait_ref.args,
-                    //     ))?;
-                    //     conjuncts.push(required_trait_impl_fun(predicate_args.get_ty()));
-                    // }
+                    // let trait_bound_checks = vcx.mk_conj(&trait_bound_checks);
 
-                    let trait_bound_checks = vcx.mk_conj(&trait_bound_checks);
-
-                    trait_impl_checks.push(
-                        vcx.mk_bin_op_expr(vir::BinOpKind::And, self_ty_check, trait_bound_checks)
-                            .downcast_ty(),
-                    );
+                    trait_impl_checks.push(vcx.mk_conj(&checks));
+                    //     vcx.mk_bin_op_expr(vir::BinOpKind::And, self_ty_check, trait_bound_checks)
+                    //         .downcast_ty(),
+                    // );
 
                     // let impl_args =
                     //     deps.require_dep::<GArgsTyEnc>(GArgs::new(impl_ctx, impl_trait_ref.args))?;
