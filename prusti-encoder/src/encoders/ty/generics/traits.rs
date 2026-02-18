@@ -179,27 +179,21 @@ impl TaskEncoder for TraitEnc {
                 }
 
                 {
-                    // Add a case for unknown types that might implement the trait
-                    let non_unit_decl = vcx.mk_local_decl("non_unit", vir::TYPE_INT);
-                    let non_unit_ex = vcx.mk_local_ex(non_unit_decl);
-                    let unknown: FunctionIdn<'_, vir::Int, vir::TyVal> = FunctionIdn::new(
-                        vir::vir_format_identifier!(vcx, "Unknown_type"),
-                        vir::TYPE_INT,
-                        vir::TYPE_TYVAL,
-                    );
-                    let self_is_unknown =
-                        vcx.mk_eq_expr(enc_params.ty_exprs()[0], unknown(non_unit_ex));
+                    // Case for unknown types
+                    let self_expr = enc_params.ty_exprs()[0];
+
+                    let is_unknown_type = vcx.mk_adt_discriminator_expr(self_expr, "Unknown_type");
+
+                    let unknown_id_destructor =
+                        vcx.mk_adt_destructor("non_unit", vir::TYPE_TYVAL, vir::TYPE_INT);
+                    let extracted_id = unknown_id_destructor.call()(self_expr);
 
                     let unknown_impls =
-                        impl_fun_unknown_idn(&enc_params.ty_exprs()[1..], non_unit_ex);
+                        impl_fun_unknown_idn(&enc_params.ty_exprs()[1..], extracted_id);
 
-                    let exists_unknown = vcx.mk_exists_expr(
-                        vcx.alloc_slice(&[non_unit_decl]),
-                        &[],
-                        vcx.mk_conj(&[self_is_unknown, unknown_impls]),
-                    );
+                    let unknown_check = vcx.mk_conj(&[is_unknown_type, unknown_impls]);
 
-                    trait_impl_checks.push(exists_unknown);
+                    trait_impl_checks.push(unknown_check);
                 }
 
                 vcx.mk_disj(&trait_impl_checks)
