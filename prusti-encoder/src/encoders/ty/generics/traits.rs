@@ -61,7 +61,8 @@ impl TaskEncoder for TraitEnc {
     ) -> EncodeFullResult<'vir, Self> {
         vir::with_vcx(|vcx| {
             let tcx = vcx.tcx();
-            let params = deps.require_dep::<GenericParamsEnc>(GParams::from(*task_key))?;
+            let params = GParams::from(*task_key);
+            let enc_params = deps.require_dep::<GenericParamsEnc>(params)?;
             let trait_name = vcx.alloc_str(tcx.item_name(task_key).as_str());
             let type_did_fun_mapping = tcx
                 .associated_items(task_key)
@@ -92,7 +93,7 @@ impl TaskEncoder for TraitEnc {
 
             let impl_fun_idn = FunctionIdn::new(
                 vir_format_identifier!(vcx, "{trait_name}_impl"),
-                vcx.alloc_slice(&(vec![vir::TYPE_TYVAL; params.ty_exprs().len()])),
+                vcx.alloc_slice(&(vec![vir::TYPE_TYVAL; enc_params.ty_exprs().len()])),
                 vir::TYPE_BOOL,
             );
 
@@ -107,7 +108,7 @@ impl TaskEncoder for TraitEnc {
 
             let impl_fun_unknown_idn: FunctionIdn<'vir, (vir::ManyTyVal, vir::Int), vir::Bool> = {
                 // Omit the Self type as it is known to be the "Unknown_type"
-                let unknown_params = vec![vir::TYPE_TYVAL; params.ty_exprs().len() - 1];
+                let unknown_params = vec![vir::TYPE_TYVAL; enc_params.ty_exprs().len() - 1];
                 FunctionIdn::new(
                     vir_format_identifier!(vcx, "{trait_name}_impl_unknown"),
                     (vcx.alloc_slice(&unknown_params), vir::TYPE_INT),
@@ -117,7 +118,7 @@ impl TaskEncoder for TraitEnc {
             let impl_fun_unknown = vcx.mk_function(
                 impl_fun_unknown_idn,
                 (
-                    vcx.alloc_slice(&params.ty_decls()[1..]),
+                    vcx.alloc_slice(&enc_params.ty_decls()[1..]),
                     vcx.mk_local_decl("non_unit", vir::TYPE_INT),
                 ),
                 &[],
@@ -131,35 +132,36 @@ impl TaskEncoder for TraitEnc {
 
                 for impl_did in tcx.all_impls(*task_key) {
                     let impl_ctx = GParams::from(impl_did);
-                    // let impl_params = deps.require_dep::<GenericParamsEnc>(impl_ctx)?;
-
-                    // let impl_trait_ref =
-                    //     tcx.impl_trait_ref(impl_did).unwrap().instantiate_identity();
-                    // dbg!(&impl_trait_ref.args);
-
-                    let implementing_ty = tcx.type_of(impl_did).instantiate_identity();
 
                     // Collect the locations of the generic parameters of the impl block from the
                     // `Self` type and the trait arguments. This will allos us to refer to them
                     // when encoding the trait bounds of the impl block.
                     let mut generics_map = HashMap::new();
 
-                    let self_check_expr = encode_type_check(
+                    // Add generics of the trait arguments to the map
+                    generics_map.extend(
+                        params
+                            .rust_params()
+                            .iter()
+                            .zip(enc_params.ty_exprs().iter().copied())
+                            .skip(1), // Skip the Self type
+                    );
+
+                    let impl_self_ty = tcx.type_of(impl_did).instantiate_identity();
+                    let self_ty_expr = enc_params.ty_exprs()[0];
+                    // Encode the Self type check and collect the generic parameters mentioned
+                    let self_ty_check = encode_type_check(
                         vcx,
                         deps,
                         &mut generics_map,
                         impl_ctx,
-                        params.ty_exprs()[0], // Self type
-                        implementing_ty,
+                        self_ty_expr,
+                        impl_self_ty,
                     );
 
-                    trait_impl_checks.push(self_check_expr);
+                    // Construct the trait bound checks for this impl block
+                    let trait_bound_checks = Vec::new();
 
-                    // let impl_args =
-                    //     deps.require_dep::<GArgsTyEnc>(GArgs::new(impl_ctx, impl_trait_ref.args))?;
-
-                    // let mut conjuncts = Vec::new();
-                    //
                     // for trait_pred in impl_ctx
                     //     .typing_env()
                     //     .param_env
@@ -177,17 +179,15 @@ impl TaskEncoder for TraitEnc {
                     //     conjuncts.push(required_trait_impl_fun(predicate_args.get_ty()));
                     // }
 
-                    // Create an "exists" for each generic of the impl block
-                    // let trait_ty_decls = vcx.alloc_slice(
-                    //     impl_params
-                    //         .ty_decls()
-                    //         .iter()
-                    //         .map(|dec| dec.upcast_ty::<Dyn>())
-                    //         .collect::<Vec<_>>()
-                    //         .as_slice(),
-                    // );
-                    // let exists = vcx.mk_exists_expr(trait_ty_decls, &[], vcx.mk_conj(&conjuncts));
-                    // trait_impl_checks.push(exists);
+                    let trait_bound_checks = vcx.mk_conj(&trait_bound_checks);
+
+                    trait_impl_checks.push(
+                        vcx.mk_bin_op_expr(vir::BinOpKind::And, self_ty_check, trait_bound_checks)
+                            .downcast_ty(),
+                    );
+
+                    // let impl_args =
+                    //     deps.require_dep::<GArgsTyEnc>(GArgs::new(impl_ctx, impl_trait_ref.args))?;
                 }
 
                 {
@@ -200,9 +200,10 @@ impl TaskEncoder for TraitEnc {
                         vir::TYPE_TYVAL,
                     );
                     let self_is_unknown =
-                        vcx.mk_eq_expr(params.ty_exprs()[0], unknown(non_unit_ex));
+                        vcx.mk_eq_expr(enc_params.ty_exprs()[0], unknown(non_unit_ex));
 
-                    let unknown_impls = impl_fun_unknown_idn(&params.ty_exprs()[1..], non_unit_ex);
+                    let unknown_impls =
+                        impl_fun_unknown_idn(&enc_params.ty_exprs()[1..], non_unit_ex);
 
                     let exists_unknown = vcx.mk_exists_expr(
                         vcx.alloc_slice(&[non_unit_decl]),
@@ -218,7 +219,7 @@ impl TaskEncoder for TraitEnc {
 
             let impl_fun = vcx.mk_function(
                 impl_fun_idn,
-                (params.ty_decls(),),
+                (enc_params.ty_decls(),),
                 &[],
                 &[],
                 None,
