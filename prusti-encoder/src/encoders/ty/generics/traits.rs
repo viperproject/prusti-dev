@@ -49,6 +49,10 @@ impl TaskEncoder for TraitEnc {
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
         for trait_enc in TraitEnc::all_outputs_local_no_errors() {
+            // Skip `Sized`, as we need a special encoding for its body. Encoded by `TyConstructorEnc`
+            if trait_enc.trait_domain.name == "t_Sized" {
+                continue;
+            }
             program.add_domain(trait_enc.trait_domain);
             program.add_function(trait_enc.impl_fun);
             program.add_function(trait_enc.impl_fun_unknown);

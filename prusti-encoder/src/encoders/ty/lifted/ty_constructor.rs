@@ -48,7 +48,11 @@ impl<'vir> TyConstructorEncOutputRef<'vir> {
 
 impl<'vir> OutputRefAny for TyConstructorEncOutputRef<'vir> {}
 
-pub type TyConstructorEncOutput<'vir> = vir::AdtConstructor<'vir>;
+#[derive(Debug, Clone)]
+pub struct TyConstructorEncOutput<'vir> {
+    constructor: vir::AdtConstructor<'vir>,
+    is_sized: bool,
+}
 
 /// Encodes the lifted representation of a Rust type constructor (e.g. Option,
 /// Vec, user-defined ADTs).
@@ -127,12 +131,21 @@ impl TaskEncoder for TyConstructorEnc {
                 .collect::<Vec<vir::LocalDecl<vir::Dyn>>>();
             let variant =
                 vcx.mk_adt_constructor(type_function_ident.name().to_str(), vcx.alloc_slice(&args));
-            Ok((variant, ()))
+            Ok((
+                TyConstructorEncOutput {
+                    constructor: variant,
+                    is_sized: true,
+                },
+                (),
+            ))
         })
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let mut constructors = Self::all_outputs_local_no_errors();
+        let (mut constructors, _sized): (Vec<_>, Vec<_>) = Self::all_outputs_local_no_errors()
+            .into_iter()
+            .map(|out| (out.constructor, out.is_sized))
+            .unzip();
         vir::with_vcx(|vcx| {
             let args = vcx.alloc_array(&[vcx.mk_local_decl("non_unit", vir::TYPE_INT)]);
             let unknown = vcx.mk_adt_constructor("Unknown_type", args);
@@ -143,6 +156,25 @@ impl TaskEncoder for TyConstructorEnc {
                 vcx.alloc_slice(&constructors),
             );
             program.add_adt(adt);
+
+            // Since we know all type constructors now, we can emit the `Sized` trait
+            // TODO: Correct implementation of `Sized`
+            let sized_impl_fun_idn: FunctionIdn<'vir, vir::TyVal, vir::Bool> = FunctionIdn::new(
+                vir::vir_format_identifier!(vcx, "Sized_impl"),
+                vir::TYPE_TYVAL,
+                vir::TYPE_BOOL,
+            );
+            let self_decl = vcx.mk_local_decl("Self", vir::TYPE_TYVAL);
+            let sized_impl_fun = vcx.mk_function(
+                sized_impl_fun_idn,
+                (self_decl,),
+                &[],
+                &[],
+                None,
+                Some(vir::expr! {vcx; true}),
+            );
+
+            program.add_function(sized_impl_fun);
         })
     }
 }
