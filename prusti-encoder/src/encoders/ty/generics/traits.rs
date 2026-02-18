@@ -130,7 +130,7 @@ impl TaskEncoder for TraitEnc {
                 let mut trait_impl_checks = Vec::new();
 
                 for impl_did in tcx.all_impls(*task_key) {
-                    // let impl_ctx = GParams::from(impl_did);
+                    let impl_ctx = GParams::from(impl_did);
                     // let impl_params = deps.require_dep::<GenericParamsEnc>(impl_ctx)?;
 
                     // let impl_trait_ref =
@@ -144,11 +144,11 @@ impl TaskEncoder for TraitEnc {
                     // when encoding the trait bounds of the impl block.
                     let mut generics_map = HashMap::new();
 
-                    let self_check_expr = encode_type(
+                    let self_check_expr = encode_type_check(
                         vcx,
                         deps,
                         &mut generics_map,
-                        impl_did,
+                        impl_ctx,
                         params.ty_exprs()[0], // Self type
                         implementing_ty,
                     );
@@ -248,46 +248,62 @@ impl TaskEncoder for TraitEnc {
     }
 }
 
-fn encode_type<'vir>(
+/// Encode a check that the type expression `expr` is the same as the rust type `ty`.
+/// Additionally, collect the generic parameters of the impl block and map them to
+/// their occurances in the type expression, such that they can be referred to when
+/// encoding the trait bounds of the impl block.
+///
+/// For example, for `expr` equal to `(T, i32)`, `T` would be mapped to an accessor
+/// expression to the first member of the tuple type - `expr.2_tup.0`
+fn encode_type_check<'vir>(
     vcx: &'vir vir::VirCtxt<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, TraitEnc>,
     generic_map: &mut HashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
-    def_id: DefId,
-    base: vir::ExprTyVal<'vir>,
+    ctx: GParams<'vir>,
+    expr: vir::ExprTyVal<'vir>,
     ty: ty::Ty<'vir>,
 ) -> vir::ExprGenBool<'vir, (), !> {
-    let decomp = RustTyDecomposition::from_ty(ty, def_id);
+    let decomp = RustTyDecomposition::from_ty(ty, ctx);
 
     if decomp.ty.specifics.is_param() {
-        let generic_arg = decomp.args.args()[0];
-        return if generic_map.contains_key(&generic_arg) {
-            // If we have already seen this generic parameter, add an equality check to ensure it
-            // is consistent with previous occurrences
-            vcx.mk_eq_expr(base, generic_map[&decomp.args.args()[0]])
-        } else {
-            // If this is the first time we see this generic parameter, add it to the map and
-            // continue encoding
-            generic_map.insert(decomp.args.args()[0], base);
-            vir::expr! {vcx; true}
+        let arg = decomp.args.args()[0];
+
+        use std::collections::hash_map::Entry;
+        return match generic_map.entry(arg) {
+            Entry::Occupied(occ) => {
+                // Already seen this T: ensure this type matches the originally found
+                vcx.mk_eq_expr(expr, *occ.get())
+            }
+            Entry::Vacant(vac) => {
+                // First time seeing T: map it to the current accessor path for future references
+                vac.insert(expr);
+                vir::expr! { vcx; true }
+            }
         };
     }
-    let ty_enc = deps.require_ref::<TyConstructorEnc>(decomp.ty).unwrap();
 
-    let discr_check = vcx.mk_adt_discriminator_expr(base, ty_enc.ty_constructor.name().to_str());
+    let ty_enc = deps
+        .require_ref::<TyConstructorEnc>(decomp.ty)
+        .expect("Type constructor encoder should have encoded this type");
 
-    // Walk the type and recursively encode all inner types
-    let inner_tys = decomp
-        .args
-        .args()
-        .into_iter()
-        .cloned()
-        .filter_map(ty::GenericArg::as_type);
+    let discr_check = vcx.mk_adt_discriminator_expr(expr, ty_enc.ty_constructor.name().to_str());
 
     let mut conjuncts = vec![discr_check];
-    for (i, inner_ty) in inner_tys.into_iter().enumerate() {
-        let new_base = ty_enc.ty_param_accessors[i].call()(base);
-        let inner_ty_check = encode_type(vcx, deps, generic_map, def_id, new_base, inner_ty);
-        conjuncts.push(inner_ty_check);
+
+    // Collect checks for inner types
+    let inner_types = decomp.args.args().iter().filter_map(|arg| arg.as_type());
+    for (i, inner_ty) in inner_types.enumerate() {
+        let accessor = ty_enc.ty_param_accessors[i];
+
+        let inner_base = accessor.call()(expr);
+        conjuncts.push(encode_type_check(
+            vcx,
+            deps,
+            generic_map,
+            ctx,
+            inner_base,
+            inner_ty,
+        ));
     }
 
     vcx.mk_conj(&conjuncts)
