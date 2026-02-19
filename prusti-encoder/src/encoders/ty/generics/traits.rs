@@ -145,7 +145,8 @@ impl TaskEncoder for TraitEnc {
                     // Collect the locations of the generic parameters of the impl block from the
                     // `Self` type and the trait arguments. This will allos us to refer to them
                     // when encoding the trait bounds of the impl block.
-                    let mut generics_map = FxHashMap::default();
+                    let mut ty_generics_map = FxHashMap::default();
+                    let mut const_generics_map = FxHashMap::default();
 
                     let trait_ref = tcx.impl_trait_ref(impl_did).unwrap().instantiate_identity();
                     let rust_impl_args = trait_ref.args.iter().filter_map(|arg| arg.as_type());
@@ -155,13 +156,17 @@ impl TaskEncoder for TraitEnc {
                         let check = encode_type_check(
                             vcx,
                             deps,
-                            &mut generics_map,
+                            &mut ty_generics_map,
+                            &mut const_generics_map,
                             impl_ctx,
                             ty_expr,
                             rust_ty,
                         );
                         checks.push(check);
                     }
+
+                    dbg!(&ty_generics_map);
+                    dbg!(&const_generics_map);
 
                     // Construct the trait bound checks for this impl block
                     for trait_pred in impl_ctx
@@ -174,14 +179,33 @@ impl TaskEncoder for TraitEnc {
                     {
                         let required_trait_impl_fun =
                             deps.require_ref::<Self>(trait_pred.def_id())?.impl_fun;
-                        let args = trait_pred
-                            .trait_ref
-                            .args
+                        let trait_args = trait_pred.trait_ref.args;
+                        let ty_args = trait_args
                             .iter()
                             .filter_map(|arg| arg.as_type())
-                            .map(|arg| assemble_type(vcx, deps, &generics_map, impl_ctx, arg))
+                            .map(|arg| {
+                                assemble_type(
+                                    vcx,
+                                    deps,
+                                    &ty_generics_map,
+                                    &const_generics_map,
+                                    impl_ctx,
+                                    arg,
+                                )
+                            })
                             .collect::<Vec<_>>();
-                        checks.push(required_trait_impl_fun(&args, &[]));
+
+                        let const_args = trait_args
+                            .iter()
+                            .filter(|arg| arg.as_const().is_some())
+                            .map(|arg| match const_generics_map.get(&arg) {
+                                Some(mapped_const) => *mapped_const,
+                                None => {
+                                    todo!("Const is not generic")
+                                }
+                            })
+                            .collect::<Vec<_>>();
+                        checks.push(required_trait_impl_fun(&ty_args, &const_args));
                     }
 
                     trait_impl_checks.push(vcx.mk_conj(&checks));
@@ -253,18 +277,20 @@ impl TaskEncoder for TraitEnc {
 fn encode_type_check<'vir>(
     vcx: &'vir vir::VirCtxt<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, TraitEnc>,
-    generic_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
+    ty_generics_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
+    const_generics_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprCSnap<'vir>>,
     ctx: GParams<'vir>,
     expr: vir::ExprTyVal<'vir>,
     ty: ty::Ty<'vir>,
 ) -> vir::ExprGenBool<'vir, (), !> {
     let decomp = RustTyDecomposition::from_ty(ty, ctx);
 
+    // dbg!(&decomp);
     if decomp.ty.specifics.is_param() {
         let arg = decomp.args.args().first().expect("Param missing arg");
 
         use std::collections::hash_map::Entry;
-        return match generic_map.entry(*arg) {
+        return match ty_generics_map.entry(*arg) {
             Entry::Occupied(occ) => {
                 // Already seen this T: ensure this type matches the originally found
                 vcx.mk_eq_expr(expr, *occ.get())
@@ -288,15 +314,39 @@ fn encode_type_check<'vir>(
     for (i, inner_ty) in inner_types.enumerate() {
         let accessor = ty_enc.ty_param_accessors[i];
 
-        let inner_base = accessor.call()(expr);
+        let inner_expr = accessor.call()(expr);
         conjuncts.push(encode_type_check(
             vcx,
             deps,
-            generic_map,
+            ty_generics_map,
+            const_generics_map,
             ctx,
-            inner_base,
+            inner_expr,
             inner_ty,
         ));
+    }
+
+    // Collect the "locations" of const parameters and assert equality for repeated occurances
+    let consts = decomp
+        .args
+        .args()
+        .iter()
+        .filter(|arg| arg.as_const().is_some());
+    for (i, const_) in consts.enumerate() {
+        let accessor = ty_enc.const_param_accessors[i];
+        let const_expr = accessor.call()(expr);
+
+        use std::collections::hash_map::Entry;
+        match const_generics_map.entry(*const_) {
+            Entry::Occupied(occ) => {
+                // Already seen this const parameter: ensure this const expression matches the originally found
+                conjuncts.push(vcx.mk_eq_expr(const_expr, *occ.get()));
+            }
+            Entry::Vacant(vac) => {
+                // First time seeing this const parameter: map it to the current accessor path for future references
+                vac.insert(const_expr);
+            }
+        }
     }
 
     vcx.mk_conj(&conjuncts)
@@ -306,7 +356,8 @@ fn encode_type_check<'vir>(
 fn assemble_type<'vir>(
     vcx: &vir::VirCtxt<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, TraitEnc>,
-    generics_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
+    ty_generics_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
+    const_generics_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprCSnap<'vir>>,
     ctx: GParams<'vir>,
     ty: ty::Ty<'vir>,
 ) -> vir::ExprTyVal<'vir> {
@@ -314,20 +365,42 @@ fn assemble_type<'vir>(
 
     if decomp.ty.specifics.is_param() {
         let arg = decomp.args.args().first().expect("Param missing arg");
-        return *generics_map
+        return *ty_generics_map
             .get(arg)
             .expect("The generic should have been inserted, otherwise the parameter is unbound");
     }
 
     let ty_enc = deps.require_ref::<TyConstructorEnc>(decomp.ty).unwrap();
 
-    let inner_args = decomp
+    let inner_ty_args = decomp
         .args
         .args()
         .iter()
         .filter_map(|arg| arg.as_type())
-        .map(|inner_ty| assemble_type(vcx, deps, generics_map, ctx, inner_ty))
+        .map(|inner_ty| {
+            assemble_type(
+                vcx,
+                deps,
+                ty_generics_map,
+                const_generics_map,
+                ctx,
+                inner_ty,
+            )
+        })
         .collect::<Vec<_>>();
 
-    (ty_enc.ty_constructor)(&inner_args, &[])
+    let inner_const_args = decomp
+        .args
+        .args()
+        .iter()
+        .filter(|arg| arg.as_const().is_some())
+        .map(|arg| match const_generics_map.get(arg) {
+            Some(mapped_const) => *mapped_const,
+            None => {
+                todo!("Const is not generic")
+            }
+        })
+        .collect::<Vec<_>>();
+
+    (ty_enc.ty_constructor)(&inner_ty_args, &inner_const_args)
 }
