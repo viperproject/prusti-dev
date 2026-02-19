@@ -1,15 +1,16 @@
-use prusti_rustc_interface::{
-    middle::ty::{self, AssocKind},
-    span::def_id::DefId,
-};
+use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use rustc_hash::FxHashMap;
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies};
 use vir::{CallableIdn, FunctionIdn, vir_format_identifier};
 
-use crate::encoders::ty::{
-    RustTyDecomposition,
-    generics::{GParams, GenericParamsEnc},
-    lifted::TyConstructorEnc,
+use crate::encoders::{
+    ConstEnc,
+    r#const::ConstEncTask,
+    ty::{
+        RustTyDecomposition,
+        generics::{GParams, GenericParamsEnc},
+        lifted::TyConstructorEnc,
+    },
 };
 
 pub struct TraitEnc;
@@ -71,7 +72,7 @@ impl TaskEncoder for TraitEnc {
             let type_did_fun_mapping = tcx
                 .associated_items(task_key)
                 .in_definition_order()
-                .filter(|item| matches!(item.kind, AssocKind::Type { data: _ }))
+                .filter(|item| matches!(item.kind, ty::AssocKind::Type { data: _ }))
                 .map(|item| {
                     let params_type = deps
                         .require_dep::<GenericParamsEnc>(GParams::from(item.def_id))
@@ -165,9 +166,6 @@ impl TaskEncoder for TraitEnc {
                         checks.push(check);
                     }
 
-                    dbg!(&ty_generics_map);
-                    dbg!(&const_generics_map);
-
                     // Construct the trait bound checks for this impl block
                     for trait_pred in impl_ctx
                         .typing_env()
@@ -197,12 +195,23 @@ impl TaskEncoder for TraitEnc {
 
                         let const_args = trait_args
                             .iter()
-                            .filter(|arg| arg.as_const().is_some())
-                            .map(|arg| match const_generics_map.get(&arg) {
-                                Some(mapped_const) => *mapped_const,
-                                None => {
-                                    todo!("Const is not generic")
+                            .filter_map(|arg| arg.as_const())
+                            .map(|const_| match const_.kind() {
+                                ty::ConstKind::Param(..) => const_generics_map
+                                    .get(&const_.into())
+                                    .copied()
+                                    .expect("The const generic should have been bound in the map"),
+                                ty::ConstKind::Value(v) => {
+                                    let task = ConstEncTask::Ty {
+                                        const_,
+                                        ty: v.ty,
+                                        context: impl_ctx,
+                                    };
+                                    deps.require_dep::<ConstEnc>(task).unwrap()
                                 }
+                                _ => unimplemented!(
+                                    "other kinds of const parameters not supported yet"
+                                ),
                             })
                             .collect::<Vec<_>>();
                         checks.push(required_trait_impl_fun(&ty_args, &const_args));
@@ -285,7 +294,6 @@ fn encode_type_check<'vir>(
 ) -> vir::ExprGenBool<'vir, (), !> {
     let decomp = RustTyDecomposition::from_ty(ty, ctx);
 
-    // dbg!(&decomp);
     if decomp.ty.specifics.is_param() {
         let arg = decomp.args.args().first().expect("Param missing arg");
 
@@ -309,8 +317,10 @@ fn encode_type_check<'vir>(
 
     let mut conjuncts = vec![discr_check];
 
+    let args = decomp.args.args();
+
     // Collect checks for inner types
-    let inner_types = decomp.args.args().iter().filter_map(|arg| arg.as_type());
+    let inner_types = args.iter().filter_map(|arg| arg.as_type());
     for (i, inner_ty) in inner_types.enumerate() {
         let accessor = ty_enc.ty_param_accessors[i];
 
@@ -327,25 +337,35 @@ fn encode_type_check<'vir>(
     }
 
     // Collect the "locations" of const parameters and assert equality for repeated occurances
-    let consts = decomp
-        .args
-        .args()
-        .iter()
-        .filter(|arg| arg.as_const().is_some());
+    let consts = args.iter().filter_map(|arg| arg.as_const());
     for (i, const_) in consts.enumerate() {
         let accessor = ty_enc.const_param_accessors[i];
         let const_expr = accessor.call()(expr);
 
-        use std::collections::hash_map::Entry;
-        match const_generics_map.entry(*const_) {
-            Entry::Occupied(occ) => {
-                // Already seen this const parameter: ensure this const expression matches the originally found
-                conjuncts.push(vcx.mk_eq_expr(const_expr, *occ.get()));
+        match const_.kind() {
+            ty::ConstKind::Param(..) => {
+                use std::collections::hash_map::Entry;
+                match const_generics_map.entry(const_.into()) {
+                    Entry::Occupied(occ) => {
+                        // Already seen this const parameter: ensure this const expression matches the originally found
+                        conjuncts.push(vcx.mk_eq_expr(const_expr, *occ.get()));
+                    }
+                    Entry::Vacant(vac) => {
+                        // First time seeing this const parameter: map it to the current accessor path for future references
+                        vac.insert(const_expr);
+                    }
+                }
             }
-            Entry::Vacant(vac) => {
-                // First time seeing this const parameter: map it to the current accessor path for future references
-                vac.insert(const_expr);
+            ty::ConstKind::Value(val) => {
+                let task = ConstEncTask::Ty {
+                    const_,
+                    ty: val.ty,
+                    context: ctx,
+                };
+                let const_value = deps.require_dep::<ConstEnc>(task).unwrap();
+                conjuncts.push(vcx.mk_eq_expr(const_expr, const_value));
             }
+            _ => unimplemented!("other kinds of const parameters not supported yet"),
         }
     }
 
@@ -372,9 +392,9 @@ fn assemble_type<'vir>(
 
     let ty_enc = deps.require_ref::<TyConstructorEnc>(decomp.ty).unwrap();
 
-    let inner_ty_args = decomp
-        .args
-        .args()
+    let args = decomp.args.args();
+
+    let inner_ty_args = args
         .iter()
         .filter_map(|arg| arg.as_type())
         .map(|inner_ty| {
@@ -389,16 +409,23 @@ fn assemble_type<'vir>(
         })
         .collect::<Vec<_>>();
 
-    let inner_const_args = decomp
-        .args
-        .args()
+    let inner_const_args = args
         .iter()
-        .filter(|arg| arg.as_const().is_some())
-        .map(|arg| match const_generics_map.get(arg) {
-            Some(mapped_const) => *mapped_const,
-            None => {
-                todo!("Const is not generic")
+        .filter_map(|arg| arg.as_const())
+        .map(|const_| match const_.kind() {
+            ty::ConstKind::Param(..) => const_generics_map
+                .get(&const_.into())
+                .copied()
+                .expect("The const generic should have been bound in the map"),
+            ty::ConstKind::Value(val) => {
+                let task = ConstEncTask::Ty {
+                    const_: const_,
+                    ty: val.ty,
+                    context: ctx,
+                };
+                deps.require_dep::<ConstEnc>(task).unwrap()
             }
+            _ => unimplemented!("other kinds of const parameters not supported yet"),
         })
         .collect::<Vec<_>>();
 
