@@ -17,13 +17,13 @@ pub struct TraitEnc;
 #[derive(Debug, Clone)]
 pub struct TraitData<'vir> {
     pub trait_name: &'vir str,
+    pub impl_fun: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
     pub type_did_fun_mapping: FxHashMap<DefId, FunctionIdn<'vir, vir::ManyTyVal, vir::TyVal>>,
-    pub impl_fun: FunctionIdn<'vir, vir::ManyTyVal, vir::Bool>,
 }
 
 #[derive(Debug, Clone)]
 pub struct TraitImplRef<'vir> {
-    pub impl_fun: FunctionIdn<'vir, vir::ManyTyVal, vir::Bool>,
+    pub impl_fun: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
 }
 impl OutputRefAny for TraitImplRef<'_> {}
 
@@ -97,7 +97,7 @@ impl TaskEncoder for TraitEnc {
 
             let impl_fun_idn = FunctionIdn::new(
                 vir_format_identifier!(vcx, "{trait_name}_impl"),
-                vcx.alloc_slice(&(vec![vir::TYPE_TYVAL; enc_params.ty_exprs().len()])),
+                (enc_params.ty_args(), enc_params.const_args()),
                 vir::TYPE_BOOL,
             );
 
@@ -110,19 +110,24 @@ impl TaskEncoder for TraitEnc {
                 },
             )?;
 
-            let impl_fun_unknown_idn: FunctionIdn<'vir, (vir::ManyTyVal, vir::Int), vir::Bool> = {
+            let impl_fun_unknown_idn: FunctionIdn<
+                'vir,
+                (vir::ManyTyVal, vir::ManyCSnap, vir::Int),
+                vir::Bool,
+            > = {
                 // Omit the Self type as it is known to be the "Unknown_type"
-                let unknown_params = vec![vir::TYPE_TYVAL; enc_params.ty_exprs().len() - 1];
+                let unknown_args = &enc_params.ty_args()[1..];
                 FunctionIdn::new(
                     vir_format_identifier!(vcx, "{trait_name}_impl_unknown"),
-                    (vcx.alloc_slice(&unknown_params), vir::TYPE_INT),
+                    (unknown_args, enc_params.const_args(), vir::TYPE_INT),
                     vir::TYPE_BOOL,
                 )
             };
             let impl_fun_unknown = vcx.mk_function(
                 impl_fun_unknown_idn,
                 (
-                    vcx.alloc_slice(&enc_params.ty_decls()[1..]),
+                    &enc_params.ty_decls()[1..],
+                    enc_params.const_decls(),
                     vcx.mk_local_decl("non_unit", vir::TYPE_INT),
                 ),
                 &[],
@@ -140,7 +145,7 @@ impl TaskEncoder for TraitEnc {
                     // Collect the locations of the generic parameters of the impl block from the
                     // `Self` type and the trait arguments. This will allos us to refer to them
                     // when encoding the trait bounds of the impl block.
-                    let mut generics_map = HashMap::new();
+                    let mut generics_map = FxHashMap::default();
 
                     let trait_ref = tcx.impl_trait_ref(impl_did).unwrap().instantiate_identity();
                     let rust_impl_args = trait_ref.args.iter().filter_map(|arg| arg.as_type());
@@ -176,7 +181,7 @@ impl TaskEncoder for TraitEnc {
                             .filter_map(|arg| arg.as_type())
                             .map(|arg| assemble_type(vcx, deps, &generics_map, impl_ctx, arg))
                             .collect::<Vec<_>>();
-                        checks.push(required_trait_impl_fun(&args));
+                        checks.push(required_trait_impl_fun(&args, &[]));
                     }
 
                     trait_impl_checks.push(vcx.mk_conj(&checks));
@@ -192,8 +197,11 @@ impl TaskEncoder for TraitEnc {
                         vcx.mk_adt_destructor("non_unit", vir::TYPE_TYVAL, vir::TYPE_INT);
                     let extracted_id = unknown_id_destructor.call()(self_expr);
 
-                    let unknown_impls =
-                        impl_fun_unknown_idn(&enc_params.ty_exprs()[1..], extracted_id);
+                    let unknown_impls = impl_fun_unknown_idn(
+                        &enc_params.ty_exprs()[1..],
+                        enc_params.const_exprs(),
+                        extracted_id,
+                    );
 
                     let unknown_check = vcx.mk_conj(&[is_unknown_type, unknown_impls]);
 
@@ -205,7 +213,7 @@ impl TaskEncoder for TraitEnc {
 
             let impl_fun = vcx.mk_function(
                 impl_fun_idn,
-                (enc_params.ty_decls(),),
+                (enc_params.ty_decls(), enc_params.const_decls()),
                 &[],
                 &[],
                 None,
@@ -245,7 +253,7 @@ impl TaskEncoder for TraitEnc {
 fn encode_type_check<'vir>(
     vcx: &'vir vir::VirCtxt<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, TraitEnc>,
-    generic_map: &mut HashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
+    generic_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
     ctx: GParams<'vir>,
     expr: vir::ExprTyVal<'vir>,
     ty: ty::Ty<'vir>,
@@ -298,7 +306,7 @@ fn encode_type_check<'vir>(
 fn assemble_type<'vir>(
     vcx: &vir::VirCtxt<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, TraitEnc>,
-    generics_map: &HashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
+    generics_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
     ctx: GParams<'vir>,
     ty: ty::Ty<'vir>,
 ) -> vir::ExprTyVal<'vir> {
