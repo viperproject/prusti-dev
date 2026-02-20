@@ -217,6 +217,8 @@ impl TaskEncoder for TraitEnc {
                         checks.push(required_trait_impl_fun(&ty_args, &const_args));
                     }
 
+                    // TODO: Construct the associated type bound checks for this impl block
+
                     trait_impl_checks.push(vcx.mk_conj(&checks));
                 }
 

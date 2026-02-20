@@ -73,6 +73,7 @@ impl<'tcx> RustTyDecomposition<'tcx> {
         let data = RustTyData {
             name: symbol::Symbol::intern("Real"),
             params: GParams::empty(),
+            rust_ty: None,
         };
         let specifics = TySpecifics::Builtin(RustBuiltinData::BuiltinReal);
         Self {
@@ -243,6 +244,7 @@ pub type RustBuiltin<'tcx> = <RustTyDatas as TyDatas<'tcx>>::BuiltinData;
 pub struct RustTyData<'tcx> {
     pub name: symbol::Symbol,
     pub params: GParams<'tcx>,
+    pub rust_ty: Option<ErasedTy<'tcx>>,
 }
 
 impl<'tcx> RustTyData<'tcx> {
@@ -300,6 +302,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         let data = RustTyData {
             name: symbol::Symbol::intern(&name),
             params,
+            rust_ty: Some(ErasedTy::new(ty)),
         };
         let specifics = TySpecifics::from_ty(ty);
         let maybe_inhabited =
@@ -318,6 +321,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         let data = RustTyData {
             name: symbol::Symbol::intern(&name),
             params,
+            rust_ty: Some(ErasedTy::new(ty)),
         };
         let specifics = TySpecifics::from_prim_ty(ty);
         RustTyDecomposition {
@@ -633,5 +637,71 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
         };
         let param = ty::ParamConst { index, name };
         vir::with_vcx(|vcx| ty::Const::new_param(vcx.tcx(), param))
+    }
+}
+
+/// A wrapper around `ty::Ty` that provides a canonical, "erased" version of a type.
+#[repr(transparent)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ErasedTy<'tcx>(ty::Ty<'tcx>);
+
+impl<'tcx> ErasedTy<'tcx> {
+    fn new(ty: ty::Ty<'tcx>) -> Self {
+        ErasedTy(to_generic_ty(ty))
+    }
+}
+
+impl<'tcx> Deref for ErasedTy<'tcx> {
+    type Target = ty::Ty<'tcx>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+fn to_generic_ty<'tcx>(ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
+    match ty.kind() {
+        ty::Adt(adt_def, _) => {
+            vir::with_vcx(|vcx| vcx.tcx().type_of(adt_def.did()).instantiate_identity())
+        }
+
+        ty::Ref(_, inner_ty, mutbl) => {
+            let generic_inner = to_generic_ty(*inner_ty);
+            vir::with_vcx(|vcx| {
+                ty::Ty::new_ref(
+                    vcx.tcx(),
+                    vcx.tcx().lifetimes.re_erased,
+                    generic_inner,
+                    *mutbl,
+                )
+            })
+        }
+
+        ty::RawPtr(inner_ty, mutbl) => {
+            let generic_inner = to_generic_ty(*inner_ty);
+            vir::with_vcx(|vcx| ty::Ty::new_ptr(vcx.tcx(), generic_inner, *mutbl))
+        }
+
+        ty::Param(_) | ty::Alias(..) => {
+            vir::with_vcx(|vcx| ty::Ty::new_param(vcx.tcx(), 0, symbol::Symbol::intern("T")))
+        }
+
+        ty::Slice(inner_ty) => {
+            let generic_inner = to_generic_ty(*inner_ty);
+            vir::with_vcx(|vcx| ty::Ty::new_slice(vcx.tcx(), generic_inner))
+        }
+
+        ty::Array(inner_ty, _) => {
+            let generic_inner = to_generic_ty(*inner_ty);
+            vir::with_vcx(|vcx| ty::Ty::new_array(vcx.tcx(), generic_inner, 0_u64))
+        }
+
+        ty::Tuple(tys) => vir::with_vcx(|vcx| {
+            let generic_tys: Vec<_> = (0..tys.len())
+                .map(|i| ty::Ty::new_param(vcx.tcx(), i as u32, symbol::Symbol::intern("T")))
+                .collect();
+            ty::Ty::new_tup(vcx.tcx(), &generic_tys)
+        }),
+
+        _ => ty,
     }
 }

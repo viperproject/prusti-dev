@@ -1,7 +1,12 @@
+use prusti_rustc_interface::middle::ty;
+
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder};
 use vir::{CallableIdn, CastType, FunctionIdn, HasType};
 
-use crate::encoders::ty::{RustTy, generics::GenericParamsEnc};
+use crate::encoders::ty::{
+    RustTy, RustTyDecomposition, TySpecifics,
+    generics::{GArgs, GParams, GenericParamsEnc},
+};
 
 use super::r#typeof::{TypeOfEnc, TypeOfEncOutputRef};
 
@@ -51,7 +56,7 @@ impl<'vir> OutputRefAny for TyConstructorEncOutputRef<'vir> {}
 #[derive(Debug, Clone)]
 pub struct TyConstructorEncOutput<'vir> {
     constructor: vir::AdtConstructor<'vir>,
-    is_sized: bool,
+    sized_check: vir::ExprBool<'vir>,
 }
 
 /// Encodes the lifted representation of a Rust type constructor (e.g. Option,
@@ -129,12 +134,51 @@ impl TaskEncoder for TyConstructorEnc {
                         .map(|d| vcx.mk_local_decl(d.name, d.ty).upcast_ty()),
                 )
                 .collect::<Vec<vir::LocalDecl<vir::Dyn>>>();
-            let variant =
+            let constructor =
                 vcx.mk_adt_constructor(type_function_ident.name().to_str(), vcx.alloc_slice(&args));
+            let sized_check = {
+                // Use a local expression named "Self" to build the function body
+                let self_decl = vcx.mk_local_decl("Self", vir::TYPE_TYVAL);
+                let self_expr = vcx.mk_local_ex(self_decl);
+                let is_this_type =
+                    vcx.mk_adt_discriminator_expr(self_expr, type_function_ident.name().to_str());
+
+                let sized_impl_fun_idn: FunctionIdn<'vir, vir::TyVal, vir::Bool> = FunctionIdn::new(
+                    vir::vir_format_identifier!(vcx, "Sized_impl"),
+                    vir::TYPE_TYVAL,
+                    vir::TYPE_BOOL,
+                );
+
+                let is_sized = {
+                    let identity_args = GArgs::new(task_key.params, task_key.params.rust_params());
+                    let decomp = RustTyDecomposition {
+                        ty: *task_key,
+                        args: identity_args,
+                        maybe_inhabited: true,
+                    };
+                    check_sizedness(vcx.tcx(), decomp)
+                };
+
+                match is_sized {
+                    Sizedness::Definite(true) => is_this_type,
+                    Sizedness::Definite(false) => vir::expr! {vcx; false },
+                    Sizedness::ParamDependent(param) => {
+                        let param_idx = task_key
+                            .params
+                            .rust_params()
+                            .iter()
+                            .position(|p| p == param)
+                            .unwrap();
+                        let param_ty = ty_accessor_functions[param_idx].call()(self_expr);
+
+                        vir::expr! { vcx; (is_this_type) == > ([sized_impl_fun_idn](param_ty)) }
+                    }
+                }
+            };
             Ok((
                 TyConstructorEncOutput {
-                    constructor: variant,
-                    is_sized: true,
+                    constructor,
+                    sized_check,
                 },
                 (),
             ))
@@ -142,11 +186,13 @@ impl TaskEncoder for TyConstructorEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let (mut constructors, _sized): (Vec<_>, Vec<_>) = Self::all_outputs_local_no_errors()
-            .into_iter()
-            .map(|out| (out.constructor, out.is_sized))
-            .unzip();
+        let (mut constructors, sized_checks): (Vec<_>, Vec<_>) =
+            Self::all_outputs_local_no_errors()
+                .into_iter()
+                .map(|out| (out.constructor, out.sized_check))
+                .unzip();
         vir::with_vcx(|vcx| {
+            vcx.tcx();
             let args = vcx.alloc_array(&[vcx.mk_local_decl("non_unit", vir::TYPE_INT)]);
             let unknown = vcx.mk_adt_constructor("Unknown_type", args);
             constructors.push(unknown);
@@ -171,10 +217,45 @@ impl TaskEncoder for TyConstructorEnc {
                 &[],
                 &[],
                 None,
-                Some(vir::expr! {vcx; true}),
+                Some(vcx.mk_disj(&sized_checks)),
             );
 
             program.add_function(sized_impl_fun);
         })
+    }
+}
+
+#[derive(Debug, Clone)]
+enum Sizedness<'tcx> {
+    Definite(bool),
+    ParamDependent(ty::GenericArg<'tcx>),
+}
+
+fn check_sizedness<'a>(tcx: ty::TyCtxt<'a>, decomp: RustTyDecomposition<'a>) -> Sizedness<'a> {
+    let ctx = decomp.args.context();
+    if decomp
+        .ty
+        .rust_ty
+        .is_some_and(|ty| ty.is_sized(tcx, ctx.typing_env()))
+    {
+        return Sizedness::Definite(true);
+    }
+    match &decomp.ty.specifics {
+        TySpecifics::StructLike(data) => {
+            // Only need to check the last field of the struct for unsizedness
+            if let Some(last_field) = data.fields.last() {
+                // The type is not definitely sized. Need to recurse on the field's type
+                let normalized_decomp = last_field.ty().decompose_normalize(decomp.args);
+
+                check_sizedness(tcx, normalized_decomp)
+            } else {
+                Sizedness::Definite(true) // Empty structs are Sized
+            }
+        }
+        TySpecifics::Param(_) => Sizedness::ParamDependent(decomp.args.args()[0]),
+        TySpecifics::ArrayLike(data) if data.slice => Sizedness::Definite(false),
+        TySpecifics::Opaque(_) => unimplemented!("Is an opaque type sized?"),
+        // Builtin, Enums, Primitives, References, and fixed-size Arrays are always Sized.
+        _ => Sizedness::Definite(true),
     }
 }
