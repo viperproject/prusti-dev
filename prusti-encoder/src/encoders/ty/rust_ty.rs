@@ -73,7 +73,7 @@ impl<'tcx> RustTyDecomposition<'tcx> {
         let data = RustTyData {
             name: symbol::Symbol::intern("Real"),
             params: GParams::empty(),
-            rust_ty: None,
+            sizedness: Sizedness::Sized,
         };
         let specifics = TySpecifics::Builtin(RustBuiltinData::BuiltinReal);
         Self {
@@ -244,7 +244,7 @@ pub type RustBuiltin<'tcx> = <RustTyDatas as TyDatas<'tcx>>::BuiltinData;
 pub struct RustTyData<'tcx> {
     pub name: symbol::Symbol,
     pub params: GParams<'tcx>,
-    pub rust_ty: Option<ErasedTy<'tcx>>,
+    pub sizedness: Sizedness,
 }
 
 impl<'tcx> RustTyData<'tcx> {
@@ -302,7 +302,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         let data = RustTyData {
             name: symbol::Symbol::intern(&name),
             params,
-            rust_ty: Some(ErasedTy::new(ty)),
+            sizedness: CanonicalTy::from_ty(ty).sizedness(),
         };
         let specifics = TySpecifics::from_ty(ty);
         let maybe_inhabited =
@@ -321,7 +321,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         let data = RustTyData {
             name: symbol::Symbol::intern(&name),
             params,
-            rust_ty: Some(ErasedTy::new(ty)),
+            sizedness: Sizedness::Sized,
         };
         let specifics = TySpecifics::from_prim_ty(ty);
         RustTyDecomposition {
@@ -640,68 +640,107 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
     }
 }
 
-/// A wrapper around `ty::Ty` that provides a canonical, "erased" version of a type.
-#[repr(transparent)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct ErasedTy<'tcx>(ty::Ty<'tcx>);
-
-impl<'tcx> ErasedTy<'tcx> {
-    fn new(ty: ty::Ty<'tcx>) -> Self {
-        ErasedTy(to_generic_ty(ty))
-    }
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub enum Sizedness {
+    Sized,
+    Unsized,
+    Unknown,
+    ParamDependent(u32),
 }
 
-impl<'tcx> Deref for ErasedTy<'tcx> {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+struct CanonicalTy<'tcx>(ty::Ty<'tcx>);
+
+impl<'tcx> Deref for CanonicalTy<'tcx> {
     type Target = ty::Ty<'tcx>;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-fn to_generic_ty<'tcx>(ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
+impl<'tcx> CanonicalTy<'tcx> {
+    fn from_ty(ty: ty::Ty<'tcx>) -> Self {
+        Self(canonicalize_ty(vir::with_vcx(|vcx| vcx.tcx()), ty))
+    }
+
+    fn sizedness(&self) -> Sizedness {
+        check_sizedness(vir::with_vcx(|vcx| vcx.tcx()), self.0)
+    }
+}
+
+fn canonicalize_ty<'tcx>(tcx: ty::TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
     match ty.kind() {
-        ty::Adt(adt_def, _) => {
-            vir::with_vcx(|vcx| vcx.tcx().type_of(adt_def.did()).instantiate_identity())
-        }
+        ty::Adt(adt_def, _) => tcx.type_of(adt_def.did()).instantiate_identity(),
 
-        ty::Ref(_, inner_ty, mutbl) => {
-            let generic_inner = to_generic_ty(*inner_ty);
-            vir::with_vcx(|vcx| {
-                ty::Ty::new_ref(
-                    vcx.tcx(),
-                    vcx.tcx().lifetimes.re_erased,
-                    generic_inner,
-                    *mutbl,
-                )
-            })
-        }
-
+        ty::Ref(_, inner_ty, mutbl) => ty::Ty::new_ref(
+            tcx,
+            tcx.lifetimes.re_erased,
+            canonicalize_ty(tcx, *inner_ty),
+            *mutbl,
+        ),
         ty::RawPtr(inner_ty, mutbl) => {
-            let generic_inner = to_generic_ty(*inner_ty);
-            vir::with_vcx(|vcx| ty::Ty::new_ptr(vcx.tcx(), generic_inner, *mutbl))
+            ty::Ty::new_ptr(tcx, canonicalize_ty(tcx, *inner_ty), *mutbl)
         }
 
-        ty::Param(_) | ty::Alias(..) => {
-            vir::with_vcx(|vcx| ty::Ty::new_param(vcx.tcx(), 0, symbol::Symbol::intern("T")))
-        }
+        ty::Param(_) | ty::Alias(..) => ty::Ty::new_param(tcx, 0, symbol::Symbol::intern("T")),
 
-        ty::Slice(inner_ty) => {
-            let generic_inner = to_generic_ty(*inner_ty);
-            vir::with_vcx(|vcx| ty::Ty::new_slice(vcx.tcx(), generic_inner))
-        }
+        ty::Slice(inner_ty) => ty::Ty::new_slice(tcx, canonicalize_ty(tcx, *inner_ty)),
 
-        ty::Array(inner_ty, _) => {
-            let generic_inner = to_generic_ty(*inner_ty);
-            vir::with_vcx(|vcx| ty::Ty::new_array(vcx.tcx(), generic_inner, 0_u64))
-        }
+        ty::Array(inner_ty, _) => ty::Ty::new_array(tcx, canonicalize_ty(tcx, *inner_ty), 0_u64),
 
-        ty::Tuple(tys) => vir::with_vcx(|vcx| {
+        ty::Tuple(tys) => {
             let generic_tys: Vec<_> = (0..tys.len())
-                .map(|i| ty::Ty::new_param(vcx.tcx(), i as u32, symbol::Symbol::intern("T")))
+                .map(|i| ty::Ty::new_param(tcx, i as u32, symbol::Symbol::intern("T")))
                 .collect();
-            ty::Ty::new_tup(vcx.tcx(), &generic_tys)
-        }),
+            ty::Ty::new_tup(tcx, &generic_tys)
+        }
 
         _ => ty,
+    }
+}
+
+fn check_sizedness<'tcx>(tcx: ty::TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> Sizedness {
+    match ty.kind() {
+        ty::Infer(ty::IntVar(_) | ty::FloatVar(_))
+        | ty::Uint(_)
+        | ty::Int(_)
+        | ty::Bool
+        | ty::Float(_)
+        | ty::FnDef(..)
+        | ty::FnPtr(..)
+        | ty::UnsafeBinder(_)
+        | ty::RawPtr(..)
+        | ty::Char
+        | ty::Ref(..)
+        | ty::Coroutine(..)
+        | ty::CoroutineWitness(..)
+        | ty::Array(..)
+        | ty::Pat(..)
+        | ty::Closure(..)
+        | ty::CoroutineClosure(..)
+        | ty::Never
+        | ty::Error(_) => Sizedness::Sized,
+
+        ty::Str | ty::Slice(_) | ty::Dynamic(..) => Sizedness::Unsized,
+
+        ty::Placeholder(..) | ty::Bound(..) | ty::Infer(..) | ty::Foreign(..) => Sizedness::Unknown,
+
+        ty::Alias(..) => unimplemented!("sizedness for Alias"),
+
+        ty::Param(param) => Sizedness::ParamDependent(param.index),
+
+        ty::Tuple(tys) => {
+            // Check last tuple field for sizedness if any
+            tys.last()
+                .map_or(Sizedness::Sized, |last| check_sizedness(tcx, *last))
+        }
+
+        ty::Adt(adt, _) => {
+            let sized_constraint = adt.sizedness_constraint(tcx, ty::SizedTraitKind::Sized);
+            match sized_constraint {
+                None => Sizedness::Sized,
+                Some(cons) => check_sizedness(tcx, cons.skip_binder()),
+            }
+        }
     }
 }
