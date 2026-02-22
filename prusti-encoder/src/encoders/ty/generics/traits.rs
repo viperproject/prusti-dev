@@ -15,16 +15,20 @@ use crate::encoders::{
 
 pub struct TraitEnc;
 
+type TraitArgs = (vir::ManyTyVal, vir::ManyCSnap);
+
 #[derive(Debug, Clone)]
 pub struct TraitData<'vir> {
     pub trait_name: &'vir str,
-    pub impl_fun: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
-    pub type_did_fun_mapping: FxHashMap<DefId, FunctionIdn<'vir, vir::ManyTyVal, vir::TyVal>>,
+    pub assoc_types: FxHashMap<DefId, FunctionIdn<'vir, TraitArgs, vir::TyVal>>,
+    pub assoc_consts: FxHashMap<DefId, FunctionIdn<'vir, TraitArgs, vir::CSnap>>,
+    pub impl_fun: FunctionIdn<'vir, TraitArgs, vir::Bool>,
 }
 
 #[derive(Debug, Clone)]
 pub struct TraitImplRef<'vir> {
-    pub type_did_fun_mapping: HashMap<DefId, FunctionIdn<'vir, vir::ManyTyVal, vir::TyVal>>,
+    pub assoc_types: FxHashMap<DefId, FunctionIdn<'vir, TraitArgs, vir::TyVal>>,
+    pub assoc_consts: FxHashMap<DefId, FunctionIdn<'vir, TraitArgs, vir::CSnap>>,
     pub impl_fun: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
 }
 impl OutputRefAny for TraitImplRef<'_> {}
@@ -73,20 +77,17 @@ impl TaskEncoder for TraitEnc {
             let type_did_fun_mapping = tcx
                 .associated_items(task_key)
                 .in_definition_order()
-                .filter(|item| matches!(item.kind, ty::AssocKind::Type { data: _ }))
-                .map(|item| {
-                    let params_type = deps
-                        .require_dep::<GenericParamsEnc>(GParams::from(item.def_id))
-                        .unwrap();
+                .filter(|item| matches!(item.kind, ty::AssocKind::Type { .. }))
+                .map(|assoc_ty| {
                     (
-                        item.def_id,
+                        assoc_ty.def_id,
                         FunctionIdn::new(
                             vir_format_identifier!(
                                 vcx,
                                 "{trait_name}_Assoc_{}_func",
-                                tcx.item_name(item.def_id),
+                                tcx.item_name(assoc_ty.def_id),
                             ),
-                            vcx.alloc_slice(&vec![vir::TYPE_TYVAL; params_type.ty_exprs().len()]), // params_type also includes parameters of trait itself
+                            (enc_params.ty_args(), enc_params.const_args()),
                             vir::TYPE_TYVAL,
                         ),
                     )
@@ -108,7 +109,8 @@ impl TaskEncoder for TraitEnc {
             deps.emit_output_ref(
                 *task_key,
                 TraitImplRef {
-                    type_did_fun_mapping: type_did_fun_mapping.clone(),
+                    assoc_types: type_did_fun_mapping.clone(),
+                    assoc_consts: Default::default(), // No associated consts supported
                     impl_fun: impl_fun_idn,
                 },
             )?;
@@ -229,7 +231,7 @@ impl TaskEncoder for TraitEnc {
                         let required_trait_did = projection_pred.trait_def_id(tcx);
                         let required_trait = deps.require_ref::<Self>(required_trait_did)?;
                         let projection_fun = required_trait
-                            .type_did_fun_mapping
+                            .assoc_types
                             .get(&projection_did)
                             .expect("Projection did should be in the mapping");
 
@@ -259,7 +261,8 @@ impl TaskEncoder for TraitEnc {
                             impl_ctx,
                             tgt_ty,
                         );
-                        let projection = projection_fun(&proj_src_arg_exprs);
+                        // TODO: Include const generics
+                        let projection = projection_fun(&proj_src_arg_exprs, &[]);
 
                         let projection_check = vir::expr! {vcx; (projection) == (tgt_ty_expr)};
                         checks.push(projection_check);
@@ -316,7 +319,8 @@ impl TaskEncoder for TraitEnc {
                 },
                 TraitData {
                     trait_name,
-                    type_did_fun_mapping,
+                    assoc_types: type_did_fun_mapping,
+                    assoc_consts: Default::default(), // No associated consts supported
                     impl_fun: impl_fun_idn,
                 },
             ))

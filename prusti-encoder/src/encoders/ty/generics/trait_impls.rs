@@ -36,8 +36,10 @@ impl TaskEncoder for TraitImplEnc {
         vir::with_vcx(|vcx| {
             let tcx = vcx.tcx();
 
-            let all_impls = tcx.trait_impls_in_crate(task_key.krate);
-            let idx = all_impls.iter().position(|did| did == task_key).unwrap();
+            let impl_idx = {
+                let all_impls = tcx.trait_impls_in_crate(task_key.krate);
+                all_impls.iter().position(|did| did == task_key).unwrap()
+            };
 
             let ctx = GParams::from(*task_key);
             let params = deps.require_dep::<GenericParamsEnc>(ctx)?;
@@ -45,81 +47,101 @@ impl TaskEncoder for TraitImplEnc {
             let trait_ref = tcx.impl_trait_ref(task_key).unwrap().instantiate_identity();
             let trait_did = trait_ref.def_id;
             let trait_data = deps.require_dep::<TraitEnc>(trait_did)?;
+            let trait_name = trait_data.trait_name;
 
             let args = deps.require_dep::<GArgsTyEnc>(GArgs::new(ctx, trait_ref.args))?;
 
-            let mut axs = Vec::new();
+            let mut axioms = Vec::new();
 
-            let implementing_ty = tcx.type_of(task_key).instantiate_identity();
-            let implementing_ty = RustTyDecomposition::from_ty(implementing_ty, *task_key);
-            let implementing_ty = implementing_ty.ty.name();
+            let impl_ty = {
+                let implementing_ty = tcx.type_of(task_key).instantiate_identity();
+                let implementing_ty = RustTyDecomposition::from_ty(implementing_ty, *task_key);
+                implementing_ty.ty.name()
+            };
 
-            let trait_ty_decls = params
-                .ty_decls()
-                .iter()
-                .map(|dec| dec.upcast_ty())
-                .collect::<Vec<_>>();
+            let trait_ty_decls = params.ty_decls();
 
-            tcx.associated_items(*task_key)
-                .in_definition_order()
-                .filter(|item| matches!(item.kind, AssocKind::Type { data: _ }))
-                .for_each(|impl_item| {
-                    let assoc_fun = trait_data.type_did_fun_mapping.get(&impl_item.trait_item_def_id.unwrap()).unwrap();
-                    // construct arguments for assoc_item function
-                    // parameters of the trait are substituted 
-                    // by the arguments used in the impl
-                    // parameters of the associated type are kept
+            let trait_const_decls = params.const_decls();
 
-                    // parameters of assoc item include already substituted arguments
-                    let assoc_params = deps
-                        .require_dep::<GenericParamsEnc>(GParams::from(impl_item.def_id))
-                        .unwrap();
+            for impl_item in tcx.associated_items(*task_key).in_definition_order() {
+                let trait_item_def_id = impl_item.trait_item_def_id.unwrap();
+                let impl_item_def_id = impl_item.def_id;
+                let item_name = tcx.item_name(impl_item_def_id);
 
-                    // the type we want to resolve the type alias to
-                    let assoc_type_expr = assoc_params.ty_expr(
-                        deps,
-                        RustTyDecomposition::from_ty(
-                            tcx.type_of(impl_item.def_id).instantiate_identity(),
-                            GParams::from(impl_item.def_id),
-                        ),
-                    );
-                    let assoc_decls = assoc_params
-                        .ty_decls()
-                        .iter()
-                        .map(|dec| dec.upcast_ty())
-                        .collect::<Vec<_>>();
+                // construct arguments for assoc_item function
+                // parameters of the trait are substituted
+                // by the arguments used in the impl
+                // parameters of the associated type are kept
 
-                    // Combine substituted trait ty decls with the decls of the associated type
-                    let mut trait_ty_decls = trait_ty_decls.clone();
-                    trait_ty_decls.extend_from_slice(&assoc_decls[params.ty_exprs().len()..]);
+                // parameters of assoc item include already substituted arguments
+                let impl_item_params = GParams::from(impl_item_def_id);
+                let assoc_params = deps
+                    .require_dep::<GenericParamsEnc>(impl_item_params)
+                    .unwrap();
 
-                    // Combine substituted trait params with the params of the associated type
-                    let trait_tys = vcx.alloc_slice(&iter::empty().chain(args.get_ty().to_owned()).chain(assoc_params.ty_exprs()[params.ty_exprs().len()..].to_owned()).collect::<Vec<_>>());
-                    axs.push(vcx.mk_domain_axiom(
+                let assoc_ty_decls = assoc_params.ty_decls();
+                let assoc_const_decls = assoc_params.const_decls();
+
+                // Combine substituted trait ty decls with the decls of the associated type
+                let trait_ty_decls =
+                    [&trait_ty_decls, &assoc_ty_decls[params.ty_exprs().len()..]].concat();
+                let trait_const_decls = [
+                    &trait_const_decls,
+                    &assoc_const_decls[params.const_exprs().len()..],
+                ]
+                .concat();
+
+                // Combine substituted trait params with the params of the associated type
+                let trait_tys = &[
+                    args.get_ty(),
+                    &assoc_params.ty_exprs()[params.ty_exprs().len()..],
+                ]
+                .concat();
+                let trait_consts = &[
+                    args.get_const(),
+                    &assoc_params.const_exprs()[params.const_exprs().len()..],
+                ]
+                .concat();
+
+                match impl_item.kind {
+                    AssocKind::Type { .. } => {
+                        let assoc_type = trait_data.assoc_types.get(&trait_item_def_id).unwrap();
+
+                        // the type we want to resolve the type alias to
+                        let assoc_type_expr = assoc_params.ty_expr(
+                            deps,
+                            RustTyDecomposition::from_ty(
+                                tcx.type_of(impl_item_def_id).instantiate_identity(),
+                                impl_item_params,
+                            ),
+                        );
+                        axioms.push(vcx.mk_domain_axiom(
+                            vir_format_identifier!(vcx, "{trait_name}_impl_{impl_ty}_{impl_idx}_assoc_type_{item_name}"),
+                            vir::expr! {forall ..[trait_ty_decls], ..[trait_const_decls] :: {[assoc_type(trait_tys, trait_consts)]} ([assoc_type(trait_tys, trait_consts)]) == (assoc_type_expr)},
+                        ));
+                    }
+                    _ => {
+                        // unimplemented
+                    }
+                }
+            }
+
+            Ok(
+                (
+                    vcx.mk_domain(
                         vir_format_identifier!(
                             vcx,
-                            "{}_Assoc_{idx}_{}_{implementing_ty}",
+                            "t_{impl_idx}_{}_{impl_ty}",
                             trait_data.trait_name,
-                            tcx.item_name(impl_item.def_id),
                         ),
-                        vir::expr! {forall ..[trait_ty_decls] :: {[assoc_fun(trait_tys)]} ([assoc_fun(trait_tys)]) == (assoc_type_expr)}
-                    ));
-                });
-
-            Ok((
-                vcx.mk_domain(
-                    vir_format_identifier!(
-                        vcx,
-                        "t_{idx}_{}_{implementing_ty}",
-                        trait_data.trait_name,
+                        &[],
+                        vcx.alloc_slice(&axioms),
+                        &[],
+                        None,
                     ),
-                    &[],
-                    vcx.alloc_slice(&axs),
-                    &[],
-                    None,
+                    (),
                 ),
-                (),
-            ))
+            )
         })
     }
 }
