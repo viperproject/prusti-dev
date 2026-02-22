@@ -642,12 +642,25 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum Sizedness {
+    /// A type is definitely `Sized`
     Sized,
+    /// A type is definitely not `Sized`
     Unsized,
-    Unknown,
+    /// The sizedness of the type depends on the sizedness of the n-th generic parameter the type
+    /// defines
     ParamDependent(u32),
+    Unknown,
 }
 
+/// A canonicalized version of a type representing its structural identity.
+///
+/// This erases all monomorphization information and external context.
+///
+/// ### Examples:
+/// * **Tuples**: `(U/#2, i32, V/#3)` becomes `(T/#0, T/#1, T/#2)`
+/// * **ADTs**: `Box<i32>` and `Box<MyStruct<u64>>` both become `Box<T/#0>`
+/// * **Arrays**: `[u8; 32]` and `[bool; 64]` both become `[T/#0; 0]`
+/// * **Pointers**: `&'a mut i32` becomes `&erased mut T/#0`
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct CanonicalTy<'tcx>(ty::Ty<'tcx>);
 
@@ -660,7 +673,31 @@ impl<'tcx> Deref for CanonicalTy<'tcx> {
 
 impl<'tcx> CanonicalTy<'tcx> {
     fn from_ty(ty: ty::Ty<'tcx>) -> Self {
-        Self(canonicalize_ty(vir::with_vcx(|vcx| vcx.tcx()), ty))
+        let tcx = vir::with_vcx(|vcx| vcx.tcx());
+        let default_param = ty::Ty::new_param(tcx, 0, symbol::Symbol::intern("T"));
+        Self(match ty.kind() {
+            ty::Adt(adt_def, _) => tcx.type_of(adt_def.did()).instantiate_identity(),
+
+            ty::Ref(_, _, mutbl) => {
+                ty::Ty::new_ref(tcx, tcx.lifetimes.re_erased, default_param, *mutbl)
+            }
+            ty::RawPtr(_, mutbl) => ty::Ty::new_ptr(tcx, default_param, *mutbl),
+
+            ty::Param(_) | ty::Alias(..) => default_param,
+
+            ty::Slice(_) => ty::Ty::new_slice(tcx, default_param),
+
+            ty::Array(_, _) => ty::Ty::new_array(tcx, default_param, 0_u64),
+
+            ty::Tuple(tys) => {
+                let generic_tys: Vec<_> = (0..tys.len())
+                    .map(|i| ty::Ty::new_param(tcx, i as u32, symbol::Symbol::intern("T")))
+                    .collect();
+                ty::Ty::new_tup(tcx, &generic_tys)
+            }
+
+            _ => ty,
+        })
     }
 
     fn sizedness(&self) -> Sizedness {
@@ -668,37 +705,11 @@ impl<'tcx> CanonicalTy<'tcx> {
     }
 }
 
-fn canonicalize_ty<'tcx>(tcx: ty::TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
-    match ty.kind() {
-        ty::Adt(adt_def, _) => tcx.type_of(adt_def.did()).instantiate_identity(),
-
-        ty::Ref(_, inner_ty, mutbl) => ty::Ty::new_ref(
-            tcx,
-            tcx.lifetimes.re_erased,
-            canonicalize_ty(tcx, *inner_ty),
-            *mutbl,
-        ),
-        ty::RawPtr(inner_ty, mutbl) => {
-            ty::Ty::new_ptr(tcx, canonicalize_ty(tcx, *inner_ty), *mutbl)
-        }
-
-        ty::Param(_) | ty::Alias(..) => ty::Ty::new_param(tcx, 0, symbol::Symbol::intern("T")),
-
-        ty::Slice(inner_ty) => ty::Ty::new_slice(tcx, canonicalize_ty(tcx, *inner_ty)),
-
-        ty::Array(inner_ty, _) => ty::Ty::new_array(tcx, canonicalize_ty(tcx, *inner_ty), 0_u64),
-
-        ty::Tuple(tys) => {
-            let generic_tys: Vec<_> = (0..tys.len())
-                .map(|i| ty::Ty::new_param(tcx, i as u32, symbol::Symbol::intern("T")))
-                .collect();
-            ty::Ty::new_tup(tcx, &generic_tys)
-        }
-
-        _ => ty,
-    }
-}
-
+/// Computes whether a type is Sized.
+///
+/// For generic definitions, the result may indicate that sizedness depends on
+/// the instantiation of a specific type parameter. For example,
+/// `struct MyStruct<T: ?Sized>(T)` is `Sized` only if `T` is `Sized`.
 fn check_sizedness<'tcx>(tcx: ty::TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> Sizedness {
     match ty.kind() {
         ty::Infer(ty::IntVar(_) | ty::FloatVar(_))
@@ -723,9 +734,9 @@ fn check_sizedness<'tcx>(tcx: ty::TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> Sizedness {
 
         ty::Str | ty::Slice(_) | ty::Dynamic(..) => Sizedness::Unsized,
 
-        ty::Placeholder(..) | ty::Bound(..) | ty::Infer(..) | ty::Foreign(..) => Sizedness::Unknown,
-
-        ty::Alias(..) => unimplemented!("sizedness for Alias"),
+        ty::Alias(..) | ty::Placeholder(..) | ty::Bound(..) | ty::Infer(..) | ty::Foreign(..) => {
+            Sizedness::Unknown
+        }
 
         ty::Param(param) => Sizedness::ParamDependent(param.index),
 
@@ -735,11 +746,14 @@ fn check_sizedness<'tcx>(tcx: ty::TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> Sizedness {
                 .map_or(Sizedness::Sized, |last| check_sizedness(tcx, *last))
         }
 
-        ty::Adt(adt, _) => {
+        ty::Adt(adt, args) => {
             let sized_constraint = adt.sizedness_constraint(tcx, ty::SizedTraitKind::Sized);
             match sized_constraint {
                 None => Sizedness::Sized,
-                Some(cons) => check_sizedness(tcx, cons.skip_binder()),
+                Some(cons) => {
+                    let substituted_ty = cons.instantiate(tcx, args);
+                    check_sizedness(tcx, substituted_ty)
+                }
             }
         }
     }
