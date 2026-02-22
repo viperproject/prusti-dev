@@ -18,7 +18,7 @@ pub struct TraitEnc;
 type TraitArgs = (vir::ManyTyVal, vir::ManyCSnap);
 
 #[derive(Debug, Clone)]
-pub struct TraitData<'vir> {
+pub struct TraitEncOutputRef<'vir> {
     pub trait_name: &'vir str,
     pub assoc_types: FxHashMap<DefId, FunctionIdn<'vir, TraitArgs, vir::TyVal>>,
     pub assoc_consts: FxHashMap<DefId, FunctionIdn<'vir, TraitArgs, vir::CSnap>>,
@@ -31,7 +31,7 @@ pub struct TraitImplRef<'vir> {
     pub assoc_consts: FxHashMap<DefId, FunctionIdn<'vir, TraitArgs, vir::CSnap>>,
     pub impl_fun: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
 }
-impl OutputRefAny for TraitImplRef<'_> {}
+impl OutputRefAny for TraitEncOutputRef<'_> {}
 
 #[derive(Debug, Clone)]
 pub struct TraitEncOutput<'vir> {
@@ -49,8 +49,7 @@ impl TaskEncoder for TraitEnc {
 
     type TaskDescription<'vir> = DefId;
 
-    type OutputFullDependency<'vir> = TraitData<'vir>;
-    type OutputRef<'vir> = TraitImplRef<'vir>;
+    type OutputRef<'vir> = TraitEncOutputRef<'vir>;
     type OutputFullLocal<'vir> = TraitEncOutput<'vir>;
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
@@ -74,7 +73,7 @@ impl TaskEncoder for TraitEnc {
             let params = GParams::from(*task_key);
             let enc_params = deps.require_dep::<GenericParamsEnc>(params)?;
             let trait_name = vcx.alloc_str(tcx.item_name(task_key).as_str());
-            let type_did_fun_mapping = tcx
+            let assoc_types = tcx
                 .associated_items(task_key)
                 .in_definition_order()
                 .filter(|item| matches!(item.kind, ty::AssocKind::Type { .. }))
@@ -93,7 +92,7 @@ impl TaskEncoder for TraitEnc {
                     )
                 })
                 .collect::<FxHashMap<_, _>>();
-            let funcs = type_did_fun_mapping
+            let funcs = assoc_types
                 .values()
                 .map(|function_idn| vcx.mk_domain_function(*function_idn, false, None))
                 .collect::<Vec<_>>();
@@ -108,8 +107,9 @@ impl TaskEncoder for TraitEnc {
             // without causing dependency cycles.
             deps.emit_output_ref(
                 *task_key,
-                TraitImplRef {
-                    assoc_types: type_did_fun_mapping.clone(),
+                TraitEncOutputRef {
+                    trait_name,
+                    assoc_types,
                     assoc_consts: Default::default(), // No associated consts supported
                     impl_fun: impl_fun_idn,
                 },
@@ -317,12 +317,7 @@ impl TaskEncoder for TraitEnc {
                     impl_fun,
                     impl_fun_unknown,
                 },
-                TraitData {
-                    trait_name,
-                    assoc_types: type_did_fun_mapping,
-                    assoc_consts: Default::default(), // No associated consts supported
-                    impl_fun: impl_fun_idn,
-                },
+                (),
             ))
         })
     }

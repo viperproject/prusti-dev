@@ -265,7 +265,7 @@ impl<'vir> GenericParams<'vir> {
                 GParamVariant::Alias(a) => vir::with_vcx(|vcx| {
                     let tcx = vcx.tcx();
                     let trait_did = tcx.associated_item(a.def_id).container_id(tcx);
-                    let trait_data = deps.require_dep::<TraitEnc>(trait_did).unwrap();
+                    let trait_data = deps.require_ref::<TraitEnc>(trait_did).unwrap();
                     let tys = &a
                         .args
                         .iter()
