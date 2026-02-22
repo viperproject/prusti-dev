@@ -24,6 +24,7 @@ pub struct TraitData<'vir> {
 
 #[derive(Debug, Clone)]
 pub struct TraitImplRef<'vir> {
+    pub type_did_fun_mapping: HashMap<DefId, FunctionIdn<'vir, vir::ManyTyVal, vir::TyVal>>,
     pub impl_fun: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
 }
 impl OutputRefAny for TraitImplRef<'_> {}
@@ -107,6 +108,7 @@ impl TaskEncoder for TraitEnc {
             deps.emit_output_ref(
                 *task_key,
                 TraitImplRef {
+                    type_did_fun_mapping: type_did_fun_mapping.clone(),
                     impl_fun: impl_fun_idn,
                 },
             )?;
@@ -166,6 +168,7 @@ impl TaskEncoder for TraitEnc {
                         checks.push(check);
                     }
 
+                    let caller_bounds = impl_ctx.typing_env().param_env.caller_bounds();
                     // Construct the trait bound checks for this impl block
                     for trait_pred in impl_ctx
                         .typing_env()
@@ -217,7 +220,50 @@ impl TaskEncoder for TraitEnc {
                         checks.push(required_trait_impl_fun(&ty_args, &const_args));
                     }
 
-                    // TODO: Construct the associated type bound checks for this impl block
+                    for projection_pred in caller_bounds
+                        .iter()
+                        .filter_map(ty::Clause::as_projection_clause)
+                        .map(ty::Binder::skip_binder)
+                    {
+                        let projection_did = projection_pred.def_id();
+                        let required_trait_did = projection_pred.trait_def_id(tcx);
+                        let required_trait = deps.require_ref::<Self>(required_trait_did)?;
+                        let projection_fun = required_trait
+                            .type_did_fun_mapping
+                            .get(&projection_did)
+                            .expect("Projection did should be in the mapping");
+
+                        let proj_src_args = projection_pred
+                            .projection_term
+                            .args
+                            .iter()
+                            .filter_map(|arg| arg.as_type());
+                        let proj_src_arg_exprs = proj_src_args
+                            .map(|ty| {
+                                assemble_type(
+                                    vcx,
+                                    deps,
+                                    &ty_generics_map,
+                                    &const_generics_map,
+                                    impl_ctx,
+                                    ty,
+                                )
+                            })
+                            .collect::<Vec<_>>();
+                        let tgt_ty = projection_pred.term.expect_type();
+                        let tgt_ty_expr = assemble_type(
+                            vcx,
+                            deps,
+                            &ty_generics_map,
+                            &const_generics_map,
+                            impl_ctx,
+                            tgt_ty,
+                        );
+                        let projection = projection_fun(&proj_src_arg_exprs);
+
+                        let projection_check = vir::expr! {vcx; (projection) == (tgt_ty_expr)};
+                        checks.push(projection_check);
+                    }
 
                     trait_impl_checks.push(vcx.mk_conj(&checks));
                 }
