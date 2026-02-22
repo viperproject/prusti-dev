@@ -159,7 +159,7 @@ impl TaskEncoder for TyConstructorEnc {
                         let param_ty = destructor.call()(self_expr);
                         vir::expr! { vcx; (is_this_type) && ([sized_impl_fun_idn](param_ty)) }
                     }
-                    Sizedness::Unknown => todo!(
+                    Sizedness::Unknown => unimplemented!(
                         "Handle unknown sizedness for type constructor {}",
                         task_key.name()
                     ),
@@ -176,13 +176,12 @@ impl TaskEncoder for TyConstructorEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let (mut constructors, sized_checks): (Vec<_>, Vec<_>) =
+        let (mut constructors, mut sized_checks): (Vec<_>, Vec<_>) =
             Self::all_outputs_local_no_errors()
                 .into_iter()
                 .map(|out| (out.constructor, out.sized_check))
                 .unzip();
         vir::with_vcx(|vcx| {
-            vcx.tcx();
             let args = vcx.alloc_array(&[vcx.mk_local_decl("non_unit", vir::TYPE_INT)]);
             let unknown = vcx.mk_adt_constructor("Unknown_type", args);
             constructors.push(unknown);
@@ -194,13 +193,31 @@ impl TaskEncoder for TyConstructorEnc {
             program.add_adt(adt);
 
             // Since we know all type constructors now, we can emit the `Sized` trait
-            // TODO: Correct implementation of `Sized`
             let sized_impl_fun_idn: FunctionIdn<'vir, vir::TyVal, vir::Bool> = FunctionIdn::new(
                 vir::vir_format_identifier!(vcx, "Sized_impl"),
                 vir::TYPE_TYVAL,
                 vir::TYPE_BOOL,
             );
+            let sized_impl_unknown_fun_idn: FunctionIdn<'vir, vir::Int, vir::Bool> =
+                FunctionIdn::new(
+                    vir::vir_format_identifier!(vcx, "Sized_impl_unknown"),
+                    vir::TYPE_INT,
+                    vir::TYPE_BOOL,
+                );
+
             let self_decl = vcx.mk_local_decl("Self", vir::TYPE_TYVAL);
+            let unknown_type_check = {
+                let self_expr = vcx.mk_local_ex(self_decl);
+                let is_unknown_type = vcx.mk_adt_discriminator_expr(self_expr, "Unknown_type");
+
+                let unknown_id_destructor =
+                    vcx.mk_adt_destructor("non_unit", vir::TYPE_TYVAL, vir::TYPE_INT);
+                let extracted_id = unknown_id_destructor.call()(self_expr);
+
+                vir::expr! {vcx; (is_unknown_type) && ([sized_impl_unknown_fun_idn](extracted_id)) }
+            };
+
+            sized_checks.push(unknown_type_check);
             let sized_impl_fun = vcx.mk_function(
                 sized_impl_fun_idn,
                 (self_decl,),
@@ -211,6 +228,16 @@ impl TaskEncoder for TyConstructorEnc {
             );
 
             program.add_function(sized_impl_fun);
+
+            let sized_impl_unknown_fun = vcx.mk_function(
+                sized_impl_unknown_fun_idn,
+                (vcx.mk_local_decl("non_unit", vir::TYPE_INT),),
+                &[],
+                &[],
+                None,
+                None,
+            );
+            program.add_function(sized_impl_unknown_fun);
         })
     }
 }
