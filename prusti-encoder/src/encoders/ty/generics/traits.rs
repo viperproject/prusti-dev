@@ -1,5 +1,6 @@
 use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use rustc_hash::FxHashMap;
+use std::collections::VecDeque;
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies};
 use vir::{CallableIdn, CastType, FunctionIdn, vir_format_identifier};
 
@@ -194,11 +195,24 @@ impl TaskEncoder for TraitEnc {
                     }
 
                     let caller_bounds = impl_ctx.typing_env().param_env.caller_bounds();
+
+                    // Process the projection predicates first as they might introduce new bindings
+                    // for generic parameters
+                    let projections = caller_bounds
+                        .iter()
+                        .filter_map(ty::Clause::as_projection_clause)
+                        .map(ty::Binder::skip_binder);
+                    checks.push(process_projections(
+                        vcx,
+                        deps,
+                        &mut ty_generics_map,
+                        &mut const_generics_map,
+                        impl_ctx,
+                        projections,
+                    ));
+
                     // Construct the trait bound checks for this impl block
-                    for trait_pred in impl_ctx
-                        .typing_env()
-                        .param_env
-                        .caller_bounds()
+                    for trait_pred in caller_bounds
                         .iter()
                         .filter_map(ty::Clause::as_trait_clause)
                         .map(ty::Binder::skip_binder)
@@ -248,107 +262,6 @@ impl TaskEncoder for TraitEnc {
                             .collect::<Vec<_>>();
                         checks.push(required_trait_impl_fun(&ty_args, &const_args));
                     }
-
-                    for projection_pred in caller_bounds
-                        .iter()
-                        .filter_map(ty::Clause::as_projection_clause)
-                        .map(ty::Binder::skip_binder)
-                    {
-                        let projection_did = projection_pred.def_id();
-                        let required_trait_did = projection_pred.trait_def_id(tcx);
-                        let required_trait = deps.require_ref::<Self>(required_trait_did)?;
-
-                        let proj_src_args = projection_pred
-                            .projection_term
-                            .args
-                            .iter()
-                            .filter_map(|arg| arg.as_type());
-                        let proj_src_ty_args = proj_src_args
-                            .map(|ty| {
-                                assemble_type(
-                                    tcx,
-                                    deps,
-                                    &ty_generics_map,
-                                    &const_generics_map,
-                                    impl_ctx,
-                                    ty,
-                                )
-                            })
-                            .collect::<Vec<_>>();
-                        let proj_src_const_args = projection_pred
-                            .projection_term
-                            .args
-                            .iter()
-                            .filter_map(|arg| arg.as_const())
-                            .map(|const_| match const_.kind() {
-                                ty::ConstKind::Param(..) => const_generics_map
-                                    .get(&const_.into())
-                                    .copied()
-                                    .expect("The const generic should have been bound in the map")
-                                    .downcast_ty(),
-                                ty::ConstKind::Value(v) => {
-                                    let task = ConstEncTask::Ty {
-                                        const_,
-                                        ty: v.ty,
-                                        context: impl_ctx,
-                                    };
-                                    deps.require_dep::<ConstEnc>(task).unwrap()
-                                }
-                                _ => unimplemented!(
-                                    "other kinds of const parameters not supported yet"
-                                ),
-                            })
-                            .collect::<Vec<_>>();
-
-                        match projection_pred.term.kind() {
-                            ty::TermKind::Ty(tgt_ty) => {
-                                let projection_fun = required_trait
-                                    .assoc_types
-                                    .get(&projection_did)
-                                    .expect("Projection did should be in the mapping");
-
-                                let tgt_ty_expr = assemble_type(
-                                    tcx,
-                                    deps,
-                                    &ty_generics_map,
-                                    &const_generics_map,
-                                    impl_ctx,
-                                    tgt_ty,
-                                );
-                                let projection =
-                                    projection_fun(&proj_src_ty_args, &proj_src_const_args);
-                                checks.push(vir::expr! {vcx; (projection) == (tgt_ty_expr)});
-                            }
-                            ty::TermKind::Const(const_) => {
-                                let projection_fun = required_trait
-                                    .assoc_consts
-                                    .get(&projection_did)
-                                    .expect("Projection did should be in the mapping");
-                                let tgt_const_expr = match const_.kind() {
-                                    ty::ConstKind::Param(..) => {
-                                        const_generics_map.get(&const_.into()).copied().expect(
-                                            "The const generic should have been bound in the map",
-                                        )
-                                    }
-                                    ty::ConstKind::Value(val) => {
-                                        let task = ConstEncTask::Ty {
-                                            const_: const_,
-                                            ty: val.ty,
-                                            context: impl_ctx,
-                                        };
-                                        deps.require_dep::<ConstEnc>(task).unwrap().upcast_ty()
-                                    }
-                                    _ => unimplemented!(
-                                        "other kinds of const parameters not supported yet"
-                                    ),
-                                };
-                                let projection =
-                                    projection_fun(&proj_src_ty_args, &proj_src_const_args);
-                                checks.push(vir::expr! {vcx; (projection) == (tgt_const_expr) });
-                            }
-                        };
-                    }
-
                     trait_impl_checks.push(vcx.mk_conj(&checks));
                 }
 
@@ -414,8 +327,8 @@ impl TaskEncoder for TraitEnc {
 fn encode_type_check<'vir>(
     vcx: &'vir vir::VirCtxt<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, TraitEnc>,
-    ty_generics_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
-    const_generics_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprSnap<'vir>>,
+    ty_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
+    const_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprSnap<'vir>>,
     ctx: GParams<'vir>,
     expr: vir::ExprTyVal<'vir>,
     ty: ty::Ty<'vir>,
@@ -426,7 +339,7 @@ fn encode_type_check<'vir>(
         let arg = decomp.args.args().first().expect("Param missing arg");
 
         use std::collections::hash_map::Entry;
-        return match ty_generics_map.entry(*arg) {
+        return match ty_map.entry(*arg) {
             Entry::Occupied(occ) => {
                 // Already seen this T: ensure this type matches the originally found
                 vcx.mk_eq_expr(expr, *occ.get())
@@ -454,13 +367,7 @@ fn encode_type_check<'vir>(
 
         let inner_expr = accessor.call()(expr);
         conjuncts.push(encode_type_check(
-            vcx,
-            deps,
-            ty_generics_map,
-            const_generics_map,
-            ctx,
-            inner_expr,
-            inner_ty,
+            vcx, deps, ty_map, const_map, ctx, inner_expr, inner_ty,
         ));
     }
 
@@ -473,7 +380,7 @@ fn encode_type_check<'vir>(
         match const_.kind() {
             ty::ConstKind::Param(..) => {
                 use std::collections::hash_map::Entry;
-                match const_generics_map.entry(const_.into()) {
+                match const_map.entry(const_.into()) {
                     Entry::Occupied(occ) => {
                         // Already seen this const parameter: ensure this const expression matches the originally found
                         conjuncts.push(vcx.mk_eq_expr(const_expr.upcast_ty(), *occ.get()));
@@ -583,4 +490,136 @@ fn get_const_or_encode<'vir>(
         }
         _ => unimplemented!("other kinds of const parameters not supported yet"),
     }
+}
+
+/// Process the projection predicates in a topological order, such that when processing a
+/// projection predicate, the projection term is already mapped to a VIR expression. This is needed
+/// to handle cases like `T::Item: Trait` where we need to refer to `T::Item` when encoding the
+/// trait bound check for `Trait`.
+fn process_projections<'a>(
+    vcx: &'a vir::VirCtxt<'a>,
+    deps: &mut TaskEncoderDependencies<'a, TraitEnc>,
+    ty_map: &mut FxHashMap<ty::GenericArg<'a>, vir::ExprTyVal<'a>>,
+    const_map: &mut FxHashMap<ty::GenericArg<'a>, vir::ExprSnap<'a>>,
+    ctx: GParams<'a>,
+    projections: impl Iterator<Item = ty::ProjectionPredicate<'a>>,
+) -> vir::ExprGenBool<'a, (), !> {
+    let mut worklist: VecDeque<_> = projections.collect();
+    let mut conjuncts = Vec::new();
+    while let Some(proj) = worklist.pop_front() {
+        if is_alias_ready(&proj.projection_term, ty_map, const_map) {
+            conjuncts.push(process_projection(vcx, deps, ty_map, const_map, ctx, proj));
+        } else {
+            worklist.push_back(proj);
+        }
+    }
+    vcx.mk_conj(&conjuncts)
+}
+
+fn process_projection<'a>(
+    vcx: &'a vir::VirCtxt<'a>,
+    deps: &mut TaskEncoderDependencies<'a, TraitEnc>,
+    ty_map: &mut FxHashMap<ty::GenericArg<'a>, vir::ExprTyVal<'a>>,
+    const_map: &mut FxHashMap<ty::GenericArg<'a>, vir::ExprSnap<'a>>,
+    ctx: GParams<'a>,
+    projection: ty::ProjectionPredicate<'a>,
+) -> vir::ExprGenBool<'a, (), !> {
+    let tcx = vcx.tcx();
+    let proj_did = projection.def_id();
+    let trait_did = projection.trait_def_id(tcx);
+    let trait_ = deps.require_ref::<TraitEnc>(trait_did).unwrap();
+
+    let proj_args = projection.projection_term.args;
+
+    let proj_ty_args: Vec<_> = proj_args
+        .iter()
+        .filter_map(|arg| arg.as_type())
+        .map(|ty| assemble_type(tcx, deps, ty_map, const_map, ctx, ty))
+        .collect();
+    let proj_const_args: Vec<_> = proj_args
+        .iter()
+        .filter_map(|arg| arg.as_const())
+        .map(|const_| match const_.kind() {
+            ty::ConstKind::Param(..) => const_map
+                .get(&const_.into())
+                .copied()
+                .expect("The const generic should have been bound in the map")
+                .downcast_ty(),
+            ty::ConstKind::Value(v) => {
+                let task = ConstEncTask::Ty {
+                    const_,
+                    ty: v.ty,
+                    context: ctx,
+                };
+                deps.require_dep::<ConstEnc>(task).unwrap()
+            }
+            _ => unimplemented!("other kinds of const parameters not supported yet"),
+        })
+        .collect();
+
+    match projection.term.kind() {
+        ty::TermKind::Ty(tgt_ty) => {
+            let projection_fun = trait_
+                .assoc_types
+                .get(&proj_did)
+                .expect("Projection did should be in the mapping");
+
+            let projection = projection_fun(&proj_ty_args, &proj_const_args);
+
+            encode_type_check(vcx, deps, ty_map, const_map, ctx, projection, tgt_ty)
+        }
+        ty::TermKind::Const(const_) => {
+            let projection_fun = trait_
+                .assoc_consts
+                .get(&proj_did)
+                .expect("Projection did should be in the mapping");
+            let term = match const_.kind() {
+                ty::ConstKind::Param(..) => const_map
+                    .get(&const_.into())
+                    .copied()
+                    .expect("The const generic should have been bound in the map"),
+                // TODO: There could be new const generics introduced here
+                ty::ConstKind::Value(val) => {
+                    let task = ConstEncTask::Ty {
+                        const_: const_,
+                        ty: val.ty,
+                        context: ctx,
+                    };
+                    deps.require_dep::<ConstEnc>(task).unwrap().upcast_ty()
+                }
+                _ => unimplemented!("other kinds of const parameters not supported yet"),
+            };
+            let projection = projection_fun(&proj_ty_args, &proj_const_args);
+
+            vir::expr! {vcx; (projection) == (term) }
+        }
+    }
+}
+
+/// Check whether all generic parameters of the given alias term have alredy been mapped
+fn is_alias_ready<'vir>(
+    term: &ty::AliasTerm<'vir>,
+    ty_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
+    const_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprSnap<'vir>>,
+) -> bool {
+    for arg in term.args {
+        for arg in arg.walk() {
+            match arg.kind() {
+                ty::GenericArgKind::Type(ty) => {
+                    if let ty::TyKind::Param(_) = ty.kind() {
+                        if !ty_map.contains_key(&arg) {
+                            return false;
+                        }
+                    }
+                }
+                ty::GenericArgKind::Const(_) => {
+                    if !const_map.contains_key(&arg) {
+                        return false;
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    true
 }
