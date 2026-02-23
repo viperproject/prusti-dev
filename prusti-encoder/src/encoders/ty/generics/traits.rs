@@ -1,15 +1,16 @@
 use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use rustc_hash::FxHashMap;
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies};
-use vir::{CallableIdn, FunctionIdn, vir_format_identifier};
+use vir::{CallableIdn, CastType, FunctionIdn, vir_format_identifier};
 
 use crate::encoders::{
     ConstEnc,
     r#const::ConstEncTask,
     ty::{
         RustTyDecomposition,
-        generics::{GParams, GenericParamsEnc},
+        generics::{GArgs, GArgsTyEnc, GParams, GenericParamsEnc},
         lifted::TyConstructorEnc,
+        pure::TyPureEnc,
     },
 };
 
@@ -21,14 +22,14 @@ type TraitArgs = (vir::ManyTyVal, vir::ManyCSnap);
 pub struct TraitEncOutputRef<'vir> {
     pub trait_name: &'vir str,
     pub assoc_types: FxHashMap<DefId, FunctionIdn<'vir, TraitArgs, vir::TyVal>>,
-    pub assoc_consts: FxHashMap<DefId, FunctionIdn<'vir, TraitArgs, vir::CSnap>>,
+    pub assoc_consts: FxHashMap<DefId, FunctionIdn<'vir, TraitArgs, vir::Snap>>,
     pub impl_fun: FunctionIdn<'vir, TraitArgs, vir::Bool>,
 }
 
 #[derive(Debug, Clone)]
 pub struct TraitImplRef<'vir> {
     pub assoc_types: FxHashMap<DefId, FunctionIdn<'vir, TraitArgs, vir::TyVal>>,
-    pub assoc_consts: FxHashMap<DefId, FunctionIdn<'vir, TraitArgs, vir::CSnap>>,
+    pub assoc_consts: FxHashMap<DefId, FunctionIdn<'vir, TraitArgs, vir::Snap>>,
     pub impl_fun: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
 }
 impl OutputRefAny for TraitEncOutputRef<'_> {}
@@ -73,29 +74,51 @@ impl TaskEncoder for TraitEnc {
             let params = GParams::from(*task_key);
             let enc_params = deps.require_dep::<GenericParamsEnc>(params)?;
             let trait_name = vcx.alloc_str(tcx.item_name(task_key).as_str());
-            let assoc_types = tcx
-                .associated_items(task_key)
+            let trait_items = tcx.associated_items(task_key);
+            let assoc_types: FxHashMap<_, _> = trait_items
                 .in_definition_order()
                 .filter(|item| matches!(item.kind, ty::AssocKind::Type { .. }))
-                .map(|assoc_ty| {
+                .map(|ty| {
                     (
-                        assoc_ty.def_id,
+                        ty.def_id,
                         FunctionIdn::new(
-                            vir_format_identifier!(
-                                vcx,
-                                "{trait_name}_Assoc_{}_func",
-                                tcx.item_name(assoc_ty.def_id),
-                            ),
+                            vir_format_identifier!(vcx, "{trait_name}_Assoc_{}_func", ty.name(),),
                             (enc_params.ty_args(), enc_params.const_args()),
                             vir::TYPE_TYVAL,
                         ),
                     )
                 })
-                .collect::<FxHashMap<_, _>>();
-            let funcs = assoc_types
+                .collect();
+            let assoc_consts: FxHashMap<_, _> = trait_items
+                .in_definition_order()
+                .filter(|item| matches!(item.kind, ty::AssocKind::Const { .. }))
+                .map(|const_| {
+                    let rust_ty = tcx.type_of(const_.def_id).skip_binder();
+                    let decomp = RustTyDecomposition::from_ty(rust_ty, params);
+                    let ret_ty = (deps.require_ref::<TyPureEnc>(decomp.ty).unwrap().domain)();
+                    (
+                        const_.def_id,
+                        FunctionIdn::new(
+                            vir_format_identifier!(
+                                vcx,
+                                "{trait_name}_Assoc_{}_func",
+                                const_.name()
+                            ),
+                            (enc_params.ty_args(), enc_params.const_args()),
+                            ret_ty,
+                        ),
+                    )
+                })
+                .collect();
+            let funcs: Vec<_> = assoc_types
                 .values()
-                .map(|function_idn| vcx.mk_domain_function(*function_idn, false, None))
-                .collect::<Vec<_>>();
+                .map(|fun| vcx.mk_domain_function(*fun, false, None))
+                .chain(
+                    assoc_consts
+                        .values()
+                        .map(|fun| vcx.mk_domain_function(*fun, false, None)),
+                )
+                .collect();
 
             let impl_fun_idn = FunctionIdn::new(
                 vir_format_identifier!(vcx, "{trait_name}_impl"),
@@ -110,7 +133,7 @@ impl TaskEncoder for TraitEnc {
                 TraitEncOutputRef {
                     trait_name,
                     assoc_types,
-                    assoc_consts: Default::default(), // No associated consts supported
+                    assoc_consts,
                     impl_fun: impl_fun_idn,
                 },
             )?;
@@ -188,7 +211,7 @@ impl TaskEncoder for TraitEnc {
                             .filter_map(|arg| arg.as_type())
                             .map(|arg| {
                                 assemble_type(
-                                    vcx,
+                                    tcx,
                                     deps,
                                     &ty_generics_map,
                                     &const_generics_map,
@@ -205,13 +228,17 @@ impl TaskEncoder for TraitEnc {
                                 ty::ConstKind::Param(..) => const_generics_map
                                     .get(&const_.into())
                                     .copied()
-                                    .expect("The const generic should have been bound in the map"),
+                                    .expect("The const generic should have been bound in the map")
+                                    .downcast_ty(),
+                                // TODO: we can figure out the type of the const value from the
+                                // context, also make `ConstEnc` to handle unevaluated consts too
                                 ty::ConstKind::Value(v) => {
                                     let task = ConstEncTask::Ty {
                                         const_,
                                         ty: v.ty,
                                         context: impl_ctx,
                                     };
+
                                     deps.require_dep::<ConstEnc>(task).unwrap()
                                 }
                                 _ => unimplemented!(
@@ -230,20 +257,16 @@ impl TaskEncoder for TraitEnc {
                         let projection_did = projection_pred.def_id();
                         let required_trait_did = projection_pred.trait_def_id(tcx);
                         let required_trait = deps.require_ref::<Self>(required_trait_did)?;
-                        let projection_fun = required_trait
-                            .assoc_types
-                            .get(&projection_did)
-                            .expect("Projection did should be in the mapping");
 
                         let proj_src_args = projection_pred
                             .projection_term
                             .args
                             .iter()
                             .filter_map(|arg| arg.as_type());
-                        let proj_src_arg_exprs = proj_src_args
+                        let proj_src_ty_args = proj_src_args
                             .map(|ty| {
                                 assemble_type(
-                                    vcx,
+                                    tcx,
                                     deps,
                                     &ty_generics_map,
                                     &const_generics_map,
@@ -252,20 +275,78 @@ impl TaskEncoder for TraitEnc {
                                 )
                             })
                             .collect::<Vec<_>>();
-                        let tgt_ty = projection_pred.term.expect_type();
-                        let tgt_ty_expr = assemble_type(
-                            vcx,
-                            deps,
-                            &ty_generics_map,
-                            &const_generics_map,
-                            impl_ctx,
-                            tgt_ty,
-                        );
-                        // TODO: Include const generics
-                        let projection = projection_fun(&proj_src_arg_exprs, &[]);
+                        let proj_src_const_args = projection_pred
+                            .projection_term
+                            .args
+                            .iter()
+                            .filter_map(|arg| arg.as_const())
+                            .map(|const_| match const_.kind() {
+                                ty::ConstKind::Param(..) => const_generics_map
+                                    .get(&const_.into())
+                                    .copied()
+                                    .expect("The const generic should have been bound in the map")
+                                    .downcast_ty(),
+                                ty::ConstKind::Value(v) => {
+                                    let task = ConstEncTask::Ty {
+                                        const_,
+                                        ty: v.ty,
+                                        context: impl_ctx,
+                                    };
+                                    deps.require_dep::<ConstEnc>(task).unwrap()
+                                }
+                                _ => unimplemented!(
+                                    "other kinds of const parameters not supported yet"
+                                ),
+                            })
+                            .collect::<Vec<_>>();
 
-                        let projection_check = vir::expr! {vcx; (projection) == (tgt_ty_expr)};
-                        checks.push(projection_check);
+                        match projection_pred.term.kind() {
+                            ty::TermKind::Ty(tgt_ty) => {
+                                let projection_fun = required_trait
+                                    .assoc_types
+                                    .get(&projection_did)
+                                    .expect("Projection did should be in the mapping");
+
+                                let tgt_ty_expr = assemble_type(
+                                    tcx,
+                                    deps,
+                                    &ty_generics_map,
+                                    &const_generics_map,
+                                    impl_ctx,
+                                    tgt_ty,
+                                );
+                                let projection =
+                                    projection_fun(&proj_src_ty_args, &proj_src_const_args);
+                                checks.push(vir::expr! {vcx; (projection) == (tgt_ty_expr)});
+                            }
+                            ty::TermKind::Const(const_) => {
+                                let projection_fun = required_trait
+                                    .assoc_consts
+                                    .get(&projection_did)
+                                    .expect("Projection did should be in the mapping");
+                                let tgt_const_expr = match const_.kind() {
+                                    ty::ConstKind::Param(..) => {
+                                        const_generics_map.get(&const_.into()).copied().expect(
+                                            "The const generic should have been bound in the map",
+                                        )
+                                    }
+                                    ty::ConstKind::Value(val) => {
+                                        let task = ConstEncTask::Ty {
+                                            const_: const_,
+                                            ty: val.ty,
+                                            context: impl_ctx,
+                                        };
+                                        deps.require_dep::<ConstEnc>(task).unwrap().upcast_ty()
+                                    }
+                                    _ => unimplemented!(
+                                        "other kinds of const parameters not supported yet"
+                                    ),
+                                };
+                                let projection =
+                                    projection_fun(&proj_src_ty_args, &proj_src_const_args);
+                                checks.push(vir::expr! {vcx; (projection) == (tgt_const_expr) });
+                            }
+                        };
                     }
 
                     trait_impl_checks.push(vcx.mk_conj(&checks));
@@ -334,7 +415,7 @@ fn encode_type_check<'vir>(
     vcx: &'vir vir::VirCtxt<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, TraitEnc>,
     ty_generics_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
-    const_generics_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprCSnap<'vir>>,
+    const_generics_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprSnap<'vir>>,
     ctx: GParams<'vir>,
     expr: vir::ExprTyVal<'vir>,
     ty: ty::Ty<'vir>,
@@ -395,11 +476,11 @@ fn encode_type_check<'vir>(
                 match const_generics_map.entry(const_.into()) {
                     Entry::Occupied(occ) => {
                         // Already seen this const parameter: ensure this const expression matches the originally found
-                        conjuncts.push(vcx.mk_eq_expr(const_expr, *occ.get()));
+                        conjuncts.push(vcx.mk_eq_expr(const_expr.upcast_ty(), *occ.get()));
                     }
                     Entry::Vacant(vac) => {
                         // First time seeing this const parameter: map it to the current accessor path for future references
-                        vac.insert(const_expr);
+                        vac.insert(const_expr.upcast_ty());
                     }
                 }
             }
@@ -421,10 +502,10 @@ fn encode_type_check<'vir>(
 
 /// Assemble a VIR type using the map of generic parameters we have collected earlier.
 fn assemble_type<'vir>(
-    vcx: &vir::VirCtxt<'vir>,
+    tcx: ty::TyCtxt<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, TraitEnc>,
     ty_generics_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
-    const_generics_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprCSnap<'vir>>,
+    const_generics_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprSnap<'vir>>,
     ctx: GParams<'vir>,
     ty: ty::Ty<'vir>,
 ) -> vir::ExprTyVal<'vir> {
@@ -432,9 +513,25 @@ fn assemble_type<'vir>(
 
     if decomp.ty.specifics.is_param() {
         let arg = decomp.args.args().first().expect("Param missing arg");
-        return *ty_generics_map
-            .get(arg)
-            .expect("The generic should have been inserted, otherwise the parameter is unbound");
+        return match arg.expect_ty().kind() {
+            ty::TyKind::Param(param) => *ty_generics_map
+                .get(arg)
+                .expect(&format!("generic {param:?} to be mapped")),
+            ty::TyKind::Alias(ty::AliasTyKind::Projection, alias) => {
+                let trait_did = tcx.parent(alias.def_id);
+                let trait_ = deps.require_ref::<TraitEnc>(trait_did).unwrap();
+
+                let assoc_ty_fun = trait_
+                    .assoc_types
+                    .get(&alias.def_id)
+                    .expect("associated type to be in the mapping");
+
+                let gargs = GArgs::new(trait_did, alias.args);
+                let gargs = deps.require_dep::<GArgsTyEnc>(gargs).unwrap();
+                assoc_ty_fun(gargs.get_ty(), gargs.get_const())
+            }
+            _ => unimplemented!("unsupported kind of generic parameter in type position"),
+        };
     }
 
     let ty_enc = deps.require_ref::<TyConstructorEnc>(decomp.ty).unwrap();
@@ -446,7 +543,7 @@ fn assemble_type<'vir>(
         .filter_map(|arg| arg.as_type())
         .map(|inner_ty| {
             assemble_type(
-                vcx,
+                tcx,
                 deps,
                 ty_generics_map,
                 const_generics_map,
@@ -459,22 +556,31 @@ fn assemble_type<'vir>(
     let inner_const_args = args
         .iter()
         .filter_map(|arg| arg.as_const())
-        .map(|const_| match const_.kind() {
-            ty::ConstKind::Param(..) => const_generics_map
-                .get(&const_.into())
-                .copied()
-                .expect("The const generic should have been bound in the map"),
-            ty::ConstKind::Value(val) => {
-                let task = ConstEncTask::Ty {
-                    const_: const_,
-                    ty: val.ty,
-                    context: ctx,
-                };
-                deps.require_dep::<ConstEnc>(task).unwrap()
-            }
-            _ => unimplemented!("other kinds of const parameters not supported yet"),
-        })
+        .map(|const_| get_const_or_encode(deps, ctx, const_generics_map, const_).downcast_ty())
         .collect::<Vec<_>>();
 
     (ty_enc.ty_constructor)(&inner_ty_args, &inner_const_args)
+}
+
+fn get_const_or_encode<'vir>(
+    deps: &mut TaskEncoderDependencies<'vir, TraitEnc>,
+    ctx: GParams<'vir>,
+    const_generics_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprSnap<'vir>>,
+    const_: ty::Const<'vir>,
+) -> vir::ExprSnap<'vir> {
+    match const_.kind() {
+        ty::ConstKind::Param(..) => const_generics_map
+            .get(&const_.into())
+            .copied()
+            .expect("The const generic should have been bound in the map"),
+        ty::ConstKind::Value(val) => {
+            let task = ConstEncTask::Ty {
+                const_: const_,
+                ty: val.ty,
+                context: ctx,
+            };
+            deps.require_dep::<ConstEnc>(task).unwrap().upcast_ty()
+        }
+        _ => unimplemented!("other kinds of const parameters not supported yet"),
+    }
 }

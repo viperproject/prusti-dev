@@ -1,8 +1,6 @@
-use std::iter;
-
 use prusti_rustc_interface::{middle::ty::AssocKind, span::def_id::DefId};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CastType, Domain, vir_format_identifier};
+use vir::{Domain, vir_format_identifier};
 
 use crate::encoders::ty::{
     RustTyDecomposition,
@@ -49,7 +47,7 @@ impl TaskEncoder for TraitImplEnc {
             let trait_data = deps.require_ref::<TraitEnc>(trait_did)?;
             let trait_name = trait_data.trait_name;
 
-            let args = deps.require_dep::<GArgsTyEnc>(GArgs::new(ctx, trait_ref.args))?;
+            let args = deps.require_dep::<GArgsTyEnc>(GArgs::new(trait_did, trait_ref.args))?;
 
             let mut axioms = Vec::new();
 

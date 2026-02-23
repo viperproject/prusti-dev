@@ -16,7 +16,7 @@ use crate::encoders::{
     MirPureEnc, MirPureEncTask, PureKind,
     ty::{
         RustTyDecomposition,
-        generics::{GParams, GenericParamsEnc},
+        generics::{GParams, GenericParamsEnc, traits::TraitEnc},
         use_pure::TyUsePureEnc,
     },
 };
@@ -52,7 +52,7 @@ impl ConstEnc {
         ty: ty::Ty<'vir>,
         context: GParams<'vir>,
     ) -> Result<vir::ExprCSnap<'vir>, EncodeFullError<'vir, Self>> {
-        match const_.kind() {
+        match dbg!(const_.kind()) {
             ty::ConstKind::Param(param) => {
                 let params = deps.require_dep::<GenericParamsEnc>(context)?;
                 Ok(params.const_expr(param))
@@ -60,6 +60,25 @@ impl ConstEnc {
             ty::ConstKind::Value(val) => {
                 let val = vir::with_vcx(|vcx| vcx.tcx().valtree_to_const_val(val));
                 Self::encode_const_val(deps, val, ty, context, None)
+            }
+            ty::ConstKind::Unevaluated(uneval) => {
+                // NOTE: For now we assume this comes from a const associated item of a trait
+                vir::with_vcx(|vcx| {
+                    let tcx = vcx.tcx();
+                    let const_did = uneval.def;
+                    let impl_did = tcx.parent(const_did);
+                    let trait_ref = tcx
+                        .impl_trait_ref(impl_did)
+                        .expect("this to be an impl block for a trait")
+                        .skip_binder();
+
+                    let trait_ = deps.require_ref::<TraitEnc>(trait_ref.def_id).unwrap();
+                    dbg!(trait_.assoc_consts.get(&const_did));
+
+                    // let trait_ref = vcx.tcx().impl_trait_ref(const_did).unwrap();
+                    // trait_ref.def_id
+                });
+                todo!()
             }
             k => todo!("const kind {k:?}"),
         }
