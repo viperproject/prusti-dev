@@ -72,19 +72,27 @@ impl TaskEncoder for TraitEnc {
     ) -> EncodeFullResult<'vir, Self> {
         vir::with_vcx(|vcx| {
             let tcx = vcx.tcx();
-            let params = GParams::from(*task_key);
-            let enc_params = deps.require_dep::<GenericParamsEnc>(params)?;
+            let params = deps.require_dep::<GenericParamsEnc>(GParams::from(*task_key))?;
             let trait_name = vcx.alloc_str(tcx.item_name(task_key).as_str());
             let trait_items = tcx.associated_items(task_key);
             let assoc_types: FxHashMap<_, _> = trait_items
                 .in_definition_order()
                 .filter(|item| matches!(item.kind, ty::AssocKind::Type { .. }))
-                .map(|ty| {
+                .map(|assoc_ty| {
+                    let assoc_did = assoc_ty.def_id;
+                    // Associated generics can have their own params (GATs)
+                    let assoc_params = deps
+                        .require_dep::<GenericParamsEnc>(GParams::from(assoc_did))
+                        .unwrap();
                     (
-                        ty.def_id,
+                        assoc_did,
                         FunctionIdn::new(
-                            vir_format_identifier!(vcx, "{trait_name}_Assoc_{}_func", ty.name(),),
-                            (enc_params.ty_args(), enc_params.const_args()),
+                            vir_format_identifier!(
+                                vcx,
+                                "{trait_name}_Assoc_{}_func",
+                                assoc_ty.name(),
+                            ),
+                            (assoc_params.ty_args(), assoc_params.const_args()),
                             vir::TYPE_TYVAL,
                         ),
                     )
@@ -93,19 +101,22 @@ impl TaskEncoder for TraitEnc {
             let assoc_consts: FxHashMap<_, _> = trait_items
                 .in_definition_order()
                 .filter(|item| matches!(item.kind, ty::AssocKind::Const { .. }))
-                .map(|const_| {
-                    let rust_ty = tcx.type_of(const_.def_id).skip_binder();
-                    let decomp = RustTyDecomposition::from_ty(rust_ty, params);
+                .map(|assoc_const| {
+                    let assoc_did = assoc_const.def_id;
+                    // Unlike associated types, associated constants cannot have their own generic
+                    // parameters
+                    let rust_ty = tcx.type_of(assoc_did).skip_binder();
+                    let decomp = RustTyDecomposition::from_ty(rust_ty, assoc_did);
                     let ret_ty = (deps.require_ref::<TyPureEnc>(decomp.ty).unwrap().domain)();
                     (
-                        const_.def_id,
+                        assoc_did,
                         FunctionIdn::new(
                             vir_format_identifier!(
                                 vcx,
                                 "{trait_name}_Assoc_{}_func",
-                                const_.name()
+                                assoc_const.name()
                             ),
-                            (enc_params.ty_args(), enc_params.const_args()),
+                            (params.ty_args(), params.const_args()),
                             ret_ty,
                         ),
                     )
@@ -123,7 +134,7 @@ impl TaskEncoder for TraitEnc {
 
             let impl_fun_idn = FunctionIdn::new(
                 vir_format_identifier!(vcx, "{trait_name}_impl"),
-                (enc_params.ty_args(), enc_params.const_args()),
+                (params.ty_args(), params.const_args()),
                 vir::TYPE_BOOL,
             );
 
@@ -145,18 +156,18 @@ impl TaskEncoder for TraitEnc {
                 vir::Bool,
             > = {
                 // Omit the Self type as it is known to be the "Unknown_type"
-                let unknown_args = &enc_params.ty_args()[1..];
+                let unknown_args = &params.ty_args()[1..];
                 FunctionIdn::new(
                     vir_format_identifier!(vcx, "{trait_name}_impl_unknown"),
-                    (unknown_args, enc_params.const_args(), vir::TYPE_INT),
+                    (unknown_args, params.const_args(), vir::TYPE_INT),
                     vir::TYPE_BOOL,
                 )
             };
             let impl_fun_unknown = vcx.mk_function(
                 impl_fun_unknown_idn,
                 (
-                    &enc_params.ty_decls()[1..],
-                    enc_params.const_decls(),
+                    &params.ty_decls()[1..],
+                    params.const_decls(),
                     vcx.mk_local_decl("non_unit", vir::TYPE_INT),
                 ),
                 &[],
@@ -181,7 +192,7 @@ impl TaskEncoder for TraitEnc {
                     let rust_impl_args = trait_ref.args.iter().filter_map(|arg| arg.as_type());
 
                     let mut checks = Vec::new();
-                    for (&ty_expr, rust_ty) in enc_params.ty_exprs().iter().zip(rust_impl_args) {
+                    for (&ty_expr, rust_ty) in params.ty_exprs().iter().zip(rust_impl_args) {
                         let check = encode_type_check(
                             vcx,
                             deps,
@@ -267,7 +278,7 @@ impl TaskEncoder for TraitEnc {
 
                 {
                     // Case for unknown types
-                    let self_expr = enc_params.ty_exprs()[0];
+                    let self_expr = params.ty_exprs()[0];
 
                     let is_unknown_type = vcx.mk_adt_discriminator_expr(self_expr, "Unknown_type");
 
@@ -276,8 +287,8 @@ impl TaskEncoder for TraitEnc {
                     let extracted_id = unknown_id_destructor.call()(self_expr);
 
                     let unknown_impls = impl_fun_unknown_idn(
-                        &enc_params.ty_exprs()[1..],
-                        enc_params.const_exprs(),
+                        &params.ty_exprs()[1..],
+                        params.const_exprs(),
                         extracted_id,
                     );
 
@@ -291,7 +302,7 @@ impl TaskEncoder for TraitEnc {
 
             let impl_fun = vcx.mk_function(
                 impl_fun_idn,
-                (enc_params.ty_decls(), enc_params.const_decls()),
+                (params.ty_decls(), params.const_decls()),
                 &[],
                 &[],
                 None,

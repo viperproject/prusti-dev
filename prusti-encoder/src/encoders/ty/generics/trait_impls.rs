@@ -39,32 +39,33 @@ impl TaskEncoder for TraitImplEnc {
                 all_impls.iter().position(|did| did == task_key).unwrap()
             };
 
-            let ctx = GParams::from(*task_key);
-            let params = deps.require_dep::<GenericParamsEnc>(ctx)?;
-
-            let trait_ref = tcx.impl_trait_ref(task_key).unwrap().instantiate_identity();
-            let trait_did = trait_ref.def_id;
-            let trait_data = deps.require_ref::<TraitEnc>(trait_did)?;
-            let trait_name = trait_data.trait_name;
-
-            let args = deps.require_dep::<GArgsTyEnc>(GArgs::new(trait_did, trait_ref.args))?;
-
-            let mut axioms = Vec::new();
-
             let impl_ty = {
                 let implementing_ty = tcx.type_of(task_key).instantiate_identity();
                 let implementing_ty = RustTyDecomposition::from_ty(implementing_ty, *task_key);
                 implementing_ty.ty.name()
             };
 
+            let trait_ref = tcx.impl_trait_ref(task_key).unwrap().instantiate_identity();
+            let trait_did = trait_ref.def_id;
+            let trait_data = deps.require_ref::<TraitEnc>(trait_did)?;
+            let trait_name = trait_data.trait_name;
+
+            let ctx = GParams::from(*task_key);
+            let params = deps.require_dep::<GenericParamsEnc>(ctx)?;
             let trait_ty_decls = params.ty_decls();
-
             let trait_const_decls = params.const_decls();
+            let ty_cnt = params.ty_count();
+            let const_cnt = params.const_count();
 
+            let trait_args = deps.require_dep::<GArgsTyEnc>(GArgs::new(ctx, trait_ref.args))?;
+            let trait_ty_args = trait_args.get_ty();
+            let trait_const_args = trait_args.get_const();
+
+            let mut axioms = Vec::new();
             for impl_item in tcx.associated_items(*task_key).in_definition_order() {
-                let trait_item_def_id = impl_item.trait_item_def_id.unwrap();
-                let impl_item_def_id = impl_item.def_id;
-                let item_name = tcx.item_name(impl_item_def_id);
+                let trait_item_did = impl_item.trait_item_def_id.unwrap();
+                let item_did = impl_item.def_id;
+                let item_name = tcx.item_name(item_did);
 
                 // construct arguments for assoc_item function
                 // parameters of the trait are substituted
@@ -72,50 +73,37 @@ impl TaskEncoder for TraitImplEnc {
                 // parameters of the associated type are kept
 
                 // parameters of assoc item include already substituted arguments
-                let impl_item_params = GParams::from(impl_item_def_id);
-                let assoc_params = deps
-                    .require_dep::<GenericParamsEnc>(impl_item_params)
-                    .unwrap();
+                let item_ctx = GParams::from(item_did);
+                let item_params = deps.require_dep::<GenericParamsEnc>(item_ctx).unwrap();
 
-                let assoc_ty_decls = assoc_params.ty_decls();
-                let assoc_const_decls = assoc_params.const_decls();
+                let item_ty_decls = item_params.ty_decls();
+                let item_const_decls = item_params.const_decls();
+                let item_ty_args = item_params.ty_exprs();
+                let item_const_args = item_params.const_exprs();
 
                 // Combine substituted trait ty decls with the decls of the associated type
-                let trait_ty_decls =
-                    [&trait_ty_decls, &assoc_ty_decls[params.ty_exprs().len()..]].concat();
-                let trait_const_decls = [
-                    &trait_const_decls,
-                    &assoc_const_decls[params.const_exprs().len()..],
-                ]
-                .concat();
+                let ty_decls = [&trait_ty_decls, &item_ty_decls[ty_cnt..]].concat();
+                let const_decls = [&trait_const_decls, &item_const_decls[const_cnt..]].concat();
 
                 // Combine substituted trait params with the params of the associated type
-                let trait_tys = &[
-                    args.get_ty(),
-                    &assoc_params.ty_exprs()[params.ty_exprs().len()..],
-                ]
-                .concat();
-                let trait_consts = &[
-                    args.get_const(),
-                    &assoc_params.const_exprs()[params.const_exprs().len()..],
-                ]
-                .concat();
+                let ty_args = &[trait_ty_args, &item_ty_args[ty_cnt..]].concat();
+                let const_args = &[trait_const_args, &item_const_args[const_cnt..]].concat();
 
                 match impl_item.kind {
                     AssocKind::Type { .. } => {
-                        let assoc_type = trait_data.assoc_types.get(&trait_item_def_id).unwrap();
+                        let assoc_type = trait_data.assoc_types.get(&trait_item_did).unwrap();
 
                         // the type we want to resolve the type alias to
-                        let assoc_type_expr = assoc_params.ty_expr(
+                        let assoc_type_expr = item_params.ty_expr(
                             deps,
                             RustTyDecomposition::from_ty(
-                                tcx.type_of(impl_item_def_id).instantiate_identity(),
-                                impl_item_params,
+                                tcx.type_of(item_did).instantiate_identity(),
+                                item_ctx,
                             ),
                         );
                         axioms.push(vcx.mk_domain_axiom(
                             vir_format_identifier!(vcx, "{trait_name}_impl_{impl_ty}_{impl_idx}_assoc_type_{item_name}"),
-                            vir::expr! {forall ..[trait_ty_decls], ..[trait_const_decls] :: {[assoc_type(trait_tys, trait_consts)]} ([assoc_type(trait_tys, trait_consts)]) == (assoc_type_expr)},
+                            vir::expr! {forall ..[ty_decls], ..[const_decls] :: {[assoc_type(ty_args, const_args)]} ([assoc_type(ty_args, const_args)]) == (assoc_type_expr)},
                         ));
                     }
                     _ => {

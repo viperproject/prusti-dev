@@ -202,6 +202,14 @@ pub struct GenericParams<'vir> {
 }
 
 impl<'vir> GenericParams<'vir> {
+    pub fn ty_count(&self) -> usize {
+        self.ty_decls.len()
+    }
+
+    pub fn const_count(&self) -> usize {
+        self.const_decls.len()
+    }
+
     pub fn ty_args(&self) -> &'vir [vir::TypeTyVal<'vir>] {
         self.ty_args
     }
