@@ -91,7 +91,7 @@ impl TaskEncoder for TraitImplEnc {
 
                 match impl_item.kind {
                     AssocKind::Type { .. } => {
-                        let assoc_type = trait_data.assoc_types.get(&trait_item_did).unwrap();
+                        let assoc_type = trait_data.funs.assoc_types.get(&trait_item_did).unwrap();
 
                         // the type we want to resolve the type alias to
                         let assoc_type_expr = item_params.ty_expr(
