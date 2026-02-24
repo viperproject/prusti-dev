@@ -124,7 +124,7 @@ impl TaskEncoder for TraitEnc {
                     let trait_rust_tys = trait_ref.args.iter().filter_map(|arg| arg.as_type());
 
                     for (&ty_expr, rust_ty) in std::iter::zip(params.ty_exprs(), trait_rust_tys) {
-                        checks.push(encode_type_check(
+                        checks.extend(encode_type_check(
                             vcx,
                             deps,
                             &mut ty_map,
@@ -144,7 +144,7 @@ impl TaskEncoder for TraitEnc {
                         .filter_map(ty::Clause::as_projection_clause)
                         .map(ty::Binder::skip_binder);
 
-                    checks.push(process_projection_predicates(
+                    checks.extend(process_projection_predicates(
                         vcx,
                         deps,
                         &mut ty_map,
@@ -169,7 +169,9 @@ impl TaskEncoder for TraitEnc {
                         trait_preds,
                     ));
 
-                    trait_impl_checks.push(vcx.mk_conj(&checks));
+                    if !checks.is_empty() {
+                        trait_impl_checks.push(vcx.mk_conj(&checks));
+                    }
                 }
 
                 {
@@ -252,7 +254,7 @@ fn encode_type_check<'vir>(
     ctx: GParams<'vir>,
     expr: vir::ExprTyVal<'vir>,
     ty: ty::Ty<'vir>,
-) -> vir::ExprGenBool<'vir, (), !> {
+) -> Option<vir::ExprGenBool<'vir, (), !>> {
     let decomp = RustTyDecomposition::from_ty(ty, ctx);
 
     if decomp.ty.specifics.is_param() {
@@ -262,12 +264,12 @@ fn encode_type_check<'vir>(
         return match ty_map.entry(*arg) {
             Entry::Occupied(occ) => {
                 // Already seen this T: ensure this type matches the originally found
-                vcx.mk_eq_expr(expr, *occ.get())
+                Some(vcx.mk_eq_expr(expr, *occ.get()))
             }
             Entry::Vacant(vac) => {
                 // First time seeing T: map it to the current accessor path for future references
                 vac.insert(expr);
-                vir::expr! { vcx; true }
+                None
             }
         };
     }
@@ -285,9 +287,9 @@ fn encode_type_check<'vir>(
     for (i, inner_ty) in inner_types.enumerate() {
         let accessor = ty_enc.ty_param_accessors[i];
 
-        let inner_expr = accessor.call()(expr);
-        conjuncts.push(encode_type_check(
-            vcx, deps, ty_map, const_map, ctx, inner_expr, inner_ty,
+        let expr = accessor.call()(expr);
+        conjuncts.extend(encode_type_check(
+            vcx, deps, ty_map, const_map, ctx, expr, inner_ty,
         ));
     }
 
@@ -295,36 +297,56 @@ fn encode_type_check<'vir>(
     let consts = args.iter().filter_map(|arg| arg.as_const());
     for (i, const_) in consts.enumerate() {
         let accessor = ty_enc.const_param_accessors[i];
-        let const_expr = accessor.call()(expr);
+        let expr = accessor.call()(expr);
 
-        match const_.kind() {
-            ty::ConstKind::Param(..) => {
-                use std::collections::hash_map::Entry;
-                match const_map.entry(const_.into()) {
-                    Entry::Occupied(occ) => {
-                        // Already seen this const parameter: ensure this const expression matches the originally found
-                        conjuncts.push(vcx.mk_eq_expr(const_expr.upcast_ty(), *occ.get()));
-                    }
-                    Entry::Vacant(vac) => {
-                        // First time seeing this const parameter: map it to the current accessor path for future references
-                        vac.insert(const_expr.upcast_ty());
-                    }
-                }
-            }
-            ty::ConstKind::Value(val) => {
-                let task = ConstEncTask::Ty {
-                    const_,
-                    ty: val.ty,
-                    context: ctx,
-                };
-                let const_value = deps.require_dep::<ConstEnc>(task).unwrap();
-                conjuncts.push(vcx.mk_eq_expr(const_expr, const_value));
-            }
-            _ => unimplemented!("other kinds of const parameters not supported yet"),
-        }
+        conjuncts.extend(encode_const_check(
+            vcx,
+            deps,
+            const_map,
+            ctx,
+            expr.upcast_ty(),
+            const_,
+        ));
     }
 
-    vcx.mk_conj(&conjuncts)
+    Some(vcx.mk_conj(&conjuncts))
+}
+
+/// Encode a check that the expression `expr` is the same as the rust const `const_`.
+fn encode_const_check<'a>(
+    vcx: &'a vir::VirCtxt<'a>,
+    deps: &mut TaskEncoderDependencies<'a, TraitEnc>,
+    const_map: &mut HashMap<ty::GenericArg<'a>, vir::ExprSnap<'a>>,
+    ctx: GParams<'a>,
+    expr: vir::ExprSnap<'a>,
+    const_: ty::Const<'a>,
+) -> Option<vir::ExprGenBool<'a, (), !>> {
+    match const_.kind() {
+        ty::ConstKind::Param(..) => {
+            use std::collections::hash_map::Entry;
+            match const_map.entry(const_.into()) {
+                Entry::Occupied(occ) => {
+                    // Already seen this const parameter: ensure this const expression matches the originally found
+                    Some(vcx.mk_eq_expr(expr, *occ.get()))
+                }
+                Entry::Vacant(vac) => {
+                    // First time seeing this const parameter: map it to the current accessor path for future references
+                    vac.insert(expr);
+                    None
+                }
+            }
+        }
+        ty::ConstKind::Value(val) => {
+            let task = ConstEncTask::Ty {
+                const_,
+                ty: val.ty,
+                context: ctx,
+            };
+            let value = deps.require_dep::<ConstEnc>(task).unwrap();
+            Some(vcx.mk_eq_expr(expr, value.upcast_ty()))
+        }
+        _ => unimplemented!("other kinds of const parameters not supported yet"),
+    }
 }
 
 /// Assemble a VIR type using the map of generic parameters we have collected earlier.
@@ -415,17 +437,21 @@ fn process_projection_predicates<'a>(
     const_map: &mut FxHashMap<ty::GenericArg<'a>, vir::ExprSnap<'a>>,
     ctx: GParams<'a>,
     projections: impl Iterator<Item = ty::ProjectionPredicate<'a>>,
-) -> vir::ExprGenBool<'a, (), !> {
+) -> Option<vir::ExprGenBool<'a, (), !>> {
     let mut worklist: VecDeque<_> = projections.collect();
     let mut conjuncts = Vec::new();
     while let Some(proj) = worklist.pop_front() {
         if is_alias_ready(&proj.projection_term, ty_map, const_map) {
-            conjuncts.push(process_projection(vcx, deps, ty_map, const_map, ctx, proj));
+            conjuncts.extend(process_projection(vcx, deps, ty_map, const_map, ctx, proj));
         } else {
             worklist.push_back(proj);
         }
     }
-    vcx.mk_conj(&conjuncts)
+    if conjuncts.is_empty() {
+        None
+    } else {
+        Some(vcx.mk_conj(&conjuncts))
+    }
 }
 
 fn process_projection<'a>(
@@ -435,7 +461,7 @@ fn process_projection<'a>(
     const_map: &mut FxHashMap<ty::GenericArg<'a>, vir::ExprSnap<'a>>,
     ctx: GParams<'a>,
     projection: ty::ProjectionPredicate<'a>,
-) -> vir::ExprGenBool<'a, (), !> {
+) -> Option<vir::ExprGenBool<'a, (), !>> {
     let tcx = vcx.tcx();
     let proj_did = projection.def_id();
     let trait_did = projection.trait_def_id(tcx);
@@ -472,25 +498,9 @@ fn process_projection<'a>(
                 .assoc_consts
                 .get(&proj_did)
                 .expect("Projection did should be in the mapping");
-            let term = match const_.kind() {
-                ty::ConstKind::Param(..) => const_map
-                    .get(&const_.into())
-                    .copied()
-                    .expect("The const generic should have been bound in the map"),
-                // TODO: There could be new const generics introduced here
-                ty::ConstKind::Value(val) => {
-                    let task = ConstEncTask::Ty {
-                        const_: const_,
-                        ty: val.ty,
-                        context: ctx,
-                    };
-                    deps.require_dep::<ConstEnc>(task).unwrap().upcast_ty()
-                }
-                _ => unimplemented!("other kinds of const parameters not supported yet"),
-            };
             let projection = projection_fun(&proj_ty_args, &proj_const_args);
 
-            vir::expr! {vcx; (projection) == (term) }
+            encode_const_check(vcx, deps, const_map, ctx, projection, const_)
         }
     }
 }
