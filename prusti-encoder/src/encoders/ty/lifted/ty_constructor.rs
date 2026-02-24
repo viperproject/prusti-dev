@@ -200,7 +200,7 @@ impl TaskEncoder for TyConstructorEnc {
             );
             let sized_impl_unknown_fun_idn: FunctionIdn<'vir, vir::Int, vir::Bool> =
                 FunctionIdn::new(
-                    vir::vir_format_identifier!(vcx, "Sized_impl_unknown"),
+                    vir::vir_format_identifier!(vcx, "Sized_unknown_impl"),
                     vir::TYPE_INT,
                     vir::TYPE_BOOL,
                 );
