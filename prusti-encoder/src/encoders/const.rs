@@ -52,7 +52,7 @@ impl ConstEnc {
         ty: ty::Ty<'vir>,
         context: GParams<'vir>,
     ) -> Result<vir::ExprCSnap<'vir>, EncodeFullError<'vir, Self>> {
-        match dbg!(const_.kind()) {
+        match const_.kind() {
             ty::ConstKind::Param(param) => {
                 let params = deps.require_dep::<GenericParamsEnc>(context)?;
                 Ok(params.const_expr(param))
