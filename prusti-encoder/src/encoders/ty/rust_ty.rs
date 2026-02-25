@@ -304,7 +304,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             params,
             sizedness: sizedness_for_ty(vir::with_vcx(|vcx| vcx.tcx()), erased_ty),
         };
-        let specifics = TySpecifics::from_ty(ty);
+        let specifics = TySpecifics::from_ty(erased_ty);
         let maybe_inhabited =
             vir::with_vcx(|vcx| !ty.is_privately_uninhabited(vcx.tcx(), context.typing_env()));
         RustTyDecomposition {
@@ -390,15 +390,15 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         let tcx = vir::with_vcx(|vcx| vcx.tcx());
         let (new_ty, params, args) = match *ty.kind() {
             _ if ty.is_primitive() => return Self::identity_for_prim_ty(ty),
-            ty::TyKind::Adt(adt, args) => (
-                tcx.type_of(adt.did()).instantiate_identity(),
-                GParams::from(adt.did()),
-                args,
-            ),
+            ty::TyKind::Adt(adt, args) => {
+                let params = GParams::from(adt.did());
+                let new_ty = ty::Ty::new_adt(tcx, adt, params.rust_params());
+                (new_ty, params, args)
+            }
             ty::TyKind::Tuple(tys) => {
                 let gtys = (0..tys.len()).map(|idx| TySpecifics::new_param_ty(idx as u32));
                 (
-                    ty::Ty::new_tup(tcx, &gtys.clone().collect_vec()),
+                    ty::Ty::new_tup_from_iter(tcx, gtys.clone()),
                     GParams::empty_env(Self::args_from_tys(gtys)),
                     Self::args_from_tys(tys),
                 )
@@ -408,10 +408,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
                 let gty = TySpecifics::new_param_ty(1);
                 let gargs = Self::args_from_generics([gcst.into(), gty.into()]);
                 let predicate = tcx.mk_predicate(ty::Binder::dummy(ty::PredicateKind::Clause(
-                    ty::ClauseKind::ConstArgHasType(
-                        ty::GenericArg::from(gcst).expect_const(),
-                        tcx.types.usize,
-                    ),
+                    ty::ClauseKind::ConstArgHasType(gcst, tcx.types.usize),
                 )));
                 let param_env = ty::ParamEnv::new(tcx.mk_clauses(&[predicate.expect_clause()]));
                 (
@@ -422,42 +419,31 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             }
             ty::TyKind::Slice(ty) => {
                 let gty = TySpecifics::new_param_ty(0);
-                let gargs = Self::args_from_tys([gty]);
-                (
-                    ty::Ty::new_slice(tcx, gty),
-                    GParams::empty_env(gargs),
-                    Self::args_from_tys([ty]),
-                )
+                let params = GParams::empty_env(Self::args_from_tys([gty]));
+                let new_ty = ty::Ty::new_slice(tcx, gty);
+                (new_ty, params, Self::args_from_tys([ty]))
             }
-
             ty::TyKind::RawPtr(ty, mutbl) => {
                 let gty = TySpecifics::new_param_ty(0);
-                let gargs = Self::args_from_tys([gty]);
-                (
-                    ty::Ty::new_ptr(tcx, gty, mutbl),
-                    GParams::empty_env(gargs),
-                    Self::args_from_tys([ty]),
-                )
+                let params = GParams::empty_env(Self::args_from_tys([gty]));
+                let new_ty = ty::Ty::new_ptr(tcx, gty, mutbl);
+                (new_ty, params, Self::args_from_tys([ty]))
             }
-            ty::TyKind::Ref(_, ty, mutbl) => {
-                let region = tcx.lifetimes.re_erased;
+            ty::TyKind::Ref(region, ty, mutbl) => {
+                // TODO: what lifetime should we use here?
+                let param_region = tcx.lifetimes.re_erased;
                 let gty = TySpecifics::new_param_ty(1);
-                let gargs = Self::args_from_generics([region.into(), gty.into()]);
                 (
-                    ty::Ty::new_ref(tcx, region, gty, mutbl),
-                    GParams::empty_env(gargs),
+                    ty::Ty::new_ref(tcx, param_region, gty, mutbl),
+                    GParams::empty_env(Self::args_from_generics([param_region.into(), gty.into()])),
                     Self::args_from_generics([region.into(), ty.into()]),
                 )
             }
-            ty::TyKind::Alias(_, _) => {
+            ty::TyKind::Alias(_, _) | ty::TyKind::Param(_) => {
                 let gty = TySpecifics::new_param_ty(0);
                 let gargs = Self::args_from_tys([gty]);
-                // TOOD: What should the erased ty be?
-                (ty, GParams::empty_env(gargs), Self::args_from_tys([ty]))
-            }
-            ty::TyKind::Param(_) => {
-                let gty = TySpecifics::new_param_ty(0);
-                let gargs = Self::args_from_tys([gty]);
+                // Note: an `Alias` is turned into a `Param` here with the alias
+                // itself as the type argument.
                 (gty, GParams::empty_env(gargs), Self::args_from_tys([ty]))
             }
             ty::TyKind::Closure(did, args) => {
@@ -512,29 +498,25 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
                 let fields = args
                     .iter()
                     .enumerate()
-                    .map(|(i, _)| RustFieldData {
+                    .map(|(i, inner)| RustFieldData {
                         name: symbol::Symbol::intern(&format!("_{i}")),
                         fid: abi::FieldIdx::from_usize(i),
-                        ty: LazyRustTy(Self::new_param_ty(i as u32)),
+                        ty: LazyRustTy(inner),
                     })
                     .collect::<Vec<_>>();
                 TySpecifics::mk_structlike((), fields)
             }
-            ty::TyKind::Array(_, _) => TySpecifics::ArrayLike(ArrayData {
+            ty::TyKind::Array(inner, _) => TySpecifics::ArrayLike(ArrayData {
                 slice: false,
-                data: LazyRustTy(Self::new_param_ty(1)),
+                data: LazyRustTy(*inner),
             }),
-            ty::TyKind::Slice(_) => TySpecifics::ArrayLike(ArrayData {
+            ty::TyKind::Slice(inner) => TySpecifics::ArrayLike(ArrayData {
                 slice: true,
-                data: LazyRustTy(Self::new_param_ty(0)),
+                data: LazyRustTy(*inner),
             }),
-            ty::TyKind::Ref(_, _, mutability) => match mutability {
-                ty::Mutability::Mut => {
-                    TySpecifics::mk_mutref(LazyRustTy(TySpecifics::new_param_ty(1)))
-                }
-                ty::Mutability::Not => {
-                    TySpecifics::mk_immref(LazyRustTy(TySpecifics::new_param_ty(1)))
-                }
+            ty::TyKind::Ref(_, inner, mutability) => match mutability {
+                ty::Mutability::Mut => TySpecifics::mk_mutref(LazyRustTy(*inner)),
+                ty::Mutability::Not => TySpecifics::mk_immref(LazyRustTy(*inner)),
             },
             // TODO: add raw pointer support
             ty::TyKind::RawPtr(..) => TySpecifics::mk_opaque(()),
@@ -587,14 +569,8 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
             }
         } else {
             match adt.adt_kind() {
-                ty::AdtKind::Struct => {
-                    let data = Self::from_struct(adt.non_enum_variant());
-                    Self::StructLike(data)
-                }
-                ty::AdtKind::Enum => {
-                    let data = Self::from_enum(adt);
-                    Self::EnumLike(data)
-                }
+                ty::AdtKind::Struct => Self::StructLike(Self::from_struct(adt.non_enum_variant())),
+                ty::AdtKind::Enum => Self::EnumLike(Self::from_enum(adt)),
                 ty::AdtKind::Union => {
                     // TODO: add union support
                     Self::mk_opaque(())
@@ -680,10 +656,7 @@ pub enum Sizedness<'tcx> {
 }
 
 impl<'tcx> Sizedness<'tcx> {
-    fn map<F>(self, f: F) -> Self
-    where
-        F: FnOnce(ty::Ty<'tcx>) -> ty::Ty<'tcx>,
-    {
+    fn map(self, f: impl FnOnce(ty::Ty<'tcx>) -> ty::Ty<'tcx>) -> Self {
         match self {
             Sizedness::Sized => Sizedness::Sized,
             Sizedness::Unsized => Sizedness::Unsized,
