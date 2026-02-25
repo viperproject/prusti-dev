@@ -2,7 +2,10 @@ use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder};
 use vir::{CallableIdn, CastType, FunctionIdn, HasType};
 
-use crate::encoders::ty::{RustTy, Sizedness, generics::GenericParamsEnc};
+use crate::encoders::ty::{
+    RustTy, Sizedness,
+    generics::{GArgs, GArgsTyEnc, GenericParamsEnc, traits::TraitEnc},
+};
 
 use super::r#typeof::{TypeOfEnc, TypeOfEncOutputRef};
 
@@ -134,7 +137,7 @@ impl TaskEncoder for TyConstructorEnc {
                 vcx.mk_adt_constructor(type_function_ident.name().to_str(), vcx.alloc_slice(&args));
             let sized_check = {
                 // Use a local expression named "Self" to build the function body
-                let self_decl = vcx.mk_local_decl("Self", vir::TYPE_TYVAL);
+                let self_decl = vcx.mk_local_decl("Self$0", vir::TYPE_TYVAL);
                 let self_expr = vcx.mk_local_ex(self_decl);
                 let is_this_type =
                     vcx.mk_adt_discriminator_expr(self_expr, type_function_ident.name().to_str());
@@ -155,8 +158,37 @@ impl TaskEncoder for TyConstructorEnc {
                                 vir::expr! { vcx; (is_this_type) && ([sized_impl_fun_idn](param_ty)) },
                             )
                         }
-                        ty::TyKind::Alias(..) => todo!(),
-                        _ => panic!("Dependent sizedness only supported for params and aliases"),
+                        ty::TyKind::Alias(ty::AliasTyKind::Projection, alias_ty) => {
+                            let alias_did = alias_ty.def_id;
+                            let trait_def = alias_ty.trait_def_id(vcx.tcx());
+                            let trait_ = deps.require_ref::<TraitEnc>(trait_def)?;
+                            let projection_fun = trait_.funs.assoc_types[&alias_did];
+                            let args = deps.require_dep::<GArgsTyEnc>(GArgs::new(
+                                task_key.params,
+                                alias_ty.args,
+                            ))?;
+                            let inner_expr = vir::expr! { vcx;
+                                (is_this_type) && ([sized_impl_fun_idn](
+                                    [projection_fun]([..[args.get_ty()]], [..[args.get_const()]])
+                                ))
+                            };
+                            let with_consts_bound = params.const_decls().iter().enumerate().rfold(
+                                inner_expr,
+                                |expr, (i, decl)| {
+                                    let accessor = const_accessor_functions[i];
+                                    vcx.mk_let_expr(decl, accessor.call()(self_expr), expr)
+                                },
+                            );
+                            let with_tys_bound = params.ty_decls().iter().enumerate().rfold(
+                                with_consts_bound,
+                                |expr, (i, decl)| {
+                                    let accessor = ty_accessor_functions[i];
+                                    vcx.mk_let_expr(decl, accessor.call()(self_expr), expr)
+                                },
+                            );
+                            Some(with_tys_bound)
+                        }
+                        _ => panic!("Unsupported dependent sizedness for {ty:?}"),
                     },
                 }
             };
@@ -201,7 +233,7 @@ impl TaskEncoder for TyConstructorEnc {
                     vir::TYPE_BOOL,
                 );
 
-            let self_decl = vcx.mk_local_decl("Self", vir::TYPE_TYVAL);
+            let self_decl = vcx.mk_local_decl("Self$0", vir::TYPE_TYVAL);
             let unknown_type_check = {
                 let self_expr = vcx.mk_local_ex(self_decl);
                 let is_unknown_type = vcx.mk_adt_discriminator_expr(self_expr, "Unknown_type");

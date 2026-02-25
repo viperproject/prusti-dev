@@ -658,9 +658,8 @@ pub enum Sizedness<'tcx> {
 impl<'tcx> Sizedness<'tcx> {
     fn map(self, f: impl FnOnce(ty::Ty<'tcx>) -> ty::Ty<'tcx>) -> Self {
         match self {
-            Sizedness::Sized => Sizedness::Sized,
-            Sizedness::Unsized => Sizedness::Unsized,
             Sizedness::Dependent(param) => Sizedness::Dependent(f(param)),
+            sizedness => sizedness,
         }
     }
 }
