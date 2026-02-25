@@ -1,3 +1,4 @@
+use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder};
 use vir::{CallableIdn, CastType, FunctionIdn, HasType};
 
@@ -51,7 +52,7 @@ impl<'vir> OutputRefAny for TyConstructorEncOutputRef<'vir> {}
 #[derive(Debug, Clone)]
 pub struct TyConstructorEncOutput<'vir> {
     constructor: vir::AdtConstructor<'vir>,
-    sized_check: vir::ExprBool<'vir>,
+    sized_check: Option<vir::ExprBool<'vir>>,
 }
 
 /// Encodes the lifted representation of a Rust type constructor (e.g. Option,
@@ -144,25 +145,19 @@ impl TaskEncoder for TyConstructorEnc {
                     vir::TYPE_BOOL,
                 );
                 match task_key.sizedness {
-                    Sizedness::Sized => is_this_type,
-                    Sizedness::Unsized => vir::expr! {vcx; false },
-                    Sizedness::ParamDependent(idx) => {
-                        let destructor = vcx.mk_adt_destructor(
-                            vir::vir_format!(
-                                vcx,
-                                "s_{base_name}_typaram_{}",
-                                params.ty_decls()[idx as usize].name
-                            ),
-                            vir::TYPE_TYVAL,
-                            vir::TYPE_TYVAL,
-                        );
-                        let param_ty = destructor.call()(self_expr);
-                        vir::expr! { vcx; (is_this_type) && ([sized_impl_fun_idn](param_ty)) }
-                    }
-                    Sizedness::Unknown => unimplemented!(
-                        "Handle unknown sizedness for type constructor {}",
-                        task_key.name()
-                    ),
+                    Sizedness::Sized => Some(is_this_type),
+                    Sizedness::Unsized => None,
+                    Sizedness::Dependent(ty) => match ty.kind() {
+                        ty::TyKind::Param(param) => {
+                            let accessor = ty_accessor_functions[param.index as usize];
+                            let param_ty = accessor.call()(self_expr);
+                            Some(
+                                vir::expr! { vcx; (is_this_type) && ([sized_impl_fun_idn](param_ty)) },
+                            )
+                        }
+                        ty::TyKind::Alias(..) => todo!(),
+                        _ => panic!("Dependent sizedness only supported for params and aliases"),
+                    },
                 }
             };
             Ok((
@@ -176,11 +171,12 @@ impl TaskEncoder for TyConstructorEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let (mut constructors, mut sized_checks): (Vec<_>, Vec<_>) =
+        let (mut constructors, sized_checks): (Vec<_>, Vec<_>) =
             Self::all_outputs_local_no_errors()
                 .into_iter()
                 .map(|out| (out.constructor, out.sized_check))
                 .unzip();
+        let mut sized_checks = sized_checks.into_iter().flatten().collect::<Vec<_>>();
         vir::with_vcx(|vcx| {
             let args = vcx.alloc_array(&[vcx.mk_local_decl("non_unit", vir::TYPE_INT)]);
             let unknown = vcx.mk_adt_constructor("Unknown_type", args);

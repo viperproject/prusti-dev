@@ -244,7 +244,7 @@ pub type RustBuiltin<'tcx> = <RustTyDatas as TyDatas<'tcx>>::BuiltinData;
 pub struct RustTyData<'tcx> {
     pub name: symbol::Symbol,
     pub params: GParams<'tcx>,
-    pub sizedness: Sizedness,
+    pub sizedness: Sizedness<'tcx>,
 }
 
 impl<'tcx> RustTyData<'tcx> {
@@ -297,12 +297,12 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         let ty = context.normalize(ty);
 
         let name = Self::ty_name(ty);
-        let (params, args) = Self::identity_for_ty(ty, context.is_trait_extern_spec());
+        let (erased_ty, params, args) = Self::identity_for_ty(ty, context.is_trait_extern_spec());
         let args = GArgs::new(context, args);
         let data = RustTyData {
             name: symbol::Symbol::intern(&name),
             params,
-            sizedness: CanonicalTy::from_ty(ty).sizedness(),
+            sizedness: sizedness_for_ty(vir::with_vcx(|vcx| vcx.tcx()), erased_ty),
         };
         let specifics = TySpecifics::from_ty(ty);
         let maybe_inhabited =
@@ -316,7 +316,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
 
     fn from_prim_ty(ty: ty::Ty<'tcx>) -> RustTyDecomposition<'tcx> {
         let name = Self::prim_ty_name(ty);
-        let (params, args) = Self::identity_for_prim_ty(ty);
+        let (_, params, args) = Self::identity_for_prim_ty(ty);
         let args = GArgs::new(params, args);
         let data = RustTyData {
             name: symbol::Symbol::intern(&name),
@@ -382,79 +382,108 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
 
     /// For the ty `MyStruct<i32>` (with defn
     /// `struct MyStruct<T: Iterator<Item = i32>> { ... }`), returns
-    /// `([<T: Iterator<Item = i32>>], [i32])`.
+    /// `(MyStruct<T>, [<T: Iterator<Item = i32>>], [i32])`.
     pub(super) fn identity_for_ty(
         ty: ty::Ty<'tcx>,
         is_trait_extern_spec: bool,
-    ) -> (GParams<'tcx>, ty::GenericArgsRef<'tcx>) {
-        let (params, args) = match *ty.kind() {
+    ) -> (ty::Ty<'tcx>, GParams<'tcx>, ty::GenericArgsRef<'tcx>) {
+        let tcx = vir::with_vcx(|vcx| vcx.tcx());
+        let (new_ty, params, args) = match *ty.kind() {
             _ if ty.is_primitive() => return Self::identity_for_prim_ty(ty),
-            ty::TyKind::Adt(adt, args) => (GParams::from(adt.did()), args),
+            ty::TyKind::Adt(adt, args) => (
+                tcx.type_of(adt.did()).instantiate_identity(),
+                GParams::from(adt.did()),
+                args,
+            ),
             ty::TyKind::Tuple(tys) => {
                 let gtys = (0..tys.len()).map(|idx| TySpecifics::new_param_ty(idx as u32));
                 (
+                    ty::Ty::new_tup(tcx, &gtys.clone().collect_vec()),
                     GParams::empty_env(Self::args_from_tys(gtys)),
                     Self::args_from_tys(tys),
                 )
             }
-            ty::TyKind::Array(ty, cst) => vir::with_vcx(|vcx| {
-                let gcst = TySpecifics::new_param_const(0).into();
-                let gty = TySpecifics::new_param_ty(1).into();
-                let gparams = Self::args_from_generics([gcst, gty]);
-                let predicate =
-                    vcx.tcx()
-                        .mk_predicate(ty::Binder::dummy(ty::PredicateKind::Clause(
-                            ty::ClauseKind::ConstArgHasType(
-                                gcst.expect_const(),
-                                vcx.tcx().types.usize,
-                            ),
-                        )));
-                let param_env =
-                    ty::ParamEnv::new(vcx.tcx().mk_clauses(&[predicate.expect_clause()]));
+            ty::TyKind::Array(ty, cst) => {
+                let gcst = TySpecifics::new_param_const(0);
+                let gty = TySpecifics::new_param_ty(1);
+                let gargs = Self::args_from_generics([gcst.into(), gty.into()]);
+                let predicate = tcx.mk_predicate(ty::Binder::dummy(ty::PredicateKind::Clause(
+                    ty::ClauseKind::ConstArgHasType(
+                        ty::GenericArg::from(gcst).expect_const(),
+                        tcx.types.usize,
+                    ),
+                )));
+                let param_env = ty::ParamEnv::new(tcx.mk_clauses(&[predicate.expect_clause()]));
                 (
-                    GParams::new(gparams, param_env, false),
+                    ty::Ty::new_array_with_const_len(tcx, gty, gcst),
+                    GParams::new(gargs, param_env, false),
                     Self::args_from_generics([cst.into(), ty.into()]),
                 )
-            }),
-            ty::TyKind::Slice(ty) | ty::TyKind::RawPtr(ty, _) => {
-                let gty = Self::args_from_tys([TySpecifics::new_param_ty(0)]);
-                (GParams::empty_env(gty), Self::args_from_tys([ty]))
             }
-            ty::TyKind::Ref(region, ty, _) => {
-                // TODO: what lifetime should we use here?
-                let param_region = vir::with_vcx(|vcx| vcx.tcx().lifetimes.re_erased.into());
-                let param_ty = TySpecifics::new_param_ty(1).into();
-                let gty = Self::args_from_generics([param_region, param_ty]);
+            ty::TyKind::Slice(ty) => {
+                let gty = TySpecifics::new_param_ty(0);
+                let gargs = Self::args_from_tys([gty]);
                 (
-                    GParams::empty_env(gty),
+                    ty::Ty::new_slice(tcx, gty),
+                    GParams::empty_env(gargs),
+                    Self::args_from_tys([ty]),
+                )
+            }
+
+            ty::TyKind::RawPtr(ty, mutbl) => {
+                let gty = TySpecifics::new_param_ty(0);
+                let gargs = Self::args_from_tys([gty]);
+                (
+                    ty::Ty::new_ptr(tcx, gty, mutbl),
+                    GParams::empty_env(gargs),
+                    Self::args_from_tys([ty]),
+                )
+            }
+            ty::TyKind::Ref(_, ty, mutbl) => {
+                let region = tcx.lifetimes.re_erased;
+                let gty = TySpecifics::new_param_ty(1);
+                let gargs = Self::args_from_generics([region.into(), gty.into()]);
+                (
+                    ty::Ty::new_ref(tcx, region, gty, mutbl),
+                    GParams::empty_env(gargs),
                     Self::args_from_generics([region.into(), ty.into()]),
                 )
             }
-            ty::TyKind::Alias(..) | ty::TyKind::Param(_) => {
-                let gty = Self::args_from_tys([TySpecifics::new_param_ty(0)]);
-                (GParams::empty_env(gty), Self::args_from_tys([ty]))
+            ty::TyKind::Alias(_, _) => {
+                let gty = TySpecifics::new_param_ty(0);
+                let gargs = Self::args_from_tys([gty]);
+                // TOOD: What should the erased ty be?
+                (ty, GParams::empty_env(gargs), Self::args_from_tys([ty]))
             }
-            ty::TyKind::Closure(did, args) => vir::with_vcx(|vcx| {
-                let identity = ty::List::identity_for_item(vcx.tcx(), did);
-                let gargs = vcx.tcx().mk_args(identity.as_closure().parent_args());
-                let args = vcx.tcx().mk_args(args.as_closure().parent_args());
+            ty::TyKind::Param(_) => {
+                let gty = TySpecifics::new_param_ty(0);
+                let gargs = Self::args_from_tys([gty]);
+                (gty, GParams::empty_env(gargs), Self::args_from_tys([ty]))
+            }
+            ty::TyKind::Closure(did, args) => {
+                let identity = ty::List::identity_for_item(tcx, did);
+                let gargs = tcx.mk_args(identity.as_closure().parent_args());
+                let args = tcx.mk_args(args.as_closure().parent_args());
                 (
-                    GParams::new(gargs, vcx.tcx().param_env(did), is_trait_extern_spec),
+                    ty::Ty::new_closure(tcx, did, identity),
+                    GParams::new(gargs, tcx.param_env(did), is_trait_extern_spec),
                     args,
                 )
-            }),
+            }
             ty::TyKind::Never | ty::TyKind::Str | ty::TyKind::FnPtr(..) => {
-                (GParams::empty(), ty::GenericArgs::empty())
+                (ty, GParams::empty(), ty::GenericArgs::empty())
             }
             _ => todo!("instantiate_identity_for_type for {:?}", ty),
         };
         params.check(args);
-        (params, args)
+        (new_ty, params, args)
     }
 
-    fn identity_for_prim_ty(ty: ty::Ty<'tcx>) -> (GParams<'tcx>, ty::GenericArgsRef<'tcx>) {
+    fn identity_for_prim_ty(
+        ty: ty::Ty<'tcx>,
+    ) -> (ty::Ty<'tcx>, GParams<'tcx>, ty::GenericArgsRef<'tcx>) {
         assert!(ty.is_primitive());
-        (GParams::empty(), ty::GenericArgs::empty())
+        (ty, GParams::empty(), ty::GenericArgs::empty())
     }
 
     fn args_from_tys(tys: impl IntoIterator<Item = ty::Ty<'tcx>>) -> ty::GenericArgsRef<'tcx> {
@@ -641,120 +670,78 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-pub enum Sizedness {
+pub enum Sizedness<'tcx> {
     /// A type is definitely `Sized`
     Sized,
     /// A type is definitely not `Sized`
     Unsized,
-    /// The sizedness of the type depends on the sizedness of the n-th generic parameter the type
-    /// defines
-    ParamDependent(u32),
-    Unknown,
+    /// The sizedness of the type depends on the sizedness some other type contained within
+    Dependent(ty::Ty<'tcx>),
 }
 
-/// A canonicalized version of a type representing its structural identity.
-///
-/// This erases all monomorphization information and external context.
-///
-/// ### Examples:
-/// * **Tuples**: `(U/#2, i32, V/#3)` becomes `(T/#0, T/#1, T/#2)`
-/// * **ADTs**: `Box<i32>` and `Box<MyStruct<u64>>` both become `Box<T/#0>`
-/// * **Arrays**: `[u8; 32]` and `[bool; 64]` both become `[T/#0; 0]`
-/// * **Pointers**: `&'a mut i32` becomes `&erased mut T/#0`
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-struct CanonicalTy<'tcx>(ty::Ty<'tcx>);
-
-impl<'tcx> Deref for CanonicalTy<'tcx> {
-    type Target = ty::Ty<'tcx>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
+impl<'tcx> Sizedness<'tcx> {
+    fn map<F>(self, f: F) -> Self
+    where
+        F: FnOnce(ty::Ty<'tcx>) -> ty::Ty<'tcx>,
+    {
+        match self {
+            Sizedness::Sized => Sizedness::Sized,
+            Sizedness::Unsized => Sizedness::Unsized,
+            Sizedness::Dependent(param) => Sizedness::Dependent(f(param)),
+        }
     }
 }
 
-impl<'tcx> CanonicalTy<'tcx> {
-    fn from_ty(ty: ty::Ty<'tcx>) -> Self {
-        let tcx = vir::with_vcx(|vcx| vcx.tcx());
-        let default_param = ty::Ty::new_param(tcx, 0, symbol::Symbol::intern("T"));
-        Self(match ty.kind() {
-            ty::Adt(adt_def, _) => tcx.type_of(adt_def.did()).instantiate_identity(),
-
-            ty::Ref(_, _, mutbl) => {
-                ty::Ty::new_ref(tcx, tcx.lifetimes.re_erased, default_param, *mutbl)
-            }
-            ty::RawPtr(_, mutbl) => ty::Ty::new_ptr(tcx, default_param, *mutbl),
-
-            ty::Param(_) | ty::Alias(..) => default_param,
-
-            ty::Slice(_) => ty::Ty::new_slice(tcx, default_param),
-
-            ty::Array(_, _) => ty::Ty::new_array(tcx, default_param, 0_u64),
-
-            ty::Tuple(tys) => {
-                let generic_tys: Vec<_> = (0..tys.len())
-                    .map(|i| ty::Ty::new_param(tcx, i as u32, symbol::Symbol::intern("T")))
-                    .collect();
-                ty::Ty::new_tup(tcx, &generic_tys)
-            }
-
-            _ => ty,
-        })
-    }
-
-    fn sizedness(&self) -> Sizedness {
-        check_sizedness(vir::with_vcx(|vcx| vcx.tcx()), self.0)
-    }
-}
-
-/// Computes whether a type is Sized.
-///
-/// For generic definitions, the result may indicate that sizedness depends on
-/// the instantiation of a specific type parameter. For example,
-/// `struct MyStruct<T: ?Sized>(T)` is `Sized` only if `T` is `Sized`.
-fn check_sizedness<'tcx>(tcx: ty::TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> Sizedness {
+/// Modified version of `https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ty_utils/ty/fn.sizedness_constraint_for_ty.html`
+fn sizedness_for_ty<'tcx>(tcx: ty::TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> Sizedness<'tcx> {
     match ty.kind() {
-        ty::Infer(ty::IntVar(_) | ty::FloatVar(_))
-        | ty::Uint(_)
-        | ty::Int(_)
-        | ty::Bool
-        | ty::Float(_)
+        // Always `Sized`
+        ty::Bool
+        | ty::Char
+        | ty::Int(..)
+        | ty::Uint(..)
+        | ty::Float(..)
+        | ty::RawPtr(..)
+        | ty::Ref(..)
         | ty::FnDef(..)
         | ty::FnPtr(..)
-        | ty::UnsafeBinder(_)
-        | ty::RawPtr(..)
-        | ty::Char
-        | ty::Ref(..)
-        | ty::Coroutine(..)
-        | ty::CoroutineWitness(..)
         | ty::Array(..)
-        | ty::Pat(..)
         | ty::Closure(..)
         | ty::CoroutineClosure(..)
-        | ty::Never
-        | ty::Error(_) => Sizedness::Sized,
+        | ty::Coroutine(..)
+        | ty::CoroutineWitness(..)
+        | ty::Never => Sizedness::Sized,
 
-        ty::Str | ty::Slice(_) | ty::Dynamic(..) => Sizedness::Unsized,
+        ty::Str | ty::Slice(..) | ty::Dynamic(..) => Sizedness::Unsized,
 
-        ty::Alias(..) | ty::Placeholder(..) | ty::Bound(..) | ty::Infer(..) | ty::Foreign(..) => {
-            Sizedness::Unknown
-        }
+        // Maybe `Sized`
+        ty::Param(..) | ty::Alias(..) | ty::Error(_) => Sizedness::Dependent(ty),
 
-        ty::Param(param) => Sizedness::ParamDependent(param.index),
+        // We cannot instantiate the binder, so just return the *original* type back,
+        // but only if the inner type has a sized constraint. Thus we skip the binder,
+        // but don't actually use the result from `sizedness_for_ty`.
+        ty::UnsafeBinder(inner_ty) => sizedness_for_ty(tcx, inner_ty.skip_binder()).map(|_| ty),
 
-        ty::Tuple(tys) => {
-            // Check last tuple field for sizedness if any
-            tys.last()
-                .map_or(Sizedness::Sized, |last| check_sizedness(tcx, *last))
-        }
+        // Never `Sized`
+        ty::Foreign(..) => Sizedness::Unsized,
 
-        ty::Adt(adt, args) => {
-            let sized_constraint = adt.sizedness_constraint(tcx, ty::SizedTraitKind::Sized);
-            match sized_constraint {
-                None => Sizedness::Sized,
-                Some(cons) => {
-                    let substituted_ty = cons.instantiate(tcx, args);
-                    check_sizedness(tcx, substituted_ty)
-                }
-            }
+        // Recursive cases
+        ty::Pat(ty, _) => sizedness_for_ty(tcx, *ty),
+
+        // Empty tuple always `Sized`, otherwise sizedness depends on last field
+        ty::Tuple(tys) => tys
+            .last()
+            .map_or(Sizedness::Sized, |last| sizedness_for_ty(tcx, *last)),
+
+        ty::Adt(adt, args) => adt
+            .sizedness_constraint(tcx, ty::SizedTraitKind::Sized)
+            .map_or(Sizedness::Sized, |intermediate| {
+                let ty = intermediate.instantiate(tcx, args);
+                sizedness_for_ty(tcx, ty)
+            }),
+
+        ty::Placeholder(..) | ty::Bound(..) | ty::Infer(..) => {
+            panic!("unexpected type `{ty:?}` in `sizedness_for_ty`")
         }
     }
 }
