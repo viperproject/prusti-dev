@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
 use prusti_rustc_interface::{middle::ty::AssocKind, span::def_id::DefId};
+use rustc_hash::FxHashMap;
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{FunctionIdn, vir_format_identifier};
 
@@ -11,7 +10,7 @@ pub struct TraitEnc;
 #[derive(Debug, Clone)]
 pub struct TraitData<'vir> {
     pub trait_name: &'vir str,
-    pub type_did_fun_mapping: HashMap<DefId, FunctionIdn<'vir, vir::ManyTyVal, vir::TyVal>>,
+    pub type_did_fun_mapping: FxHashMap<DefId, FunctionIdn<'vir, vir::ManyTyVal, vir::TyVal>>,
     pub impl_fun: FunctionIdn<'vir, vir::ManyTyVal, vir::Bool>,
 }
 
@@ -64,7 +63,7 @@ impl TaskEncoder for TraitEnc {
                         ),
                     )
                 })
-                .collect::<HashMap<DefId, FunctionIdn<'vir, vir::ManyTyVal, vir::TyVal>>>();
+                .collect::<FxHashMap<_, _>>();
             let mut funcs = type_did_fun_mapping
                 .values()
                 .map(|function_idn| vcx.mk_domain_function(*function_idn, false, None))
