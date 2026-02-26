@@ -54,6 +54,8 @@ impl<'vir> TyConstructorEncOutputRef<'vir> {
 
 impl<'vir> OutputRefAny for TyConstructorEncOutputRef<'vir> {}
 
+pub type TyConstructorEncOutput<'vir> = vir::AdtConstructor<'vir>;
+
 /// Encodes the lifted representation of a Rust type constructor (e.g. Option,
 /// Vec, user-defined ADTs).
 pub struct TyConstructorEnc;
@@ -64,7 +66,7 @@ impl TaskEncoder for TyConstructorEnc {
 
     type OutputRef<'vir> = TyConstructorEncOutputRef<'vir>;
 
-    type OutputFullLocal<'vir> = vir::AdtConstructor<'vir>;
+    type OutputFullLocal<'vir> = TyConstructorEncOutput<'vir>;
 
     type EncodingError = ();
 
