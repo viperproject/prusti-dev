@@ -3,6 +3,7 @@ mod params;
 mod casters;
 mod args_ty;
 mod args;
+pub mod sized_trait;
 pub mod traits;
 pub mod trait_impls;
 

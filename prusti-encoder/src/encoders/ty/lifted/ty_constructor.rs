@@ -1,10 +1,12 @@
-use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder};
 use vir::{CallableIdn, CastType, FunctionIdn, HasType};
 
 use crate::encoders::ty::{
-    RustTy, Sizedness,
-    generics::{GArgs, GArgsTyEnc, GenericParamsEnc, traits::TraitEnc},
+    RustTy,
+    generics::{
+        GenericParamsEnc,
+        sized_trait::{SizedTraitEnc, SizedTraitEncTask},
+    },
 };
 
 use super::r#typeof::{TypeOfEnc, TypeOfEncOutputRef};
@@ -52,12 +54,6 @@ impl<'vir> TyConstructorEncOutputRef<'vir> {
 
 impl<'vir> OutputRefAny for TyConstructorEncOutputRef<'vir> {}
 
-#[derive(Debug, Clone)]
-pub struct TyConstructorEncOutput<'vir> {
-    constructor: vir::AdtConstructor<'vir>,
-    sized_check: Option<vir::ExprBool<'vir>>,
-}
-
 /// Encodes the lifted representation of a Rust type constructor (e.g. Option,
 /// Vec, user-defined ADTs).
 pub struct TyConstructorEnc;
@@ -68,7 +64,7 @@ impl TaskEncoder for TyConstructorEnc {
 
     type OutputRef<'vir> = TyConstructorEncOutputRef<'vir>;
 
-    type OutputFullLocal<'vir> = TyConstructorEncOutput<'vir>;
+    type OutputFullLocal<'vir> = vir::AdtConstructor<'vir>;
 
     type EncodingError = ();
 
@@ -101,6 +97,8 @@ impl TaskEncoder for TyConstructorEnc {
                     )
                 })
                 .collect::<Vec<_>>();
+
+            let ty_accessor_functions = vcx.alloc_slice(&ty_accessor_functions);
             let const_accessor_functions = params
                 .const_decls()
                 .iter()
@@ -112,6 +110,7 @@ impl TaskEncoder for TyConstructorEnc {
                     )
                 })
                 .collect::<Vec<_>>();
+            let const_accessor_functions = vcx.alloc_slice(&const_accessor_functions);
 
             let typeof_data = deps.require_ref::<TypeOfEnc>(*task_key)?;
             deps.emit_output_ref(
@@ -119,8 +118,8 @@ impl TaskEncoder for TyConstructorEnc {
                 TyConstructorEncOutputRef {
                     typeof_data,
                     ty_constructor: type_function_ident,
-                    ty_param_accessors: vcx.alloc_slice(&ty_accessor_functions),
-                    const_param_accessors: vcx.alloc_slice(&const_accessor_functions),
+                    ty_param_accessors: ty_accessor_functions,
+                    const_param_accessors: const_accessor_functions,
                 },
             )?;
 
@@ -135,137 +134,48 @@ impl TaskEncoder for TyConstructorEnc {
                 .collect::<Vec<vir::LocalDecl<vir::Dyn>>>();
             let constructor =
                 vcx.mk_adt_constructor(type_function_ident.name().to_str(), vcx.alloc_slice(&args));
-            let sized_check = {
-                // Use a local expression named "Self" to build the function body
-                let self_decl = vcx.mk_local_decl("Self$0", vir::TYPE_TYVAL);
-                let self_expr = vcx.mk_local_ex(self_decl);
-                let is_this_type =
-                    vcx.mk_adt_discriminator_expr(self_expr, type_function_ident.name().to_str());
 
-                let sized_impl_fun_idn: FunctionIdn<'vir, vir::TyVal, vir::Bool> = FunctionIdn::new(
-                    vir::vir_format_identifier!(vcx, "Sized_impl"),
-                    vir::TYPE_TYVAL,
-                    vir::TYPE_BOOL,
-                );
-                match task_key.sizedness {
-                    Sizedness::Sized => Some(is_this_type),
-                    Sizedness::Unsized => None,
-                    Sizedness::Dependent(ty) => match ty.kind() {
-                        ty::TyKind::Param(param) => {
-                            let accessor = ty_accessor_functions[param.index as usize];
-                            let param_ty = accessor.call()(self_expr);
-                            Some(
-                                vir::expr! { vcx; (is_this_type) && ([sized_impl_fun_idn](param_ty)) },
-                            )
-                        }
-                        ty::TyKind::Alias(ty::AliasTyKind::Projection, alias_ty) => {
-                            let alias_did = alias_ty.def_id;
-                            let trait_def = alias_ty.trait_def_id(vcx.tcx());
-                            let trait_ = deps.require_ref::<TraitEnc>(trait_def)?;
-                            let projection_fun = trait_.funs.assoc_types[&alias_did];
-                            let args = deps.require_dep::<GArgsTyEnc>(GArgs::new(
-                                task_key.params,
-                                alias_ty.args,
-                            ))?;
-                            let inner_expr = vir::expr! { vcx;
-                                (is_this_type) && ([sized_impl_fun_idn](
-                                    [projection_fun]([..[args.get_ty()]], [..[args.get_const()]])
-                                ))
-                            };
-                            let with_consts_bound = params.const_decls().iter().enumerate().rfold(
-                                inner_expr,
-                                |expr, (i, decl)| {
-                                    let accessor = const_accessor_functions[i];
-                                    vcx.mk_let_expr(decl, accessor.call()(self_expr), expr)
-                                },
-                            );
-                            let with_tys_bound = params.ty_decls().iter().enumerate().rfold(
-                                with_consts_bound,
-                                |expr, (i, decl)| {
-                                    let accessor = ty_accessor_functions[i];
-                                    vcx.mk_let_expr(decl, accessor.call()(self_expr), expr)
-                                },
-                            );
-                            Some(with_tys_bound)
-                        }
-                        _ => panic!("Unsupported dependent sizedness for {ty:?}"),
-                    },
-                }
+            let sizedness_task = SizedTraitEncTask {
+                sizedness: task_key.sizedness,
+                discriminator: type_function_ident.name().to_str(),
+                ty_accessors: ty_accessor_functions,
+                const_accessors: const_accessor_functions,
+                ty_ctx: task_key.params,
             };
-            Ok((
-                TyConstructorEncOutput {
-                    constructor,
-                    sized_check,
-                },
-                (),
-            ))
+            deps.require_dep::<SizedTraitEnc>(sizedness_task)?;
+
+            Ok((constructor, ()))
         })
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let (mut constructors, sized_checks): (Vec<_>, Vec<_>) =
-            Self::all_outputs_local_no_errors()
-                .into_iter()
-                .map(|out| (out.constructor, out.sized_check))
-                .unzip();
-        let mut sized_checks = sized_checks.into_iter().flatten().collect::<Vec<_>>();
+        let mut constructors = Self::all_outputs_local_no_errors();
         vir::with_vcx(|vcx| {
-            let args = vcx.alloc_array(&[vcx.mk_local_decl("non_unit", vir::TYPE_INT)]);
-            let unknown = vcx.mk_adt_constructor("Unknown_type", args);
-            constructors.push(unknown);
+            constructors.push(unkonwn_type_constructor(vcx));
             let adt = vcx.mk_adt(
                 vir::ViperIdent::new("Type"),
                 &[],
                 vcx.alloc_slice(&constructors),
             );
             program.add_adt(adt);
-
-            // Since we know all type constructors now, we can emit the `Sized` trait
-            let sized_impl_fun_idn: FunctionIdn<'vir, vir::TyVal, vir::Bool> = FunctionIdn::new(
-                vir::vir_format_identifier!(vcx, "Sized_impl"),
-                vir::TYPE_TYVAL,
-                vir::TYPE_BOOL,
-            );
-            let sized_impl_unknown_fun_idn: FunctionIdn<'vir, vir::Int, vir::Bool> =
-                FunctionIdn::new(
-                    vir::vir_format_identifier!(vcx, "Sized_unknown_impl"),
-                    vir::TYPE_INT,
-                    vir::TYPE_BOOL,
-                );
-
-            let self_decl = vcx.mk_local_decl("Self$0", vir::TYPE_TYVAL);
-            let unknown_type_check = {
-                let self_expr = vcx.mk_local_ex(self_decl);
-                let is_unknown_type = vcx.mk_adt_discriminator_expr(self_expr, "Unknown_type");
-
-                let unknown_id_destructor =
-                    vcx.mk_adt_destructor("non_unit", vir::TYPE_TYVAL, vir::TYPE_INT);
-                let extracted_id = unknown_id_destructor.call()(self_expr);
-
-                vir::expr! {vcx; (is_unknown_type) && ([sized_impl_unknown_fun_idn](extracted_id)) }
-            };
-
-            sized_checks.push(unknown_type_check);
-            let sized_impl_fun = vcx.mk_function(
-                sized_impl_fun_idn,
-                (self_decl,),
-                &[],
-                &[],
-                None,
-                Some(vcx.mk_disj(&sized_checks)),
-            );
-
-            program.add_function(sized_impl_fun);
-
-            let sized_impl_unknown_fun = vcx.mk_function(
-                sized_impl_unknown_fun_idn,
-                (vcx.mk_local_decl("non_unit", vir::TYPE_INT),),
-                &[],
-                &[],
-                None,
-                None,
-            );
-            program.add_function(sized_impl_unknown_fun);
         })
     }
+}
+
+const UNKNOWN_TYPE_NAME: &str = "Unknown_type";
+const UNKNOWN_TYPE_ID: &str = "id";
+
+pub fn unkonwn_type_constructor<'vir>(vcx: &'vir vir::VirCtxt<'vir>) -> vir::AdtConstructor<'vir> {
+    let args = vcx.alloc_array(&[vcx.mk_local_decl(UNKNOWN_TYPE_ID, vir::TYPE_INT)]);
+    vcx.mk_adt_constructor(UNKNOWN_TYPE_NAME, args)
+}
+
+pub fn unknown_type_discriminator<'vir>() -> &'static str {
+    UNKNOWN_TYPE_NAME
+}
+
+pub fn unknown_type_id_accessor<'vir>(
+    vcx: &'vir vir::VirCtxt<'vir>,
+) -> vir::AdtDestructor<'vir, vir::TyVal, vir::Int> {
+    vcx.mk_adt_destructor(UNKNOWN_TYPE_ID, vir::TYPE_TYVAL, vir::TYPE_INT)
 }
