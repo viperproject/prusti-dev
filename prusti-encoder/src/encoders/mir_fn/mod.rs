@@ -6,7 +6,7 @@ pub use function::*;
 pub use method::*;
 pub use signature::*;
 
-use crate::encoders::ty::generics::{GArgs, GParams, trait_impls::TraitImplEnc};
+use crate::encoders::ty::generics::{GArgs, GParams};
 
 use prusti_interface::specs::specifications::SpecQuery;
 use prusti_rustc_interface::{hir, middle::ty, span::def_id::DefId};

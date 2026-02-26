@@ -170,7 +170,7 @@ pub fn unkonwn_type_constructor<'vir>(vcx: &'vir vir::VirCtxt<'vir>) -> vir::Adt
     vcx.mk_adt_constructor(UNKNOWN_TYPE_NAME, args)
 }
 
-pub fn unknown_type_discriminator<'vir>() -> &'static str {
+pub fn unknown_type_discriminator() -> &'static str {
     UNKNOWN_TYPE_NAME
 }
 

@@ -245,20 +245,3 @@ pub fn trait_domain_idn<'vir, 'a>(
 ) -> vir::ViperIdent<'vir> {
     vir_format_identifier!(vcx, "t_{trait_name}")
 }
-
-pub fn unknown_impl_decls<'vir, 'a>(
-    vcx: &'vir vir::VirCtxt<'vir>,
-    decls: (
-        &'a [vir::LocalDeclTyVal<'vir>],
-        &'a [vir::LocalDeclCSnap<'vir>],
-    ),
-) -> (
-    vir::LocalDeclInt<'vir>,
-    &'a [vir::LocalDeclTyVal<'vir>],
-    &'a [vir::LocalDeclCSnap<'vir>],
-) {
-    let (ty_decls, const_decls) = decls;
-    let ty_decls = &ty_decls[1..]; // Omit the `Self` type declaration
-    let unknown_id_decl = vcx.mk_local_decl("non_unit", vir::TYPE_INT);
-    (unknown_id_decl, ty_decls, const_decls)
-}

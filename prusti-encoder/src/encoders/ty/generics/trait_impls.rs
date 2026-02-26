@@ -99,8 +99,8 @@ impl TaskEncoder for TraitImplEnc {
                 let item_const_args = item_params.const_exprs();
 
                 // Combine substituted trait ty decls with the decls of the associated type
-                let ty_decls = [&trait_ty_decls, &item_ty_decls[ty_cnt..]].concat();
-                let const_decls = [&trait_const_decls, &item_const_decls[const_cnt..]].concat();
+                let ty_decls = [trait_ty_decls, &item_ty_decls[ty_cnt..]].concat();
+                let const_decls = [trait_const_decls, &item_const_decls[const_cnt..]].concat();
 
                 // Combine substituted trait params with the params of the associated type
                 let ty_args = &[trait_ty_args, &item_ty_args[ty_cnt..]].concat();
@@ -341,9 +341,9 @@ fn assemble_type<'vir>(
     if decomp.ty.specifics.is_param() {
         let arg = decomp.args.args().first().expect("Param missing arg");
         return match arg.expect_ty().kind() {
-            ty::TyKind::Param(param) => *ty_map
+            ty::TyKind::Param(param) => ty_map
                 .get(arg)
-                .expect(&format!("generic {param:?} to be mapped")),
+                .unwrap_or_else(|| panic!("generic {param:?} to be mapped")),
             ty::TyKind::Alias(ty::AliasTyKind::Projection, alias) => {
                 let trait_did = tcx.parent(alias.def_id);
                 let trait_ = deps.require_ref::<TraitEnc>(trait_did).unwrap();
@@ -394,7 +394,7 @@ fn assemble_const<'vir>(
             .expect("The const generic should have been bound in the map"),
         ty::ConstKind::Value(val) => {
             let task = ConstEncTask::Ty {
-                const_: const_,
+                const_,
                 ty: val.ty,
                 context: ctx,
             };
@@ -493,10 +493,10 @@ fn is_alias_ready<'vir>(
         for arg in arg.walk() {
             match arg.kind() {
                 ty::GenericArgKind::Type(ty) => {
-                    if let ty::TyKind::Param(_) = ty.kind() {
-                        if !ty_map.contains_key(&arg) {
-                            return false;
-                        }
+                    if let ty::TyKind::Param(_) = ty.kind()
+                        && !ty_map.contains_key(&arg)
+                    {
+                        return false;
                     }
                 }
                 ty::GenericArgKind::Const(_) => {
@@ -531,13 +531,13 @@ fn process_trait_predicates<'vir>(
         let ty_args: Vec<_> = trait_args
             .iter()
             .filter_map(|arg| arg.as_type())
-            .map(|arg| assemble_type(tcx, deps, &ty_map, &const_map, ctx, arg))
+            .map(|arg| assemble_type(tcx, deps, ty_map, const_map, ctx, arg))
             .collect();
 
         let const_args: Vec<_> = trait_args
             .iter()
             .filter_map(|arg| arg.as_const())
-            .map(|const_| assemble_const(deps, ctx, &const_map, const_).downcast_ty())
+            .map(|const_| assemble_const(deps, ctx, const_map, const_).downcast_ty())
             .collect();
 
         conjuncts.push(required_trait_impl_fun(&ty_args, &const_args));
