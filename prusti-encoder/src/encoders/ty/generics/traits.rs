@@ -12,18 +12,11 @@ use crate::encoders::ty::{
 
 pub struct TraitEnc;
 
-type TraitArgs = (vir::ManyTyVal, vir::ManyCSnap);
-type AssocTypeFun<'vir> = FunctionIdn<'vir, TraitArgs, vir::TyVal>;
-type AssocConstFun<'vir> = FunctionIdn<'vir, TraitArgs, vir::Snap>;
-type ImplFun<'vir> = FunctionIdn<'vir, TraitArgs, vir::Bool>;
-type ImplUnknownFun<'vir> =
-    FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap, vir::Int), vir::Bool>;
-
 #[derive(Debug, Clone)]
 pub struct TraitEncOutputRef<'vir> {
     pub trait_name: &'vir str,
     pub funs: TraitFuns<'vir>,
-    pub impl_fun: ImplFun<'vir>,
+    pub impl_fun: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
 }
 impl OutputRefAny for TraitEncOutputRef<'_> {}
 
@@ -32,57 +25,6 @@ pub struct TraitEncOutput<'vir> {
     trait_domain: vir::Domain<'vir>,
     impl_fun: vir::Function<'vir>,
     impl_unknown_fun: vir::Function<'vir>,
-}
-
-pub fn trait_impl_fun_idn<'vir, 'a>(
-    vcx: &'vir vir::VirCtxt<'vir>,
-    trait_name: &'a str,
-    args: <TraitArgs as Arity>::Tys<'vir>,
-) -> FunctionIdn<'vir, TraitArgs, vir::Bool> {
-    FunctionIdn::new(
-        vir_format_identifier!(vcx, "{trait_name}_impl"),
-        args,
-        vir::TYPE_BOOL,
-    )
-}
-
-pub fn trait_unknown_impl_fun_idn<'vir, 'a>(
-    vcx: &'vir vir::VirCtxt<'vir>,
-    trait_name: &'a str,
-    args: <TraitArgs as Arity>::Tys<'vir>,
-) -> FunctionIdn<'vir, (vir::Int, vir::ManyTyVal, vir::ManyCSnap), vir::Bool> {
-    // Omit the `Self` type as it is known to be the unknown type
-    let ty_args = &args.0[1..];
-    let const_args = args.1;
-    FunctionIdn::new(
-        vir_format_identifier!(vcx, "{trait_name}_unknown_impl"),
-        (vir::TYPE_INT, ty_args, const_args),
-        vir::TYPE_BOOL,
-    )
-}
-
-pub fn trait_domain_idn<'vir, 'a>(
-    vcx: &'vir vir::VirCtxt<'vir>,
-    trait_name: &'a str,
-) -> vir::ViperIdent<'vir> {
-    vir_format_identifier!(vcx, "t_{trait_name}")
-}
-
-pub fn unknown_impl_decls<'vir, 'a>(
-    vcx: &'vir vir::VirCtxt<'vir>,
-    decls: (
-        &'a [vir::LocalDeclTyVal<'vir>],
-        &'a [vir::LocalDeclCSnap<'vir>],
-    ),
-) -> (
-    vir::LocalDeclInt<'vir>,
-    &'a [vir::LocalDeclTyVal<'vir>],
-    &'a [vir::LocalDeclCSnap<'vir>],
-) {
-    let (ty_decls, const_decls) = decls;
-    let ty_decls = &ty_decls[1..]; // Omit the `Self` type declaration
-    let unknown_id_decl = vcx.mk_local_decl("non_unit", vir::TYPE_INT);
-    (unknown_id_decl, ty_decls, const_decls)
 }
 
 impl TaskEncoder for TraitEnc {
@@ -204,9 +146,11 @@ impl TaskEncoder for TraitEnc {
 }
 
 #[derive(Debug, Clone)]
-pub struct TraitFuns<'a> {
-    pub assoc_types: FxHashMap<DefId, AssocTypeFun<'a>>,
-    pub assoc_consts: FxHashMap<DefId, AssocConstFun<'a>>,
+pub struct TraitFuns<'vir> {
+    pub assoc_types:
+        FxHashMap<DefId, FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::TyVal>>,
+    pub assoc_consts:
+        FxHashMap<DefId, FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Snap>>,
 }
 
 impl<'vir> TraitFuns<'vir> {
@@ -269,4 +213,55 @@ fn associated_items_funs<'vir>(
         assoc_types,
         assoc_consts,
     }
+}
+
+pub fn trait_impl_fun_idn<'vir, 'a>(
+    vcx: &'vir vir::VirCtxt<'vir>,
+    trait_name: &'a str,
+    args: <(vir::ManyTyVal, vir::ManyCSnap) as Arity>::Tys<'vir>,
+) -> FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool> {
+    FunctionIdn::new(
+        vir_format_identifier!(vcx, "{trait_name}_impl"),
+        args,
+        vir::TYPE_BOOL,
+    )
+}
+
+pub fn trait_unknown_impl_fun_idn<'vir, 'a>(
+    vcx: &'vir vir::VirCtxt<'vir>,
+    trait_name: &'a str,
+    args: <(vir::ManyTyVal, vir::ManyCSnap) as Arity>::Tys<'vir>,
+) -> FunctionIdn<'vir, (vir::Int, vir::ManyTyVal, vir::ManyCSnap), vir::Bool> {
+    // Omit the `Self` type as it is known to be the unknown type
+    let ty_args = &args.0[1..];
+    let const_args = args.1;
+    FunctionIdn::new(
+        vir_format_identifier!(vcx, "{trait_name}_unknown_impl"),
+        (vir::TYPE_INT, ty_args, const_args),
+        vir::TYPE_BOOL,
+    )
+}
+
+pub fn trait_domain_idn<'vir, 'a>(
+    vcx: &'vir vir::VirCtxt<'vir>,
+    trait_name: &'a str,
+) -> vir::ViperIdent<'vir> {
+    vir_format_identifier!(vcx, "t_{trait_name}")
+}
+
+pub fn unknown_impl_decls<'vir, 'a>(
+    vcx: &'vir vir::VirCtxt<'vir>,
+    decls: (
+        &'a [vir::LocalDeclTyVal<'vir>],
+        &'a [vir::LocalDeclCSnap<'vir>],
+    ),
+) -> (
+    vir::LocalDeclInt<'vir>,
+    &'a [vir::LocalDeclTyVal<'vir>],
+    &'a [vir::LocalDeclCSnap<'vir>],
+) {
+    let (ty_decls, const_decls) = decls;
+    let ty_decls = &ty_decls[1..]; // Omit the `Self` type declaration
+    let unknown_id_decl = vcx.mk_local_decl("non_unit", vir::TYPE_INT);
+    (unknown_id_decl, ty_decls, const_decls)
 }
