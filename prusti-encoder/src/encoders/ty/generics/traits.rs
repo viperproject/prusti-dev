@@ -24,7 +24,6 @@ impl OutputRefAny for TraitEncOutputRef<'_> {}
 pub struct TraitEncOutput<'vir> {
     trait_domain: vir::Domain<'vir>,
     impl_fun: vir::Function<'vir>,
-    impl_unknown_fun: vir::Function<'vir>,
 }
 
 impl TaskEncoder for TraitEnc {
@@ -37,17 +36,15 @@ impl TaskEncoder for TraitEnc {
     type TaskDescription<'vir> = DefId;
 
     type OutputRef<'vir> = TraitEncOutputRef<'vir>;
-    type OutputFullLocal<'vir> = TraitEncOutput<'vir>;
+    type OutputFullLocal<'vir> = Option<TraitEncOutput<'vir>>;
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for trait_enc in TraitEnc::all_outputs_local_no_errors() {
-            // Skip `Sized`, as we need a special encoding for its body. Encoded by `TyConstructorEnc`
-            if trait_enc.trait_domain.name == "t_Sized" {
-                continue;
-            }
+        for trait_enc in TraitEnc::all_outputs_local_no_errors()
+            .into_iter()
+            .flatten()
+        {
             program.add_domain(trait_enc.trait_domain);
             program.add_function(trait_enc.impl_fun);
-            program.add_function(trait_enc.impl_unknown_fun);
         }
     }
 
@@ -63,7 +60,7 @@ impl TaskEncoder for TraitEnc {
             let trait_items = tcx.associated_items(task_key).in_definition_order();
             let assoc_funs = associated_items_funs(vcx, deps, trait_name, trait_items);
 
-            let funs = assoc_funs.mk_domain_functions(vcx);
+            let mut funs = assoc_funs.mk_domain_functions(vcx);
 
             let args = (params.ty_args(), params.const_args());
             let decls = (params.ty_decls(), params.const_decls());
@@ -81,6 +78,11 @@ impl TaskEncoder for TraitEnc {
                 },
             )?;
 
+            // When encoding `Sized`, emitting of the impl function is handled by `SizedTraitEnc`
+            if tcx.lang_items().sized_trait() == Some(*task_key) {
+                return Ok((None, ()));
+            }
+
             let impl_fun_body = {
                 let mut trait_impl_checks: Vec<_> = tcx
                     .all_impls(*task_key)
@@ -92,39 +94,35 @@ impl TaskEncoder for TraitEnc {
                     .collect();
 
                 // Case for unknown types
-                let self_expr = params.ty_exprs()[0];
+                {
+                    let self_expr = params.ty_exprs()[0];
 
-                let is_unknown_type =
-                    vcx.mk_adt_discriminator_expr(self_expr, unknown_type_discriminator());
+                    let is_unknown_type =
+                        vcx.mk_adt_discriminator_expr(self_expr, unknown_type_discriminator());
 
-                let extracted_id = unknown_type_id_accessor(vcx).call()(self_expr);
+                    let extracted_id = unknown_type_id_accessor(vcx).call()(self_expr);
 
-                let unknown_impls = unkown_impl_fun_idn(
-                    extracted_id,
-                    &params.ty_exprs()[1..],
-                    params.const_exprs(),
-                );
+                    let unknown_impls = unkown_impl_fun_idn(
+                        extracted_id,
+                        &params.ty_exprs()[1..],
+                        params.const_exprs(),
+                    );
 
-                let unknown_check = vir::expr! { vcx;
-                     (is_unknown_type) && (unknown_impls)
-                };
+                    let unknown_check = vir::expr! { vcx;
+                         (is_unknown_type) && (unknown_impls)
+                    };
 
-                trait_impl_checks.push(unknown_check);
+                    trait_impl_checks.push(unknown_check);
+                }
 
                 vcx.mk_disj(&trait_impl_checks)
             };
 
-            let impl_unknown_fun = vcx.mk_function(
-                unkown_impl_fun_idn,
-                unknown_impl_decls(vcx, decls),
-                &[],
-                &[],
-                None,
-                None,
-            );
-
             let impl_fun =
                 vcx.mk_function(impl_fun_idn, decls, &[], &[], None, Some(impl_fun_body));
+
+            let impl_unknown_fun = vcx.mk_domain_function(unkown_impl_fun_idn, false, None);
+            funs.push(impl_unknown_fun);
 
             let trait_domain = vcx.mk_domain(
                 trait_domain_idn(vcx, trait_name),
@@ -134,11 +132,10 @@ impl TaskEncoder for TraitEnc {
                 None,
             );
             Ok((
-                TraitEncOutput {
+                Some(TraitEncOutput {
                     trait_domain,
                     impl_fun,
-                    impl_unknown_fun,
-                },
+                }),
                 (),
             ))
         })
