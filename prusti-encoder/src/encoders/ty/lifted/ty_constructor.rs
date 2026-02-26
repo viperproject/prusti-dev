@@ -153,7 +153,8 @@ impl TaskEncoder for TyConstructorEnc {
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
         let mut constructors = Self::all_outputs_local_no_errors();
         vir::with_vcx(|vcx| {
-            constructors.push(unkonwn_type_constructor(vcx));
+            let args = vcx.alloc_array(&[vcx.mk_local_decl(Self::UNKNOWN_TYPE_ID, vir::TYPE_INT)]);
+            constructors.push(vcx.mk_adt_constructor(Self::UNKNOWN_TYPE_NAME, args));
             let adt = vcx.mk_adt(
                 vir::ViperIdent::new("Type"),
                 &[],
@@ -164,20 +165,14 @@ impl TaskEncoder for TyConstructorEnc {
     }
 }
 
-const UNKNOWN_TYPE_NAME: &str = "Unknown_type";
-const UNKNOWN_TYPE_ID: &str = "id";
+impl TyConstructorEnc {
+    /// The name of the constructor for the unknown type variant in the `Type` ADT.
+    pub const UNKNOWN_TYPE_NAME: &str = "Unknown_type";
+    const UNKNOWN_TYPE_ID: &str = "id";
 
-pub fn unkonwn_type_constructor<'vir>(vcx: &'vir vir::VirCtxt<'vir>) -> vir::AdtConstructor<'vir> {
-    let args = vcx.alloc_array(&[vcx.mk_local_decl(UNKNOWN_TYPE_ID, vir::TYPE_INT)]);
-    vcx.mk_adt_constructor(UNKNOWN_TYPE_NAME, args)
-}
-
-pub fn unknown_type_discriminator() -> &'static str {
-    UNKNOWN_TYPE_NAME
-}
-
-pub fn unknown_type_id_accessor<'vir>(
-    vcx: &'vir vir::VirCtxt<'vir>,
-) -> vir::AdtDestructor<'vir, vir::TyVal, vir::Int> {
-    vcx.mk_adt_destructor(UNKNOWN_TYPE_ID, vir::TYPE_TYVAL, vir::TYPE_INT)
+    pub fn unknown_type_id_accessor<'vir>(
+        vcx: &'vir vir::VirCtxt<'vir>,
+    ) -> vir::AdtDestructor<'vir, vir::TyVal, vir::Int> {
+        vcx.mk_adt_destructor(Self::UNKNOWN_TYPE_ID, vir::TYPE_TYVAL, vir::TYPE_INT)
+    }
 }

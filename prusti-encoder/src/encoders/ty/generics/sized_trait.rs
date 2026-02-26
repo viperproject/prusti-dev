@@ -2,11 +2,8 @@ use crate::{
     TaskEncoder,
     encoders::ty::{
         Sizedness,
-        generics::{
-            GArgs, GArgsTyEnc, GParams, GenericParamsEnc,
-            traits::{TraitEnc, trait_impl_fun_idn, trait_unknown_impl_fun_idn},
-        },
-        lifted::ty_constructor::{unknown_type_discriminator, unknown_type_id_accessor},
+        generics::{GArgs, GArgsTyEnc, GParams, GenericParamsEnc, traits::TraitEnc},
+        lifted::TyConstructorEnc,
     },
 };
 use prusti_rustc_interface::middle::ty;
@@ -14,6 +11,8 @@ use prusti_rustc_interface::middle::ty;
 pub struct SizedTraitEnc;
 
 const SIZED_TRAIT_NAME: &str = "Sized";
+const SIZED_ARGS: <(vir::ManyTyVal, vir::ManyCSnap) as vir::Arity>::Tys<'static> =
+    (&[vir::TYPE_TYVAL], &[]);
 
 #[derive(Copy, Debug, Clone, Hash, Eq, PartialEq)]
 pub struct SizedTraitEncTask<'vir> {
@@ -47,21 +46,20 @@ impl TaskEncoder for SizedTraitEnc {
             ty_ctx,
         } = task_key;
         vir::with_vcx(|vcx| {
-            let self_expr = vcx.mk_local_ex(sized_self_decl(vcx));
+            let self_expr = vcx.mk_local_ex(Self::sized_self_decl(vcx));
 
             let is_this_type = vcx.mk_adt_discriminator_expr(self_expr, discriminator);
 
-            let sized_impl_fun_idn =
-                trait_impl_fun_idn(vcx, SIZED_TRAIT_NAME, (&[vir::TYPE_TYVAL], &[]));
+            let sized_impl_idn = TraitEnc::trait_impl_idn(vcx, SIZED_TRAIT_NAME, SIZED_ARGS);
 
             let check = match sizedness {
                 Sizedness::Sized => Some(is_this_type),
                 Sizedness::Unsized => None,
                 Sizedness::Dependent(ty) => Some(
-                    sizedness_for_dependent(
+                    Self::sizedness_for_dependent(
                         vcx,
                         deps,
-                        sized_impl_fun_idn,
+                        sized_impl_idn,
                         ty_accessors,
                         const_accessors,
                         ty_ctx,
@@ -86,20 +84,19 @@ impl TaskEncoder for SizedTraitEnc {
                 .flatten()
                 .collect();
 
-            let sized_impl_fun_idn =
-                trait_impl_fun_idn(vcx, SIZED_TRAIT_NAME, (&[vir::TYPE_TYVAL], &[]));
-            let sized_impl_unknown_fun_idn =
-                trait_unknown_impl_fun_idn(vcx, SIZED_TRAIT_NAME, (&[vir::TYPE_TYVAL], &[]));
+            let sized_impl_idn = TraitEnc::trait_impl_idn(vcx, SIZED_TRAIT_NAME, SIZED_ARGS);
+            let sized_impl_unknown_idn =
+                TraitEnc::trait_unknown_impl_idn(vcx, SIZED_TRAIT_NAME, SIZED_ARGS);
 
-            let self_decl = sized_self_decl(vcx);
+            let self_decl = Self::sized_self_decl(vcx);
             let self_expr = vcx.mk_local_ex(self_decl);
 
             let unknown_check = {
                 let is_unknown =
-                    vcx.mk_adt_discriminator_expr(self_expr, unknown_type_discriminator());
-                let unknown_id = unknown_type_id_accessor(vcx).call()(self_expr);
+                    vcx.mk_adt_discriminator_expr(self_expr, TyConstructorEnc::UNKNOWN_TYPE_NAME);
+                let unknown_id = TyConstructorEnc::unknown_type_id_accessor(vcx).call()(self_expr);
 
-                let unknown_impls = sized_impl_unknown_fun_idn.call()(unknown_id, &[], &[]);
+                let unknown_impls = sized_impl_unknown_idn.call()(unknown_id, &[], &[]);
 
                 vir::expr! {vcx; (is_unknown) && (unknown_impls) }
             };
@@ -107,7 +104,7 @@ impl TaskEncoder for SizedTraitEnc {
             checks.push(unknown_check);
 
             let sized_impl_fun = vcx.mk_function(
-                sized_impl_fun_idn,
+                sized_impl_idn,
                 (&[self_decl], &[]),
                 &[],
                 &[],
@@ -117,7 +114,7 @@ impl TaskEncoder for SizedTraitEnc {
             program.add_function(sized_impl_fun);
 
             let sized_impl_unknown_fun = vcx.mk_function(
-                sized_impl_unknown_fun_idn,
+                sized_impl_unknown_idn,
                 (vcx.mk_local_decl("id", vir::TYPE_INT), &[], &[]),
                 &[],
                 &[],
@@ -130,80 +127,82 @@ impl TaskEncoder for SizedTraitEnc {
     }
 }
 
-fn sized_self_decl<'vir>(vcx: &'vir vir::VirCtxt<'vir>) -> vir::LocalDecl<'vir, vir::TyVal> {
-    vcx.mk_local_decl("Self$0", vir::TYPE_TYVAL)
-}
+impl SizedTraitEnc {
+    fn sized_self_decl<'vir>(vcx: &'vir vir::VirCtxt<'vir>) -> vir::LocalDecl<'vir, vir::TyVal> {
+        vcx.mk_local_decl("Self$0", vir::TYPE_TYVAL)
+    }
 
-/// Check if we need an extra sizedness check as a result of the sizedness dependency
-fn sizedness_for_dependent<'vir>(
-    vcx: &'vir vir::VirCtxt<'vir>,
-    deps: &mut task_encoder::TaskEncoderDependencies<'vir, SizedTraitEnc>,
-    sized_impl_fun: vir::FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
-    ty_accessors: &'vir [vir::AdtDestructor<'vir, vir::TyVal, vir::TyVal>],
-    const_accessors: &'vir [vir::AdtDestructor<'vir, vir::TyVal, vir::CSnap>],
-    ty_ctx: GParams<'vir>,
-    self_expr: vir::Expr<'vir, vir::TyVal>,
-    ty: ty::Ty<'vir>,
-) -> Option<vir::ExprBool<'vir>> {
-    match ty.kind() {
-        ty::TyKind::Param(param) => {
-            let accessor = ty_accessors[param.index as usize];
-            let param_ty = accessor.call()(self_expr);
-            // We know that in reality `Sized` only has the `Self` type parameter
-            let inner_sized_check = sized_impl_fun.call()(&[param_ty], &[]);
-            Some(inner_sized_check)
-        }
-        ty::TyKind::Alias(ty::AliasTyKind::Projection, alias_ty) => {
-            let tcx = vcx.tcx();
-
-            let is_forced_sized = tcx.item_bounds(alias_ty.def_id)
-                        .instantiate_identity()
-                        .iter()
-                        .any(|clause| {
-                            matches!(clause.kind().skip_binder(), 
-                                ty::ClauseKind::Trait(p) if Some(p.def_id()) == tcx.lang_items().sized_trait()
-                            )
-                        });
-
-            if is_forced_sized {
-                // This projection is forced to be `Sized` by its own bounds, so we don't need an
-                // extra check
-                return None;
+    /// Check if we need an extra sizedness check as a result of the sizedness dependency
+    fn sizedness_for_dependent<'vir>(
+        vcx: &'vir vir::VirCtxt<'vir>,
+        deps: &mut task_encoder::TaskEncoderDependencies<'vir, SizedTraitEnc>,
+        sized_impl_idn: vir::FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
+        ty_accessors: &'vir [vir::AdtDestructor<'vir, vir::TyVal, vir::TyVal>],
+        const_accessors: &'vir [vir::AdtDestructor<'vir, vir::TyVal, vir::CSnap>],
+        ty_ctx: GParams<'vir>,
+        self_expr: vir::Expr<'vir, vir::TyVal>,
+        ty: ty::Ty<'vir>,
+    ) -> Option<vir::ExprBool<'vir>> {
+        match ty.kind() {
+            ty::TyKind::Param(param) => {
+                let accessor = ty_accessors[param.index as usize];
+                let param_ty = accessor.call()(self_expr);
+                // We know that in reality `Sized` only has the `Self` type parameter
+                let inner_sized_check = sized_impl_idn.call()(&[param_ty], &[]);
+                Some(inner_sized_check)
             }
+            ty::TyKind::Alias(ty::AliasTyKind::Projection, alias_ty) => {
+                let tcx = vcx.tcx();
 
-            let trait_def = alias_ty.trait_def_id(tcx);
-            let trait_ = deps.require_ref::<TraitEnc>(trait_def).unwrap();
-            let projection_fun = trait_.funs.assoc_types[&alias_ty.def_id];
+                let is_forced_sized = tcx.item_bounds(alias_ty.def_id)
+                            .instantiate_identity()
+                            .iter()
+                            .any(|clause| {
+                                matches!(clause.kind().skip_binder(),
+                                    ty::ClauseKind::Trait(p) if Some(p.def_id()) == tcx.lang_items().sized_trait()
+                                )
+                            });
 
-            let ty_params = deps.require_dep::<GenericParamsEnc>(ty_ctx).unwrap();
-            let args = deps
-                .require_dep::<GArgsTyEnc>(GArgs::new(ty_ctx, alias_ty.args))
-                .unwrap();
+                if is_forced_sized {
+                    // This projection is forced to be `Sized` by its own bounds, so we don't need an
+                    // extra check
+                    return None;
+                }
 
-            let projection = projection_fun(args.get_ty(), args.get_const());
+                let trait_def = alias_ty.trait_def_id(tcx);
+                let trait_ = deps.require_ref::<TraitEnc>(trait_def).unwrap();
+                let projection_fun = trait_.fns.assoc_types[&alias_ty.def_id];
 
-            let inner_sized_check = sized_impl_fun.call()(&[projection], &[]);
+                let ty_params = deps.require_dep::<GenericParamsEnc>(ty_ctx).unwrap();
+                let args = deps
+                    .require_dep::<GArgsTyEnc>(GArgs::new(ty_ctx, alias_ty.args))
+                    .unwrap();
 
-            // Introduce let-bindings for the generics of the type
-            // NOTE: There won't be any name collisions as user defined ADTs cannot
-            // have a generic called `Self`
-            let with_consts_bound = ty_params.const_decls().iter().enumerate().rfold(
-                inner_sized_check,
-                |expr, (i, decl)| {
-                    let accessor = const_accessors[i];
-                    vcx.mk_let_expr(decl, accessor.call()(self_expr), expr)
-                },
-            );
-            let with_tys_bound = ty_params.ty_decls().iter().enumerate().rfold(
-                with_consts_bound,
-                |expr, (i, decl)| {
-                    let accessor = ty_accessors[i];
-                    vcx.mk_let_expr(decl, accessor.call()(self_expr), expr)
-                },
-            );
+                let projection = projection_fun(args.get_ty(), args.get_const());
 
-            Some(with_tys_bound)
+                let inner_sized_check = sized_impl_idn.call()(&[projection], &[]);
+
+                // Introduce let-bindings for the generics of the type
+                // NOTE: There won't be any name collisions as user defined ADTs cannot
+                // have a generic called `Self`
+                let with_consts_bound = ty_params.const_decls().iter().enumerate().rfold(
+                    inner_sized_check,
+                    |expr, (i, decl)| {
+                        let accessor = const_accessors[i];
+                        vcx.mk_let_expr(decl, accessor.call()(self_expr), expr)
+                    },
+                );
+                let with_tys_bound = ty_params.ty_decls().iter().enumerate().rfold(
+                    with_consts_bound,
+                    |expr, (i, decl)| {
+                        let accessor = ty_accessors[i];
+                        vcx.mk_let_expr(decl, accessor.call()(self_expr), expr)
+                    },
+                );
+
+                Some(with_tys_bound)
+            }
+            _ => panic!("Unsupported dependent sizedness for {ty:?}"),
         }
-        _ => panic!("Unsupported dependent sizedness for {ty:?}"),
     }
 }

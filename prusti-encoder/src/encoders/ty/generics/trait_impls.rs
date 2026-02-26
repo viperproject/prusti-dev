@@ -112,7 +112,7 @@ impl TaskEncoder for TraitImplEnc {
                 match impl_item.kind {
                     ty::AssocKind::Type { .. } => {
                         let assoc_type =
-                            trait_data.funs.assoc_types.get(&trait_item_def_id).unwrap();
+                            trait_data.fns.assoc_types.get(&trait_item_def_id).unwrap();
 
                         // the type we want to resolve the type alias to
                         let assoc_type_expr = assoc_params.ty_expr(
@@ -352,7 +352,7 @@ fn assemble_type<'vir>(
                 let trait_ = deps.require_ref::<TraitEnc>(trait_did).unwrap();
 
                 let assoc_ty_fun = trait_
-                    .funs
+                    .fns
                     .assoc_types
                     .get(&alias.def_id)
                     .expect("associated type to be in the mapping");
@@ -464,7 +464,7 @@ fn process_projection<'vir>(
     match projection.term.kind() {
         ty::TermKind::Ty(tgt_ty) => {
             let projection_fun = trait_
-                .funs
+                .fns
                 .assoc_types
                 .get(&proj_did)
                 .expect("Projection did should be in the mapping");
@@ -475,7 +475,7 @@ fn process_projection<'vir>(
         }
         ty::TermKind::Const(const_) => {
             let projection_fun = trait_
-                .funs
+                .fns
                 .assoc_consts
                 .get(&proj_did)
                 .expect("Projection did should be in the mapping");
