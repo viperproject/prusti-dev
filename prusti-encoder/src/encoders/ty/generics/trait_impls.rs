@@ -1,10 +1,7 @@
 use rustc_hash::FxHashMap;
-use std::collections::VecDeque;
+use std::{collections::VecDeque, iter};
 
-use prusti_rustc_interface::{
-    middle::{ty, ty::AssocKind},
-    span::def_id::DefId,
-};
+use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CallableIdn, CastType, Domain, vir_format_identifier};
 
@@ -62,25 +59,20 @@ impl TaskEncoder for TraitImplEnc {
             let trait_data = deps.require_ref::<TraitEnc>(trait_did)?;
             let trait_name = trait_data.trait_name;
 
-            let trait_args = deps.require_dep::<GArgsTyEnc>(GArgs::new(ctx, trait_ref.args))?;
-            let mut axs = Vec::new();
+            let args = deps.require_dep::<GArgsTyEnc>(GArgs::new(ctx, trait_ref.args))?;
+            let mut axioms = Vec::new();
 
             let implementing_ty = tcx.type_of(task_key).instantiate_identity();
             let implementing_ty = RustTyDecomposition::from_ty(implementing_ty, *task_key);
             let implementing_ty = implementing_ty.ty.name();
 
-            let trait_ty_decls = params.ty_decls();
-            let trait_const_decls = params.const_decls();
-            let ty_cnt = params.ty_count();
-            let const_cnt = params.const_count();
+            let trait_ty_decls = params.ty_decls().to_vec();
+            let trait_const_decls = params.const_decls().to_vec();
 
-            let trait_ty_args = trait_args.get_ty();
-            let trait_const_args = trait_args.get_const();
-
-            for impl_item in tcx.associated_items(*task_key).in_definition_order() {
-                let trait_item_did = impl_item.trait_item_def_id.unwrap();
-                let item_did = impl_item.def_id;
-                let item_name = tcx.item_name(item_did);
+            for impl_item in tcx.associated_items(task_key).in_definition_order() {
+                let trait_item_def_id = impl_item.trait_item_def_id.unwrap();
+                let impl_item_def_id = impl_item.def_id;
+                let item_name = tcx.item_name(impl_item_def_id);
 
                 // construct arguments for assoc_item function
                 // parameters of the trait are substituted
@@ -88,56 +80,69 @@ impl TaskEncoder for TraitImplEnc {
                 // parameters of the associated type are kept
 
                 // parameters of assoc item include already substituted arguments
-                let item_ctx = GParams::from(item_did);
-                let item_params = deps.require_dep::<GenericParamsEnc>(item_ctx).unwrap();
+                let impl_item_params = GParams::from(impl_item_def_id);
+                let assoc_params = deps
+                    .require_dep::<GenericParamsEnc>(impl_item_params)
+                    .unwrap();
 
-                let item_ty_decls = item_params.ty_decls();
-                let item_const_decls = item_params.const_decls();
-                let item_ty_args = item_params.ty_exprs();
-                let item_const_args = item_params.const_exprs();
+                let assoc_ty_decls = assoc_params.ty_decls();
+                let assoc_const_decls = assoc_params.const_decls();
 
-                // Combine substituted trait ty and const decls with the decls of the associated item
-                let ty_decls = [trait_ty_decls, &item_ty_decls[ty_cnt..]].concat();
-                let const_decls = [trait_const_decls, &item_const_decls[const_cnt..]].concat();
+                // Combine substituted trait ty decls with the decls of the associated type
+                let mut trait_ty_decls = trait_ty_decls.clone();
+                trait_ty_decls.extend_from_slice(&assoc_ty_decls[params.ty_exprs().len()..]);
+                let mut trait_const_decls = trait_const_decls.clone();
+                trait_const_decls
+                    .extend_from_slice(&assoc_const_decls[params.const_exprs().len()..]);
 
-                // Combine substituted trait params with the params of the associated item
-                let ty_args = &[trait_ty_args, &item_ty_args[ty_cnt..]].concat();
-                let const_args = &[trait_const_args, &item_const_args[const_cnt..]].concat();
+                // Combine substituted trait params with the params of the associated type
+                let trait_tys = vcx.alloc_slice(
+                    &iter::empty()
+                        .chain(args.get_ty().to_owned())
+                        .chain(assoc_params.ty_exprs()[params.ty_exprs().len()..].to_owned())
+                        .collect::<Vec<_>>(),
+                );
+                let trait_consts = vcx.alloc_slice(
+                    &iter::empty()
+                        .chain(args.get_const().to_owned())
+                        .chain(assoc_params.const_exprs()[params.const_exprs().len()..].to_owned())
+                        .collect::<Vec<_>>(),
+                );
 
                 match impl_item.kind {
-                    AssocKind::Type { .. } => {
-                        let assoc_type = trait_data.funs.assoc_types.get(&trait_item_did).unwrap();
+                    ty::AssocKind::Type { .. } => {
+                        let assoc_type =
+                            trait_data.funs.assoc_types.get(&trait_item_def_id).unwrap();
 
                         // the type we want to resolve the type alias to
-                        let assoc_type_expr = item_params.ty_expr(
+                        let assoc_type_expr = assoc_params.ty_expr(
                             deps,
                             RustTyDecomposition::from_ty(
-                                tcx.type_of(item_did).instantiate_identity(),
-                                item_ctx,
+                                tcx.type_of(impl_item_def_id).instantiate_identity(),
+                                impl_item_params,
                             ),
                         );
-                        axs.push(vcx.mk_domain_axiom(
+                        axioms.push(vcx.mk_domain_axiom(
                             vir_format_identifier!(vcx, "{trait_name}_impl_{implementing_ty}_{idx}_assoc_type_{item_name}"),
-                            vir::expr! {forall ..[ty_decls], ..[const_decls] :: {[assoc_type(ty_args, const_args)]} ([assoc_type(ty_args, const_args)]) == (assoc_type_expr)},
+                            vir::expr! {forall ..[trait_ty_decls], ..[trait_const_decls] :: {[assoc_type(trait_tys, trait_consts)]} ([assoc_type(trait_tys, trait_consts)]) == (assoc_type_expr)},
                         ));
                     }
-                    _ => {
-                        // unimplemented
-                    }
+                    _ => { /* unimplementd */ }
                 }
             }
 
-            let domain = vcx.mk_domain(
-                vir_format_identifier!(vcx, "t_{idx}_{trait_name}_{implementing_ty}",),
-                &[],
-                vcx.alloc_slice(&axs),
-                &[],
-                None,
-            );
-
             let impl_condition = impl_block_condition(vcx, deps, *task_key);
 
-            Ok((domain, TraitImplEncOutput { impl_condition }))
+            Ok((
+                vcx.mk_domain(
+                    vir_format_identifier!(vcx, "trait_{trait_name}_impl_{implementing_ty}_{idx}"),
+                    &[],
+                    vcx.alloc_slice(&axioms),
+                    &[],
+                    None,
+                ),
+                TraitImplEncOutput { impl_condition },
+            ))
         })
     }
 }
