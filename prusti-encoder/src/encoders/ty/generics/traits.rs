@@ -60,7 +60,7 @@ impl TaskEncoder for TraitEnc {
             let trait_items = tcx.associated_items(task_key).in_definition_order();
             let assoc_funs = associated_items_funs(vcx, deps, trait_name, trait_items);
 
-            let mut funs = assoc_funs.mk_domain_functions(vcx);
+            let mut funcs = assoc_funs.mk_domain_functions(vcx);
 
             let args = (params.ty_args(), params.const_args());
             let decls = (params.ty_decls(), params.const_decls());
@@ -122,13 +122,13 @@ impl TaskEncoder for TraitEnc {
                 vcx.mk_function(impl_fun_idn, decls, &[], &[], None, Some(impl_fun_body));
 
             let impl_unknown_fun = vcx.mk_domain_function(unkown_impl_fun_idn, false, None);
-            funs.push(impl_unknown_fun);
+            funcs.push(impl_unknown_fun);
 
             let trait_domain = vcx.mk_domain(
                 trait_domain_idn(vcx, trait_name),
                 &[],
                 &[],
-                vcx.alloc_slice(funs.as_slice()),
+                vcx.alloc_slice(funcs.as_slice()),
                 None,
             );
             Ok((
