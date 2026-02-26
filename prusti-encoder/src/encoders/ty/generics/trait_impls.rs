@@ -51,34 +51,32 @@ impl TaskEncoder for TraitImplEnc {
         vir::with_vcx(|vcx| {
             let tcx = vcx.tcx();
 
-            let impl_idx = {
-                let all_impls = tcx.trait_impls_in_crate(task_key.krate);
-                all_impls.iter().position(|did| did == task_key).unwrap()
-            };
+            let all_impls = tcx.trait_impls_in_crate(task_key.krate);
+            let idx = all_impls.iter().position(|did| did == task_key).unwrap();
 
-            let impl_ty = {
-                let implementing_ty = tcx.type_of(task_key).instantiate_identity();
-                let implementing_ty = RustTyDecomposition::from_ty(implementing_ty, *task_key);
-                implementing_ty.ty.name()
-            };
+            let ctx = GParams::from(*task_key);
+            let params = deps.require_dep::<GenericParamsEnc>(ctx)?;
 
             let trait_ref = tcx.impl_trait_ref(task_key).unwrap().instantiate_identity();
             let trait_did = trait_ref.def_id;
             let trait_data = deps.require_ref::<TraitEnc>(trait_did)?;
             let trait_name = trait_data.trait_name;
 
-            let ctx = GParams::from(*task_key);
-            let params = deps.require_dep::<GenericParamsEnc>(ctx)?;
+            let trait_args = deps.require_dep::<GArgsTyEnc>(GArgs::new(ctx, trait_ref.args))?;
+            let mut axs = Vec::new();
+
+            let implementing_ty = tcx.type_of(task_key).instantiate_identity();
+            let implementing_ty = RustTyDecomposition::from_ty(implementing_ty, *task_key);
+            let implementing_ty = implementing_ty.ty.name();
+
             let trait_ty_decls = params.ty_decls();
             let trait_const_decls = params.const_decls();
             let ty_cnt = params.ty_count();
             let const_cnt = params.const_count();
 
-            let trait_args = deps.require_dep::<GArgsTyEnc>(GArgs::new(ctx, trait_ref.args))?;
             let trait_ty_args = trait_args.get_ty();
             let trait_const_args = trait_args.get_const();
 
-            let mut axioms = Vec::new();
             for impl_item in tcx.associated_items(*task_key).in_definition_order() {
                 let trait_item_did = impl_item.trait_item_def_id.unwrap();
                 let item_did = impl_item.def_id;
@@ -98,11 +96,11 @@ impl TaskEncoder for TraitImplEnc {
                 let item_ty_args = item_params.ty_exprs();
                 let item_const_args = item_params.const_exprs();
 
-                // Combine substituted trait ty decls with the decls of the associated type
+                // Combine substituted trait ty and const decls with the decls of the associated item
                 let ty_decls = [trait_ty_decls, &item_ty_decls[ty_cnt..]].concat();
                 let const_decls = [trait_const_decls, &item_const_decls[const_cnt..]].concat();
 
-                // Combine substituted trait params with the params of the associated type
+                // Combine substituted trait params with the params of the associated item
                 let ty_args = &[trait_ty_args, &item_ty_args[ty_cnt..]].concat();
                 let const_args = &[trait_const_args, &item_const_args[const_cnt..]].concat();
 
@@ -118,8 +116,8 @@ impl TaskEncoder for TraitImplEnc {
                                 item_ctx,
                             ),
                         );
-                        axioms.push(vcx.mk_domain_axiom(
-                            vir_format_identifier!(vcx, "{trait_name}_impl_{impl_ty}_{impl_idx}_assoc_type_{item_name}"),
+                        axs.push(vcx.mk_domain_axiom(
+                            vir_format_identifier!(vcx, "{trait_name}_impl_{implementing_ty}_{idx}_assoc_type_{item_name}"),
                             vir::expr! {forall ..[ty_decls], ..[const_decls] :: {[assoc_type(ty_args, const_args)]} ([assoc_type(ty_args, const_args)]) == (assoc_type_expr)},
                         ));
                     }
@@ -130,9 +128,9 @@ impl TaskEncoder for TraitImplEnc {
             }
 
             let domain = vcx.mk_domain(
-                vir_format_identifier!(vcx, "t_{impl_idx}_{}_{impl_ty}", trait_data.trait_name,),
+                vir_format_identifier!(vcx, "t_{idx}_{trait_name}_{implementing_ty}",),
                 &[],
-                vcx.alloc_slice(&axioms),
+                vcx.alloc_slice(&axs),
                 &[],
                 None,
             );
