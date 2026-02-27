@@ -20,6 +20,7 @@ use task_encoder::TaskEncoder;
 
 use crate::encoders::{
     Impure, Pure,
+    addr::RefDataEnc,
     custom::PairUseEnc,
     ty::{
         generics::{GArgsCastEnc, trait_impls::TraitImplEnc, traits::TraitEnc},
@@ -106,6 +107,7 @@ pub fn test_entrypoint<'tcx>(
     PairUseEnc::emit_outputs(&mut program);
     TraitEnc::emit_outputs(&mut program);
     TraitImplEnc::emit_outputs(&mut program);
+    RefDataEnc::emit_outputs(&mut program);
 
     if std::env::var("LOCAL_TESTING").is_ok() {
         std::fs::write("local-testing/simple.vpr", program.code()).unwrap();
