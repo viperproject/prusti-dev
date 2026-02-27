@@ -1,12 +1,13 @@
 use crate::{
     TaskEncoder,
     encoders::ty::{
-        Sizedness,
+        RustTy, Sizedness,
         generics::{GArgs, GArgsTyEnc, GParams, GenericParamsEnc, traits::TraitEnc},
-        lifted::TyConstructorEnc,
+        lifted::{TyConstructorEnc, ty_constructor::TyConstructorEncOutputRef},
     },
 };
 use prusti_rustc_interface::middle::ty;
+use vir::CallableIdn;
 
 pub struct SizedTraitEnc;
 
@@ -14,18 +15,9 @@ const SIZED_TRAIT_NAME: &str = "Sized";
 const SIZED_ARGS: <(vir::ManyTyVal, vir::ManyCSnap) as vir::Arity>::Tys<'static> =
     (&[vir::TYPE_TYVAL], &[]);
 
-#[derive(Copy, Debug, Clone, Hash, Eq, PartialEq)]
-pub struct SizedTraitEncTask<'vir> {
-    pub sizedness: Sizedness<'vir>,
-    pub discriminator: &'vir str,
-    pub ty_accessors: &'vir [vir::AdtDestructor<'vir, vir::TyVal, vir::TyVal>],
-    pub const_accessors: &'vir [vir::AdtDestructor<'vir, vir::TyVal, vir::CSnap>],
-    pub ty_ctx: GParams<'vir>,
-}
-
 impl TaskEncoder for SizedTraitEnc {
     task_encoder::encoder_cache!(SizedTraitEnc);
-    type TaskDescription<'vir> = SizedTraitEncTask<'vir>;
+    type TaskDescription<'vir> = RustTy<'vir>;
 
     type OutputFullLocal<'vir> = Option<vir::ExprBool<'vir>>;
 
@@ -37,14 +29,12 @@ impl TaskEncoder for SizedTraitEnc {
         task_key: &Self::TaskKey<'vir>,
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
     ) -> task_encoder::EncodeFullResult<'vir, Self> {
+        assert!(!task_key.specifics.is_param());
         deps.emit_output_ref(*task_key, ())?;
-        let &Self::TaskKey {
-            sizedness,
-            discriminator,
-            ty_accessors,
-            const_accessors,
-            ty_ctx,
-        } = task_key;
+
+        let vpr_type = deps.require_ref::<TyConstructorEnc>(*task_key)?;
+        let discriminator = vpr_type.ty_constructor.name().to_str();
+
         vir::with_vcx(|vcx| {
             let self_expr = vcx.mk_local_ex(Self::sized_self_decl(vcx));
 
@@ -52,19 +42,18 @@ impl TaskEncoder for SizedTraitEnc {
 
             let sized_impl_idn = TraitEnc::trait_impl_idn(vcx, SIZED_TRAIT_NAME, SIZED_ARGS);
 
-            let check = match sizedness {
+            let check = match task_key.sizedness {
                 Sizedness::Sized => Some(is_this_type),
                 Sizedness::Unsized => None,
-                Sizedness::Dependent(ty) => Some(
+                Sizedness::Dependent(dep_ty) => Some(
                     Self::sizedness_for_dependent(
                         vcx,
                         deps,
                         sized_impl_idn,
-                        ty_accessors,
-                        const_accessors,
-                        ty_ctx,
+                        vpr_type,
+                        task_key.params,
                         self_expr,
-                        ty,
+                        dep_ty,
                     )
                     .map_or(
                         is_this_type,
@@ -138,15 +127,14 @@ impl SizedTraitEnc {
         vcx: &'vir vir::VirCtxt<'vir>,
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, SizedTraitEnc>,
         sized_impl_idn: vir::FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
-        ty_accessors: &'vir [vir::AdtDestructor<'vir, vir::TyVal, vir::TyVal>],
-        const_accessors: &'vir [vir::AdtDestructor<'vir, vir::TyVal, vir::CSnap>],
+        vpr_type: TyConstructorEncOutputRef<'vir>,
         ty_ctx: GParams<'vir>,
         self_expr: vir::Expr<'vir, vir::TyVal>,
-        ty: ty::Ty<'vir>,
+        depneded_on: ty::Ty<'vir>,
     ) -> Option<vir::ExprBool<'vir>> {
-        match ty.kind() {
+        match depneded_on.kind() {
             ty::TyKind::Param(param) => {
-                let accessor = ty_accessors[param.index as usize];
+                let accessor = vpr_type.ty_param_accessors[param.index as usize];
                 let param_ty = accessor.call()(self_expr);
                 // We know that in reality `Sized` only has the `Self` type parameter
                 let inner_sized_check = sized_impl_idn.call()(&[param_ty], &[]);
@@ -189,21 +177,21 @@ impl SizedTraitEnc {
                 let with_consts_bound = ty_params.const_decls().iter().enumerate().rfold(
                     inner_sized_check,
                     |expr, (i, decl)| {
-                        let accessor = const_accessors[i];
+                        let accessor = vpr_type.const_param_accessors[i];
                         vcx.mk_let_expr(decl, accessor.call()(self_expr), expr)
                     },
                 );
                 let with_tys_bound = ty_params.ty_decls().iter().enumerate().rfold(
                     with_consts_bound,
                     |expr, (i, decl)| {
-                        let accessor = ty_accessors[i];
+                        let accessor = vpr_type.ty_param_accessors[i];
                         vcx.mk_let_expr(decl, accessor.call()(self_expr), expr)
                     },
                 );
 
                 Some(with_tys_bound)
             }
-            _ => panic!("Unsupported dependent sizedness for {ty:?}"),
+            _ => panic!("Unsupported dependent sizedness for {depneded_on:?}"),
         }
     }
 }

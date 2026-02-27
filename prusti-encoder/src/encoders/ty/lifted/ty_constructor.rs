@@ -3,10 +3,7 @@ use vir::{CallableIdn, CastType, FunctionIdn, HasType};
 
 use crate::encoders::ty::{
     RustTy,
-    generics::{
-        GenericParamsEnc,
-        sized_trait::{SizedTraitEnc, SizedTraitEncTask},
-    },
+    generics::{GenericParamsEnc, sized_trait::SizedTraitEnc},
 };
 
 use super::r#typeof::{TypeOfEnc, TypeOfEncOutputRef};
@@ -137,14 +134,8 @@ impl TaskEncoder for TyConstructorEnc {
             let constructor =
                 vcx.mk_adt_constructor(type_function_ident.name().to_str(), vcx.alloc_slice(&args));
 
-            let sizedness_task = SizedTraitEncTask {
-                sizedness: task_key.sizedness,
-                discriminator: type_function_ident.name().to_str(),
-                ty_accessors: ty_accessor_functions,
-                const_accessors: const_accessor_functions,
-                ty_ctx: task_key.params,
-            };
-            deps.require_dep::<SizedTraitEnc>(sizedness_task)?;
+            // NOTE: This call depends on the ref output of this encoder
+            deps.require_dep::<SizedTraitEnc>(task_key)?;
 
             Ok((constructor, ()))
         })
