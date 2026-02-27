@@ -22,6 +22,18 @@ pub(super) mod type_eq {
 #[pure]
 fn panic(expr: &'static str) -> !;
 
+#[extern_spec(core::panicking)]
+#[requires(false)]
+pub fn assert_failed<T, U>(
+    kind: core::panicking::AssertKind,
+    left: &T,
+    right: &U,
+    args: Option<core::fmt::Arguments<'_>>,
+) -> !
+where
+    T: core::fmt::Debug + ?Sized,
+    U: core::fmt::Debug + ?Sized;
+
 #[extern_spec]
 impl<T> [T] {
     #[pure]

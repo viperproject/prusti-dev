@@ -31,3 +31,5 @@ pub extern crate rustc_hir as hir;
 pub extern crate rustc_middle as middle;
 pub extern crate rustc_mir_dataflow as dataflow;
 pub extern crate rustc_trait_selection as trait_selection;
+
+pub extern crate rustc_const_eval as const_eval;
