@@ -113,16 +113,17 @@ impl TaskEncoder for SizedTraitEnc {
             );
             program.add_function(sized_impl_fun);
 
-            let sized_impl_unknown_fun = vcx.mk_function(
-                sized_impl_unknown_idn,
-                (vcx.mk_local_decl("id", vir::TYPE_INT), &[], &[]),
+            let sized_impl_unknown_fun =
+                vcx.mk_domain_function(sized_impl_unknown_idn, false, None);
+
+            let sized_domain = vcx.mk_domain(
+                TraitEnc::trait_domain_idn(vcx, SIZED_TRAIT_NAME),
                 &[],
                 &[],
-                None,
+                vcx.alloc_slice(&[sized_impl_unknown_fun]),
                 None,
             );
-
-            program.add_function(sized_impl_unknown_fun);
+            program.add_domain(sized_domain);
         });
     }
 }
