@@ -27,6 +27,8 @@ pub struct GParams<'tcx> {
     /// This flag indicates whether this is the case, so that we can replace it
     /// with the actual `Self` parameter when needed.
     is_trait_extern_spec: bool,
+    /// A suffix to disambiguate generic parameters of different contexts
+    suffix: Option<&'static str>,
 }
 
 impl<'tcx> GParams<'tcx> {
@@ -39,6 +41,7 @@ impl<'tcx> GParams<'tcx> {
             params,
             env,
             is_trait_extern_spec,
+            suffix: None,
         }
     }
 
@@ -87,6 +90,13 @@ impl<'tcx> GParams<'tcx> {
             args.len(),
             "generic args length mismatch, context {self:?}, args {args:?}"
         );
+    }
+
+    pub fn with_suffix(self, suffix: &'static str) -> Self {
+        Self {
+            suffix: Some(suffix),
+            ..self
+        }
     }
 
     /// Tries to normalize associated types of the corresponding type. Returns
@@ -297,7 +307,12 @@ impl TaskEncoder for GenericParamsEnc {
         deps.emit_output_ref(*task_key, ())?;
         vir::with_vcx(|vcx| {
             let sanitize = |name: symbol::Symbol, index: u32| {
-                vir::ViperIdent::sanitize(vcx, &format!("{name}${index}")).to_str()
+                let name = if let Some(suffix) = task_key.suffix {
+                    format!("{name}${index}_{suffix}")
+                } else {
+                    format!("{name}${index}")
+                };
+                vir::ViperIdent::sanitize(vcx, &name).to_str()
             };
 
             let mut indices = vec![Ok(usize::MAX); task_key.params.len()];
