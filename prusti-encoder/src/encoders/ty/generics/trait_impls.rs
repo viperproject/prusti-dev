@@ -3,7 +3,7 @@ use std::{collections::VecDeque, iter};
 
 use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CallableIdn, CastType, Domain, vir_format_identifier};
+use vir::{CallableIdn, CastType, Domain, Dyn, vir_format_identifier};
 
 use crate::encoders::{
     ConstEnc,
@@ -147,11 +147,100 @@ impl TaskEncoder for TraitImplEnc {
     }
 }
 
+fn impl_block_condition2<'vir>(
+    vcx: &'vir vir::VirCtxt<'vir>,
+    deps: &mut TaskEncoderDependencies<'vir, TraitImplEnc>,
+    impl_did: DefId,
+) {
+    let tcx = vcx.tcx();
+    let impl_ctx = GParams::from(impl_did).with_suffix("impl");
+
+    let trait_ref = tcx.impl_trait_ref(impl_did).unwrap().instantiate_identity();
+
+    let trait_params = GParams::from(trait_ref.def_id).with_suffix("trait");
+    let trait_params = deps.require_dep::<GenericParamsEnc>(trait_params).unwrap();
+    let impl_params = deps.require_dep::<GenericParamsEnc>(impl_ctx).unwrap();
+
+    let impl_args = deps
+        .require_dep::<GArgsTyEnc>(GArgs::new(impl_ctx, trait_ref.args))
+        .unwrap();
+    let impl_ty_args = impl_args.get_ty();
+    let trait_ty_params = trait_params.ty_exprs();
+
+    let mut checks = Vec::new();
+    for (trait_ty_param, impl_ty_arg) in std::iter::zip(trait_ty_params, impl_ty_args) {
+        checks.push(vcx.mk_eq_expr(trait_ty_param, impl_ty_arg));
+    }
+
+    dbg!(checks);
+
+    let caller_bounds = impl_ctx.typing_env().param_env.caller_bounds();
+    dbg!(&caller_bounds);
+
+    let mut bound_checks = Vec::new();
+
+    for clause in caller_bounds {
+        match clause.kind().skip_binder() {
+            ty::ClauseKind::Trait(trait_pred) => {
+                let trait_did = trait_pred.def_id();
+                let trait_ = deps.require_ref::<TraitEnc>(trait_did).unwrap();
+                let gargs = GArgs::new(impl_ctx, trait_pred.trait_ref.args);
+                let gargs = deps.require_dep::<GArgsTyEnc>(gargs).unwrap();
+
+                let impl_check = (trait_.impl_fun)(gargs.get_ty(), gargs.get_const());
+                dbg!(&impl_check);
+                bound_checks.push(impl_check);
+            }
+            ty::ClauseKind::Projection(proj_pred) => {
+                let trait_did = proj_pred.trait_def_id(tcx);
+                let trait_ = deps.require_ref::<TraitEnc>(trait_did).unwrap();
+                let gargs = GArgs::new(impl_ctx, proj_pred.projection_term.args);
+                let gargs = deps.require_dep::<GArgsTyEnc>(gargs).unwrap();
+
+                let (projection, expr): (vir::ExprDyn, vir::ExprDyn) = match proj_pred.term.kind() {
+                    ty::TermKind::Ty(ty) => {
+                        let projection = trait_.fns.assoc_types[&proj_pred.def_id()](
+                            gargs.get_ty(),
+                            gargs.get_const(),
+                        );
+                        let ty = RustTyDecomposition::from_ty(ty, impl_ctx);
+                        let ty_expr = impl_params.ty_expr(deps, ty);
+                        (projection.upcast_ty(), ty_expr.upcast_ty())
+                    }
+                    ty::TermKind::Const(const_) => {
+                        let projection = trait_.fns.assoc_consts[&proj_pred.def_id()](
+                            gargs.get_ty(),
+                            gargs.get_const(),
+                        );
+                        let const_ty = tcx.type_of(proj_pred.def_id()).instantiate_identity();
+                        let const_task = ConstEncTask::Ty {
+                            const_,
+                            ty: const_ty,
+                            context: impl_ctx,
+                        };
+                        let const_expr = deps.require_dep::<ConstEnc>(const_task).unwrap();
+                        (projection.upcast_ty(), const_expr.upcast_ty())
+                    }
+                };
+
+                let projection_check = vcx.mk_eq_expr(projection, expr);
+                dbg!(&projection_check);
+                bound_checks.push(projection_check);
+            }
+            _ => unimplemented!(
+                "only trait and projection predicates in caller bounds are supported"
+            ),
+        }
+    }
+    dbg!(bound_checks);
+}
+
 fn impl_block_condition<'vir>(
     vcx: &'vir vir::VirCtxt<'vir>,
     deps: &mut TaskEncoderDependencies<'vir, TraitImplEnc>,
     impl_did: DefId,
 ) -> vir::ExprBool<'vir> {
+    impl_block_condition2(vcx, deps, impl_did);
     let tcx = vcx.tcx();
     let impl_ctx = GParams::from(impl_did);
 
