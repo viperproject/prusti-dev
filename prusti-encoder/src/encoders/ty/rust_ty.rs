@@ -73,6 +73,7 @@ impl<'tcx> RustTyDecomposition<'tcx> {
         let data = RustTyData {
             name: symbol::Symbol::intern("Real"),
             params: GParams::empty(),
+            erased_ty: None,
             sizedness: Sizedness::Sized,
         };
         let specifics = TySpecifics::Builtin(RustBuiltinData::BuiltinReal);
@@ -243,6 +244,7 @@ pub type RustBuiltin<'tcx> = <RustTyDatas as TyDatas<'tcx>>::BuiltinData;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RustTyData<'tcx> {
     pub name: symbol::Symbol,
+    pub erased_ty: Option<ty::Ty<'tcx>>,
     pub params: GParams<'tcx>,
     pub sizedness: Sizedness<'tcx>,
 }
@@ -301,6 +303,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         let args = GArgs::new(context, args);
         let data = RustTyData {
             name: symbol::Symbol::intern(&name),
+            erased_ty: erased_ty.into(),
             params,
             sizedness: sizedness_for_ty(vir::with_vcx(|vcx| vcx.tcx()), erased_ty),
         };
@@ -316,10 +319,11 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
 
     fn from_prim_ty(ty: ty::Ty<'tcx>) -> RustTyDecomposition<'tcx> {
         let name = Self::prim_ty_name(ty);
-        let (_, params, args) = Self::identity_for_prim_ty(ty);
+        let (erased_ty, params, args) = Self::identity_for_prim_ty(ty);
         let args = GArgs::new(params, args);
         let data = RustTyData {
             name: symbol::Symbol::intern(&name),
+            erased_ty: erased_ty.into(),
             params,
             sizedness: Sizedness::Sized,
         };
