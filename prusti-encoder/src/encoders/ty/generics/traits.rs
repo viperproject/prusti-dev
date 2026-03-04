@@ -44,8 +44,7 @@ impl TaskEncoder for TraitEnc {
     ) -> EncodeFullResult<'vir, Self> {
         vir::with_vcx(|vcx| {
             let tcx = vcx.tcx();
-            let params = deps
-                .require_dep::<GenericParamsEnc>(GParams::from(*task_key).with_suffix("trait"))?;
+            let params = deps.require_dep::<GenericParamsEnc>(Self::trait_gparams(*task_key))?;
             let trait_name = vcx.alloc_str(tcx.item_name(task_key).as_str());
 
             let trait_items = tcx.associated_items(task_key).in_definition_order();
@@ -245,5 +244,9 @@ impl TraitEnc {
         trait_name: &'a str,
     ) -> vir::ViperIdent<'vir> {
         vir_format_identifier!(vcx, "t_{trait_name}")
+    }
+
+    pub(super) fn trait_gparams<'tcx>(trait_did: DefId) -> GParams<'tcx> {
+        GParams::from(trait_did).with_suffix("trait")
     }
 }
