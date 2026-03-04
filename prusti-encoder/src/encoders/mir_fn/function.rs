@@ -2,10 +2,14 @@ use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies};
 use vir::{FunctionIdn, Reify};
 
-use crate::encoders::{
-    MirLocalDefEnc, MirLocalDefEncTask, MirPureEnc, MirPureEncTask, MirSpecEnc, Pure, PureKind,
-    mir_fn::{CallTaskDescription, RustSignature},
-    ty::generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
+use crate::{
+    encoders::{
+        MirLocalDefEnc, MirLocalDefEncTask, MirPureEnc, MirPureEncTask, MirSpecEnc, Pure, PureKind,
+        mir_fn::{CallTaskDescription, RustSignature},
+        pure::spec::MirSpecEncMode,
+        ty::generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
+    },
+    trait_support::is_function_with_body,
 };
 
 // Function wrapper
@@ -21,7 +25,7 @@ pub struct FunctionCallEncOutput<'vir> {
 }
 
 impl<'vir> FunctionCallEncOutput<'vir> {
-    pub fn call<Curr, Next>(
+    pub fn call_pure<Curr, Next>(
         &self,
         mut args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
@@ -35,6 +39,20 @@ impl<'vir> FunctionCallEncOutput<'vir> {
             self.ty_args.get_ty(),
             self.ty_args.get_const(),
         );
+        self.output.cast_to_caller_ctx(call)
+    }
+
+    pub fn call_impure<Curr, Next>(
+        &self,
+        mut args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        assert_eq!(self.inputs.len(), args.len());
+        let a = args.iter_mut().zip(self.inputs.iter());
+        for (arg, caster) in a {
+            *arg = caster.cast_to_callee_ctx(*arg);
+        }
+        let call =
+            self.function.caller_ref.call()(&args, self.ty_args.get_ty(), self.ty_args.get_const());
         self.output.cast_to_caller_ctx(call)
     }
 }
@@ -53,8 +71,16 @@ impl TaskEncoder for FunctionCallEnc {
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
         deps.emit_output_ref(*task_key, ())?;
-        let function_ref = deps.require_ref::<FunctionEnc>(task_key.callee)?;
-        let signature = RustSignature::new(task_key.callee);
+        let (callee_def_id, assoc_enc) = task_key.trait_call(deps)?;
+        let function_ref = if let Some(assoc_enc) = assoc_enc {
+            FunctionEncOutputRef {
+                caller_ref: assoc_enc.call_stub_pure_caller.unwrap(),
+                function_ref: assoc_enc.call_stub_pure_function.unwrap(),
+            }
+        } else {
+            deps.require_ref::<FunctionEnc>(task_key.callee)?
+        };
+        let signature = RustSignature::new(callee_def_id);
         let ty_args = deps.require_dep::<GArgsTyEnc>(task_key.gargs)?;
         let inputs = signature
             .inputs
@@ -90,6 +116,7 @@ struct FunctionEnc;
 
 #[derive(Debug, Clone)]
 struct FunctionEncOutputRef<'vir> {
+    caller_ref: FunctionIdn<'vir, (vir::ManySnap, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
     function_ref: FunctionIdn<'vir, (vir::ManySnap, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
 }
 
@@ -97,6 +124,7 @@ impl<'vir> OutputRefAny for FunctionEncOutputRef<'vir> {}
 
 #[derive(Debug, Clone, Copy)]
 struct FunctionEncOutput<'vir> {
+    caller: vir::Function<'vir>,
     function: vir::Function<'vir>,
 }
 
@@ -130,23 +158,37 @@ impl TaskEncoder for FunctionEnc {
 
             tracing::debug!("encoding {def_id:?}");
 
+            let caller_ident =
+                vir::vir_format_identifier!(vcx, "cf_{}", vcx.tcx().def_path_str(def_id));
             let function_ident =
                 vir::vir_format_identifier!(vcx, "f_{}", vcx.tcx().def_path_str(def_id));
             let arg_types = vcx.alloc_slice(&local_defs.snap_ty_args().collect::<Vec<_>>());
             let return_type = local_defs.snap_ty_return();
             let params = GParams::from(def_id);
             let generics = deps.require_dep::<GenericParamsEnc>(params)?;
+            let caller_ref = FunctionIdn::new(
+                caller_ident,
+                (arg_types, generics.ty_args(), generics.const_args()),
+                return_type,
+            );
             let function_ref = FunctionIdn::new(
                 function_ident,
                 (arg_types, generics.ty_args(), generics.const_args()),
                 return_type,
             );
-            deps.emit_output_ref(def_id, FunctionEncOutputRef { function_ref })?;
+            deps.emit_output_ref(
+                def_id,
+                FunctionEncOutputRef {
+                    caller_ref,
+                    function_ref,
+                },
+            )?;
 
             let substs = ty::GenericArgs::identity_for_item(vcx.tcx(), def_id);
-            let spec = deps.require_dep::<MirSpecEnc>((def_id, true))?;
+            let spec =
+                deps.require_dep::<MirSpecEnc>((def_id, def_id, MirSpecEncMode::PureWithResult))?;
 
-            let expr = if trusted {
+            let expr = if trusted || !is_function_with_body(vcx.tcx(), def_id) {
                 None
             } else {
                 // Encode the body of the function
@@ -170,48 +212,53 @@ impl TaskEncoder for FunctionEnc {
                 Some(expr)
             };
 
-            // TODO: type preconditions do not currently work
-            /*
-            let arg_type_assertions = local_defs.args().map(|arg| {
-                let snap = vcx.mk_local_ex(arg.local_snap);
-                generics.ty_assertion(deps, snap, arg.rust_ty)
-            }).collect::<Vec<_>>();
-            */
-
             tracing::debug!("finished {def_id:?}");
 
-            let mut pres = Vec::new(); // arg_type_assertions;
-            pres.extend(spec.pres);
-
-            // TODO: type preconditions do not currently work
-            /*
-            let ret = local_defs.ret();
-            let snap = vcx.mk_result(ret.local_snap.ty());
-            let ret_type_assertions = generics.ty_assertion(deps, snap, ret.rust_ty);
-            */
-            let mut posts = Vec::new(); // vec![ret_type_assertions];
-            posts.extend(spec.posts.into_iter().map(|post| {
-                // use inhale-exhale expression to prevent viper checking that
-                // the function body expression satisfies the postcondition:
-                // that's checked in the method encoding of this function.
-                vcx.mk_inhale_exhale_expr(post, vcx.mk_bool::<true>())
-            }));
+            let posts = spec
+                .posts
+                .into_iter()
+                .map(|post| {
+                    // use inhale-exhale expression to prevent viper checking that
+                    // the function body expression satisfies the postcondition:
+                    // that's checked in the method encoding of this function.
+                    vcx.mk_inhale_exhale_expr(post, vcx.mk_bool::<true>())
+                })
+                .collect::<Vec<_>>();
+            let posts = vcx.alloc_slice(&posts);
 
             let func_args = local_defs.local_decl_args().collect::<Vec<_>>();
+            let wrapped_call_args = func_args
+                .iter()
+                .map(|arg| vcx.mk_local_ex(arg))
+                .collect::<Vec<_>>();
+            let wrapped_call = function_ref.call()(
+                &wrapped_call_args,
+                generics.ty_exprs(),
+                generics.const_exprs(),
+            );
+            let caller = vcx.mk_function(
+                caller_ref,
+                (&func_args, generics.ty_decls(), generics.const_decls()),
+                vcx.alloc_slice(&spec.pres),
+                posts,
+                None,
+                Some(wrapped_call),
+            );
             let function = vcx.mk_function(
                 function_ref,
                 (&func_args, generics.ty_decls(), generics.const_decls()),
-                vcx.alloc_slice(&pres),
-                vcx.alloc_slice(&posts),
+                &[],
+                posts,
                 expr.is_none().then_some(&vir::DecreasesGenData::Star),
                 expr,
             );
-            Ok((FunctionEncOutput { function }, ()))
+            Ok((FunctionEncOutput { caller, function }, ()))
         })
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
         for output in Self::all_outputs_local_no_errors() {
+            program.add_function(output.caller);
             program.add_function(output.function);
         }
     }

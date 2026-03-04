@@ -1631,7 +1631,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                                 })
                             })
                             .collect::<Vec<_>>();
-                        let pure_func_app = pure_func.call(snap_args);
+                        let pure_func_app = pure_func.call_impure(snap_args);
 
                         let return_ty = destination.ty(self.local_decls, self.vcx.tcx()).ty;
                         let assign_stmt = self.ty_use_impure(return_ty).apply_method_assign(

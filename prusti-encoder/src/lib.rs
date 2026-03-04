@@ -23,7 +23,9 @@ use crate::encoders::{
     addr::RefDataEnc,
     custom::PairUseEnc,
     ty::{
-        generics::{GArgsCastEnc, trait_impls::TraitImplEnc, traits::TraitEnc},
+        generics::{
+            GArgsCastEnc, r#trait::TraitEnc, trait_fn::TraitFnEnc, trait_impls::TraitImplEnc,
+        },
         interpretation::bitvec::BitVecEnc,
         lifted::{TyConstructorEnc, TypeOfEnc},
     },
@@ -105,9 +107,12 @@ pub fn test_entrypoint<'tcx>(
 
     program.header("custom");
     PairUseEnc::emit_outputs(&mut program);
-    TraitEnc::emit_outputs(&mut program);
-    TraitImplEnc::emit_outputs(&mut program);
     RefDataEnc::emit_outputs(&mut program);
+
+    program.header("traits");
+    TraitEnc::emit_outputs(&mut program);
+    TraitFnEnc::emit_outputs(&mut program);
+    TraitImplEnc::emit_outputs(&mut program);
 
     if std::env::var("LOCAL_TESTING").is_ok() {
         std::fs::write("local-testing/simple.vpr", program.code()).unwrap();

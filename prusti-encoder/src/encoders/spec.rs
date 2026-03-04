@@ -143,6 +143,16 @@ fn get_spec_items<'vir, T: Copy>(
             vcx.alloc_slice(items)
         }
         SpecificationItem::Empty => &[],
-        _ => todo!(),
+        SpecificationItem::Refined(_from, to) => {
+            // Here we ignore the original specs: to get to this branch, the
+            // task key given to `SpecEnc` was the `DefId` of an trait method
+            // implementation, which will happen when encoding the definition
+            // of that implementation.
+            //
+            // At callsites, `MethodCallEnc` will direct the call to the stub
+            // method, which uses the `DefId` of the trait item for emitting
+            // its specifications.
+            vcx.alloc_slice(to)
+        }
     }
 }

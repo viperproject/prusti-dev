@@ -1,6 +1,6 @@
 use crate::encoders::{
     ImpureEncVisitor, MirLocalDefEncOutput, MirSpecEnc,
-    pure::spec::{EncodedPledge, PledgeArgs, PledgeExpr},
+    pure::spec::{EncodedPledge, MirSpecEncMode, PledgeArgs, PledgeExpr},
     ty::{RustTyDecomposition, generics::GParams, indirect::IndirectPredicatesEnc},
 };
 use pcg::borrow_pcg::{
@@ -343,7 +343,7 @@ impl TaskEncoder for WandEnc {
             })?;
 
             let (inputs, outputs) = shape.take_inputs_and_outputs();
-            let spec = deps.require_dep::<MirSpecEnc>((def_id, false))?;
+            let spec = deps.require_dep::<MirSpecEnc>((def_id, def_id, MirSpecEncMode::Impure))?;
             if coupled_edges.is_empty() {
                 assert!(spec.pledges.is_empty());
                 return Ok((

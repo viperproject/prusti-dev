@@ -1,16 +1,24 @@
-use crate::encoders::ty::{
-    RustImmRef,
-    impure::{PredicateBuilder, TyImpureEnc, TyImpureImmRef, TyImpureImmRefData},
-    pure::{AdtBuilder, TyPureEnc, TyPureImmRef, TyPureImmRefData},
+use crate::encoders::{
+    TyUsePureEnc,
+    ty::{
+        RustImmRef, RustTyDatas,
+        data::TyData,
+        impure::{PredicateBuilder, TyImpureEnc, TyImpureImmRef, TyImpureImmRefData},
+        pure::{AdtBuilder, TyPureEnc, TyPureImmRef, TyPureImmRefData},
+    },
 };
 use task_encoder::{EncodeFullError, TaskEncoderDependencies};
 use vir::CastType;
 
 pub(crate) fn ty_pure<'vir>(
-    _data: &RustImmRef<'vir>,
-    _deps: &mut TaskEncoderDependencies<'vir, TyPureEnc>,
+    task_key: &TyData<'vir, RustTyDatas>,
+    data: &RustImmRef<'vir>,
+    deps: &mut TaskEncoderDependencies<'vir, TyPureEnc>,
     builder: &mut AdtBuilder<'vir>,
 ) -> Result<TyPureImmRef<'vir>, EncodeFullError<'vir, TyPureEnc>> {
+    // force encoding of s_Param
+    deps.require_ref::<TyUsePureEnc>(data.decompose(task_key.params))?;
+
     let (field_snaps_to_snap, field_access) =
         builder.constructor("", (vir::TYPE_REF, vir::TYPE_PSNAP), None);
 

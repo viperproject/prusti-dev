@@ -5,7 +5,7 @@ use prusti_interface::{
     specs::{specifications::find_trait_method_substs, typed::Pledge},
 };
 use prusti_rustc_interface::{
-    middle::{mir, ty},
+    middle::mir,
     span::{Span, def_id::DefId},
 };
 
@@ -15,7 +15,7 @@ use vir::{CastType, HasType, Reify};
 use crate::encoders::{
     MirLocalDefEncTask, MirPureEnc,
     mir_pure::{ExprInput, PureKind},
-    ty::{RustTyDecomposition, use_pure::TyUsePureEnc},
+    ty::{RustTyDecomposition, generics::GParams, use_pure::TyUsePureEnc},
 };
 pub struct MirSpecEnc;
 
@@ -93,12 +93,30 @@ pub struct MirSpecEncOutput<'vir> {
     pub post_args: &'vir [vir::ExprSnap<'vir>],
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum MirSpecEncMode {
+    /// Assumes the arguments and the result are available in local variables
+    /// `_1p`, ... `_np`, and `_0p`, respectively, all of type `Ref``, i.e.,
+    /// their snapshot is taken first.
+    Impure,
+
+    /// Assumes the arguments are available in local varialbes `_1s`, ... `_ns`,
+    /// all of snapshot types, and the result is the result of the current
+    /// function, i.e., `result` in Viper syntax.
+    PureWithResult,
+
+    /// Assumes the arguments and the result are available in local variables
+    /// `_1s`, ... `_ns`, and `_0s`, respectively, all of snapshot types.
+    PureWithoutResult,
+}
+
 impl TaskEncoder for MirSpecEnc {
     task_encoder::encoder_cache!(MirSpecEnc);
 
     type TaskDescription<'tcx> = (
         DefId, // The function annotated with specs
-        bool,  // If to encode as pure or not
+        DefId, // Context, i.e., where the specs are emitted
+        MirSpecEncMode,
     );
 
     type OutputFullDependency<'vir> = MirSpecEncOutput<'vir>;
@@ -113,37 +131,55 @@ impl TaskEncoder for MirSpecEnc {
         task_key: &Self::TaskKey<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
-        let (def_id, pure) = *task_key;
+        let (def_id, context_def_id, enc_mode) = *task_key;
         deps.emit_output_ref(*task_key, ())?;
 
-        let local_defs = deps.require_dep::<crate::encoders::local_def::MirLocalDefEnc>(
-            MirLocalDefEncTask::Local {
-                def_id,
-                all_locals: false,
-            },
-        )?;
-        let specs =
-            deps.require_dep::<crate::encoders::SpecEnc>(crate::encoders::SpecEncTask { def_id })?;
-
         vir::with_vcx(|vcx| {
-            let substs = ty::GenericArgs::identity_for_item(vcx.tcx(), def_id);
+            let base_params = GParams::from(def_id);
+            let context_params = GParams::from(context_def_id);
+            let substs =
+                find_trait_method_substs(vcx.tcx(), context_def_id, context_params.rust_params())
+                    .map(|s| s.1)
+                    .unwrap_or(base_params.rust_params());
+
+            let local_defs = deps.require_dep::<crate::encoders::local_def::MirLocalDefEnc>(
+                MirLocalDefEncTask::LocalSubsts {
+                    def_id,
+                    context_def_id,
+                    substs: if def_id == context_def_id {
+                        context_params.rust_params()
+                    } else {
+                        substs
+                    },
+                    all_locals: false,
+                },
+            )?;
+            let specs = deps
+                .require_dep::<crate::encoders::SpecEnc>(crate::encoders::SpecEncTask { def_id })?;
+
             let local_iter = (1..=local_defs.arg_count).map(mir::Local::from);
-            let all_args: Vec<vir::ExprSnap<'vir>> = if pure {
-                let result_ty = local_defs[mir::RETURN_PLACE].local_snap.ty();
-                local_iter
-                    .map(|local| vcx.mk_local_ex(local_defs[local].local_snap))
-                    .chain([vcx.mk_result(result_ty)])
-                    .collect()
-            } else {
-                local_iter
+            let all_args: Vec<vir::ExprSnap<'vir>> = match enc_mode {
+                MirSpecEncMode::Impure => local_iter
                     .map(|local| local_defs[local].impure_snap)
-                    .collect()
+                    .collect(),
+                MirSpecEncMode::PureWithResult => {
+                    let result_ty = local_defs[mir::RETURN_PLACE].local_snap.ty();
+                    local_iter
+                        .map(|local| vcx.mk_local_ex(local_defs[local].local_snap))
+                        .chain([vcx.mk_result(result_ty)])
+                        .collect()
+                }
+                MirSpecEncMode::PureWithoutResult => local_iter
+                    .map(|local| vcx.mk_local_ex(local_defs[local].local_snap))
+                    .chain([vcx.mk_local_ex(local_defs[mir::RETURN_PLACE].local_snap)])
+                    .collect(),
             };
             let all_args = vcx.alloc_slice(&all_args);
-            let pre_args = if pure {
-                &all_args[..all_args.len() - 1]
-            } else {
-                all_args
+            let pre_args = match enc_mode {
+                MirSpecEncMode::Impure => all_args,
+                MirSpecEncMode::PureWithResult | MirSpecEncMode::PureWithoutResult => {
+                    &all_args[..all_args.len() - 1]
+                }
             };
 
             let to_bool = deps
@@ -152,10 +188,6 @@ impl TaskEncoder for MirSpecEnc {
                 ))?
                 .expect_native()
                 .snap_to_prim;
-
-            let substs = find_trait_method_substs(vcx.tcx(), def_id, substs)
-                .map(|s| s.1)
-                .unwrap_or(substs);
 
             let pres = specs
                 .pres
@@ -170,7 +202,7 @@ impl TaskEncoder for MirSpecEnc {
                                 param_env: vcx.tcx().param_env(spec_def_id),
                                 substs,
                                 // TODO: should this be `def_id` or `caller_def_id`
-                                caller_def_id: Some(def_id),
+                                caller_def_id: Some(context_def_id),
                             },
                         )
                         .unwrap()
@@ -182,15 +214,16 @@ impl TaskEncoder for MirSpecEnc {
                 })
                 .collect::<Vec<vir::ExprBool<'_>>>();
 
-            let post_args = if pure {
-                all_args
-            } else {
-                let post_args: Vec<vir::ExprSnap<'vir>> = pre_args
-                    .iter()
-                    .map(|arg| vcx.mk_old_expr(arg))
-                    .chain([local_defs[mir::RETURN_PLACE].impure_snap])
-                    .collect();
-                vcx.alloc_slice(&post_args)
+            let post_args = match enc_mode {
+                MirSpecEncMode::Impure => {
+                    let post_args: Vec<vir::ExprSnap<'vir>> = pre_args
+                        .iter()
+                        .map(|arg| vcx.mk_old_expr(arg))
+                        .chain([local_defs[mir::RETURN_PLACE].impure_snap])
+                        .collect();
+                    vcx.alloc_slice(&post_args)
+                }
+                MirSpecEncMode::PureWithResult | MirSpecEncMode::PureWithoutResult => all_args,
             };
             let posts = specs
                 .posts
@@ -213,7 +246,7 @@ impl TaskEncoder for MirSpecEnc {
                                     param_env: vcx.tcx().param_env(spec_def_id),
                                     substs,
                                     // TODO: should this be `def_id` or `caller_def_id`
-                                    caller_def_id: Some(def_id),
+                                    caller_def_id: Some(context_def_id),
                                 },
                             )?
                             .expr
@@ -242,7 +275,7 @@ impl TaskEncoder for MirSpecEnc {
                                     param_env: vcx.tcx().param_env(lhs_def_id),
                                     substs,
                                     // TODO: should this be `def_id` or `caller_def_id`
-                                    caller_def_id: Some(def_id),
+                                    caller_def_id: Some(context_def_id),
                                 },
                             )
                             .unwrap()
@@ -258,7 +291,7 @@ impl TaskEncoder for MirSpecEnc {
                                     param_env: vcx.tcx().param_env(rhs_def_id),
                                     substs,
                                     // TODO: should this be `def_id` or `caller_def_id`
-                                    caller_def_id: Some(def_id),
+                                    caller_def_id: Some(context_def_id),
                                 },
                             )
                             .unwrap()

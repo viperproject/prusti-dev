@@ -51,13 +51,6 @@ impl TaskEncoder for PairUseEnc {
             ))
         })
     }
-
-    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let outputs = PairEnc::all_outputs_local_no_errors();
-        for output in outputs {
-            program.add_adt(output);
-        }
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -119,5 +112,12 @@ impl TaskEncoder for PairEnc {
                 },
             ))
         })
+    }
+
+    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
+        let outputs = Self::all_outputs_local_no_errors();
+        for output in outputs {
+            program.add_adt(output);
+        }
     }
 }

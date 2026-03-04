@@ -255,10 +255,14 @@ pub fn find_trait_method_substs<'tcx>(
     // We also need to subst the prefix (`[Struct<B, C>, A]` in the example
     // above) with call substs, so that we get the trait's type parameters
     // more precisely.
-    let impl_method_substs = ty::List::identity_for_item(tcx, impl_method_def_id);
-    let trait_method_substs = ty::List::identity_for_item(tcx, trait_method_def_id);
-    let trait_method_substs =
-        impl_method_substs.rebase_onto(tcx, trait_def_id, trait_method_substs);
+    let call_trait_substs =
+        ty::EarlyBinder::bind(trait_ref.args).instantiate(tcx, impl_method_substs);
+    let impl_substs = ty::List::identity_for_item(tcx, impl_def_id);
+    let trait_method_substs = tcx.mk_args_from_iter(
+        call_trait_substs
+            .iter()
+            .chain(impl_method_substs.iter().skip(impl_substs.len())),
+    );
 
     // sanity check: do we now have the correct number of substs?
     let identity_trait_method = ty::List::identity_for_item(tcx, trait_method_def_id);
