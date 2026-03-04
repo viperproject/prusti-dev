@@ -410,8 +410,12 @@ macro_rules! expr_inner {
     ) };
     (@forall_qvars($qvars:ident); :: $($tokens:tt)*) => { compile_error!(concat!("VIR missing triggers or body: `" , stringify!($($tokens)*), "`")) };
 
-    (@forall_qvars($qvars:ident); , ..[$outer_decls:ident] $($tokens:tt)*) => { {
-        $qvars.extend($outer_decls.clone());
+    (@forall_qvars($qvars:ident); , ..[$outer_decls:expr] $($tokens:tt)*) => { {
+        $qvars.extend($outer_decls.iter().map(|local| $crate::CastType::as_dyn(local.clone())));
+        $crate::expr_inner!(@forall_qvars($qvars); $($tokens)*)
+    } };
+    (@forall_qvars($qvars:ident); , [$outer_decl:expr] $($tokens:tt)*) => { {
+        $qvars.push($crate::CastType::as_dyn($outer_decl));
         $crate::expr_inner!(@forall_qvars($qvars); $($tokens)*)
     } };
     (@forall_qvars($qvars:ident); , $qvar:ident : $qtype:tt $($tokens:tt)* ) => { {

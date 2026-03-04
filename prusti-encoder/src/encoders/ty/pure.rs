@@ -254,7 +254,9 @@ impl TaskEncoder for TyPureEnc {
                 }
                 TySpecifics::ImmRef(immref) => {
                     let builder = builder.set_adt_builder();
-                    TySpecifics::ImmRef(super::kinds::immref::ty_pure(immref, deps, builder)?)
+                    TySpecifics::ImmRef(super::kinds::immref::ty_pure(
+                        task_key, immref, deps, builder,
+                    )?)
                 }
                 TySpecifics::MutRef(_) => {
                     let builder = builder.set_adt_builder();
@@ -283,7 +285,7 @@ impl TaskEncoder for TyPureEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for output in TyPureEnc::all_outputs_local_no_errors() {
+        for output in Self::all_outputs_local_no_errors() {
             program.add_function(output.unreachable_to_snap);
             for function in output.functions {
                 program.add_function(function);
