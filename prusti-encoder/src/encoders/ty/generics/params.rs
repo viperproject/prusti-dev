@@ -240,7 +240,7 @@ impl<'vir> GenericParams<'vir> {
         self.const_exprs()[self.map_idx(param.index).unwrap_err()]
     }
 
-    fn map_idx(&self, index: u32) -> Result<usize, usize> {
+    pub(super) fn map_idx(&self, index: u32) -> Result<usize, usize> {
         let result = self.indices[index as usize];
         assert!(
             result.ok().is_none_or(|i| i != usize::MAX),

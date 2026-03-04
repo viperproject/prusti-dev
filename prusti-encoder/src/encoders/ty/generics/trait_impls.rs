@@ -1,16 +1,15 @@
-use rustc_hash::FxHashMap;
 use std::{collections::VecDeque, iter};
 
-use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
+use prusti_rustc_interface::{index::bit_set::DenseBitSet, middle::ty, span::def_id::DefId};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CallableIdn, CastType, Domain, Dyn, vir_format_identifier};
+use vir::{CastType, Domain, vir_format_identifier};
 
 use crate::encoders::{
     ConstEnc,
     r#const::ConstEncTask,
     ty::{
         RustTyDecomposition,
-        generics::{GArgs, GArgsTyEnc, GParams, GenericParamsEnc, traits::TraitEnc},
+        generics::{GArgs, GArgsTyEnc, GParams, GenericParams, GenericParamsEnc, traits::TraitEnc},
         lifted::TyConstructorEnc,
     },
 };
@@ -147,92 +146,100 @@ impl TaskEncoder for TraitImplEnc {
     }
 }
 
-fn impl_block_condition2<'vir>(
-    vcx: &'vir vir::VirCtxt<'vir>,
-    deps: &mut TaskEncoderDependencies<'vir, TraitImplEnc>,
-    impl_did: DefId,
-) {
-    let tcx = vcx.tcx();
-    let impl_ctx = GParams::from(impl_did).with_suffix("impl");
+fn bitset_from(iter: impl IntoIterator<Item = u32>, size: usize) -> DenseBitSet<u32> {
+    iter.into_iter()
+        .fold(DenseBitSet::new_empty(size), |mut acc, idx| {
+            acc.insert(idx);
+            acc
+        })
+}
+fn projection_deps<'vir>(
+    projection: ty::ProjectionPredicate<'vir>,
+    generics_count: usize,
+) -> (DenseBitSet<u32>, DenseBitSet<u32>) {
+    let generic_idx = |arg: ty::GenericArg| match arg.kind() {
+        ty::GenericArgKind::Type(ty) if let ty::TyKind::Param(p) = ty.kind() => Some(p.index),
+        ty::GenericArgKind::Const(const_) if let ty::ConstKind::Param(p) = const_.kind() => {
+            Some(p.index)
+        }
+        _ => None,
+    };
 
-    let trait_ref = tcx.impl_trait_ref(impl_did).unwrap().instantiate_identity();
+    let required = projection
+        .projection_term
+        .args
+        .iter()
+        .flat_map(|arg| arg.walk().filter_map(generic_idx));
 
-    let trait_params = GParams::from(trait_ref.def_id).with_suffix("trait");
-    let trait_params = deps.require_dep::<GenericParamsEnc>(trait_params).unwrap();
-    let impl_params = deps.require_dep::<GenericParamsEnc>(impl_ctx).unwrap();
+    let produced = projection.term.walk().filter_map(generic_idx);
 
-    let impl_args = deps
-        .require_dep::<GArgsTyEnc>(GArgs::new(impl_ctx, trait_ref.args))
-        .unwrap();
-    let impl_ty_args = impl_args.get_ty();
-    let trait_ty_params = trait_params.ty_exprs();
+    (
+        bitset_from(required, generics_count),
+        bitset_from(produced, generics_count),
+    )
+}
 
-    let mut checks = Vec::new();
-    for (trait_ty_param, impl_ty_arg) in std::iter::zip(trait_ty_params, impl_ty_args) {
-        checks.push(vcx.mk_eq_expr(trait_ty_param, impl_ty_arg));
-    }
+fn order_projections<'vir>(
+    known_generics: impl IntoIterator<Item = u32>,
+    projections: impl IntoIterator<Item = ty::ProjectionPredicate<'vir>>,
+    generics_count: usize,
+) -> Vec<ty::ProjectionPredicate<'vir>> {
+    let mut known_generics = bitset_from(known_generics, generics_count);
 
-    dbg!(checks);
+    let mut worklist: VecDeque<_> = projections
+        .into_iter()
+        .map(|p| (p, projection_deps(p, generics_count)))
+        .collect();
 
-    let caller_bounds = impl_ctx.typing_env().param_env.caller_bounds();
-    dbg!(&caller_bounds);
+    let mut ordered = Vec::new();
 
-    let mut bound_checks = Vec::new();
-
-    for clause in caller_bounds {
-        match clause.kind().skip_binder() {
-            ty::ClauseKind::Trait(trait_pred) => {
-                let trait_did = trait_pred.def_id();
-                let trait_ = deps.require_ref::<TraitEnc>(trait_did).unwrap();
-                let gargs = GArgs::new(impl_ctx, trait_pred.trait_ref.args);
-                let gargs = deps.require_dep::<GArgsTyEnc>(gargs).unwrap();
-
-                let impl_check = (trait_.impl_fun)(gargs.get_ty(), gargs.get_const());
-                dbg!(&impl_check);
-                bound_checks.push(impl_check);
-            }
-            ty::ClauseKind::Projection(proj_pred) => {
-                let trait_did = proj_pred.trait_def_id(tcx);
-                let trait_ = deps.require_ref::<TraitEnc>(trait_did).unwrap();
-                let gargs = GArgs::new(impl_ctx, proj_pred.projection_term.args);
-                let gargs = deps.require_dep::<GArgsTyEnc>(gargs).unwrap();
-
-                let (projection, expr): (vir::ExprDyn, vir::ExprDyn) = match proj_pred.term.kind() {
-                    ty::TermKind::Ty(ty) => {
-                        let projection = trait_.fns.assoc_types[&proj_pred.def_id()](
-                            gargs.get_ty(),
-                            gargs.get_const(),
-                        );
-                        let ty = RustTyDecomposition::from_ty(ty, impl_ctx);
-                        let ty_expr = impl_params.ty_expr(deps, ty);
-                        (projection.upcast_ty(), ty_expr.upcast_ty())
-                    }
-                    ty::TermKind::Const(const_) => {
-                        let projection = trait_.fns.assoc_consts[&proj_pred.def_id()](
-                            gargs.get_ty(),
-                            gargs.get_const(),
-                        );
-                        let const_ty = tcx.type_of(proj_pred.def_id()).instantiate_identity();
-                        let const_task = ConstEncTask::Ty {
-                            const_,
-                            ty: const_ty,
-                            context: impl_ctx,
-                        };
-                        let const_expr = deps.require_dep::<ConstEnc>(const_task).unwrap();
-                        (projection.upcast_ty(), const_expr.upcast_ty())
-                    }
-                };
-
-                let projection_check = vcx.mk_eq_expr(projection, expr);
-                dbg!(&projection_check);
-                bound_checks.push(projection_check);
-            }
-            _ => unimplemented!(
-                "only trait and projection predicates in caller bounds are supported"
-            ),
+    while let Some((proj, (required, produced))) = worklist.pop_front() {
+        if known_generics.superset(&required) {
+            known_generics.union(&produced);
+            ordered.push(proj);
+        } else {
+            worklist.push_back((proj, (required, produced)));
         }
     }
-    dbg!(bound_checks);
+
+    ordered
+}
+
+fn discover_bind_points<'vir>(
+    deps: &mut TaskEncoderDependencies<'vir, TraitImplEnc>,
+    generic_map: &mut GenericsMap<'vir>,
+    ctx: GParams<'vir>,
+    expr: vir::ExprDyn<'vir>,
+    ty: ty::Ty<'vir>,
+) {
+    dbg!(&ty);
+
+    if let ty::TyKind::Param(p) = ty.kind() {
+        generic_map.try_insert(p.index, expr);
+        return;
+    }
+
+    let decomp = RustTyDecomposition::from_ty(ty, ctx);
+    let ty_enc = deps.require_ref::<TyConstructorEnc>(decomp.ty).unwrap();
+
+    let args = decomp.args.args();
+    let inner_types = args.iter().filter_map(|arg| arg.as_type());
+    for (i, inner_ty) in inner_types.enumerate() {
+        let accessor = ty_enc.ty_param_accessors[i];
+        let inner_expr = accessor.call()(expr.downcast_ty());
+
+        discover_bind_points(deps, generic_map, ctx, inner_expr.upcast_ty(), inner_ty);
+    }
+
+    let inner_consts = args.iter().filter_map(|arg| arg.as_const());
+    for (i, inner_const) in inner_consts.enumerate() {
+        let accessor = ty_enc.const_param_accessors[i];
+        let inner_expr = accessor.call()(expr.downcast_ty());
+
+        if let ty::ConstKind::Param(p) = inner_const.kind() {
+            generic_map.try_insert(p.index, inner_expr.upcast_ty());
+        }
+    }
 }
 
 fn impl_block_condition<'vir>(
@@ -240,399 +247,186 @@ fn impl_block_condition<'vir>(
     deps: &mut TaskEncoderDependencies<'vir, TraitImplEnc>,
     impl_did: DefId,
 ) -> vir::ExprBool<'vir> {
-    impl_block_condition2(vcx, deps, impl_did);
     let tcx = vcx.tcx();
-    let impl_ctx = GParams::from(impl_did);
-
-    let mut checks = Vec::new();
-
-    // Collect the mappings from generic arguments to viper expressions that occur
-    // in the impl block, such that we can refer to them when encoding the trait
-    // bounds of the impl block. For example, for an impl like `impl<T> Trait for
-    // (T, i32)`, we would map `T` to an accessor expression to the first member of
-    // the tuple type - `self.2_tup.0`
-    let mut ty_map = FxHashMap::default();
-    let mut const_map = FxHashMap::default();
+    let impl_ctx = GParams::from(impl_did).with_suffix("impl");
 
     let trait_ref = tcx.impl_trait_ref(impl_did).unwrap().instantiate_identity();
-    let trait_rust_tys = trait_ref.args.iter().filter_map(|arg| arg.as_type());
-    let trait_params = deps
-        .require_dep::<GenericParamsEnc>(trait_ref.def_id.into())
-        .unwrap();
 
-    for (&ty_expr, rust_ty) in std::iter::zip(trait_params.ty_exprs(), trait_rust_tys) {
-        checks.extend(encode_type_check(
-            vcx,
-            deps,
-            &mut ty_map,
-            &mut const_map,
-            impl_ctx,
-            ty_expr,
-            rust_ty,
-        ));
+    let trait_ctx = GParams::from(trait_ref.def_id).with_suffix("trait");
+    let trait_params = deps.require_dep::<GenericParamsEnc>(trait_ctx).unwrap();
+    let impl_params = deps.require_dep::<GenericParamsEnc>(impl_ctx).unwrap();
+
+    let impl_args = deps
+        .require_dep::<GArgsTyEnc>(GArgs::new(impl_ctx, trait_ref.args))
+        .unwrap();
+    let impl_ty_args = impl_args.get_ty();
+    let trait_ty_params = trait_params.ty_exprs();
+    let trait_const_params = trait_params.const_exprs();
+
+    // Collect the bindings for the generics of this impl block
+    let mut generics_map = GenericsMap::new(impl_ctx.count());
+    collect_bindings(
+        deps,
+        &mut generics_map,
+        trait_ctx,
+        &trait_params,
+        trait_ref.args,
+    );
+
+    let mut checks = Vec::new();
+    for (trait_ty_param, impl_ty_arg) in std::iter::zip(trait_ty_params, impl_ty_args) {
+        checks.push(vcx.mk_eq_expr(trait_ty_param, impl_ty_arg));
     }
 
     let caller_bounds = impl_ctx.typing_env().param_env.caller_bounds();
 
-    // Process the projection predicates first as they might introduce new bindings
-    // for generic parameters
-    let projection_preds = caller_bounds
-        .iter()
-        .filter_map(ty::Clause::as_projection_clause)
-        .map(ty::Binder::skip_binder);
-
-    checks.extend(process_projection_predicates(
-        vcx,
-        deps,
-        &mut ty_map,
-        &mut const_map,
-        impl_ctx,
-        projection_preds,
-    ));
-
-    // Process trait predicates last as they cannot introduce new bindings for
-    // generics
     let trait_preds = caller_bounds
         .iter()
         .filter_map(ty::Clause::as_trait_clause)
         .map(ty::Binder::skip_binder);
 
-    checks.push(process_trait_predicates(
-        vcx,
-        deps,
-        &ty_map,
-        &const_map,
-        impl_ctx,
-        trait_preds,
-    ));
-
-    vcx.mk_conj(&checks)
-}
-
-/// Encode a check that the type expression `expr` is the same as the rust type `ty`.
-/// Additionally, collect the generic parameters of the impl block and map them to
-/// their occurances in the type expression, such that they can be referred to when
-/// encoding the trait bounds of the impl block.
-///
-/// For example, for `expr` equal to `(T, i32)`, `T` would be mapped to an accessor
-/// expression to the first member of the tuple type - `expr.2_tup.0`
-fn encode_type_check<'vir>(
-    vcx: &'vir vir::VirCtxt<'vir>,
-    deps: &mut TaskEncoderDependencies<'vir, TraitImplEnc>,
-    ty_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
-    const_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprSnap<'vir>>,
-    ctx: GParams<'vir>,
-    expr: vir::ExprTyVal<'vir>,
-    ty: ty::Ty<'vir>,
-) -> Option<vir::ExprBool<'vir>> {
-    let decomp = RustTyDecomposition::from_ty(ty, ctx);
-
-    if decomp.ty.specifics.is_param() {
-        let arg = decomp.args.args().first().expect("Param missing arg");
-
-        use std::collections::hash_map::Entry;
-        return match ty_map.entry(*arg) {
-            Entry::Occupied(occ) => {
-                // Already seen this T: ensure this type matches the originally found
-                Some(vcx.mk_eq_expr(expr, *occ.get()))
-            }
-            Entry::Vacant(vac) => {
-                // First time seeing T: map it to the current accessor path for future references
-                vac.insert(expr);
-                None
-            }
-        };
-    }
-
-    let ty_enc = deps.require_ref::<TyConstructorEnc>(decomp.ty).unwrap();
-
-    let discr_check = vcx.mk_adt_discriminator_expr(expr, ty_enc.ty_constructor.name().to_str());
-
-    let mut conjuncts = vec![discr_check];
-
-    let args = decomp.args.args();
-
-    // Collect checks for inner types
-    let inner_types = args.iter().filter_map(|arg| arg.as_type());
-    for (i, inner_ty) in inner_types.enumerate() {
-        let accessor = ty_enc.ty_param_accessors[i];
-
-        let expr = accessor.call()(expr);
-        conjuncts.extend(encode_type_check(
-            vcx, deps, ty_map, const_map, ctx, expr, inner_ty,
-        ));
-    }
-
-    // Collect the "locations" of const parameters and assert equality for repeated occurances
-    let consts = args.iter().filter_map(|arg| arg.as_const());
-    for (i, const_) in consts.enumerate() {
-        let accessor = ty_enc.const_param_accessors[i];
-        let expr = accessor.call()(expr);
-
-        conjuncts.extend(encode_const_check(
-            vcx,
-            deps,
-            const_map,
-            ctx,
-            expr.upcast_ty(),
-            const_,
-        ));
-    }
-
-    Some(vcx.mk_conj(&conjuncts))
-}
-
-/// Encode a check that the expression `expr` is the same as the rust const `const_`.
-fn encode_const_check<'vir>(
-    vcx: &'vir vir::VirCtxt<'vir>,
-    deps: &mut TaskEncoderDependencies<'vir, TraitImplEnc>,
-    const_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprSnap<'vir>>,
-    ctx: GParams<'vir>,
-    expr: vir::ExprSnap<'vir>,
-    const_: ty::Const<'vir>,
-) -> Option<vir::ExprBool<'vir>> {
-    match const_.kind() {
-        ty::ConstKind::Param(..) => {
-            use std::collections::hash_map::Entry;
-            match const_map.entry(const_.into()) {
-                Entry::Occupied(occ) => {
-                    // Already seen this const parameter: ensure this const expression matches the originally found
-                    Some(vcx.mk_eq_expr(expr, *occ.get()))
-                }
-                Entry::Vacant(vac) => {
-                    // First time seeing this const parameter: map it to the current accessor path for future references
-                    vac.insert(expr);
-                    None
-                }
-            }
-        }
-        ty::ConstKind::Value(val) => {
-            let task = ConstEncTask::Ty {
-                const_,
-                ty: val.ty,
-                context: ctx,
-            };
-            let value = deps.require_dep::<ConstEnc>(task).unwrap();
-            Some(vcx.mk_eq_expr(expr, value.upcast_ty()))
-        }
-        _ => unimplemented!("other kinds of const parameters not supported yet"),
-    }
-}
-
-/// Assemble a VIR type using the map of generic parameters we have collected earlier.
-fn assemble_type<'vir>(
-    tcx: ty::TyCtxt<'vir>,
-    deps: &mut TaskEncoderDependencies<'vir, TraitImplEnc>,
-    ty_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
-    const_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprSnap<'vir>>,
-    ctx: GParams<'vir>,
-    ty: ty::Ty<'vir>,
-) -> vir::ExprTyVal<'vir> {
-    let decomp = RustTyDecomposition::from_ty(ty, ctx);
-
-    if decomp.ty.specifics.is_param() {
-        let arg = decomp.args.args().first().expect("Param missing arg");
-        return match arg.expect_ty().kind() {
-            ty::TyKind::Param(param) => ty_map
-                .get(arg)
-                .unwrap_or_else(|| panic!("generic {param:?} to be mapped")),
-            ty::TyKind::Alias(ty::AliasTyKind::Projection, alias) => {
-                let trait_did = tcx.parent(alias.def_id);
-                let trait_ = deps.require_ref::<TraitEnc>(trait_did).unwrap();
-
-                let assoc_ty_fun = trait_
-                    .fns
-                    .assoc_types
-                    .get(&alias.def_id)
-                    .expect("associated type to be in the mapping");
-
-                let gargs = GArgs::new(trait_did, alias.args);
-                let gargs = deps.require_dep::<GArgsTyEnc>(gargs).unwrap();
-                assoc_ty_fun(gargs.get_ty(), gargs.get_const())
-            }
-            _ => unimplemented!("unsupported kind of generic parameter in type position"),
-        };
-    }
-
-    let ty_enc = deps.require_ref::<TyConstructorEnc>(decomp.ty).unwrap();
-
-    let args = decomp.args.args();
-
-    let inner_ty_args = args
-        .iter()
-        .filter_map(|arg| arg.as_type())
-        .map(|inner_ty| assemble_type(tcx, deps, ty_map, const_map, ctx, inner_ty))
-        .collect::<Vec<_>>();
-
-    let inner_const_args = args
-        .iter()
-        .filter_map(|arg| arg.as_const())
-        .map(|const_| assemble_const(deps, ctx, const_map, const_).downcast_ty())
-        .collect::<Vec<_>>();
-
-    (ty_enc.ty_constructor)(&inner_ty_args, &inner_const_args)
-}
-
-fn assemble_const<'vir>(
-    deps: &mut TaskEncoderDependencies<'vir, TraitImplEnc>,
-    ctx: GParams<'vir>,
-    const_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprSnap<'vir>>,
-    const_: ty::Const<'vir>,
-) -> vir::ExprSnap<'vir> {
-    match const_.kind() {
-        ty::ConstKind::Param(..) => const_map
-            .get(&const_.into())
-            .copied()
-            .expect("The const generic should have been bound in the map"),
-        ty::ConstKind::Value(val) => {
-            let task = ConstEncTask::Ty {
-                const_,
-                ty: val.ty,
-                context: ctx,
-            };
-            deps.require_dep::<ConstEnc>(task).unwrap().upcast_ty()
-        }
-        _ => unimplemented!("other kinds of const parameters not supported yet"),
-    }
-}
-
-/// Process the projection predicates in a topological order, such that when processing a
-/// projection predicate, the projection term is already mapped to a VIR expression. This is needed
-/// to handle cases like `T::Item: Trait` where we need to refer to `T::Item` when encoding the
-/// trait bound check for `Trait`.
-fn process_projection_predicates<'vir>(
-    vcx: &'vir vir::VirCtxt<'vir>,
-    deps: &mut TaskEncoderDependencies<'vir, TraitImplEnc>,
-    ty_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
-    const_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprSnap<'vir>>,
-    ctx: GParams<'vir>,
-    projections: impl Iterator<Item = ty::ProjectionPredicate<'vir>>,
-) -> Option<vir::ExprBool<'vir>> {
-    let mut worklist: VecDeque<_> = projections.collect();
-    let mut conjuncts = Vec::new();
-    while let Some(proj) = worklist.pop_front() {
-        if is_alias_ready(&proj.projection_term, ty_map, const_map) {
-            conjuncts.extend(process_projection(vcx, deps, ty_map, const_map, ctx, proj));
-        } else {
-            worklist.push_back(proj);
-        }
-    }
-    if conjuncts.is_empty() {
-        None
-    } else {
-        Some(vcx.mk_conj(&conjuncts))
-    }
-}
-
-fn process_projection<'vir>(
-    vcx: &'vir vir::VirCtxt<'vir>,
-    deps: &mut TaskEncoderDependencies<'vir, TraitImplEnc>,
-    ty_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
-    const_map: &mut FxHashMap<ty::GenericArg<'vir>, vir::ExprSnap<'vir>>,
-    ctx: GParams<'vir>,
-    projection: ty::ProjectionPredicate<'vir>,
-) -> Option<vir::ExprBool<'vir>> {
-    let tcx = vcx.tcx();
-    let proj_did = projection.def_id();
-    let trait_did = projection.trait_def_id(tcx);
-    let trait_ = deps.require_ref::<TraitEnc>(trait_did).unwrap();
-
-    let proj_args = projection.projection_term.args;
-
-    let proj_ty_args: Vec<_> = proj_args
-        .iter()
-        .filter_map(|arg| arg.as_type())
-        .map(|ty| assemble_type(tcx, deps, ty_map, const_map, ctx, ty))
-        .collect();
-    let proj_const_args: Vec<_> = proj_args
-        .iter()
-        .filter_map(|arg| arg.as_const())
-        .map(|const_| assemble_const(deps, ctx, const_map, const_).downcast_ty())
-        .collect();
-
-    match projection.term.kind() {
-        ty::TermKind::Ty(tgt_ty) => {
-            let projection_fun = trait_
-                .fns
-                .assoc_types
-                .get(&proj_did)
-                .expect("Projection did should be in the mapping");
-
-            let projection = projection_fun(&proj_ty_args, &proj_const_args);
-
-            encode_type_check(vcx, deps, ty_map, const_map, ctx, projection, tgt_ty)
-        }
-        ty::TermKind::Const(const_) => {
-            let projection_fun = trait_
-                .fns
-                .assoc_consts
-                .get(&proj_did)
-                .expect("Projection did should be in the mapping");
-            let projection = projection_fun(&proj_ty_args, &proj_const_args);
-
-            encode_const_check(vcx, deps, const_map, ctx, projection, const_)
-        }
-    }
-}
-
-/// Check whether all generic parameters of the given alias term have alredy been mapped
-fn is_alias_ready<'vir>(
-    term: &ty::AliasTerm<'vir>,
-    ty_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
-    const_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprSnap<'vir>>,
-) -> bool {
-    for arg in term.args {
-        for arg in arg.walk() {
-            match arg.kind() {
-                ty::GenericArgKind::Type(ty) => {
-                    if let ty::TyKind::Param(_) = ty.kind()
-                        && !ty_map.contains_key(&arg)
-                    {
-                        return false;
-                    }
-                }
-                ty::GenericArgKind::Const(_) => {
-                    if !const_map.contains_key(&arg) {
-                        return false;
-                    }
-                }
-                _ => {}
-            }
-        }
-    }
-    true
-}
-
-fn process_trait_predicates<'vir>(
-    vcx: &'vir vir::VirCtxt<'vir>,
-    deps: &mut TaskEncoderDependencies<'vir, TraitImplEnc>,
-    ty_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprTyVal<'vir>>,
-    const_map: &FxHashMap<ty::GenericArg<'vir>, vir::ExprSnap<'vir>>,
-    ctx: GParams<'vir>,
-    trait_preds: impl Iterator<Item = ty::TraitPredicate<'vir>>,
-) -> vir::ExprBool<'vir> {
-    let tcx = vcx.tcx();
-    let mut conjuncts = Vec::new();
     for trait_pred in trait_preds {
-        let required_trait_impl_fun = deps
-            .require_ref::<TraitEnc>(trait_pred.def_id())
-            .unwrap()
-            .impl_fun;
+        let trait_did = trait_pred.def_id();
+        let trait_ = deps.require_ref::<TraitEnc>(trait_did).unwrap();
+        let gargs = GArgs::new(impl_ctx, trait_pred.trait_ref.args);
+        let gargs = deps.require_dep::<GArgsTyEnc>(gargs).unwrap();
 
-        let trait_args = trait_pred.trait_ref.args;
-        let ty_args: Vec<_> = trait_args
-            .iter()
-            .filter_map(|arg| arg.as_type())
-            .map(|arg| assemble_type(tcx, deps, ty_map, const_map, ctx, arg))
-            .collect();
-
-        let const_args: Vec<_> = trait_args
-            .iter()
-            .filter_map(|arg| arg.as_const())
-            .map(|const_| assemble_const(deps, ctx, const_map, const_).downcast_ty())
-            .collect();
-
-        conjuncts.push(required_trait_impl_fun(&ty_args, &const_args));
+        let impl_check = (trait_.impl_fun)(gargs.get_ty(), gargs.get_const());
+        dbg!(&impl_check);
+        checks.push(impl_check);
     }
-    vcx.mk_conj(&conjuncts)
+
+    let proj_preds = caller_bounds
+        .iter()
+        .filter_map(ty::Clause::as_projection_clause)
+        .map(ty::Binder::skip_binder);
+
+    let proj_preds = order_projections(generics_map.keys(), proj_preds, impl_ctx.count());
+
+    for proj_pred in proj_preds {
+        let trait_did = proj_pred.trait_def_id(tcx);
+        let trait_ = deps.require_ref::<TraitEnc>(trait_did).unwrap();
+        let gargs = GArgs::new(impl_ctx, proj_pred.projection_term.args);
+        let gargs = deps.require_dep::<GArgsTyEnc>(gargs).unwrap();
+
+        let (projection, expr): (vir::ExprDyn, vir::ExprDyn) = match proj_pred.term.kind() {
+            ty::TermKind::Ty(ty) => {
+                let projection =
+                    trait_.fns.assoc_types[&proj_pred.def_id()](gargs.get_ty(), gargs.get_const());
+                let decomp = RustTyDecomposition::from_ty(ty, impl_ctx);
+                let ty_expr = impl_params.ty_expr(deps, decomp);
+                discover_bind_points(
+                    deps,
+                    &mut generics_map,
+                    impl_ctx,
+                    projection.upcast_ty(),
+                    ty,
+                );
+                (projection.upcast_ty(), ty_expr.upcast_ty())
+            }
+            ty::TermKind::Const(const_) => {
+                let projection =
+                    trait_.fns.assoc_consts[&proj_pred.def_id()](gargs.get_ty(), gargs.get_const());
+                let ty = tcx.type_of(proj_pred.def_id()).instantiate_identity();
+                let const_task = ConstEncTask::Ty {
+                    const_,
+                    ty,
+                    context: impl_ctx,
+                };
+                let const_expr = deps.require_dep::<ConstEnc>(const_task).unwrap();
+                if let ty::ConstKind::Param(p) = const_.kind() {
+                    generics_map.try_insert(p.index, const_expr.upcast_ty());
+                }
+                (projection.upcast_ty(), const_expr.upcast_ty())
+            }
+        };
+
+        let projection_check = vcx.mk_eq_expr(projection, expr);
+        dbg!(&projection_check);
+        checks.push(projection_check);
+    }
+
+    dbg!(&checks);
+    dbg!(&generics_map);
+
+    let checks = vcx.mk_conj(&checks);
+
+    dbg!(
+        generics_map
+            .insertion_ordered()
+            .rfold(checks, |acc, (idx, expr)| {
+                let idx = impl_params.map_idx(idx);
+                let decl = match idx {
+                    Result::Ok(idx) => impl_params.ty_decls()[idx].upcast_ty(),
+                    Result::Err(idx) => impl_params.const_decls()[idx].upcast_ty(),
+                };
+                vcx.mk_let_expr(decl, expr, acc)
+            })
+    )
+}
+
+fn collect_bindings<'vir>(
+    deps: &mut TaskEncoderDependencies<'vir, TraitImplEnc>,
+    generics_map: &mut GenericsMap<'vir>,
+    trait_ctx: GParams<'vir>,
+    trait_params: &GenericParams<'vir>,
+    trait_args: ty::GenericArgsRef<'vir>,
+) {
+    // Walk the trait type generic arguments
+    let impl_rust_tys = trait_args.iter().filter_map(|arg| arg.as_type());
+    for (ty_arg, rust_ty) in std::iter::zip(trait_params.ty_exprs(), impl_rust_tys) {
+        discover_bind_points(deps, generics_map, trait_ctx, ty_arg.upcast_ty(), rust_ty);
+    }
+
+    // Walk the trait const generic arguments
+    let impl_rust_consts = trait_args.iter().filter_map(|arg| arg.as_const());
+    for (const_arg, rust_const) in std::iter::zip(trait_params.const_exprs(), impl_rust_consts) {
+        if let ty::ConstKind::Param(p) = rust_const.kind() {
+            generics_map.try_insert(p.index, const_arg.upcast_ty());
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+struct GenericsMap<'vir> {
+    present: usize,
+    map: Vec<Option<(usize, vir::ExprDyn<'vir>)>>,
+}
+
+impl<'vir> GenericsMap<'vir> {
+    fn new(size: usize) -> Self {
+        GenericsMap {
+            present: 0,
+            map: vec![None; size],
+        }
+    }
+    fn try_insert(&mut self, idx: u32, expr: vir::ExprDyn<'vir>) -> bool {
+        let idx = idx as usize;
+        if self.map[idx].is_some() {
+            return false;
+        }
+        self.map[idx] = Some((self.present, expr));
+        self.present += 1;
+        true
+    }
+
+    fn insertion_ordered(
+        &self,
+    ) -> impl Iterator<Item = (u32, vir::ExprDyn<'vir>)> + DoubleEndedIterator {
+        let mut ordered = self
+            .map
+            .iter()
+            .enumerate()
+            .filter_map(|(idx, opt)| opt.map(|(order, expr)| (order, (idx as u32, expr))))
+            .collect::<Vec<_>>();
+        ordered.sort_by_key(|(order, _)| *order);
+        ordered.into_iter().map(|(_, (idx, expr))| (idx, expr))
+    }
+
+    fn keys(&self) -> impl Iterator<Item = u32> {
+        self.map
+            .iter()
+            .enumerate()
+            .filter_map(|(idx, opt)| opt.as_ref().map(|_| idx as u32))
+    }
 }
