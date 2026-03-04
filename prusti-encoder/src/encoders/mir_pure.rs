@@ -138,7 +138,8 @@ impl TaskEncoder for MirPureEnc {
                 }
             };
 
-            let expr_inner = Enc::new(vcx, task_key.0, def_id, kind, &body, deps).encode_body()?;
+            let expr_inner = Enc::new(vcx, task_key.0, def_id, caller_def_id, kind, &body, deps)
+                .encode_body()?;
 
             // We wrap the expression with an additional lazy that will perform
             // some sanity checks. These requirements cannot be expressed using
@@ -312,6 +313,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         vcx: &'vir vir::VirCtxt<'vir>,
         encoding_depth: usize,
         def_id: DefId,
+        caller_def_id: Option<DefId>,
         kind: PureKind,
         body: &'enc mir::Body<'vir>,
         deps: &'enc mut TaskEncoderDependencies<'vir, MirPureEnc>,
@@ -336,7 +338,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             vcx,
             encoding_depth,
             def_id,
-            context: GParams::new_maybe_extern(def_id, kind.extern_spec()),
+            context: GParams::new_maybe_extern(caller_def_id.unwrap_or(def_id), kind.extern_spec()),
             body,
             rev_doms,
             deps,
@@ -767,7 +769,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             .iter()
                             .map(|arg| self.encode_operand_snap(&arg.node, &new_curr_ver))
                             .collect::<Result<Vec<_>, _>>()?;
-                        Ok(pure_func.call(snap_args))
+                        Ok(pure_func.call_pure(snap_args))
                     } else {
                         panic!("call to unknown non-pure function in pure code ({def_id:?})");
                     }
