@@ -8,6 +8,7 @@ use crate::{
         Impure, ImpureEncVisitor, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc, WandEnc,
         WandEncTask,
         mir_fn::{CallTaskDescription, RustSignature},
+        pure::spec::MirSpecEncMode,
         ty::generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
     },
     trait_support::is_function_with_body,
@@ -64,8 +65,15 @@ impl TaskEncoder for MethodCallEnc {
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
         deps.emit_output_ref(*task_key, ())?;
-        let method_ref = deps.require_ref::<MethodEnc>(task_key.callee)?;
-        let signature = RustSignature::new(task_key.callee);
+        let (callee_def_id, assoc_enc) = task_key.trait_call(deps)?;
+        let method_ref = if let Some(assoc_enc) = assoc_enc {
+            MethodEncOutputRef {
+                method_ref: assoc_enc.call_stub_impure.unwrap(),
+            }
+        } else {
+            deps.require_ref::<MethodEnc>(task_key.callee)?
+        };
+        let signature = RustSignature::new(callee_def_id);
         let ty_args = deps.require_dep::<GArgsTyEnc>(task_key.gargs)?;
         let inputs = signature
             .inputs
@@ -185,7 +193,10 @@ impl TaskEncoder for MethodEnc {
             // wands in case of a reborrowing function.
             let mut pres = Vec::new();
             let mut posts = Vec::new();
-            let spec = deps.require_dep_spanned::<MirSpecEnc>((def_id, false), span)?;
+            let spec = deps.require_dep_spanned::<MirSpecEnc>(
+                (def_id, def_id, MirSpecEncMode::Impure),
+                span,
+            )?;
             let function_data = FunctionData::new(def_id, params.rust_params(), None);
             let wands = deps.require_dep_spanned::<WandEnc>(
                 WandEncTask {
@@ -194,12 +205,11 @@ impl TaskEncoder for MethodEnc {
                 span,
             )?;
 
-            let gparams = GParams::from(def_id);
             // Add direct resources for inputs and outputs to the pre- and
             // postconditions, respectively. "Direct" here refers to owned
             // Viper resources that must be passed in/out given the signature,
             // without going through any dereferences.
-            let mut args = Vec::with_capacity(arg_count + gparams.count());
+            let mut args = Vec::with_capacity(arg_count + params.count());
             for arg_idx in (0..arg_count).map(mir::Local::from) {
                 let name_p = arg_defs[arg_idx].local.name;
                 args.push(vir::vir_local_decl! { vcx; [name_p] : Ref });
