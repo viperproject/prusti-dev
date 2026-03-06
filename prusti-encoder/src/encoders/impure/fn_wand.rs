@@ -101,12 +101,12 @@ pub struct WandEncOutput<'vir> {
 
 impl<'vir> WandEncOutput<'vir> {
     pub(crate) fn fn_sig(&self, vcx: &'vir vir::VirCtxt<'vir>) -> ty::FnSig<'vir> {
-        self.function_data.instantiated_fn_sig(vcx.tcx())
+        self.function_data.identity_fn_sig(vcx.tcx())
     }
 
     pub(crate) fn g_params(&self, vcx: &'vir vir::VirCtxt<'vir>) -> GParams<'vir> {
         GParams::new(
-            self.function_data.substs(),
+            self.function_data.identity_substs(vcx.tcx()),
             self.function_data.param_env(vcx.tcx()),
             false,
         )
@@ -276,8 +276,8 @@ impl<'tcx> WandEncTask<'tcx> {
     pub fn function_shape(
         &self,
         vcx: &vir::VirCtxt<'tcx>,
-    ) -> Result<FunctionShape, MakeFunctionShapeError> {
-        self.data.shape(vcx.tcx())
+    ) -> Result<FunctionShape, MakeFunctionShapeError<'_>> {
+        self.data.shape(None, vcx.tcx())
     }
 }
 
@@ -335,12 +335,7 @@ impl TaskEncoder for WandEnc {
                 )
             })?;
 
-            let coupled_edges = shape.coupled_edges().map_err(|e| {
-                EncodeFullError::EncodingError(
-                    WandEncError::Unsupported(format!("coupled edges: {e:?}")),
-                    None,
-                )
-            })?;
+            let coupled_edges = shape.coupled_edges();
 
             let (inputs, outputs) = shape.take_inputs_and_outputs();
             let spec = deps.require_dep::<MirSpecEnc>((def_id, def_id, MirSpecEncMode::Impure))?;
