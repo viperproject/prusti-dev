@@ -7,8 +7,8 @@ use pcg::{
         borrow_pcg_expansion::BorrowPcgExpansion,
         edge::{
             abstraction::{AbstractionEdge, FunctionCallOrLoop},
+            borrow_flow::BorrowFlowEdgeKind,
             kind::BorrowPcgEdgeKind,
-            outlives::BorrowFlowEdgeKind,
         },
         region_projection::PlaceOrConst,
         state::BorrowsState,
@@ -835,7 +835,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 if matches!(weaken.from_cap(), CapabilityKind::Exclusive)
                     && matches!(weaken.to_cap(), None | Some(CapabilityKind::Write)) =>
             {
-                self.pcg_weaken(weaken.place());
+                self.pcg_weaken(weaken.place(), weaken.is_for_storage_dead());
                 Ok(())
             }
             //RenamePlace {
@@ -915,7 +915,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             RepackOp::Weaken(weaken)
                 if weaken.from_cap().is_exclusive() && weaken.to_cap().is_write() =>
             {
-                self.pcg_weaken(weaken.place())
+                self.pcg_weaken(weaken.place(), weaken.is_for_storage_dead())
             }
             other => {
                 if should_ignore(other) {
@@ -934,9 +934,22 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         }
     }
 
-    fn pcg_weaken(&mut self, place: Place<'vir>) {
+    fn pcg_weaken(&mut self, place: Place<'vir>, for_storage_dead: bool) {
         let place_ty = place.ty(self.pcg_ctxt());
         assert!(place_ty.variant_index.is_none());
+
+        // Skip the exhale for StorageDead-triggered weakens, since the place may
+        // have already been moved/consumed and no longer hold permissions.
+        // Temporary workaround until https://github.com/prusti/pcg/issues/137
+        // is resolved.
+        if for_storage_dead {
+            comment!(
+                self,
+                "Weaken(E, W) for {:?} (skipped exhale: StorageDead)",
+                place
+            );
+            return;
+        }
 
         let place_ty_out = self.ty_use_impure(place_ty.ty);
 
