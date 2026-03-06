@@ -197,7 +197,7 @@ impl TaskEncoder for MethodEnc {
                 (def_id, def_id, MirSpecEncMode::Impure),
                 span,
             )?;
-            let function_data = FunctionData::new(def_id, params.rust_params(), None);
+            let function_data = FunctionData::new(def_id);
             let wands = deps.require_dep_spanned::<WandEnc>(
                 WandEncTask {
                     data: function_data,
