@@ -27,8 +27,8 @@ impl<'tcx, Ctxt: Copy> HasRegions<'tcx, Ctxt> for RustTyDecomposition<'tcx> {
         self.args
             .args()
             .iter()
-            .flat_map(|arg| arg.as_region())
-            .map(|region| region.into())
+            .flat_map(|arg| arg.walk())
+            .filter_map(|arg| arg.as_region().map(PcgRegion::from))
             .unique()
             .collect()
     }
