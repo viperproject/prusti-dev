@@ -127,18 +127,19 @@ impl TaskEncoder for IndirectPredicatesEnc {
 
                         // TODO: invalid recursion here if the defined struct is
                         // recursive!
-                        let field_ty = field_ty.decompose(ty.ty.params);
-                        let new_projection =
+                        let field_ty = field_ty.decompose_context(ty.ty.params, ty.args);
+                        if let Some(new_projection) =
                             LifetimeProjection::new(field_ty, task_key.region(()), None, ())
-                                .unwrap();
-                        let field_indirect =
-                            deps.require_dep::<IndirectPredicatesEnc>(new_projection)?;
-                        predicate_applications.extend(
-                            field_indirect
-                                .predicate_applications
-                                .into_iter()
-                                .map(project),
-                        );
+                        {
+                            let field_indirect =
+                                deps.require_dep::<IndirectPredicatesEnc>(new_projection)?;
+                            predicate_applications.extend(
+                                field_indirect
+                                    .predicate_applications
+                                    .into_iter()
+                                    .map(project),
+                            );
+                        }
                     }
                 }
                 // TODO: recurse into other types
