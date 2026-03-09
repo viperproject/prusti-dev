@@ -19,7 +19,9 @@ pub type SpecEncError = ();
 pub struct SpecEncOutput<'vir> {
     pub extern_spec: Option<ExternSpecKind>,
     pub pres: &'vir [DefId],
+    pub refined_pre: Option<DefId>,
     pub posts: &'vir [DefId],
+    pub refined_post: Option<DefId>,
     pub pledges: &'vir [Pledge],
 }
 
@@ -138,6 +140,7 @@ impl TaskEncoder for SpecEnc {
                 ),
                 SpecConstraintKind::ResolveGenericParamTraitBounds,
                 |specs| {
+                    dbg!(&specs);
                     let refined_pres = get_spec_items(vcx, &specs.pres);
                     let refined_posts = get_spec_items(vcx, &specs.posts);
                     (refined_pres, refined_posts)
@@ -145,8 +148,10 @@ impl TaskEncoder for SpecEnc {
             )
             .unwrap_or((&[], &[]));
 
-            let pres_combined = vcx.alloc_slice(&[pres, refined_pres].concat());
-            let posts_combined = vcx.alloc_slice(&[posts, refined_posts].concat());
+            assert!(
+                refined_pres.len() <= 1 && refined_posts.len() <= 1,
+                "Only a single refined predicate is supported for now"
+            );
 
             let pledges = vcx.alloc_slice(
                 &pledges
@@ -156,12 +161,14 @@ impl TaskEncoder for SpecEnc {
             );
             Ok((
                 (),
-                SpecEncOutput {
+                dbg!(SpecEncOutput {
                     extern_spec,
-                    pres: pres_combined,
-                    posts: posts_combined,
+                    pres,
+                    refined_pre: refined_pres.first().copied(),
+                    posts,
+                    refined_post: refined_posts.first().copied(),
                     pledges,
-                },
+                }),
             ))
         })
     }
