@@ -40,7 +40,9 @@ impl<'vir, E: TaskEncoder> ImpureEncVisitor<'vir, '_, E> {
         let args = PledgeExpr::pledge_args(result, args);
 
         for wand_data in self.wands.viper_wands() {
-            let wand = self.wands.mk_wand(&wand_data, args, self.vcx, self.deps);
+            let Some(wand) = self.wands.mk_wand(&wand_data, args, self.vcx, self.deps) else {
+                continue;
+            };
             let mut package_script = Vec::new();
             for rhs in wand_data.rhs.iter() {
                 let ug = UnblockGraph::for_node(
@@ -118,7 +120,7 @@ impl<'vir> WandEncOutput<'vir> {
         deps: &mut TaskEncoderDependencies<'vir, impl TaskEncoder>,
         g: impl Into<FunctionShapeNode>,
         mut snap: impl FnMut(mir::Local) -> vir::ExprSnap<'vir>,
-    ) -> vir::ExprBool<'vir> {
+    ) -> Option<vir::ExprBool<'vir>> {
         use vir::Reify;
         let g = g.into();
         let fn_sig = self.fn_sig(vcx);
@@ -127,11 +129,15 @@ impl<'vir> WandEncOutput<'vir> {
             .require_dep::<IndirectPredicatesEnc>(g.with_base(ty))
             .unwrap()
             .predicate_applications;
+        if predicates.is_empty() {
+            // There are no resources associated with this node, skip.
+            return None;
+        }
 
         let local = g.mir_local();
         let local_snap = snap(local);
-        vcx.mk_conj(
-            vcx.alloc_slice(
+        Some(
+            vcx.mk_conj(
                 &predicates
                     .iter()
                     .map(|p| p.reify(vcx, local_snap))
@@ -146,7 +152,7 @@ impl<'vir> WandEncOutput<'vir> {
         local_defs: &'a MirLocalDefEncOutput<'vir>,
         deps: &'a mut TaskEncoderDependencies<'vir, E>,
     ) -> impl Iterator<Item = vir::ExprBool<'vir>> + 'a {
-        self.inputs().map(|g| {
+        self.inputs().filter_map(|g| {
             self.encode_predicates_for_function_shape_node(vcx, deps, g, |i| {
                 local_defs[i].impure_snap
             })
@@ -167,7 +173,7 @@ impl<'vir> WandEncOutput<'vir> {
         let unblocked_input_posts = self
             .inputs()
             .filter(|i| !self.blocked_inputs().contains(i))
-            .map(|lp| {
+            .filter_map(|lp| {
                 self.encode_predicates_for_function_shape_node(vcx, deps, lp, |i| {
                     vcx.mk_old_expr(local_defs[i].impure_snap)
                 })
@@ -175,7 +181,7 @@ impl<'vir> WandEncOutput<'vir> {
             .collect::<Vec<_>>()
             .into_iter();
 
-        let output_posts = self.outputs().map(|g| {
+        let output_posts = self.outputs().filter_map(|g| {
             self.encode_predicates_for_function_shape_node(vcx, deps, g, |i| {
                 local_defs[i].impure_snap
             })
@@ -198,13 +204,13 @@ impl<'vir> WandEncOutput<'vir> {
         let args = PledgeExpr::pledge_args(wand_result_expr, args);
 
         // TODO: wands for late-bound regions
-        self.viper_wands().into_iter().map(move |wand_data| {
-            let wand = self.mk_wand(&wand_data, args, vcx, deps);
-            vcx.mk_let_expr(
+        self.viper_wands().into_iter().filter_map(move |wand_data| {
+            let wand = self.mk_wand(&wand_data, args, vcx, deps)?;
+            Some(vcx.mk_let_expr(
                 wand_result,
                 local_defs[mir::RETURN_PLACE].impure_snap,
                 vcx.mk_wand_expr(wand),
-            )
+            ))
         })
     }
 
@@ -225,7 +231,9 @@ impl<'vir> WandEncOutput<'vir> {
         });
         let args = PledgeExpr::pledge_args(result, args);
         for wand_data in self.viper_wands() {
-            let wand = self.mk_wand(&wand_data, args, visitor.vcx, visitor.deps);
+            let Some(wand) = self.mk_wand(&wand_data, args, visitor.vcx, visitor.deps) else {
+                continue;
+            };
             visitor.stmt(visitor.vcx.mk_apply_stmt(wand));
         }
     }
@@ -236,30 +244,40 @@ impl<'vir> WandEncOutput<'vir> {
         pledge_args: PledgeArgs<'vir>,
         vcx: &'vir vir::VirCtxt<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, E>,
-    ) -> vir::Wand<'vir> {
+    ) -> Option<vir::Wand<'vir>> {
         debug_assert!(!wand_data.lhs.is_empty());
-        let rhs = wand_data.rhs.iter().map(|g| {
+        let rhs = wand_data.rhs.iter().filter_map(|g| {
             self.encode_predicates_for_function_shape_node(vcx, deps, *g, |i| pledge_args[i])
         });
-        let rhs = rhs.chain(
-            wand_data
-                .pledges
-                .iter()
-                .map(|pledge| pledge.expiry_postcondition.expr(pledge_args)),
-        );
-        let rhs = vcx.mk_conj(vcx.alloc_slice(&rhs.collect::<Vec<_>>()));
-        let lhs = wand_data.lhs.iter().map(|g| {
+        let rhs = rhs
+            .chain(
+                wand_data
+                    .pledges
+                    .iter()
+                    .map(|pledge| pledge.expiry_postcondition.expr(pledge_args)),
+            )
+            .collect::<Vec<_>>();
+        if rhs.is_empty() {
+            // We skip emitting the wand when there is nothing on the RHS, i.e.,
+            // nothing would be unblocked by applying this wand, nor are there
+            // any pledge postconditions.
+            return None;
+        }
+        let rhs = vcx.mk_conj(&rhs);
+        let lhs = wand_data.lhs.iter().filter_map(|g| {
             self.encode_predicates_for_function_shape_node(vcx, deps, *g, |i| pledge_args[i])
         });
-        let lhs = lhs.chain(
-            wand_data
-                .pledges
-                .iter()
-                .filter_map(|pledge| pledge.expiry_obligation)
-                .map(|expr| expr.expr(pledge_args)),
-        );
-        let lhs = vcx.mk_conj(vcx.alloc_slice(&lhs.collect::<Vec<_>>()));
-        vcx.mk_wand(lhs, rhs)
+        let lhs = lhs
+            .chain(
+                wand_data
+                    .pledges
+                    .iter()
+                    .filter_map(|pledge| pledge.expiry_obligation)
+                    .map(|expr| expr.expr(pledge_args)),
+            )
+            .collect::<Vec<_>>();
+        let lhs = vcx.mk_conj(&lhs);
+        Some(vcx.mk_wand(lhs, rhs))
     }
 }
 
