@@ -51,6 +51,7 @@ fn sanitize_char(c: char) -> Option<String> {
         '#' => Some("$oc$".to_string()),
         '/' => Some("$fs$".to_string()),
         '*' => Some("$as$".to_string()),
+        '=' => Some("$eq$".to_string()),
         _ => None,
     }
 }

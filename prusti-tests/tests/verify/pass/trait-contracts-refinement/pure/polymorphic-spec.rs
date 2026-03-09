@@ -2,7 +2,7 @@ use prusti_contracts::*;
 
 trait Trait {
     #[pure]
-    fn foo(&self) -> i32 { 1 }
+    fn foo(&self) -> i32;
 }
 
 struct Struct1;

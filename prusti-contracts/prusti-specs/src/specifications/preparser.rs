@@ -797,12 +797,12 @@ impl MarkerKind {
                 quote_spanned!(span => ::prusti_contracts::before_expiry_end()),
             ),
         };
-        quote_spanned! { full_span => {
+        quote_spanned! { full_span => ({
             #start ;
             let r = { #expr };
             #end ;
             r
-        } }
+        }) }
     }
 }
 

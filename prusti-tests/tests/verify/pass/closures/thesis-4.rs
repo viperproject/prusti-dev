@@ -12,7 +12,7 @@ fn main() {
     let mut z = "z".to_owned();
     let x_borrow = &x; // we can have overlapping immutable borrows
 
-    // || introduces a closure; arguments go between the bars:
+    // this syntax introduces a closure; arguments go between the bars:
     let cl = || {
         let x_clone = x.clone(); // this only reads from x
         y.push_str(&x_clone); // modify y

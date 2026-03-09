@@ -4,11 +4,11 @@ use prusti_contracts::*;
 // TODO: support non-i32 types in closures
 
 struct Foo {
-    foo: usize
+    foo: usize,
 }
 
 enum Bar {
-    Bar(x: usize)
+    Bar(usize),
 }
 
 fn main() {
