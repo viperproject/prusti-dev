@@ -1,4 +1,4 @@
-use pcg::borrow_pcg::region_projection::LifetimeProjection;
+use pcg::borrow_pcg::region_projection::{LifetimeProjection, PcgRegion};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, Reify};
 
@@ -67,16 +67,21 @@ impl TaskEncoder for IndirectPredicatesEnc {
                 // This is why we should return `opaque_behind_a(x)` here.
                 TySpecifics::Param(_) | TySpecifics::Opaque(_) | TySpecifics::ArrayLike(_) => (),
                 TySpecifics::MutRef((data, ref_domain)) => {
+                    assert_eq!(ty.args.args().len(), 2);
                     let inner_ty = data.decompose_context(ty.ty.params, ty.args);
                     let inner_impure = deps.require_dep::<TyUseImpureEnc>(inner_ty)?;
-                    predicate_applications.push(vcx.mk_lazy_expr(
-                        "ref_indirect",
-                        vir::TYPE_BOOL,
-                        Box::new(move |vcx, self_expr: vir::ExprSnap<'vir>| {
-                            let addr = ref_domain.deref_access(self_expr.downcast_ty());
-                            inner_impure.ref_to_pred(vcx, addr, None).kind
-                        }),
-                    ));
+                    let ref_region = PcgRegion::from(ty.args.args()[0].expect_region());
+                    let task_region = task_key.region(());
+                    if ref_region == task_region {
+                        predicate_applications.push(vcx.mk_lazy_expr(
+                            "ref_indirect",
+                            vir::TYPE_BOOL,
+                            Box::new(move |vcx, self_expr: vir::ExprSnap<'vir>| {
+                                let addr = ref_domain.deref_access(self_expr.downcast_ty());
+                                inner_impure.ref_to_pred(vcx, addr, None).kind
+                            }),
+                        ));
+                    }
                     if let Some(new_projection) =
                         LifetimeProjection::new(inner_ty, task_key.region(()), None, ())
                     {
