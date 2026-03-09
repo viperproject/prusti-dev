@@ -1,7 +1,7 @@
 use crate::{
     TaskEncoder,
     encoders::ty::{
-        RustTy, Sizedness,
+        RustTy,
         generics::{GParams, trait_impls::TraitImplEnc, traits::TraitEnc},
         lifted::TyConstructorEnc,
     },
@@ -29,10 +29,14 @@ impl TaskEncoder for SizedTraitEnc {
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
     ) -> task_encoder::EncodeFullResult<'vir, Self> {
         assert!(!task_key.specifics.is_param());
+        assert!(task_key.erased_ty.is_some());
         deps.emit_output_ref(*task_key, ())?;
 
+        if task_key.erased_ty.is_none() {}
+
         vir::with_vcx(|vcx| {
-            let check = match task_key.sizedness {
+            let sizedness = sizedness_for_ty(vcx.tcx(), task_key.erased_ty.unwrap());
+            let check = match sizedness {
                 Sizedness::Unsized => None,
                 Sizedness::Sized => Some(Self::sizedness_check(
                     vcx,
@@ -138,5 +142,78 @@ impl SizedTraitEnc {
         let impl_ctx = GParams::new(impl_ctx.rust_params(), param_env, false);
 
         TraitImplEnc::impl_block_check(vcx, deps, impl_ctx, impls_sized)
+    }
+}
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub enum Sizedness<'tcx> {
+    /// A type is definitely `Sized`
+    Sized,
+    /// A type is definitely not `Sized`
+    Unsized,
+    /// The sizedness of the type depends on the sizedness some other type contained within
+    Dependent(ty::Ty<'tcx>),
+}
+
+impl<'tcx> Sizedness<'tcx> {
+    fn map(self, f: impl FnOnce(ty::Ty<'tcx>) -> ty::Ty<'tcx>) -> Self {
+        match self {
+            Sizedness::Dependent(ty) => Sizedness::Dependent(f(ty)),
+            other => other,
+        }
+    }
+}
+
+/// Modified version of `https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ty_utils/ty/fn.sizedness_constraint_for_ty.html`
+fn sizedness_for_ty<'tcx>(tcx: ty::TyCtxt<'tcx>, ty: ty::Ty<'tcx>) -> Sizedness<'tcx> {
+    match ty.kind() {
+        // Always `Sized`
+        ty::Bool
+        | ty::Char
+        | ty::Int(..)
+        | ty::Uint(..)
+        | ty::Float(..)
+        | ty::RawPtr(..)
+        | ty::Ref(..)
+        | ty::FnDef(..)
+        | ty::FnPtr(..)
+        | ty::Array(..)
+        | ty::Closure(..)
+        | ty::CoroutineClosure(..)
+        | ty::Coroutine(..)
+        | ty::CoroutineWitness(..)
+        | ty::Never => Sizedness::Sized,
+
+        ty::Str | ty::Slice(..) | ty::Dynamic(..) => Sizedness::Unsized,
+
+        // Maybe `Sized`
+        ty::Param(..) | ty::Alias(..) | ty::Error(_) => Sizedness::Dependent(ty),
+
+        // We cannot instantiate the binder, so just return the *original* type back,
+        // but only if the inner type has a sized constraint. Thus we skip the binder,
+        // but don't actually use the result from `sizedness_for_ty`.
+        ty::UnsafeBinder(inner_ty) => sizedness_for_ty(tcx, inner_ty.skip_binder()).map(|_| ty),
+
+        // Never `Sized`
+        ty::Foreign(..) => Sizedness::Unsized,
+
+        // Recursive cases
+        ty::Pat(ty, _) => sizedness_for_ty(tcx, *ty),
+
+        // Empty tuple always `Sized`, otherwise sizedness depends on last field
+        ty::Tuple(tys) => tys
+            .last()
+            .map_or(Sizedness::Sized, |last| sizedness_for_ty(tcx, *last)),
+
+        ty::Adt(adt, args) => adt
+            .sizedness_constraint(tcx, ty::SizedTraitKind::Sized)
+            .map_or(Sizedness::Sized, |intermediate| {
+                let ty = intermediate.instantiate(tcx, args);
+                sizedness_for_ty(tcx, ty)
+            }),
+
+        ty::Placeholder(..) | ty::Bound(..) | ty::Infer(..) => {
+            panic!("unexpected type `{ty:?}` in `sizedness_for_ty`")
+        }
     }
 }
