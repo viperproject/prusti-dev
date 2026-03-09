@@ -158,7 +158,7 @@ impl<'tcx> GParams<'tcx> {
     fn ty_params(self) -> impl Iterator<Item = (usize, ty::ParamTy)> {
         self.params(ty::GenericArg::as_type).map(move |(i, ty)| {
             let ty::TyKind::Param(mut param) = *ty.kind() else {
-                unreachable!()
+                unreachable!("expected type parameter, got {ty:?}")
             };
             if self.is_trait_extern_spec && param.name.as_str() == "Prusti_T_Self" {
                 param.name = symbol::Symbol::intern("Self");
