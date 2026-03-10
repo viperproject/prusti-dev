@@ -2,7 +2,7 @@ use crate::{
     TaskEncoder,
     encoders::ty::{
         RustTy,
-        generics::{GParams, trait_impls::TraitImplEnc, traits::TraitEnc},
+        generics::{GParams, r#trait::TraitEnc, trait_impls::TraitImplEnc},
         lifted::TyConstructorEnc,
     },
 };

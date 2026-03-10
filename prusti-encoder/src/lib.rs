@@ -20,10 +20,12 @@ use task_encoder::TaskEncoder;
 
 use crate::encoders::{
     Impure, Pure,
+    addr::RefDataEnc,
     custom::PairUseEnc,
     ty::{
         generics::{
-            GArgsCastEnc, sized_trait::SizedTraitEnc, trait_impls::TraitImplEnc, traits::TraitEnc,
+            GArgsCastEnc, sized_trait::SizedTraitEnc, r#trait::TraitEnc, trait_fn::TraitFnEnc,
+            trait_impls::TraitImplEnc,
         },
         interpretation::bitvec::BitVecEnc,
         lifted::{TyConstructorEnc, TypeOfEnc},
@@ -106,7 +108,11 @@ pub fn test_entrypoint<'tcx>(
 
     program.header("custom");
     PairUseEnc::emit_outputs(&mut program);
+    RefDataEnc::emit_outputs(&mut program);
+
+    program.header("traits");
     TraitEnc::emit_outputs(&mut program);
+    TraitFnEnc::emit_outputs(&mut program);
     TraitImplEnc::emit_outputs(&mut program);
     SizedTraitEnc::emit_outputs(&mut program);
 

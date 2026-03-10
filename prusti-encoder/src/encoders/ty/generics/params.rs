@@ -11,7 +11,7 @@ use crate::encoders::{
     ty::{
         RustTyDecomposition,
         data::TySpecifics,
-        generics::{GArgs, GArgsTyEnc, GParamVariant, traits::TraitEnc},
+        generics::{GArgs, GArgsTyEnc, GParamVariant, r#trait::TraitEnc},
         lifted::TyConstructorEnc,
     },
 };
@@ -168,7 +168,7 @@ impl<'tcx> GParams<'tcx> {
     fn ty_params(self) -> impl Iterator<Item = (usize, ty::ParamTy)> {
         self.params(ty::GenericArg::as_type).map(move |(i, ty)| {
             let ty::TyKind::Param(mut param) = *ty.kind() else {
-                unreachable!()
+                unreachable!("expected type parameter, got {ty:?}")
             };
             if self.is_trait_extern_spec && param.name.as_str() == "Prusti_T_Self" {
                 param.name = symbol::Symbol::intern("Self");
@@ -278,7 +278,7 @@ impl<'vir> GenericParams<'vir> {
                     let trait_data = deps.require_ref::<TraitEnc>(trait_did).unwrap();
                     let args = GArgs::new(ty.args.context, alias.args);
                     let args = deps.require_dep::<GArgsTyEnc>(args).unwrap();
-                    (trait_data.fns.assoc_types[&alias.def_id])(args.get_ty(), args.get_const())
+                    (trait_data.assoc_types[&alias.def_id])(args.get_ty(), args.get_const())
                 }),
             };
         }

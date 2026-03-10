@@ -22,13 +22,13 @@ pub struct RustTyDecomposition<'tcx> {
     pub maybe_inhabited: bool,
 }
 
-impl<'tcx, Ctxt> HasRegions<'tcx, Ctxt> for RustTyDecomposition<'tcx> {
-    fn regions(&self, _ctxt: Ctxt) -> IndexVec<RegionIdx, PcgRegion> {
+impl<'tcx, Ctxt: Copy> HasRegions<'tcx, Ctxt> for RustTyDecomposition<'tcx> {
+    fn regions(&self, _ctxt: Ctxt) -> IndexVec<RegionIdx, PcgRegion<'tcx>> {
         self.args
             .args()
             .iter()
-            .flat_map(|arg| arg.as_region())
-            .map(|region| region.into())
+            .flat_map(|arg| arg.walk())
+            .filter_map(|arg| arg.as_region().map(PcgRegion::from))
             .unique()
             .collect()
     }
@@ -523,15 +523,17 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
             ty::TyKind::Alias(..) | ty::TyKind::Param(_) => TySpecifics::mk_param(()),
             ty::TyKind::Closure(_, args) => {
                 let captured = args.as_closure().upvar_tys();
-                let fields = captured
-                    .iter()
-                    .enumerate()
-                    .map(|(i, ty)| RustFieldData {
-                        name: symbol::Symbol::intern(&format!("c{i}")),
-                        fid: abi::FieldIdx::from_usize(i),
-                        ty: LazyRustTy(ty),
-                    })
-                    .collect::<Vec<_>>();
+                let fields = vir::with_vcx(|vcx| {
+                    captured
+                        .iter()
+                        .enumerate()
+                        .map(|(i, ty)| RustFieldData {
+                            name: symbol::Symbol::intern(&format!("c{i}")),
+                            fid: abi::FieldIdx::from_usize(i),
+                            ty: LazyRustTy(vcx.tcx().erase_regions(ty)),
+                        })
+                        .collect::<Vec<_>>()
+                });
                 TySpecifics::mk_structlike((), fields)
             }
             ty::TyKind::Never => {
