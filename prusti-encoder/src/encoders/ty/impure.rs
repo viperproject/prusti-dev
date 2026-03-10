@@ -106,7 +106,16 @@ pub struct TyImpureRef<'vir> {
 
     pub(super) method_block: MethodIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap, vir::Perm)>,
 
-    pub(super) method_unblock: MethodIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap, vir::Ref, vir::Perm)>,
+    pub(super) method_unblock: MethodIdn<
+        'vir,
+        (
+            vir::Ref,
+            vir::ManyTyVal,
+            vir::ManyCSnap,
+            vir::Ref,
+            vir::Perm,
+        ),
+    >,
 }
 
 impl<'vir> task_encoder::OutputRefAny for TyImpureRef<'vir> {}
@@ -158,8 +167,20 @@ impl TaskEncoder for TyImpureEnc {
             let value = vcx.mk_local_ex(value_decl);
             let frac_field = builder.field("frac", vir::TYPE_PERM);
             let ref_self_frac = vcx.mk_field_expr(ref_self, frac_field);
-            let zero_perms = vcx.mk_bin_op_expr(vir::BinOpKind::FractionalPerm, vcx.mk_const_expr(vir::ConstData::Int(0)), vcx.mk_const_expr(vir::ConstData::Int(1))).downcast_ty();
-            let full_perms = vcx.mk_bin_op_expr(vir::BinOpKind::FractionalPerm, vcx.mk_const_expr(vir::ConstData::Int(1)), vcx.mk_const_expr(vir::ConstData::Int(1))).downcast_ty();
+            let zero_perms = vcx
+                .mk_bin_op_expr(
+                    vir::BinOpKind::FractionalPerm,
+                    vcx.mk_const_expr(vir::ConstData::Int(0)),
+                    vcx.mk_const_expr(vir::ConstData::Int(1)),
+                )
+                .downcast_ty();
+            let full_perms = vcx
+                .mk_bin_op_expr(
+                    vir::BinOpKind::FractionalPerm,
+                    vcx.mk_const_expr(vir::ConstData::Int(1)),
+                    vcx.mk_const_expr(vir::ConstData::Int(1)),
+                )
+                .downcast_ty();
             let method_assign = builder.inner.method(
                 "assign",
                 (ref_self_decl.ty(), builder.params.ty_args(), builder.params.const_args(), snapshot),
@@ -179,12 +200,26 @@ impl TaskEncoder for TyImpureEnc {
             let frac = vcx.mk_local_ex(frac_decl);
             let child_decl = vcx.mk_local_decl("child", vir::TYPE_REF);
             let child = vcx.mk_local_ex(child_decl);
-            let zero_perms = vcx.mk_bin_op_expr(vir::BinOpKind::FractionalPerm, vcx.mk_const_expr(vir::ConstData::Int(0)), vcx.mk_const_expr(vir::ConstData::Int(1))).downcast_ty();
-            let full_perms = vcx.mk_bin_op_expr(vir::BinOpKind::FractionalPerm, vcx.mk_const_expr(vir::ConstData::Int(1)), vcx.mk_const_expr(vir::ConstData::Int(1))).downcast_ty();
+            let zero_perms = vcx
+                .mk_bin_op_expr(
+                    vir::BinOpKind::FractionalPerm,
+                    vcx.mk_const_expr(vir::ConstData::Int(0)),
+                    vcx.mk_const_expr(vir::ConstData::Int(1)),
+                )
+                .downcast_ty();
+            let full_perms = vcx
+                .mk_bin_op_expr(
+                    vir::BinOpKind::FractionalPerm,
+                    vcx.mk_const_expr(vir::ConstData::Int(1)),
+                    vcx.mk_const_expr(vir::ConstData::Int(1)),
+                )
+                .downcast_ty();
             let ref_self_frac = vcx.mk_field_expr(ref_self, frac_field);
             let child_frac = vcx.mk_field_expr(child, frac_field);
             let ref_self_frac_old = vcx.mk_old_expr(ref_self_frac);
-            let ref_self_frac_old_using_add = vcx.mk_bin_op_expr(vir::BinOpKind::AddPerm, ref_self_frac, frac).downcast_ty();
+            let ref_self_frac_old_using_add = vcx
+                .mk_bin_op_expr(vir::BinOpKind::AddPerm, ref_self_frac, frac)
+                .downcast_ty();
             // TODO Use new encoder for these two functions
             let addr_of_ref_fun: FunctionIdn<'vir, vir::Ref, vir::Int> = vir::FunctionIdn::new(
                 vir::ViperIdent::new("addr_of_ref"),
@@ -226,10 +261,24 @@ impl TaskEncoder for TyImpureEnc {
             let frac = vcx.mk_local_ex(frac_decl);
             let child_decl = vcx.mk_local_decl("child", vir::TYPE_REF);
             let child = vcx.mk_local_ex(child_decl);
-            let zero_perms = vcx.mk_bin_op_expr(vir::BinOpKind::FractionalPerm, vcx.mk_const_expr(vir::ConstData::Int(0)), vcx.mk_const_expr(vir::ConstData::Int(1))).downcast_ty();
-            let full_perms = vcx.mk_bin_op_expr(vir::BinOpKind::FractionalPerm, vcx.mk_const_expr(vir::ConstData::Int(1)), vcx.mk_const_expr(vir::ConstData::Int(1))).downcast_ty();
+            let zero_perms = vcx
+                .mk_bin_op_expr(
+                    vir::BinOpKind::FractionalPerm,
+                    vcx.mk_const_expr(vir::ConstData::Int(0)),
+                    vcx.mk_const_expr(vir::ConstData::Int(1)),
+                )
+                .downcast_ty();
+            let full_perms = vcx
+                .mk_bin_op_expr(
+                    vir::BinOpKind::FractionalPerm,
+                    vcx.mk_const_expr(vir::ConstData::Int(1)),
+                    vcx.mk_const_expr(vir::ConstData::Int(1)),
+                )
+                .downcast_ty();
             let ref_self_frac = vcx.mk_field_expr(ref_self, frac_field);
-            let new_frac = vcx.mk_bin_op_expr(vir::BinOpKind::AddPerm, ref_self_frac, frac).downcast_ty();
+            let new_frac = vcx
+                .mk_bin_op_expr(vir::BinOpKind::AddPerm, ref_self_frac, frac)
+                .downcast_ty();
             // TODO Use new encoder for these two functions
             let addr_of_ref_fun: FunctionIdn<'vir, vir::Ref, vir::Int> = vir::FunctionIdn::new(
                 vir::ViperIdent::new("addr_of_ref"),

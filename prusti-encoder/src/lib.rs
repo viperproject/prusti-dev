@@ -101,8 +101,34 @@ pub fn test_entrypoint<'tcx>(
 
     program.header("predicates");
     crate::encoders::TyUseImpureEnc::emit_outputs(&mut program);
-    program.add_function(vir::with_vcx(|vcx| vcx.mk_function(vir::FunctionIdn::<vir::Ref, vir::Int>::new(ViperIdent::new("addr_of_ref"), vir::TYPE_REF, vir::TYPE_INT), (vcx.mk_local_decl("self", vir::TYPE_REF),), &[], &[], None, None)));
-    program.add_function(vir::with_vcx(|vcx| vcx.mk_function(vir::FunctionIdn::<vir::Ref, vir::Ref>::new(ViperIdent::new("parent_of_ref"), vir::TYPE_REF, vir::TYPE_REF), (vcx.mk_local_decl("self", vir::TYPE_REF),), &[], &[], None, None)));
+    program.add_function(vir::with_vcx(|vcx| {
+        vcx.mk_function(
+            vir::FunctionIdn::<vir::Ref, vir::Int>::new(
+                ViperIdent::new("addr_of_ref"),
+                vir::TYPE_REF,
+                vir::TYPE_INT,
+            ),
+            (vcx.mk_local_decl("self", vir::TYPE_REF),),
+            &[],
+            &[],
+            None,
+            None,
+        )
+    }));
+    program.add_function(vir::with_vcx(|vcx| {
+        vcx.mk_function(
+            vir::FunctionIdn::<vir::Ref, vir::Ref>::new(
+                ViperIdent::new("parent_of_ref"),
+                vir::TYPE_REF,
+                vir::TYPE_REF,
+            ),
+            (vcx.mk_local_decl("self", vir::TYPE_REF),),
+            &[],
+            &[],
+            None,
+            None,
+        )
+    }));
 
     program.header("type constructors");
     TyConstructorEnc::emit_outputs(&mut program);

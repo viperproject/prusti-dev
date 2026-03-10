@@ -195,7 +195,12 @@ macro_rules! vir_predicate {
 
 pub trait ExprApply<'vir, A: core::marker::Tuple, Ty: CompType> {
     fn expr_apply(self, vcx: &'vir crate::VirCtxt, args: A) -> crate::Expr<'vir, Ty>;
-    fn expr_apply_with_frac(self, vcx: &'vir crate::VirCtxt, args: A, frac: crate::Expr<'vir, crate::Perm>) -> crate::Expr<'vir, Ty>;
+    fn expr_apply_with_frac(
+        self,
+        vcx: &'vir crate::VirCtxt,
+        args: A,
+        frac: crate::Expr<'vir, crate::Perm>,
+    ) -> crate::Expr<'vir, Ty>;
 }
 
 impl<'a, 'vir, A: crate::Arity, R: CompType> ExprApply<'vir, A::Exprs<'a, 'vir, (), !>, R>
@@ -208,8 +213,13 @@ impl<'a, 'vir, A: crate::Arity, R: CompType> ExprApply<'vir, A::Exprs<'a, 'vir, 
     ) -> crate::Expr<'vir, R> {
         self.call_once(args)
     }
-    
-    fn expr_apply_with_frac(self, _vcx: &'vir crate::VirCtxt, args: A::Exprs<'a, 'vir, (), !>, _frac: crate::Expr<'vir, crate::Perm>) -> crate::Expr<'vir, R> {
+
+    fn expr_apply_with_frac(
+        self,
+        _vcx: &'vir crate::VirCtxt,
+        args: A::Exprs<'a, 'vir, (), !>,
+        _frac: crate::Expr<'vir, crate::Perm>,
+    ) -> crate::Expr<'vir, R> {
         self.call_once(args)
     }
 }
@@ -223,8 +233,13 @@ impl<'a, 'vir, A: crate::Arity> ExprApply<'vir, A::Exprs<'a, 'vir, (), !>, crate
     ) -> crate::ExprBool<'vir> {
         vcx.mk_predicate_app_expr(self.call_once(args)(None))
     }
-    
-    fn expr_apply_with_frac(self, vcx: &'vir crate::VirCtxt, args: A::Exprs<'a, 'vir, (), !>, frac: crate::Expr<'vir, crate::Perm>) -> crate::Expr<'vir, crate::Bool> {
+
+    fn expr_apply_with_frac(
+        self,
+        vcx: &'vir crate::VirCtxt,
+        args: A::Exprs<'a, 'vir, (), !>,
+        frac: crate::Expr<'vir, crate::Perm>,
+    ) -> crate::Expr<'vir, crate::Bool> {
         vcx.mk_predicate_app_expr(self.call_once(args)(Some(frac)))
     }
 }
@@ -236,8 +251,13 @@ impl<'vir, Ty: CompType> ExprApply<'vir, (crate::ExprRef<'vir>,), Ty> for crate:
     ) -> crate::Expr<'vir, Ty> {
         self.call_once(args)
     }
-    
-    fn expr_apply_with_frac(self, _vcx: &'vir crate::VirCtxt, args: (crate::ExprRef<'vir>,), _frac: crate::Expr<'vir, crate::Perm>) -> crate::Expr<'vir, Ty> {
+
+    fn expr_apply_with_frac(
+        self,
+        _vcx: &'vir crate::VirCtxt,
+        args: (crate::ExprRef<'vir>,),
+        _frac: crate::Expr<'vir, crate::Perm>,
+    ) -> crate::Expr<'vir, Ty> {
         self.call_once(args)
     }
 }
@@ -251,8 +271,13 @@ impl<'vir, I: CompType, Ty: CompType> ExprApply<'vir, (crate::Expr<'vir, I>,), T
     ) -> crate::Expr<'vir, Ty> {
         self.call().call_once(args)
     }
-    
-    fn expr_apply_with_frac(self, _vcx: &'vir crate::VirCtxt, args: (crate::Expr<'vir, I>,), _frac: crate::Expr<'vir, crate::Perm>) -> crate::Expr<'vir, Ty> {
+
+    fn expr_apply_with_frac(
+        self,
+        _vcx: &'vir crate::VirCtxt,
+        args: (crate::Expr<'vir, I>,),
+        _frac: crate::Expr<'vir, crate::Perm>,
+    ) -> crate::Expr<'vir, Ty> {
         self.call().call_once(args)
     }
 }
