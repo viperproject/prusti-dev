@@ -97,7 +97,6 @@ impl TaskEncoder for TyConstructorEnc {
                 })
                 .collect::<Vec<_>>();
 
-            let ty_accessor_functions = vcx.alloc_slice(&ty_accessor_functions);
             let const_accessor_functions = params
                 .const_decls()
                 .iter()
@@ -109,7 +108,6 @@ impl TaskEncoder for TyConstructorEnc {
                     )
                 })
                 .collect::<Vec<_>>();
-            let const_accessor_functions = vcx.alloc_slice(&const_accessor_functions);
 
             let typeof_data = deps.require_ref::<TypeOfEnc>(*task_key)?;
             deps.emit_output_ref(
@@ -117,8 +115,8 @@ impl TaskEncoder for TyConstructorEnc {
                 TyConstructorEncOutputRef {
                     typeof_data,
                     ty_constructor: type_function_ident,
-                    ty_param_accessors: ty_accessor_functions,
-                    const_param_accessors: const_accessor_functions,
+                    ty_param_accessors: vcx.alloc_slice(&ty_accessor_functions),
+                    const_param_accessors: vcx.alloc_slice(&const_accessor_functions),
                 },
             )?;
 
@@ -131,13 +129,13 @@ impl TaskEncoder for TyConstructorEnc {
                         .map(|d| vcx.mk_local_decl(d.name, d.ty).upcast_ty()),
                 )
                 .collect::<Vec<vir::LocalDecl<vir::Dyn>>>();
-            let constructor =
+            let variant =
                 vcx.mk_adt_constructor(type_function_ident.name().to_str(), vcx.alloc_slice(&args));
 
             // NOTE: This call depends on the ref output of this encoder
             deps.require_dep::<SizedTraitEnc>(task_key)?;
 
-            Ok((constructor, ()))
+            Ok((variant, ()))
         })
     }
 
