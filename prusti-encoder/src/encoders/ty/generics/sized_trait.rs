@@ -7,6 +7,7 @@ use crate::{
     },
 };
 use prusti_rustc_interface::middle::{ty, ty::Upcast};
+use task_encoder::EncodeFullError;
 
 pub struct SizedTraitEnc;
 
@@ -32,8 +33,6 @@ impl TaskEncoder for SizedTraitEnc {
         assert!(task_key.erased_ty.is_some());
         deps.emit_output_ref(*task_key, ())?;
 
-        if task_key.erased_ty.is_none() {}
-
         vir::with_vcx(|vcx| {
             let sizedness = sizedness_for_ty(vcx.tcx(), task_key.erased_ty.unwrap());
             let check = match sizedness {
@@ -44,14 +43,14 @@ impl TaskEncoder for SizedTraitEnc {
                     task_key.params,
                     task_key.erased_ty.unwrap(),
                     None,
-                )),
+                )?),
                 Sizedness::Dependent(dep_ty) => Some(Self::sizedness_check(
                     vcx,
                     deps,
                     task_key.params,
                     task_key.erased_ty.unwrap(),
                     Some(dep_ty),
-                )),
+                )?),
             };
 
             Ok((check, ()))
@@ -120,7 +119,7 @@ impl SizedTraitEnc {
         impl_ctx: GParams<'vir>,
         impl_ty: ty::Ty<'vir>,
         depended_on: Option<ty::Ty<'vir>>,
-    ) -> vir::ExprBool<'vir> {
+    ) -> Result<vir::ExprBool<'vir>, EncodeFullError<'vir, SizedTraitEnc>> {
         let tcx = vcx.tcx();
 
         let sized_did = tcx.lang_items().sized_trait().unwrap();
@@ -141,7 +140,12 @@ impl SizedTraitEnc {
 
         let impl_ctx = GParams::new(impl_ctx.rust_params(), param_env, false);
 
-        TraitImplEnc::impl_block_check(vcx, deps, impl_ctx, impls_sized)
+        Ok(TraitImplEnc::impl_block_check(
+            vcx,
+            deps,
+            impl_ctx,
+            impls_sized,
+        )?)
     }
 }
 

@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use prusti_rustc_interface::{index::bit_set::DenseBitSet, middle::ty, span::def_id::DefId, middle::mir};
 use prusti_interface::{PrustiError, specs::specifications::SpecQuery};
-use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, Domain, Method, MethodIdn, vir_format_identifier};
 
 use crate::{encoders::{
@@ -84,8 +84,7 @@ impl TaskEncoder for TraitImplEnc {
                 // parameters of assoc item include already substituted arguments
                 let impl_item_context = GParams::from(impl_item_def_id);
                 let impl_item_params = deps
-                    .require_dep::<GenericParamsEnc>(impl_item_context)
-                    .unwrap();
+                    .require_dep::<GenericParamsEnc>(impl_item_context)?;
 
                 // The ty and const decls of the trait items are the decls of
                 // the item itself prefixed by the decls of the impl itself.
@@ -132,7 +131,7 @@ impl TaskEncoder for TraitImplEnc {
                                 tcx.type_of(impl_item_def_id).instantiate_identity(),
                                 impl_item_context,
                             ),
-                        );
+                        )?;
                         axioms.push(vcx.mk_domain_axiom(
                             vir_format_identifier!(vcx, "{trait_name}_impl_{implementing_ty}_{idx}_assoc_type_{item_name}"),
                             vir::expr! {forall ..[trait_ty_decls], ..[trait_const_decls] :: 
@@ -421,7 +420,7 @@ impl TaskEncoder for TraitImplEnc {
 
             let trait_ref = tcx.impl_trait_ref(task_key).unwrap().instantiate_identity();
             let impl_condition =
-                Self::impl_block_check(vcx, deps, GParams::from(*task_key), trait_ref);
+                Self::impl_block_check(vcx, deps, GParams::from(*task_key), trait_ref)?;
 
             Ok((
                 (
@@ -508,14 +507,14 @@ impl TraitImplEnc {
         ctx: GParams<'vir>,
         expr: vir::ExprTyVal<'vir>,
         ty: ty::Ty<'vir>,
-    ) {
+    ) -> Result<(), EncodeFullError<'vir, E>> {
         if let ty::TyKind::Param(p) = ty.kind() {
             generic_map.try_insert(p.index, expr.upcast_ty());
-            return;
+            return Ok(());
         }
 
         let decomp = RustTyDecomposition::from_ty(ty, ctx);
-        let ty_enc = deps.require_ref::<TyConstructorEnc>(decomp.ty).unwrap();
+        let ty_enc = deps.require_ref::<TyConstructorEnc>(decomp.ty)?;
 
         let args = decomp.args.args();
         let inner_types = args.iter().filter_map(|arg| arg.as_type());
@@ -523,7 +522,7 @@ impl TraitImplEnc {
             let accessor = ty_enc.ty_param_accessors[i];
             let inner_expr = accessor.call()(expr);
 
-            Self::discover_bind_points(deps, generic_map, ctx, inner_expr, inner_ty);
+            Self::discover_bind_points(deps, generic_map, ctx, inner_expr, inner_ty)?;
         }
 
         let inner_consts = args.iter().filter_map(|arg| arg.as_const());
@@ -535,6 +534,7 @@ impl TraitImplEnc {
                 generic_map.try_insert(p.index, inner_expr.upcast_ty());
             }
         }
+        Ok(())
     }
 
     pub(super) fn impl_block_check<'vir, E: TaskEncoder + 'vir + ?Sized>(
@@ -542,17 +542,16 @@ impl TraitImplEnc {
         deps: &mut TaskEncoderDependencies<'vir, E>,
         impl_ctx: GParams<'vir>,
         trait_ref: ty::TraitRef<'vir>,
-    ) -> vir::ExprBool<'vir> {
+    ) -> Result<vir::ExprBool<'vir>, EncodeFullError<'vir, E>> {
         let tcx = vcx.tcx();
         let impl_ctx = impl_ctx.with_suffix("impl");
-        let impl_params = deps.require_dep::<GenericParamsEnc>(impl_ctx).unwrap();
+        let impl_params = deps.require_dep::<GenericParamsEnc>(impl_ctx)?;
 
         let trait_ctx = TraitEnc::trait_params(trait_ref.def_id);
-        let trait_params = deps.require_dep::<GenericParamsEnc>(trait_ctx).unwrap();
+        let trait_params = deps.require_dep::<GenericParamsEnc>(trait_ctx)?;
 
         let args = deps
-            .require_dep::<GArgsTyEnc>(GArgs::new(impl_ctx, trait_ref.args))
-            .unwrap();
+            .require_dep::<GArgsTyEnc>(GArgs::new(impl_ctx, trait_ref.args))?;
 
         let generics_count = impl_ctx.rust_params().len();
 
@@ -562,7 +561,7 @@ impl TraitImplEnc {
         // Walk the trait type generic arguments
         let impl_rust_tys = trait_ref.args.iter().filter_map(|arg| arg.as_type());
         for (ty_arg, rust_ty) in std::iter::zip(trait_params.ty_exprs(), impl_rust_tys) {
-            Self::discover_bind_points(deps, &mut generics_map, trait_ctx, ty_arg, rust_ty);
+            Self::discover_bind_points(deps, &mut generics_map, trait_ctx, ty_arg, rust_ty)?;
         }
 
         // Walk the trait const generic arguments
@@ -594,9 +593,9 @@ impl TraitImplEnc {
             .map(ty::Binder::skip_binder);
         for trait_pred in trait_preds {
             let trait_did = trait_pred.def_id();
-            let trait_ = deps.require_ref::<TraitEnc>(trait_did).unwrap();
+            let trait_ = deps.require_ref::<TraitEnc>(trait_did)?;
             let gargs = GArgs::new(impl_ctx, trait_pred.trait_ref.args);
-            let gargs = deps.require_dep::<GArgsTyEnc>(gargs).unwrap();
+            let gargs = deps.require_dep::<GArgsTyEnc>(gargs)?;
 
             let impl_check = (trait_.impl_fun)(gargs.get_ty(), gargs.get_const());
             checks.push(impl_check);
@@ -611,9 +610,9 @@ impl TraitImplEnc {
         let proj_preds = Self::order_projections(generics_map.keys(), proj_preds, generics_count);
         for proj_pred in proj_preds {
             let trait_did = proj_pred.trait_def_id(tcx);
-            let trait_ = deps.require_ref::<TraitEnc>(trait_did).unwrap();
+            let trait_ = deps.require_ref::<TraitEnc>(trait_did)?;
             let gargs = GArgs::new(impl_ctx, proj_pred.projection_term.args);
-            let gargs = deps.require_dep::<GArgsTyEnc>(gargs).unwrap();
+            let gargs = deps.require_dep::<GArgsTyEnc>(gargs)?;
 
             let (projection, expr): (vir::ExprDyn, vir::ExprDyn) = match proj_pred.term.kind() {
                 ty::TermKind::Ty(ty) => {
@@ -622,8 +621,8 @@ impl TraitImplEnc {
                         gargs.get_const(),
                     );
                     let decomp = RustTyDecomposition::from_ty(ty, impl_ctx);
-                    let ty_expr = impl_params.ty_expr(deps, decomp);
-                    Self::discover_bind_points(deps, &mut generics_map, impl_ctx, projection, ty);
+                    let ty_expr = impl_params.ty_expr(deps, decomp)?;
+                    Self::discover_bind_points(deps, &mut generics_map, impl_ctx, projection, ty)?;
                     (projection.upcast_ty(), ty_expr.upcast_ty())
                 }
                 ty::TermKind::Const(const_) => {
@@ -637,7 +636,7 @@ impl TraitImplEnc {
                         ty,
                         context: impl_ctx,
                     };
-                    let const_expr = deps.require_dep::<ConstEnc>(const_task).unwrap();
+                    let const_expr = deps.require_dep::<ConstEnc>(const_task)?;
                     if let ty::ConstKind::Param(p) = const_.kind() {
                         generics_map.try_insert(p.index, const_expr.upcast_ty());
                     }
@@ -651,7 +650,7 @@ impl TraitImplEnc {
 
         let checks = vcx.mk_conj(&checks);
 
-        generics_map
+        Ok(generics_map
             .insertion_ordered()
             .rfold(checks, |acc, (idx, expr)| {
                 let idx = impl_params.map_idx(idx);
@@ -660,7 +659,7 @@ impl TraitImplEnc {
                     Result::Err(idx) => impl_params.const_decls()[idx].upcast_ty(),
                 };
                 vcx.mk_let_expr(decl, expr, acc)
-            })
+            }))
     }
 }
 
