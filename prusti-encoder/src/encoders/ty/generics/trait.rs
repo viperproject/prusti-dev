@@ -99,7 +99,7 @@ impl TaskEncoder for TraitEnc {
                         assoc_consts.insert(assoc_did, fun);
                         dom_funcs.push(vcx.mk_domain_function(fun, false, None));
                     }
-                    ty::AssocKind::Fn { .. } => { /* handled in trait_fn.rs */ }
+                    ty::AssocKind::Fn { .. } => {}
                 }
             }
 
@@ -164,8 +164,16 @@ impl TaskEncoder for TraitEnc {
                 vcx.mk_disj(&trait_impl_checks)
             };
 
-            let impl_fun =
-                vcx.mk_function(impl_fun, trait_decls, &[], &[], None, Some(impl_fun_body));
+            let ensures = vcx.mk_eq_expr(vcx.mk_result(vir::TYPE_BOOL), impl_fun_body);
+
+            let impl_fun = vcx.mk_function(
+                impl_fun,
+                trait_decls,
+                &[],
+                vcx.alloc_slice(&[ensures]),
+                Some(&vir::DecreasesGenData::Star),
+                None,
+            );
 
             let impl_for_unknown_fun = vcx.mk_domain_function(impl_for_unknown_idn, false, None);
             dom_funcs.push(impl_for_unknown_fun);

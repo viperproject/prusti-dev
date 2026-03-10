@@ -83,13 +83,15 @@ impl TaskEncoder for SizedTraitEnc {
 
             checks.push(unknown_check);
 
+            let ensures = vcx.mk_eq_expr(vcx.mk_result(vir::TYPE_BOOL), vcx.mk_disj(&checks));
+
             let sized_impl_fun = vcx.mk_function(
                 sized_impl_idn,
                 (&[self_decl], &[]),
                 &[],
-                &[],
+                vcx.alloc_slice(&[ensures]),
+                Some(&vir::DecreasesGenData::Star),
                 None,
-                Some(vcx.mk_disj(&checks)),
             );
             program.add_function(sized_impl_fun);
 
