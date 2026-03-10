@@ -106,6 +106,17 @@ impl<'a> AstFactory<'a> {
         self.add_with_pos(left, right, self.no_position())
     }
 
+    pub fn add_perm_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::PermAdd,
+            left.to_jobject(),
+            right.to_jobject(),
+            pos.to_jobject()
+        )
+    }
+
     pub fn sub_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,

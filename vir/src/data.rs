@@ -64,6 +64,7 @@ pub enum BinOpKind {
     SetUnion,
     SetIn,
     FractionalPerm,
+    AddPerm,
     // ...
 }
 impl From<mir::BinOp> for BinOpKind {

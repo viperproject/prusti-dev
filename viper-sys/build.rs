@@ -235,6 +235,9 @@ fn main() {
             java_class!("viper.silver.ast.Add", vec![
                 constructor!(),
             ]),
+            java_class!("viper.silver.ast.PermAdd", vec![
+                constructor!(),
+            ]),
             java_class!("viper.silver.ast.AddOp$", vec![
                 object_getter!(),
             ]),

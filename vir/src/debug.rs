@@ -63,6 +63,7 @@ impl<'vir, Curr, Next> Debug for BinOpGenData<'vir, Curr, Next> {
                 BinOpKind::Or => "||",
                 BinOpKind::Implies => "==>",
                 BinOpKind::Add => "+",
+                BinOpKind::AddPerm => "+",
                 BinOpKind::Sub => "-",
                 BinOpKind::Mul => "*",
                 BinOpKind::Div => "\\",
