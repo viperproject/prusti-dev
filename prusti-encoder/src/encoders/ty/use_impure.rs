@@ -1,6 +1,7 @@
+use itertools::Itertools;
 use prusti_rustc_interface::abi;
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CastType, PredicateIdn};
+use vir::{CallableIdn, CastType, PredicateIdn, StmtKindGenData};
 
 use crate::encoders::{
     Impure,
@@ -289,6 +290,25 @@ impl<'vir> TyUseImpureData<'vir> {
             self.args.get_const(),
             self_new_snap,
         ))))
+    }
+
+    pub fn apply_method_block<'tcx>(
+        &self,
+        vcx: &'vir vir::VirCtxt<'tcx>,
+        self_ref: vir::ExprRef<'vir>,
+        child: &'vir vir::LocalData<'vir, vir::Ref>,
+        frac: vir::ExprPerm<'vir>,
+    ) -> vir::Stmt<'vir> {
+        let mut args: Vec<&vir::ExprGenData<'vir, (), !, vir::Dyn>> = vec!(self_ref.upcast_ty());
+        args.extend_from_slice(&mut self.args.get_ty().iter().map(|t| t.upcast_ty()).collect_vec());
+        args.append(&mut self.args.get_const().iter().map(|c| c.upcast_ty()).collect_vec());
+        args.push(frac.upcast_ty());
+        vcx.alloc(vir::StmtData::new(vcx.alloc(vir::StmtKindGenData::MethodCall(vcx.alloc(vir::MethodCallGenData {
+                targets: vcx.alloc_slice(&[child.upcast_ty()]),
+                method: self.impure.method_block.name().to_str(),
+                args: vcx.alloc_slice(&args)
+            }
+        )))))
     }
 
     /// Constructs the Viper predicate application expression.

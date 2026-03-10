@@ -204,6 +204,8 @@ macro_rules! comment {
 type EncodeResult<'vir, T, E> = Result<T, EncodeFullError<'vir, E>>;
 
 struct EncodedRvalue<'vir> {
+    pre_assign_stmts: Vec<vir::Stmt<'vir>>,
+
     /// A snapshot of the rvalue. This snapshot is guaranteed to be well-formed
     /// in the state *before* the Rvalue has been assigned to a place. For
     /// example, in the statement `let rx = &mut x`, the snapshot encoding of
@@ -242,6 +244,7 @@ impl<'vir> EncodedRvalue<'vir> {
 impl<'vir> From<vir::ExprSnap<'vir>> for EncodedRvalue<'vir> {
     fn from(expr: vir::ExprSnap<'vir>) -> Self {
         Self {
+            pre_assign_stmts: vec!(),
             expr,
             post_assign_folds: None,
         }
@@ -419,12 +422,18 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 }
                 TyKind::Ref(.., ty::Mutability::Mut) => {
                     let p_rvalue_ty = self.ty_use_impure(rvalue_ty);
-                    let (place_expr, _, _, _) = self.encode_place_with_snap(Place::from(*place));
+                    let (place_expr, snap, _, _) = self.encode_place_with_snap(Place::from(*place));
 
                     let inner = p_rvalue_ty.expect_mutref();
-                    let place_ref = place_expr.expr.expect_predicate();
+                    let full_perms = self.vcx.mk_bin_op_expr(vir::BinOpKind::FractionalPerm, self.vcx.mk_const_expr(vir::ConstData::Int(1)), self.vcx.mk_const_expr(vir::ConstData::Int(1))).downcast_ty();
+
+                    let child = self.vcx.mk_local_decl("tmp", vir::TYPE_REF);
+                    let block_stmt = self.ty_use_impure(place_expr.ty.ty).apply_method_block(self.vcx, place_expr.expr.expect_predicate(), self.vcx.mk_local(child), full_perms);
+                    let child_expr = self.vcx.mk_local_ex(child);
+                    
                     EncodedRvalue {
-                        expr: inner.prim_to_snap_assign(place_ref).upcast_ty(),
+                        pre_assign_stmts: vec!(self.vcx.mk_local_decl_stmt(child, None), block_stmt),
+                        expr: inner.prim_to_snap(child_expr).upcast_ty(),
                         post_assign_folds: Some(Box::new(move |lhs_place| {
                             p_rvalue_ty.fold(None, lhs_place, None, None, None)
                         })),
@@ -1422,6 +1431,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                             let dest_ty_out = self.ty_use_impure(dest_ty.ty);
                             let method_assign_app =
                                 dest_ty_out.apply_method_assign(self.vcx, proj_enc, rval_enc.expr);
+                            self.stmts(rval_enc.pre_assign_stmts.clone());
                             self.stmt(method_assign_app);
                             self.stmts(rval_enc.post_fold_stmts(proj_enc));
                         }

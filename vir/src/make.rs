@@ -191,7 +191,7 @@ impl<'tcx> VirCtxt<'tcx> {
         self.alloc(LocalDeclData { name, ty })
     }
 
-    fn mk_local<'vir, T: CompType>(&'vir self, decl: LocalDecl<'vir, T>) -> Local<'vir, T> {
+    pub fn mk_local<'vir, T: CompType>(&'vir self, decl: LocalDecl<'vir, T>) -> Local<'vir, T> {
         self.alloc(LocalData {
             name: decl.name,
             ty: decl.ty,
