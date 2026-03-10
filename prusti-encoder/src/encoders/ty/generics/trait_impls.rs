@@ -5,30 +5,13 @@ use prusti_interface::{PrustiError, specs::specifications::SpecQuery};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, Domain, Method, MethodIdn, vir_format_identifier};
 
-use crate::encoders::{
-    ConstEnc,
-    r#const::ConstEncTask,
-    ty::{
+use crate::{encoders::{
+    ConstEnc, FunctionCallEnc, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc, Pure, r#const::ConstEncTask, mir_fn::{CallTaskDescription, RustSignature}, pure::spec::MirSpecEncMode, ty::{
         RustTyDecomposition,
-        generics::{GArgs, GArgsTyEnc, GParams, GenericParamsEnc, r#trait::TraitEnc},
+        generics::{GArgs, GArgsCastEnc, GArgsTyEnc, GParams, GenericParamsEnc, r#trait::TraitEnc, trait_fn::TraitFnEnc},
         lifted::TyConstructorEnc,
-    },
-};
-use crate::{
-    encoders::{
-        FunctionCallEnc, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc, Pure,
-        mir_fn::{CallTaskDescription, RustSignature},
-        pure::spec::MirSpecEncMode,
-        ty::{
-            
-            generics::{
-                GArgsCastEnc, 
-                trait_fn::TraitFnEnc,
-            },
-        },
-    },
-    trait_support::is_function_with_body,
-};
+    }
+}, trait_support::is_function_with_body};
 
 pub struct TraitImplEnc;
 
