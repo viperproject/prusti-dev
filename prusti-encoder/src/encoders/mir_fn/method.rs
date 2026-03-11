@@ -253,6 +253,10 @@ impl TaskEncoder for MethodEnc {
                     2 + block_count,
                 );
                 let mut start_stmts = Vec::new();
+                let name_p = "_tmp_ref";
+                start_stmts.push(
+                    vcx.mk_local_decl_stmt(vir::vir_local_decl! { vcx; [name_p] : Ref }, None),
+                );
                 for local in (arg_count..body.local_decls.len()).map(mir::Local::from) {
                     let name_p = local_defs[local].local.name;
                     start_stmts.push(

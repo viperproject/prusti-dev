@@ -580,7 +580,14 @@ impl<'vir> TyUseImpureEnum<'vir> {
     }
 }
 
-impl<'vir> TyUseImpureImmRef<'vir> {}
+impl<'vir> TyUseImpureImmRef<'vir> {
+    pub fn snap(
+        &self,
+        self_ref: vir::ExprRef<'vir>,
+    ) -> vir::ExprCSnap<'vir> {
+        (self.impure.snap)(self_ref, self.args.get_ty(), self.args.get_const())
+    }
+}
 
 impl<'vir> TyUseImpureMutRef<'vir> {
     pub fn deref(

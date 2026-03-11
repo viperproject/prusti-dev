@@ -18,7 +18,7 @@ impl<'vir> TyDatas<'vir> for ImpureTyDatas {
     type TyData = TyImpureRef<'vir>;
     type PrimitiveData = ();
     type ArrayData = TyImpureArrayData<'vir>;
-    type ImmRefData = TyImpureImmRefData;
+    type ImmRefData = TyImpureImmRefData<'vir>;
     type MutRefData = TyImpureMutRefData<'vir>;
     type FieldData = TyImpureFieldData<'vir>;
     type StructData = ();
@@ -38,7 +38,9 @@ pub type TyImpureBuiltin<'vir> = <ImpureTyDatas as TyDatas<'vir>>::BuiltinData;
 pub type TyImpureRawPtr<'vir> = <ImpureTyDatas as TyDatas<'vir>>::RawPtrData;
 
 #[derive(Debug, Clone, Copy)]
-pub struct TyImpureImmRefData {}
+pub struct TyImpureImmRefData<'vir> {
+    pub snap: FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::CSnap>,
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyImpureMutRefData<'vir> {

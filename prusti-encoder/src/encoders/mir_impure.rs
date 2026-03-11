@@ -414,11 +414,48 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             mir::Rvalue::Ref(_reg, _kind, place) => Ok(match rvalue_ty.kind() {
                 TyKind::Ref(.., ty::Mutability::Not) => {
                     let (address, snap, _, _) = self.encode_place_with_snap((*place).into());
+                    
+                    let ty_name = RustTyDecomposition::from_ty(address.ty.ty, self.vcx.tcx(), GParams::empty())
+                        .ty
+                        .name
+                        .as_str();
+                    let ref_self_frac = self.vcx.mk_field_expr(address.expr.expect_predicate(), self.vcx.mk_field(vir::vir_format!(self.vcx, "p_{}_frac", ty_name), vir::TYPE_PERM));
+                    let two_perms = self
+                        .vcx
+                        .mk_bin_op_expr(
+                            vir::BinOpKind::FractionalPerm,
+                            self.vcx.mk_const_expr(vir::ConstData::Int(2)),
+                            self.vcx.mk_const_expr(vir::ConstData::Int(1)),
+                        )
+                        .downcast_ty();
+                    let new_perms = self
+                        .vcx
+                        .mk_bin_op_expr(
+                            vir::BinOpKind::DivRationalRational,
+                            ref_self_frac,
+                            two_perms,
+                        )
+                        .downcast_ty();
+                    let child = self.vcx.mk_local_decl("_tmp_ref", vir::TYPE_REF);
+                    let block_stmt = self.ty_use_impure(address.ty.ty).apply_method_block(
+                        self.vcx,
+                        address.expr.expect_predicate(),
+                        self.vcx.mk_local(child),
+                        new_perms,
+                    );
+                    let child_expr = self.vcx.mk_local_ex(child);
+
                     let inner = self.ty_use_pure(rvalue_ty).expect_immref();
-                    inner
-                        .prim_to_snap(address.expr.address, snap)
-                        .upcast_ty()
-                        .into()
+                    EncodedRvalue {
+                        pre_assign_stmts: vec![
+                            block_stmt,
+                        ],
+                        expr: inner
+                            .prim_to_snap(child_expr, snap)
+                            .upcast_ty()
+                            .into(),
+                        post_assign_folds: None,
+                    }
                 }
                 TyKind::Ref(.., ty::Mutability::Mut) => {
                     let p_rvalue_ty = self.ty_use_impure(rvalue_ty);
@@ -434,7 +471,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         )
                         .downcast_ty();
 
-                    let child = self.vcx.mk_local_decl("tmp", vir::TYPE_REF);
+                    let child = self.vcx.mk_local_decl("_tmp_ref", vir::TYPE_REF);
                     let block_stmt = self.ty_use_impure(place_expr.ty.ty).apply_method_block(
                         self.vcx,
                         place_expr.expr.expect_predicate(),
@@ -445,7 +482,6 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
                     EncodedRvalue {
                         pre_assign_stmts: vec![
-                            self.vcx.mk_local_decl_stmt(child, None),
                             block_stmt,
                         ],
                         expr: inner.prim_to_snap(child_expr).upcast_ty(),
@@ -677,6 +713,28 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         .expect_mutref()
                         .deref(child_expr.expr.expect_predicate(), None),
                     full_perms,
+                );
+                self.stmt(unblock_stmt);
+            }
+            BorrowPcgEdgeKind::Borrow(borrow) if !borrow.is_mut() && edge_action.is_remove() => {
+                // unblocks original ref
+                let (parent_expr, _, _, _) =
+                    self.encode_place_with_snap(borrow.blocked_place().place());
+                let (child_expr, _, _, _) =
+                    self.encode_place_with_snap(borrow.assigned_ref().place());
+                let ty_name = RustTyDecomposition::from_ty(parent_expr.ty.ty, self.vcx.tcx(), GParams::empty())
+                        .ty
+                        .name
+                        .as_str();
+                let child = self.ty_use_pure(child_expr.ty.ty)
+                        .expect_immref()
+                        .deref_access(self.ty_use_impure(child_expr.ty.ty).expect_immref().snap(child_expr.expr.expect_predicate()));
+                let ref_self_frac = self.vcx.mk_field_expr(child, self.vcx.mk_field(vir::vir_format!(self.vcx, "p_{}_frac", ty_name), vir::TYPE_PERM));
+                let unblock_stmt = self.ty_use_impure(parent_expr.ty.ty).apply_method_unblock(
+                    self.vcx,
+                    parent_expr.expr.expect_predicate(),
+                    child,
+                    ref_self_frac,
                 );
                 self.stmt(unblock_stmt);
             }

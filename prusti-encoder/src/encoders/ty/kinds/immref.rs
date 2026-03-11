@@ -53,7 +53,18 @@ pub(crate) fn ty_impure<'vir>(
     );
 
     // Ref-to-snap
-    builder.mk_snap_function(Some(vir::expr! { [ref_field](ref_self) }));
+    let function_snap = builder.mk_function::<(vir::Ref, vir::ManyTyVal, vir::ManyCSnap), _>(
+        "snap",
+        (ref_self_decl.ty(), builder.params.ty_args(), builder.params.const_args()),
+        snap_type,
+        (ref_self_decl, builder.params.ty_decls(), builder.params.const_decls()),
+        &[vir::expr! { acc([self_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) }],
+        &[], // vir::expr! { ([generic_typeof]([data.1.value_access](result: [snap_type]))) == ([builder.params.ty_exprs()[0]]) }],
+        Some(vir::expr! {
+            unfolding ([self_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) in ([ref_field](ref_self))
+        }),
+    );
+    builder.function_snap = Some(function_snap.1);
 
-    Ok(TyImpureImmRefData {})
+    Ok(TyImpureImmRefData {snap: function_snap.0})
 }
