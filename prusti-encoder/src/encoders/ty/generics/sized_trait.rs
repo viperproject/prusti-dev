@@ -30,25 +30,21 @@ impl TaskEncoder for SizedTraitEnc {
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
     ) -> task_encoder::EncodeFullResult<'vir, Self> {
         assert!(!task_key.specifics.is_param());
-        assert!(task_key.erased_ty.is_some());
         deps.emit_output_ref(*task_key, ())?;
 
         vir::with_vcx(|vcx| {
-            let sizedness = sizedness_for_ty(vcx.tcx(), task_key.erased_ty.unwrap());
+            let ty = task_key.erased_ty_for_sizedness();
+            let sizedness = sizedness_for_ty(vcx.tcx(), ty);
             let check = match sizedness {
                 Sizedness::Unsized => None,
-                Sizedness::Sized => Some(Self::sizedness_check(
-                    vcx,
-                    deps,
-                    task_key.params,
-                    task_key.erased_ty.unwrap(),
-                    None,
-                )?),
+                Sizedness::Sized => {
+                    Some(Self::sizedness_check(vcx, deps, task_key.params, ty, None)?)
+                }
                 Sizedness::Dependent(dep_ty) => Some(Self::sizedness_check(
                     vcx,
                     deps,
                     task_key.params,
-                    task_key.erased_ty.unwrap(),
+                    ty,
                     Some(dep_ty),
                 )?),
             };

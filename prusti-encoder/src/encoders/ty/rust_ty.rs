@@ -243,13 +243,20 @@ pub type RustBuiltin<'tcx> = <RustTyDatas as TyDatas<'tcx>>::BuiltinData;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RustTyData<'tcx> {
     pub name: symbol::Symbol,
-    pub erased_ty: Option<ty::Ty<'tcx>>,
+    erased_ty: Option<ty::Ty<'tcx>>,
     pub params: GParams<'tcx>,
 }
 
 impl<'tcx> RustTyData<'tcx> {
     pub fn name(&self) -> &str {
         self.name.as_str()
+    }
+
+    /// NOTE: this is a temporary hack to get the `ty::Ty` for the `SizedTraitEnc`. Should not be
+    /// used in other places
+    pub(super) fn erased_ty_for_sizedness(&self) -> ty::Ty<'tcx> {
+        self.erased_ty
+            .expect("erased_ty should be Some for the `Sized` trait encoder")
     }
 }
 
