@@ -446,9 +446,6 @@ impl SpecGraph<ProcedureSpecification> {
         match self.get_constraint(post, env) {
             None => {
                 self.base_spec.posts.push(post.to_def_id());
-                self.specs_with_constraints
-                    .values_mut()
-                    .for_each(|s| s.posts.push(post.to_def_id()));
             }
             Some(obligation) => {
                 self.get_constrained_spec_mut(obligation)
