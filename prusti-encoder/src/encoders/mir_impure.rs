@@ -530,7 +530,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
                 let inner = e_rvalue_ty.expect_rawptr();
                 Ok(inner
-                    .prim_to_snap(place_expr.expr.expect_predicate())
+                    .prim_to_snap(place_expr.expr.address)
                     .upcast_ty()
                     .into())
             }

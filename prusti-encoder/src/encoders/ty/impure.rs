@@ -169,13 +169,6 @@ impl TaskEncoder for TyImpureEnc {
             let value = vcx.mk_local_ex(value_decl);
             let frac_field = builder.field("frac", vir::TYPE_PERM);
             let ref_self_frac = vcx.mk_field_expr(ref_self, frac_field);
-            let zero_perms = vcx
-                .mk_bin_op_expr(
-                    vir::BinOpKind::FractionalPerm,
-                    vcx.mk_const_expr(vir::ConstData::Int(0)),
-                    vcx.mk_const_expr(vir::ConstData::Int(1)),
-                )
-                .downcast_ty();
             let full_perms = vcx
                 .mk_bin_op_expr(
                     vir::BinOpKind::FractionalPerm,
@@ -193,7 +186,7 @@ impl TaskEncoder for TyImpureEnc {
                     vir::expr! { [builder.ref_to_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]) },
                     vir::expr! { ([builder.ref_to_snap](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) == (value) },
                     vir::expr! { acc((ref_self).[frac_field]) },
-                    vir::expr! { ((zero_perms) < (ref_self_frac)) && ((ref_self_frac) <= (full_perms)) },
+                    vir::expr! { (ref_self_frac) == (full_perms) },
                 ],
             );
 

@@ -109,6 +109,13 @@ pub(crate) trait PureRvalueEnc<'vir> {
                     expr: to_vir_ty.prim_to_snap.call()(from_prim).upcast_ty(),
                 })
             }
+            mir::CastKind::PtrToPtr => {
+                let encoded_operand = self.encode_operand_snap(operand, ctxt)?;
+                let from_ty = operand.ty(self.body(), self.vcx().tcx());
+                let from_vir_ty = self.ty_use_pure(from_ty).expect_rawptr();
+                let to_vir_ty = self.ty_use_pure(ty).expect_rawptr();
+                Ok(EncodedCast { preconditions: vec!(), expr: to_vir_ty.prim_to_snap(from_vir_ty.deref_access(encoded_operand.downcast_ty())).upcast_ty() })
+            }
             _ => todo!("cast kind {kind:?}"),
         }
     }
