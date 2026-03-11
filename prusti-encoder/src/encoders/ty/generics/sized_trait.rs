@@ -138,12 +138,7 @@ impl SizedTraitEnc {
 
         let impl_ctx = GParams::new(impl_ctx.rust_params(), param_env, false);
 
-        Ok(TraitImplEnc::impl_block_check(
-            vcx,
-            deps,
-            impl_ctx,
-            impls_sized,
-        )?)
+        TraitImplEnc::impl_block_check(vcx, deps, impl_ctx, impls_sized)
     }
 }
 

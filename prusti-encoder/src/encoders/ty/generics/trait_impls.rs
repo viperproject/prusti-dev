@@ -694,7 +694,7 @@ impl<'vir> GenericsMap<'vir> {
     /// Collect the bindings in their insertion order.
     fn insertion_ordered(
         &self,
-    ) -> impl Iterator<Item = (u32, vir::ExprDyn<'vir>)> + DoubleEndedIterator {
+    ) -> impl DoubleEndedIterator<Item = (u32, vir::ExprDyn<'vir>)> {
         let mut ordered = self
             .map
             .iter()
