@@ -3,8 +3,7 @@ use std::cell::RefCell;
 use prusti_interface::specs::{
     specifications::SpecQuery,
     typed::{
-        DefSpecificationMap, ExternSpecKind, Pledge, ProcedureSpecification, SpecConstraintKind,
-        SpecificationItem,
+        DefSpecificationMap, ExternSpecKind, Pledge, ProcedureSpecification, SpecificationItem,
     },
 };
 use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
@@ -19,9 +18,9 @@ pub type SpecEncError = ();
 pub struct SpecEncOutput<'vir> {
     pub extern_spec: Option<ExternSpecKind>,
     pub pres: &'vir [DefId],
-    pub refined_pre: Option<DefId>,
     pub posts: &'vir [DefId],
-    pub refined_post: Option<DefId>,
+    pub refined_pres: &'vir [DefId],
+    pub refined_posts: &'vir [DefId],
     pub pledges: &'vir [Pledge],
 }
 
@@ -49,18 +48,14 @@ where
     })
 }
 
-pub fn with_proc_spec_constrained<'tcx, F, R>(
-    query: SpecQuery<'tcx>,
-    constraint: SpecConstraintKind,
-    f: F,
-) -> Option<R>
+pub fn with_proc_spec_constrained<'tcx, F, R>(query: SpecQuery<'tcx>, f: F) -> Option<R>
 where
-    F: FnOnce(&ProcedureSpecification) -> R,
+    F: FnOnce(Vec<&ProcedureSpecification>) -> R,
 {
-    vir::with_vcx(|vcx| vcx.specs.as_ref().unwrap())
-        .borrow_mut()
-        .get_proc_spec_constrained(&query, constraint)
-        .map(f)
+    vir::with_vcx(|vcx| {
+        let specs = vcx.specs.as_ref().unwrap();
+        specs.borrow_mut().get_proc_spec_constrained(&query).map(f)
+    })
 }
 
 pub fn is_function_trusted(def_id: DefId) -> bool {
@@ -131,27 +126,27 @@ impl TaskEncoder for SpecEnc {
                     (specs.extern_spec, pres, posts, pledges)
                 },
             )
-            .unwrap_or((None, &[], &[], &[]));
+            .unwrap_or_default();
 
             let (refined_pres, refined_posts) = with_proc_spec_constrained(
                 SpecQuery::GetProcKind(
                     task_key.0,
                     ty::List::identity_for_item(vcx.tcx(), task_key.0),
                 ),
-                SpecConstraintKind::ResolveGenericParamTraitBounds,
                 |specs| {
-                    dbg!(&specs);
-                    let refined_pres = get_spec_items(vcx, &specs.pres);
-                    let refined_posts = get_spec_items(vcx, &specs.posts);
-                    (refined_pres, refined_posts)
+                    assert!(
+                        specs.len() <= 1,
+                        "Only at most one constrained spec is supported"
+                    );
+                    specs.first().map(|specs| {
+                        let refined_pres = get_spec_items(vcx, &specs.pres);
+                        let refined_posts = get_spec_items(vcx, &specs.posts);
+                        (refined_pres, refined_posts)
+                    })
                 },
             )
-            .unwrap_or((&[], &[]));
-
-            assert!(
-                refined_pres.len() <= 1 && refined_posts.len() <= 1,
-                "Only a single refined predicate is supported for now"
-            );
+            .flatten()
+            .unwrap_or_default();
 
             let pledges = vcx.alloc_slice(
                 &pledges
@@ -161,14 +156,14 @@ impl TaskEncoder for SpecEnc {
             );
             Ok((
                 (),
-                dbg!(SpecEncOutput {
+                SpecEncOutput {
                     extern_spec,
                     pres,
-                    refined_pre: refined_pres.first().copied(),
                     posts,
-                    refined_post: refined_posts.first().copied(),
+                    refined_pres,
+                    refined_posts,
                     pledges,
-                }),
+                },
             ))
         })
     }

@@ -4,6 +4,7 @@ use crate::{
 };
 use proc_macro2::TokenStream;
 use syn::{parse_quote_spanned, spanned::Spanned};
+use uuid::Uuid;
 
 pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     let tokens_span = attr.span();
@@ -13,6 +14,8 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
 
     let mut new_items = vec![];
     let mut new_attrs = vec![];
+
+    let refine_spec_id = Uuid::new_v4().to_string();
 
     for nested_spec in type_cond_spec.specs {
         let (mut generated_items, generated_attrs) = match nested_spec {
@@ -35,7 +38,7 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
 
             // Add attribute to mark this as a "specification with constraint" (used for processing the contract in `SpecCollector`)
             item_fn.attrs.push(parse_quote_spanned! {tokens_span=>
-                #[prusti::type_cond_spec_trait_bounds_in_where_clause]
+                #[prusti::type_cond_spec_trait_bounds_in_where_clause = #refine_spec_id]
             });
         }
 

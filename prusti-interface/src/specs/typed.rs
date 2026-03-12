@@ -1,6 +1,6 @@
 use crate::{
     environment::Environment, specs::external::ExternSpecDeclaration,
-    utils::has_trait_bounds_type_cond_spec, PrustiError,
+    utils::read_trait_bounds_type_cond_spec, PrustiError,
 };
 pub use common::{SpecIdRef, SpecType, SpecificationId};
 use prusti_rustc_interface::{
@@ -249,7 +249,8 @@ pub enum ProcedureSpecificationKind {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, TyEncodable, TyDecodable)]
 pub enum SpecConstraintKind {
-    ResolveGenericParamTraitBounds,
+    /// Grouped by the `refine_spec` id
+    ResolveGenericParamTraitBounds(String),
 }
 
 impl Display for ProcedureSpecificationKind {
@@ -446,6 +447,7 @@ impl SpecGraph<ProcedureSpecification> {
         match self.get_constraint(post, env) {
             None => {
                 self.base_spec.posts.push(post.to_def_id());
+                // Removed
             }
             Some(obligation) => {
                 self.get_constrained_spec_mut(obligation)
@@ -533,10 +535,8 @@ impl SpecGraph<ProcedureSpecification> {
         env: &Environment<'tcx>,
     ) -> Option<SpecConstraintKind> {
         let attrs = env.query.get_local_attributes(spec);
-        if has_trait_bounds_type_cond_spec(attrs) {
-            return Some(SpecConstraintKind::ResolveGenericParamTraitBounds);
-        }
-        None
+        read_trait_bounds_type_cond_spec(attrs)
+            .map(SpecConstraintKind::ResolveGenericParamTraitBounds)
     }
 }
 

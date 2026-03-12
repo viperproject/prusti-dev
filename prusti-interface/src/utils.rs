@@ -128,8 +128,8 @@ pub fn has_to_model_impl_attr(attrs: &[hir::Attribute]) -> bool {
     has_prusti_attr(attrs, "type_models_to_model_impl")
 }
 
-pub fn has_trait_bounds_type_cond_spec(attrs: &[hir::Attribute]) -> bool {
-    has_prusti_attr(attrs, "type_cond_spec_trait_bounds_in_where_clause")
+pub fn read_trait_bounds_type_cond_spec(attrs: &[hir::Attribute]) -> Option<String> {
+    read_prusti_attr("type_cond_spec_trait_bounds_in_where_clause", attrs)
 }
 
 pub fn has_abstract_predicate_attr(attrs: &[hir::Attribute]) -> bool {

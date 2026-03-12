@@ -205,11 +205,17 @@ impl<'tcx> Specifications<'tcx> {
     pub fn get_proc_spec_constrained<'a>(
         &'a self,
         query: &SpecQuery<'tcx>,
-        constraint: SpecConstraintKind,
-    ) -> Option<&'a ProcedureSpecification> {
+    ) -> Option<Vec<&'a ProcedureSpecification>> {
         self.user_typed_specs
             .get_proc_spec(&query.referred_def_id())
-            .and_then(|spec| spec.specs_with_constraints.get(&constraint))
+            .map(|spec| {
+                spec.specs_with_constraints
+                    .iter()
+                    .filter_map(|(k, v)| match k {
+                        SpecConstraintKind::ResolveGenericParamTraitBounds(_) => Some(v),
+                    })
+                    .collect()
+            })
     }
 
     fn is_refined(&self, query: &SpecQuery<'tcx>) -> bool {
