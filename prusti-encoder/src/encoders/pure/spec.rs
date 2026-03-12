@@ -204,9 +204,7 @@ impl TaskEncoder for MirSpecEnc {
                 .map(|s| s.1)
                 .unwrap_or(substs);
 
-            let pre_to_expr = |spec_did,
-                               deps: &mut TaskEncoderDependencies<'vir, MirSpecEnc>|
-             -> vir::ExprBool<'vir> {
+            let pre_to_expr = |spec_did, deps: &mut TaskEncoderDependencies<'vir, MirSpecEnc>| {
                 let expr = deps
                     .require_dep::<crate::encoders::MirPureEnc>(crate::encoders::MirPureEncTask {
                         encoding_depth: 0,
@@ -265,9 +263,7 @@ impl TaskEncoder for MirSpecEnc {
                 MirSpecEncMode::PureWithResult | MirSpecEncMode::PureWithoutResult => all_args,
             };
 
-            let post_to_expr = |spec_did,
-                                deps: &mut TaskEncoderDependencies<'vir, MirSpecEnc>|
-             -> vir::ExprBool<'_> {
+            let post_to_expr = |spec_did, deps: &mut TaskEncoderDependencies<'vir, MirSpecEnc>| {
                 let span = vcx.tcx().def_span(spec_did);
                 vcx.with_span(span, |vcx| {
                     vcx.handle_error("postcondition.violated:assertion.false", move |_| {
@@ -291,9 +287,7 @@ impl TaskEncoder for MirSpecEnc {
                         .unwrap()
                         .expr
                         .downcast_ty();
-                    let expr = to_bool(expr.reify(vcx, (spec_did, post_args))).downcast_ty();
-                    // let expr = refine_spec_expr(deps, vcx, expr, def_id, *spec_def_id);
-                    expr
+                    to_bool(expr.reify(vcx, (spec_did, post_args))).downcast_ty()
                 })
             };
 

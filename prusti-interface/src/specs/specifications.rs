@@ -211,8 +211,8 @@ impl<'tcx> Specifications<'tcx> {
             .map(|spec| {
                 spec.specs_with_constraints
                     .iter()
-                    .filter_map(|(k, v)| match k {
-                        SpecConstraintKind::ResolveGenericParamTraitBounds(_) => Some(v),
+                    .map(|(k, v)| match k {
+                        SpecConstraintKind::ResolveGenericParamTraitBounds(_) => v,
                     })
                     .collect()
             })
