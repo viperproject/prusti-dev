@@ -17,7 +17,7 @@ use crate::encoders::{
     mir_pure::{ExprInput, PureKind},
     ty::{
         RustTyDecomposition,
-        generics::{GArgs, GArgsTyEnc, GParams, r#trait::TraitEnc},
+        generics::{GArgs, GArgsTyEnc, GParams, GenericParamsEnc, r#trait::TraitEnc},
         use_pure::TyUsePureEnc,
     },
 };
@@ -401,26 +401,53 @@ fn refine_spec_cond<'vir>(
     refined_pres: &[DefId],
     refined_posts: &[DefId],
 ) -> Option<vir::ExprBool<'vir>> {
+    let tcx = vcx.tcx();
+    // Obtain the bounds from any of the pre/post items
     let did = refined_pres.first().or(refined_posts.first())?.to_owned();
     let clauses = vcx.body_mut().get_caller_bounds(did);
 
-    let trait_preds = clauses
-        .iter()
-        .filter_map(|cl| match cl.kind().skip_binder() {
-            ty::ClauseKind::Trait(tp) => Some(tp),
-            _ => None,
-        });
-
     let mut checks = Vec::new();
-    for trait_pred in trait_preds {
-        let trait_ = deps.require_ref::<TraitEnc>(trait_pred.def_id()).unwrap();
+    for clause in clauses {
+        match clause.kind().skip_binder() {
+            ty::ClauseKind::Trait(trait_pred) => {
+                let trait_ = deps.require_ref::<TraitEnc>(trait_pred.def_id()).unwrap();
 
-        let args = deps
-            .require_dep::<GArgsTyEnc>(GArgs::new(did, trait_pred.trait_ref.args))
-            .unwrap();
+                let args = deps
+                    .require_dep::<GArgsTyEnc>(GArgs::new(did, trait_pred.trait_ref.args))
+                    .unwrap();
 
-        let impl_check = (trait_.impl_fun)(args.get_ty(), args.get_const());
-        checks.push(impl_check);
+                let impl_check = (trait_.impl_fun)(args.get_ty(), args.get_const());
+                checks.push(impl_check);
+            }
+            ty::ClauseKind::Projection(proj_pred) => {
+                let trait_ = deps
+                    .require_ref::<TraitEnc>(proj_pred.trait_def_id(tcx))
+                    .unwrap();
+
+                let args = deps
+                    .require_dep::<GArgsTyEnc>(GArgs::new(did, proj_pred.projection_term.args))
+                    .unwrap();
+
+                match proj_pred.term.kind() {
+                    ty::TermKind::Ty(ty) => {
+                        let projection = trait_.assoc_types[&proj_pred.def_id()](
+                            args.get_ty(),
+                            args.get_const(),
+                        );
+                        let decomp = RustTyDecomposition::from_ty(ty, did);
+                        let gparams = deps.require_dep::<GenericParamsEnc>(did.into()).unwrap();
+                        let ty_expr = gparams.ty_expr(deps, decomp);
+                        checks.push(vcx.mk_eq_expr(projection, ty_expr));
+                    }
+                    ty::TermKind::Const(_) => {
+                        todo!("Implement const projections in `refine_spec` bounds")
+                    }
+                }
+            }
+            _ => unimplemented!(
+                "Only trait and projection predicates are expected in `refine_spec` bounds"
+            ),
+        }
     }
 
     Some(vcx.mk_conj(&checks))
