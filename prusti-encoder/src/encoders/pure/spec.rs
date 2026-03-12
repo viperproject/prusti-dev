@@ -431,38 +431,3 @@ fn refine_spec_cond<'vir>(
 
     Some(vcx.mk_conj(&checks))
 }
-
-// fn refine_spec_expr<'vir>(
-//     deps: &mut TaskEncoderDependencies<'vir, MirSpecEnc>,
-//     vcx: &'vir vir::VirCtxt<'vir>,
-//     expr: vir::ExprBool<'vir>,
-//     def_id: DefId,
-//     spec_def_id: DefId,
-// ) -> vir::ExprBool<'vir> {
-//     let clauses = vcx.body_mut().get_caller_bounds(spec_def_id);
-//     let ctx = GParams::from(def_id);
-//
-//     let mut antecedents = Vec::new();
-//     for clause in clauses {
-//         // Only support trait bounds
-//         if let ty::ClauseKind::Trait(trait_pred) = clause.kind().skip_binder() {
-//             let trait_data = deps.require_dep::<TraitEnc>(trait_pred.def_id()).unwrap();
-//
-//             let trait_args_enc = deps
-//                 .require_dep::<GArgsTyEnc>(GArgs::new(ctx, trait_pred.trait_ref.args))
-//                 .unwrap();
-//
-//             let trait_tys = trait_args_enc.get_ty();
-//
-//             let impl_check = (trait_data.impl_fun)(trait_tys);
-//             antecedents.push(impl_check);
-//         }
-//     }
-//
-//     if antecedents.is_empty() {
-//         expr
-//     } else {
-//         vcx.mk_bin_op_expr(vir::BinOpKind::Implies, vcx.mk_conj(&antecedents), expr)
-//             .downcast_ty()
-//     }
-// }

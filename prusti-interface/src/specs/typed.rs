@@ -249,7 +249,8 @@ pub enum ProcedureSpecificationKind {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, TyEncodable, TyDecodable)]
 pub enum SpecConstraintKind {
-    /// Grouped by the `refine_spec` id
+    /// The string id is used to group type-conditional specifications
+    /// originating from the same `refine_spec`
     ResolveGenericParamTraitBounds(String),
 }
 
@@ -442,12 +443,11 @@ impl SpecGraph<ProcedureSpecification> {
     /// Attaches the postcondition `post` to this [SpecGraph].
     ///
     /// If this postcondition has a constraint it will be attached to the corresponding
-    /// constrained spec **and** the base spec, otherwise just to the base spec.
+    /// constrained spec, otherwise just to the base spec.
     pub fn add_postcondition<'tcx>(&mut self, post: LocalDefId, env: &Environment<'tcx>) {
         match self.get_constraint(post, env) {
             None => {
                 self.base_spec.posts.push(post.to_def_id());
-                // Removed
             }
             Some(obligation) => {
                 self.get_constrained_spec_mut(obligation)
