@@ -66,5 +66,7 @@ pub(crate) fn ty_impure<'vir>(
     );
     builder.function_snap = Some(function_snap.1);
 
-    Ok(TyImpureImmRefData {snap: function_snap.0})
+    Ok(TyImpureImmRefData {
+        snap: function_snap.0,
+    })
 }

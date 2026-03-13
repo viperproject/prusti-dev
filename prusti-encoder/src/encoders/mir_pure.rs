@@ -714,36 +714,37 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
                 match ok_update {
                     Some(EncodeCfgRes::EncodeCfgResUpdate(u)) => {
-                // find locals updated in the "ok" branch, which were also
-                // defined before the branch
-                // TODO: is the unwrap here ok? can ok_update also be None?
-                let mut mod_locals = u.versions
-                    .keys()
-                    .filter(|local| new_curr_ver.contains_key(local))
-                    .copied()
-                    .collect::<Vec<_>>();
-                mod_locals.sort();
-                mod_locals.dedup();
-                let mod_tys = mod_locals
-                    .iter()
-                    .map(|l| self.body.local_decls[*l].ty)
-                    .collect();
+                        // find locals updated in the "ok" branch, which were also
+                        // defined before the branch
+                        // TODO: is the unwrap here ok? can ok_update also be None?
+                        let mut mod_locals = u
+                            .versions
+                            .keys()
+                            .filter(|local| new_curr_ver.contains_key(local))
+                            .copied()
+                            .collect::<Vec<_>>();
+                        mod_locals.sort();
+                        mod_locals.dedup();
+                        let mod_tys = mod_locals
+                            .iter()
+                            .map(|l| self.body.local_decls[*l].ty)
+                            .collect();
 
-                // create a Viper tuple of the updated locals
-                let tuple_ref = self
-                    .deps
-                    .require_dep::<ViperTupleEnc>((self.def_id, mod_tys))
-                    .unwrap();
-                let phi_expr = self.vcx.mk_ternary_expr(
-                    self.vcx.mk_eq_expr(
-                        cond_ty_out.expect_native().snap_to_prim.call()(cond_expr),
-                        cond_ty_out
-                            .expr_from_bits(cond_ty, if *expected { 1 } else { 0 })
-                            .lift(),
-                    ),
-                    self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, Some(u)),
-                    self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, None),
-                );
+                        // create a Viper tuple of the updated locals
+                        let tuple_ref = self
+                            .deps
+                            .require_dep::<ViperTupleEnc>((self.def_id, mod_tys))
+                            .unwrap();
+                        let phi_expr = self.vcx.mk_ternary_expr(
+                            self.vcx.mk_eq_expr(
+                                cond_ty_out.expect_native().snap_to_prim.call()(cond_expr),
+                                cond_ty_out
+                                    .expr_from_bits(cond_ty, if *expected { 1 } else { 0 })
+                                    .lift(),
+                            ),
+                            self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, Some(u)),
+                            self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, None),
+                        );
 
                         // assign tuple into a `phi` variable
                         let mut phi_idx = Version {
@@ -1178,20 +1179,18 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             self.encode_operand_snap(&args[1].node, curr_ver)?
                 .downcast_ty(),
         );
-        Ok(MirPureEncOutput::MirPureEncOutputExpr(real.perm_to_snap.call()(
-            self.vcx.mk_bin_op_expr(bin_op, real1, real2).downcast_ty(),
-        ).upcast_ty()))
+        Ok(MirPureEncOutput::MirPureEncOutputExpr(
+            real.perm_to_snap.call()(self.vcx.mk_bin_op_expr(bin_op, real1, real2).downcast_ty())
+                .upcast_ty(),
+        ))
     }
 
     fn encode_real_cmp(
         &mut self,
         bin_op: vir::BinOpKind,
         args: &[Spanned<mir::Operand<'vir>>],
-        curr_ver: &FxHashMap<mir::Local, Version<'vir>>,
-    ) -> Result<
-        MirPureEncOutput<'vir>,
-        EncodeFullError<'vir, MirPureEnc>,
-    > {
+        curr_ver: &HashMap<mir::Local, Version<'vir>>,
+    ) -> Result<MirPureEncOutput<'vir>, EncodeFullError<'vir, MirPureEnc>> {
         let real = self.ty_use_real();
         let bool = self.ty_use(self.vcx.tcx().types.bool);
         let bool = bool.expect_primitive();
@@ -1216,11 +1215,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 .value_access(real2)
                 .downcast_ty(),
         );
-        Ok(MirPureEncOutput::MirPureEncOutputExpr(bool.prim_to_snap.call()(
-            self.vcx
-                .mk_bin_op_expr_inner(bin_op, real1_deref.as_dyn(), real2_deref.as_dyn())
-                .downcast_ty(),
-        ).upcast_ty()))
+        Ok(MirPureEncOutput::MirPureEncOutputExpr(
+            bool.prim_to_snap.call()(
+                self.vcx
+                    .mk_bin_op_expr_inner(bin_op, real1_deref.as_dyn(), real2_deref.as_dyn())
+                    .downcast_ty(),
+            )
+            .upcast_ty(),
+        ))
     }
 
     fn encode_prusti_builtin(
@@ -1325,9 +1327,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         let bool = self.ty_use(self.vcx.tcx().types.bool);
         let bool = bool.expect_primitive();
         let real = self.ty_use_real();
-        let mk_bool = |prim: vir::ExprGenBool<'vir, _, _>| {
-            bool.prim_to_snap.call()(prim.upcast_ty())
-        };
+        let mk_bool =
+            |prim: vir::ExprGenBool<'vir, _, _>| bool.prim_to_snap.call()(prim.upcast_ty());
         let mk_perm = |real_val: vir::ExprGenSnap<'vir, _, _>| {
             real.snap_to_perm.call()(real_val.downcast_ty())
         };
@@ -1487,7 +1488,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         self.before_expiry_mode = true;
                     }
                 }
-                MirPureEncOutput::MirPureEncOutputExpr(mk_bool(self.vcx.mk_bool::<true>().lift()).upcast_ty()) // TODO: what value do we return?
+                MirPureEncOutput::MirPureEncOutputExpr(
+                    mk_bool(self.vcx.mk_bool::<true>().lift()).upcast_ty(),
+                ) // TODO: what value do we return?
             }
             PrustiBuiltin::ModeEnd(mode) => {
                 match mode {
@@ -1510,7 +1513,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         self.before_expiry_mode = false;
                     }
                 }
-                MirPureEncOutput::MirPureEncOutputExpr(mk_bool(self.vcx.mk_bool::<true>().lift()).upcast_ty()) // TODO: what value do we return?
+                MirPureEncOutput::MirPureEncOutputExpr(
+                    mk_bool(self.vcx.mk_bool::<true>().lift()).upcast_ty(),
+                ) // TODO: what value do we return?
             }
             PrustiBuiltin::IsNaN(fl) => {
                 let is_nan_fun = match fl {
@@ -1611,11 +1616,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     self.encode_operand_snap(&args[0].node, curr_ver)?
                         .downcast_ty(),
                 );
-                MirPureEncOutput::MirPureEncOutputExpr(real.perm_to_snap.call()(
-                    self.vcx
-                        .mk_unary_op_expr(vir::UnOpKind::Neg, real_val.upcast_ty())
-                        .downcast_ty(),
-                ).upcast_ty())
+                MirPureEncOutput::MirPureEncOutputExpr(
+                    real.perm_to_snap.call()(
+                        self.vcx
+                            .mk_unary_op_expr(vir::UnOpKind::Neg, real_val.upcast_ty())
+                            .downcast_ty(),
+                    )
+                    .upcast_ty(),
+                )
             }
             PrustiBuiltin::NewReal => {
                 let a0_ty = args[0].node.ty(self.body, self.vcx.tcx());
@@ -1626,10 +1634,15 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 let rhs_snap = self.encode_operand_snap(&args[1].node, curr_ver)?;
                 let lhs = a0_ty_use.expect_native().snap_to_prim.call()(lhs_snap.downcast_ty());
                 let rhs = a1_ty_use.expect_native().snap_to_prim.call()(rhs_snap.downcast_ty());
-                MirPureEncOutput::MirPureEncOutputExpr(real.perm_to_snap.call()(
-                    (self.vcx.
-                    mk_bin_op_expr(vir::BinOpKind::FractionalPerm, lhs, rhs)).downcast_ty()
-                ).upcast_ty())
+                MirPureEncOutput::MirPureEncOutputExpr(
+                    real.perm_to_snap.call()(
+                        (self
+                            .vcx
+                            .mk_bin_op_expr(vir::BinOpKind::FractionalPerm, lhs, rhs))
+                        .downcast_ty(),
+                    )
+                    .upcast_ty(),
+                )
             }
             PrustiBuiltin::Acc => {
                 let rawptr = self
