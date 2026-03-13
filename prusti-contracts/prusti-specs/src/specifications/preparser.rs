@@ -6,7 +6,6 @@ use std::collections::VecDeque;
 use syn::{
     parse::{Parse, ParseStream},
     spanned::Spanned,
-    token::Token,
     Lit,
 };
 
@@ -457,7 +456,7 @@ impl PrustiTokenStream {
         Ok(lhs)
     }
 
-    fn parse_acc(span: Span, expr: PrustiTokenStream) -> syn::Result<TokenStream> {
+    fn parse_acc(span: Span, mut expr: PrustiTokenStream) -> syn::Result<TokenStream> {
         let len = expr.tokens.len();
         if len == 6 {
             if let [PrustiToken::Token(TokenTree::Punct(first_punct)), PrustiToken::Token(TokenTree::Ident(ident)), PrustiToken::BinOp(_, PrustiBinaryOp::Rust(RustOp::Comma)), PrustiToken::Token(TokenTree::Literal(nom)), PrustiToken::Token(TokenTree::Punct(second_punct)), PrustiToken::Token(TokenTree::Literal(denom))] = [
@@ -487,8 +486,19 @@ impl PrustiTokenStream {
                     return err(span, "Invalid acc expression found");
                 }
                 Acc::translate(span, ident.to_token_stream(), AccFraction::Full)
-            } else {
-                err(span, "Invalid acc expression found")
+            }
+            else {
+                if let Some(PrustiToken::Token(TokenTree::Punct(first_punct))) = expr.tokens.pop_front() {
+                    if first_punct.as_char() != '*' {
+                        return err(span, "Invalid acc expression found");
+                    } 
+                    let inner = expr.pop_group(Delimiter::Parenthesis).ok_or_else(|| {
+                            error(span, "Invalid acc expression found")
+                        })?;
+                    Acc::translate(span, inner.parse()?, AccFraction::Full)
+                } else {
+                    err(span, "Invalid acc expression found")
+                }
             }
         } else if len == 4 {
             if let [PrustiToken::Token(TokenTree::Punct(first_punct)), PrustiToken::Token(TokenTree::Ident(ident)), PrustiToken::BinOp(_, PrustiBinaryOp::Rust(RustOp::Comma)), PrustiToken::Token(TokenTree::Ident(ident_frac))] = [
@@ -510,6 +520,12 @@ impl PrustiTokenStream {
                 err(span, "Invalid acc expression found")
             }
         } else {
+            if let PrustiToken::Token(TokenTree::Punct(first_punct)) = &expr.tokens[0] {
+                if first_punct.as_char() == '*' {
+                    expr.tokens.pop_front();
+                    return Acc::translate(span, expr.parse()?, AccFraction::Full);
+                }
+            }
             err(span, "Invalid acc expression found")
         }
     }
