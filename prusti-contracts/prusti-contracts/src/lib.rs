@@ -587,4 +587,12 @@ macro_rules! acc {
     };
 }
 
+pub fn mut_ptr_add<T>(ptr: *mut T, count: usize) -> *mut T {
+    panic!()
+}
+
+pub fn mut_ptr_sub<T>(ptr: *mut T, count: usize) -> *mut T {
+    panic!()
+}
+
 pub use private::*;

@@ -1,13 +1,10 @@
 use crate::encoders::{
-    FunctionCallEnc, MirLocalDefEnc, MirLocalDefEncOutput, MirLocalDefEncTask, ViperTupleEnc,
-    mir_fn::{CallTaskDescription, RustSignature},
-    mir_shared::PureRvalueEnc,
-    ty::{
+    FunctionCallEnc, MirLocalDefEnc, MirLocalDefEncOutput, MirLocalDefEncTask, TyUseImpureEnc, ViperTupleEnc, addr::RefDataEnc, mir_fn::{CallTaskDescription, RustSignature}, mir_shared::PureRvalueEnc, ty::{
         RustTyDecomposition,
         generics::GParams,
         interpretation::real::TyRealLocal,
         use_pure::{TyUsePure, TyUsePureEnc},
-    },
+    }
 };
 use pcg::utils::Place;
 use prusti_interface::{
@@ -1258,6 +1255,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             RealGt,
             RealGe,
             Acc,
+            PtrAdd,
+            PtrSub,
         }
 
         let item_name = self.vcx.tcx().item_name(def_id);
@@ -1321,6 +1320,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             (Some("prusti_contracts::Real"), "ge") => PrustiBuiltin::RealGe,
             (Some("prusti_contracts::Real"), "new") => PrustiBuiltin::NewReal,
             (None, "prusti_acc") => PrustiBuiltin::Acc,
+            (None, "mut_ptr_add") => PrustiBuiltin::PtrAdd,
+            (None, "mut_ptr_sub") => PrustiBuiltin::PtrSub,
             (_, other) => panic!("illegal prusti::builtin ({other})"),
         };
 
@@ -1667,6 +1668,43 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     derefed,
                     Some(perm),
                 ))
+            }
+            PrustiBuiltin::PtrAdd => {
+                let addr_fns = self.deps.require_dep::<RefDataEnc>(())?;
+                let rawptr = self
+                    .ty_use(self.vcx.tcx().mk_ty_from_kind(ty::TyKind::RawPtr(
+                        arg_tys[0].expect_ty(),
+                        Mutability::Mut, // TODO change
+                    )))
+                    .expect_rawptr();
+                let rawptr_val = self.encode_operand_snap(&args[0].node, curr_ver)?;
+                let derefed = rawptr.deref_access(rawptr_val.downcast_ty());
+                let usize_domain = self.ty_use(self.vcx.tcx().mk_ty_from_kind(ty::TyKind::Uint(ty::UintTy::Usize))).expect_primitive();
+                let orig_addr = addr_fns.ref_to_addr.call()(derefed).as_dyn();
+                let offset_val = usize_domain.expect_native().snap_to_prim.call()(self.encode_operand_snap(&args[1].node, curr_ver)?.downcast_ty()).as_dyn();
+                let new_addr = self.vcx.mk_bin_op_expr(vir::BinOpKind::Add, orig_addr, offset_val).downcast_ty(); // TODO offset_val * size of type
+                MirPureEncOutput::MirPureEncOutputExpr(
+                    rawptr.prim_to_snap(addr_fns.addr_to_ref.call()(new_addr, addr_fns.base_ref.call()(derefed))).upcast_ty()
+                )
+            }
+            PrustiBuiltin::PtrSub => {
+                let addr_fns = self.deps.require_dep::<RefDataEnc>(())?;
+                let rawptr = self
+                    .ty_use(self.vcx.tcx().mk_ty_from_kind(ty::TyKind::RawPtr(
+                        arg_tys[0].expect_ty(),
+                        Mutability::Mut, // TODO change
+                    )))
+                    .expect_rawptr();
+                let rawptr_val = self.encode_operand_snap(&args[0].node, curr_ver)?;
+                let derefed = rawptr.deref_access(rawptr_val.downcast_ty());
+                let usize_domain = self.ty_use(self.vcx.tcx().mk_ty_from_kind(ty::TyKind::Uint(ty::UintTy::Usize))).expect_primitive();
+                let orig_addr = addr_fns.ref_to_addr.call()(derefed).as_dyn();
+                let offset_val = usize_domain.expect_native().snap_to_prim.call()(self.encode_operand_snap(&args[1].node, curr_ver)?.downcast_ty()).as_dyn();
+                let new_addr = self.vcx.mk_bin_op_expr(vir::BinOpKind::Sub, orig_addr, offset_val).downcast_ty(); // TODO offset_val * size of type
+                
+                MirPureEncOutput::MirPureEncOutputExpr(
+                    rawptr.prim_to_snap(addr_fns.addr_to_ref.call()(new_addr, addr_fns.base_ref.call()(derefed))).upcast_ty()
+                )
             }
         })
     }

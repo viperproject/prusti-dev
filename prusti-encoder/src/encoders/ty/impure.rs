@@ -3,7 +3,7 @@ use std::ops::{Deref, DerefMut};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, FunctionIdn, HasType, MethodIdn, PredicateIdn};
 
-use crate::encoders::{Impure, ty::use_impure::TyUseImpure};
+use crate::encoders::{Impure, addr::RefDataEnc, ty::use_impure::TyUseImpure};
 
 use super::{
     RustTy, ViperTyDatas,
@@ -176,6 +176,8 @@ impl TaskEncoder for TyImpureEnc {
                     vcx.mk_const_expr(vir::ConstData::Int(1)),
                 )
                 .downcast_ty();
+            let addr_fns = deps.require_dep::<RefDataEnc>(())?;
+            let base_of_ref_fun: FunctionIdn<'vir, vir::Ref, vir::Ref> = addr_fns.base_ref;
             let method_assign = builder.inner.method(
                 "assign",
                 (ref_self_decl.ty(), builder.params.ty_args(), builder.params.const_args(), snapshot),
@@ -187,6 +189,7 @@ impl TaskEncoder for TyImpureEnc {
                     vir::expr! { ([builder.ref_to_snap](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) == (value) },
                     vir::expr! { acc((ref_self).[frac_field]) },
                     vir::expr! { (ref_self_frac) == (full_perms) },
+                    vir::expr! { ([base_of_ref_fun](ref_self)) == (ref_self) },
                 ],
             );
 
@@ -215,17 +218,10 @@ impl TaskEncoder for TyImpureEnc {
             let ref_self_frac_old_using_add = vcx
                 .mk_bin_op_expr(vir::BinOpKind::AddPerm, ref_self_frac, frac)
                 .downcast_ty();
-            // TODO Use new encoder for these two functions
-            let addr_of_ref_fun: FunctionIdn<'vir, vir::Ref, vir::Int> = vir::FunctionIdn::new(
-                vir::ViperIdent::new("addr_of_ref"),
-                vir::TYPE_REF,
-                vir::TYPE_INT,
-            );
-            let parent_of_ref_fun: FunctionIdn<'vir, vir::Ref, vir::Ref> = vir::FunctionIdn::new(
-                vir::ViperIdent::new("parent_of_ref"),
-                vir::TYPE_REF,
-                vir::TYPE_REF,
-            );
+            let addr_fns = deps.require_dep::<RefDataEnc>(())?;
+            let addr_of_ref_fun: FunctionIdn<'vir, vir::Ref, vir::Int> = addr_fns.ref_to_addr;
+            let parent_of_ref_fun: FunctionIdn<'vir, vir::Ref, vir::Ref> = addr_fns.parent_ref;
+            let base_of_ref_fun: FunctionIdn<'vir, vir::Ref, vir::Ref> = addr_fns.base_ref;
             let method_block = builder.inner.method(
                 "block",
                 (ref_self_decl.ty(), builder.params.ty_args(), builder.params.const_args(), vir::TYPE_PERM),
@@ -241,6 +237,7 @@ impl TaskEncoder for TyImpureEnc {
                     vir::expr! { acc((ref_self).[frac_field]) },
                     vir::expr! { acc((child).[frac_field]) },
                     vir::expr! { ([addr_of_ref_fun](ref_self)) == ([addr_of_ref_fun](child)) },
+                    vir::expr! { (child) == ([base_of_ref_fun](child)) },
                     vir::expr! { (ref_self) == ([parent_of_ref_fun](child)) },
                     vir::expr! { (ref_self_frac_old) == (ref_self_frac_old_using_add) },
                     vir::expr! { (child_frac) == (frac) },
@@ -274,17 +271,11 @@ impl TaskEncoder for TyImpureEnc {
             let new_frac = vcx
                 .mk_bin_op_expr(vir::BinOpKind::AddPerm, ref_self_frac, frac)
                 .downcast_ty();
-            // TODO Use new encoder for these two functions
-            let addr_of_ref_fun: FunctionIdn<'vir, vir::Ref, vir::Int> = vir::FunctionIdn::new(
-                vir::ViperIdent::new("addr_of_ref"),
-                vir::TYPE_REF,
-                vir::TYPE_INT,
-            );
-            let parent_of_ref_fun: FunctionIdn<'vir, vir::Ref, vir::Ref> = vir::FunctionIdn::new(
-                vir::ViperIdent::new("parent_of_ref"),
-                vir::TYPE_REF,
-                vir::TYPE_REF,
-            );
+            let addr_fns = deps.require_dep::<RefDataEnc>(())?;
+            let addr_of_ref_fun: FunctionIdn<'vir, vir::Ref, vir::Int> = addr_fns.ref_to_addr;
+            let parent_of_ref_fun: FunctionIdn<'vir, vir::Ref, vir::Ref> = addr_fns.parent_ref;
+            let base_of_ref_fun: FunctionIdn<'vir, vir::Ref, vir::Ref> = addr_fns.base_ref;
+
             let method_unblock = builder.inner.method(
                 "unblock",
                 (ref_self_decl.ty(), builder.params.ty_args(), builder.params.const_args(), child_decl.ty(), vir::TYPE_PERM),
@@ -297,6 +288,7 @@ impl TaskEncoder for TyImpureEnc {
                     vir::expr! { ((zero_perms) < (new_frac)) && ((new_frac) <= (full_perms)) },
                     vir::expr! { acc([self_pred_ident](child, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]), [frac]) },
                     vir::expr! { ([addr_of_ref_fun](ref_self)) == ([addr_of_ref_fun](child)) },
+                    vir::expr! { (child) == ([base_of_ref_fun](child)) },
                     vir::expr! { (ref_self) == ([parent_of_ref_fun](child)) },
                 ],
                 &[

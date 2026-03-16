@@ -2,6 +2,7 @@ use crate::*;
 
 pub mod eq;
 pub mod float;
+pub mod ptr;
 
 pub use eq::PureEq;
 
