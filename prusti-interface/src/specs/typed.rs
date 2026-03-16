@@ -523,7 +523,14 @@ impl SpecGraph<ProcedureSpecification> {
     ) -> &mut ProcedureSpecification {
         self.specs_with_constraints
             .entry(constraint)
-            .or_insert_with(|| self.base_spec.clone())
+            .or_insert_with(|| {
+                let mut spec = self.base_spec.clone();
+                // Reset specification items so they aren't duplicated from the base
+                spec.pres = SpecificationItem::Empty;
+                spec.posts = SpecificationItem::Empty;
+                spec.pledges = SpecificationItem::Empty;
+                spec
+            })
     }
 
     /// Gets the constraint of a spec function `spec`.
