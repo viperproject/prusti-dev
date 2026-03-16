@@ -25,7 +25,7 @@ use crate::encoders::{
     ty::{
         generics::{
             GArgsCastEnc, sized_trait::SizedTraitEnc, r#trait::TraitEnc, trait_fn::TraitFnEnc,
-            trait_impls::TraitImplEnc,
+            trait_impls::TraitImplEnc, tuple_trait::TupleTraitEnc,
         },
         interpretation::bitvec::BitVecEnc,
         lifted::{TyConstructorEnc, TypeOfEnc},
@@ -115,6 +115,7 @@ pub fn test_entrypoint<'tcx>(
     TraitFnEnc::emit_outputs(&mut program);
     TraitImplEnc::emit_outputs(&mut program);
     SizedTraitEnc::emit_outputs(&mut program);
+    TupleTraitEnc::emit_outputs(&mut program);
 
     if std::env::var("LOCAL_TESTING").is_ok() {
         std::fs::write("local-testing/simple.vpr", program.code()).unwrap();

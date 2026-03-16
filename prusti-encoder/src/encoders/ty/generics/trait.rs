@@ -121,8 +121,13 @@ impl TaskEncoder for TraitEnc {
                 },
             )?;
 
-            // When encoding `Sized`, emitting of the impl function is handled by `SizedTraitEnc`
-            if tcx.lang_items().sized_trait() == Some(*task_key) {
+            // When encoding traits without explicit impl blocks, emitting of the impl block is
+            // handled by their respective encoders
+            let special_traits = {
+                let items = tcx.lang_items();
+                [items.sized_trait().unwrap(), items.tuple_trait().unwrap()]
+            };
+            if special_traits.contains(task_key) {
                 return Ok((None, ()));
             }
 

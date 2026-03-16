@@ -3,7 +3,7 @@ use vir::{CallableIdn, CastType, FunctionIdn, HasType};
 
 use crate::encoders::ty::{
     RustTy,
-    generics::{GenericParamsEnc, sized_trait::SizedTraitEnc},
+    generics::{GenericParamsEnc, sized_trait::SizedTraitEnc, tuple_trait::TupleTraitEnc},
 };
 
 use super::r#typeof::{TypeOfEnc, TypeOfEncOutputRef};
@@ -132,8 +132,9 @@ impl TaskEncoder for TyConstructorEnc {
             let variant =
                 vcx.mk_adt_constructor(type_function_ident.name().to_str(), vcx.alloc_slice(&args));
 
-            // NOTE: This call depends on the ref output of this encoder
+            // NOTE: These calls depend on the ref output of this encoder
             deps.require_dep::<SizedTraitEnc>(task_key)?;
+            deps.require_dep::<TupleTraitEnc>(task_key)?;
 
             Ok((variant, ()))
         })
