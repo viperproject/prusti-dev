@@ -9,6 +9,7 @@ fn from_1_to_0(ptr: *mut i32) -> *mut i32 {
         } else {
             ptr.add(mem::offset_of!((i32, i32), 0) - mem::offset_of!((i32, i32), 1))
         }
+        // ptr.sub(1) // would fail because we cannot guarantee that field 1 comes after field 0
     }
 }
 
