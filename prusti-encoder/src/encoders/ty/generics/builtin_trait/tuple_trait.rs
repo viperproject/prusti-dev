@@ -1,18 +1,19 @@
 use crate::{
     TaskEncoder,
-    encoders::ty::{
-        RustTy,
-        generics::{r#trait::TraitEnc, trait_impls::TraitImplEnc},
-        lifted::TyConstructorEnc,
-    },
+    encoders::ty::{RustTy, generics::trait_impls::TraitImplEnc},
 };
 use prusti_rustc_interface::middle::ty;
 
-pub struct TupleTraitEnc;
+struct TupleTrait;
 
-const TUPLE_TRAIT_NAME: &str = "Tuple";
-const TUPLE_TRAIT_ARGS: <(vir::ManyTyVal, vir::ManyCSnap) as vir::Arity>::Tys<'static> =
-    (&[vir::TYPE_TYVAL], &[]);
+impl super::BuiltinTrait for TupleTrait {
+    const NAME: &'static str = "Tuple";
+    const ARGS: <(vir::ManyTyVal, vir::ManyCSnap) as vir::Arity>::Tys<'static> =
+        (&[vir::TYPE_TYVAL], &[]);
+    type Encoder = TupleTraitEnc;
+}
+
+pub struct TupleTraitEnc;
 
 impl TaskEncoder for TupleTraitEnc {
     task_encoder::encoder_cache!(TupleTraitEnc);
@@ -58,60 +59,6 @@ impl TaskEncoder for TupleTraitEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        vir::with_vcx(|vcx| {
-            let mut checks: Vec<_> = Self::all_outputs_local_no_errors()
-                .into_iter()
-                .flatten()
-                .collect();
-
-            let tuple_impl_idn = TraitEnc::trait_impl_idn(vcx, TUPLE_TRAIT_NAME, TUPLE_TRAIT_ARGS);
-            let tuple_impl_unknown_idn =
-                TraitEnc::trait_unknown_impl_idn(vcx, TUPLE_TRAIT_NAME, TUPLE_TRAIT_ARGS);
-
-            let self_decl = Self::tuple_self_decl(vcx);
-            let self_expr = vcx.mk_local_ex(self_decl);
-
-            let unknown_check = {
-                let is_unknown =
-                    vcx.mk_adt_discriminator_expr(self_expr, TyConstructorEnc::UNKNOWN_TYPE_NAME);
-                let unknown_id = TyConstructorEnc::unknown_type_id_accessor(vcx).call()(self_expr);
-
-                let unknown_impls = tuple_impl_unknown_idn.call()(unknown_id, &[], &[]);
-
-                vir::expr! {vcx; (is_unknown) && (unknown_impls) }
-            };
-
-            checks.push(unknown_check);
-
-            let ensures = vcx.mk_eq_expr(vcx.mk_result(vir::TYPE_BOOL), vcx.mk_disj(&checks));
-
-            let tuple_impl_idn = vcx.mk_function(
-                tuple_impl_idn,
-                (&[self_decl], &[]),
-                &[],
-                vcx.alloc_slice(&[ensures]),
-                Some(&vir::DecreasesGenData::Star),
-                None,
-            );
-            program.add_function(tuple_impl_idn);
-
-            let tuple_impl_unknown_fun =
-                vcx.mk_domain_function(tuple_impl_unknown_idn, false, None);
-
-            let sized_domain = vcx.mk_domain(
-                TraitEnc::trait_domain_idn(vcx, TUPLE_TRAIT_NAME),
-                &[],
-                &[],
-                vcx.alloc_slice(&[tuple_impl_unknown_fun]),
-                None,
-            );
-            program.add_domain(sized_domain);
-        });
-    }
-}
-
-impl TupleTraitEnc {
-    fn tuple_self_decl<'vir>(vcx: &'vir vir::VirCtxt<'vir>) -> vir::LocalDecl<'vir, vir::TyVal> {
-        vcx.mk_local_decl("Self$0_trait", vir::TYPE_TYVAL)
+        super::emit_builtin_trait_outputs::<TupleTrait>(program);
     }
 }
