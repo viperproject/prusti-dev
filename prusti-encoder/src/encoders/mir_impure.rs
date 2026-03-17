@@ -27,10 +27,11 @@ use pcg::{
 use prusti_interface::{PrustiError, specs::specifications::SpecQuery};
 use prusti_rustc_interface::{
     abi,
+    abi::{FieldIdx, VariantIdx},
     data_structures::fx::FxHashMap,
     middle::{
         mir,
-        ty::{self, TyKind},
+        ty::{self, List, TyKind},
     },
     span::{Span, def_id::DefId},
 };
@@ -40,11 +41,13 @@ use vir::{CastType, CompType, LocalDeclData};
 
 use crate::encoders::{
     self, FunctionCallEnc, MirBuiltinEnc, MirBuiltinEncTask, TyUseImpureEnc, WandEnc, WandEncTask,
+    addr::RefDataEnc,
     mir_fn::{CallTaskDescription, RustSignature},
     mir_shared::PureRvalueEnc,
     ty::{
         RustTyDecomposition,
-        generics::{GParams, GenericParamsEnc},
+        generics::{GArgsTyEnc, GParams, GenericParamsEnc},
+        lifted::TyConstructorEnc,
         use_impure::TyUseImpure,
         use_pure::{TyUsePure, TyUsePureEnc},
     },
@@ -287,6 +290,36 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         self.deps.require_dep::<TyUseImpureEnc>(ty_task).unwrap()
     }
 
+    fn encode_offsetof(
+        &mut self,
+        base_ty: ty::Ty<'vir>,
+        fields: &'vir List<(VariantIdx, FieldIdx)>,
+    ) -> Result<EncodedRvalue<'vir>, EncodeRvalueError<'vir, E>> {
+        let addr_fns = self.deps.require_dep::<RefDataEnc>(())?;
+        let ty_task = RustTyDecomposition::from_ty(base_ty, self.vcx.tcx(), GParams::empty());
+
+        let ty_constructor = self.deps.require_ref::<TyConstructorEnc>(ty_task.ty)?;
+        let int_ty =
+            self.deps
+                .require_dep::<TyUsePureEnc>(RustTyDecomposition::from_prim_ty(
+                    ty::Ty::new_uint(self.vcx.tcx(), ty::UintTy::Usize),
+                ))?;
+        let args = self.deps.require_dep::<GArgsTyEnc>(ty_task.args)?;
+        Ok(int_ty.expect_primitive().prim_to_snap.call()(
+            addr_fns.offset.call()(
+                ty_constructor.ty_constructor.call()(args.get_ty(), args.get_const()),
+                self.vcx
+                    .mk_const_expr(vir::ConstData::Int(
+                        fields[0].1.as_usize().try_into().unwrap(),
+                    ))
+                    .downcast_ty(),
+            )
+            .upcast_ty(),
+        )
+        .upcast_ty()
+        .into())
+    }
+
     fn encode_rvalue(
         &mut self,
         rvalue: &mir::Rvalue<'vir>,
@@ -294,6 +327,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     ) -> Result<EncodedRvalue<'vir>, EncodeRvalueError<'vir, E>> {
         let rvalue_ty = rvalue.ty(self.local_decls, self.vcx.tcx());
         match rvalue {
+            mir::Rvalue::NullaryOp(mir::NullOp::OffsetOf(lst), ty) => {
+                self.encode_offsetof(*ty, lst)
+            }
             mir::Rvalue::Use(op) => Ok(self
                 .encode_operand_snap(op, &())
                 .map_err(EncodeRvalueError::from)?

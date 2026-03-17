@@ -19,13 +19,11 @@ use prusti_utils::config;
 use task_encoder::TaskEncoder;
 
 use crate::encoders::{
-    ConstEnc, Impure, Pure,
+    Impure, Pure,
     addr::RefDataEnc,
     custom::PairUseEnc,
     ty::{
-        generics::{
-            GArgsCastEnc, r#trait::TraitEnc, trait_fn::TraitFnEnc, trait_impls::TraitImplEnc,
-        },
+        generics::{GArgsCastEnc, trait_impls::TraitImplEnc, traits::TraitEnc},
         interpretation::bitvec::BitVecEnc,
         lifted::{TyConstructorEnc, TypeOfEnc},
     },

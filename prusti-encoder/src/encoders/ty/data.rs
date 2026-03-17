@@ -304,6 +304,23 @@ impl<'vir, D: TyDatas<'vir>> ArrayData<'vir, D> {
     }
 }
 
+impl<'vir, D: TyDatas<'vir>, D2: TyDatas<'vir>> ArrayData<'vir, (D, D2)> {
+    pub fn unzip(self) -> (ArrayData<'vir, D>, ArrayData<'vir, D2>) {
+        (
+            ArrayData {
+                slice: self.slice,
+                data: self.data.0.clone(),
+                inhabited: self.inhabited,
+            },
+            ArrayData {
+                slice: self.slice,
+                data: self.data.1.clone(),
+                inhabited: self.inhabited,
+            },
+        )
+    }
+}
+
 impl<'vir, D: TyDatas<'vir>> StructData<'vir, D> {
     pub fn zip<D2: TyDatas<'vir>>(
         &'vir self,
@@ -318,6 +335,28 @@ impl<'vir, D: TyDatas<'vir>> StructData<'vir, D> {
     }
 }
 
+impl<'vir, D: TyDatas<'vir>, D2: TyDatas<'vir>> StructData<'vir, (D, D2)> {
+    pub fn unzip(self) -> (StructData<'vir, D>, StructData<'vir, D2>) {
+        let fields: (Vec<_>, Vec<_>) = self
+            .fields
+            .into_iter()
+            .map(|(f1, f2)| (f1.clone(), f2.clone()))
+            .unzip();
+        (
+            StructData {
+                data: (*self.data.0).clone(),
+                inhabited: self.inhabited,
+                fields: fields.0,
+            },
+            StructData {
+                data: (*self.data.1).clone(),
+                inhabited: self.inhabited,
+                fields: fields.1,
+            },
+        )
+    }
+}
+
 impl<'vir, D: TyDatas<'vir>> EnumData<'vir, D> {
     pub fn zip<D2: TyDatas<'vir>>(
         &'vir self,
@@ -329,6 +368,25 @@ impl<'vir, D: TyDatas<'vir>> EnumData<'vir, D> {
             data: (&self.data, &other.data),
             variants: variants.map(|(v1, v2)| v1.zip(v2)).collect(),
         }
+    }
+}
+
+impl<'vir, D: TyDatas<'vir> + 'vir, D2: TyDatas<'vir> + 'vir> EnumData<'vir, (D, D2)> {
+    pub fn unzip(self) -> (EnumData<'vir, D>, EnumData<'vir, D2>) {
+        let variants: (Vec<_>, Vec<_>) =
+            self.variants.into_iter().map(|v| v.clone().unzip()).unzip();
+        (
+            EnumData {
+                data: (*self.data.0).clone(),
+                inhabited: self.inhabited,
+                variants: variants.0,
+            },
+            EnumData {
+                data: (*self.data.1).clone(),
+                inhabited: self.inhabited,
+                variants: variants.1,
+            },
+        )
     }
 }
 
@@ -455,13 +513,34 @@ impl<'vir, D: TyDatas<'vir>> $container<'vir, D> {
     };
 }
 
+macro_rules! impl_unzip {
+    ($container:ident$(.$field:ident)?) => {
+impl<'vir, D: TyDatas<'vir> + 'vir, D2: TyDatas<'vir> + 'vir> $container<'vir, (D, D2)> {
+    pub fn unzip(self) -> ($container<'vir, D>, $container<'vir, D2>) {
+        $(let unzipped_field = self.$field.unzip();)?
+        ($container {
+            data: (*self.data.0).clone(),
+            inhabited: self.inhabited,
+            $($field: unzipped_field.0.clone())?
+        }, $container {
+            data: (*self.data.1).clone(),
+            inhabited: self.inhabited,
+            $($field: unzipped_field.1.clone())?
+        })
+    }
+}
+    };
+}
+
 impls!(TyData { specifics: TySpecifics<'vir, D> });
 impl_zip!(TyData.specifics);
+impl_unzip!(TyData.specifics);
 impls!(ArrayData { slice: bool });
 impls!(StructData { fields: Vec<D::FieldData> });
 impls!(EnumData { variants: Vec<VariantData<'vir, D>> });
 impls!(VariantData { inner: StructData<'vir, D> });
 impl_zip!(VariantData.inner);
+impl_unzip!(VariantData.inner);
 
 impl<'vir, D: TyDatas<'vir>> Debug for TySpecifics<'vir, D> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -587,6 +666,54 @@ impl<'vir, D: TyDatas<'vir>> TySpecifics<'vir, D> {
             (Builtin(d1), Builtin(d2)) => Builtin((d1, d2)),
             (RawPtr(d1), RawPtr(d2)) => RawPtr((d1, d2)),
             _ => panic!("Mismatched TySpecifics variants"),
+        }
+    }
+}
+
+impl<'vir, D: TyDatas<'vir> + 'vir, D2: TyDatas<'vir> + 'vir> TySpecifics<'vir, (D, D2)> {
+    pub fn unzip(self) -> (TySpecifics<'vir, D>, TySpecifics<'vir, D2>) {
+        use TySpecifics::*;
+        match self {
+            ArrayLike(inner_data) => {
+                let inner_pair = inner_data.unzip();
+                (ArrayLike(inner_pair.0), ArrayLike(inner_pair.1))
+            }
+            Param(inner_data) => (
+                Param((*inner_data.0).clone()),
+                Param((*inner_data.1).clone()),
+            ),
+            Opaque(inner_data) => (
+                Opaque((*inner_data.0).clone()),
+                Opaque((*inner_data.1).clone()),
+            ),
+            Primitive(inner_data) => (
+                Primitive((*inner_data.0).clone()),
+                Primitive((*inner_data.1).clone()),
+            ),
+            ImmRef(inner_data) => (
+                ImmRef((*inner_data.0).clone()),
+                ImmRef((*inner_data.1).clone()),
+            ),
+            MutRef(inner_data) => (
+                MutRef((*inner_data.0).clone()),
+                MutRef((*inner_data.1).clone()),
+            ),
+            StructLike(inner_data) => {
+                let inner_pair = inner_data.unzip();
+                (StructLike(inner_pair.0), StructLike(inner_pair.1))
+            }
+            EnumLike(inner_data) => {
+                let inner_pair = inner_data.unzip();
+                (EnumLike(inner_pair.0), EnumLike(inner_pair.1))
+            }
+            Builtin(inner_data) => (
+                Builtin((*inner_data.0).clone()),
+                Builtin((*inner_data.1).clone()),
+            ),
+            RawPtr(inner_data) => (
+                RawPtr((*inner_data.0).clone()),
+                RawPtr((*inner_data.1).clone()),
+            ),
         }
     }
 }

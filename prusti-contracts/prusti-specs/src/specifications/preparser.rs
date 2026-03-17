@@ -486,19 +486,18 @@ impl PrustiTokenStream {
                     return err(span, "Invalid acc expression found");
                 }
                 Acc::translate(span, ident.to_token_stream(), AccFraction::Full)
-            }
-            else {
-                if let Some(PrustiToken::Token(TokenTree::Punct(first_punct))) = expr.tokens.pop_front() {
-                    if first_punct.as_char() != '*' {
-                        return err(span, "Invalid acc expression found");
-                    } 
-                    let inner = expr.pop_group(Delimiter::Parenthesis).ok_or_else(|| {
-                            error(span, "Invalid acc expression found")
-                        })?;
-                    Acc::translate(span, inner.parse()?, AccFraction::Full)
-                } else {
-                    err(span, "Invalid acc expression found")
+            } else if let Some(PrustiToken::Token(TokenTree::Punct(first_punct))) =
+                expr.tokens.pop_front()
+            {
+                if first_punct.as_char() != '*' {
+                    return err(span, "Invalid acc expression found");
                 }
+                let inner = expr
+                    .pop_group(Delimiter::Parenthesis)
+                    .ok_or_else(|| error(span, "Invalid acc expression found"))?;
+                Acc::translate(span, inner.parse()?, AccFraction::Full)
+            } else {
+                err(span, "Invalid acc expression found")
             }
         } else if len == 4 {
             if let [PrustiToken::Token(TokenTree::Punct(first_punct)), PrustiToken::Token(TokenTree::Ident(ident)), PrustiToken::BinOp(_, PrustiBinaryOp::Rust(RustOp::Comma)), PrustiToken::Token(TokenTree::Ident(ident_frac))] = [

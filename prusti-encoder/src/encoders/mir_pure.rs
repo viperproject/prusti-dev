@@ -1,10 +1,16 @@
 use crate::encoders::{
-    FunctionCallEnc, MirLocalDefEnc, MirLocalDefEncOutput, MirLocalDefEncTask, TyUseImpureEnc, ViperTupleEnc, addr::RefDataEnc, mir_fn::{CallTaskDescription, RustSignature}, mir_shared::PureRvalueEnc, ty::{
+    FunctionCallEnc, MirLocalDefEnc, MirLocalDefEncOutput, MirLocalDefEncTask, TyUseImpureEnc,
+    ViperTupleEnc,
+    addr::RefDataEnc,
+    mir_fn::{CallTaskDescription, RustSignature},
+    mir_shared::PureRvalueEnc,
+    ty::{
         RustTyDecomposition,
-        generics::GParams,
+        generics::{GArgsTyEnc, GParams},
         interpretation::real::TyRealLocal,
+        lifted::TyConstructorEnc,
         use_pure::{TyUsePure, TyUsePureEnc},
-    }
+    },
 };
 use pcg::utils::Place;
 use prusti_interface::{
@@ -14,12 +20,13 @@ use prusti_interface::{
 };
 use prusti_rustc_interface::{
     abi,
+    abi::{FieldIdx, VariantIdx},
     data_structures::graph,
     index::IndexVec,
     middle::{
         mir,
         mir::Mutability,
-        ty::{self, Binder, FnSig, Region, TyKind},
+        ty::{self, Binder, FnSig, List, Region, TyKind},
     },
     span::{Span, def_id::DefId, source_map::Spanned},
 };
@@ -909,6 +916,35 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         Ok(update)
     }
 
+    fn encode_offsetof(
+        &mut self,
+        base_ty: ty::Ty<'vir>,
+        fields: &'vir List<(VariantIdx, FieldIdx)>,
+    ) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
+        let addr_fns = self.deps.require_dep::<RefDataEnc>(())?;
+        let ty_task = RustTyDecomposition::from_ty(base_ty, self.vcx.tcx(), GParams::empty());
+
+        let ty_constructor = self.deps.require_ref::<TyConstructorEnc>(ty_task.ty)?;
+        let int_ty =
+            self.deps
+                .require_dep::<TyUsePureEnc>(RustTyDecomposition::from_prim_ty(
+                    ty::Ty::new_uint(self.vcx.tcx(), ty::UintTy::Usize),
+                ))?;
+        let args = self.deps.require_dep::<GArgsTyEnc>(ty_task.args)?;
+        Ok(int_ty.expect_primitive().prim_to_snap.call()(
+            addr_fns.offset.call()(
+                ty_constructor.ty_constructor.call()(args.get_ty(), args.get_const()),
+                self.vcx
+                    .mk_const_expr(vir::ConstData::Int(
+                        fields[0].1.as_usize().try_into().unwrap(),
+                    ))
+                    .downcast_ty(),
+            )
+            .upcast_ty(),
+        )
+        .upcast_ty())
+    }
+
     fn encode_rvalue(
         &mut self,
         curr_ver: &FxHashMap<mir::Local, Version<'vir>>,
@@ -917,6 +953,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     ) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
         let rvalue_ty = rvalue.ty(self.body, self.vcx.tcx());
         match rvalue {
+            mir::Rvalue::NullaryOp(mir::NullOp::OffsetOf(lst), ty) => {
+                self.encode_offsetof(*ty, lst)
+            }
             mir::Rvalue::Use(op) => self.encode_operand_snap(op, curr_ver),
             mir::Rvalue::Ref(_, kind, place) => {
                 let rvalue_snapshot_encoding = self.ty_use(rvalue_ty);
@@ -1679,12 +1718,30 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .expect_rawptr();
                 let rawptr_val = self.encode_operand_snap(&args[0].node, curr_ver)?;
                 let derefed = rawptr.deref_access(rawptr_val.downcast_ty());
-                let usize_domain = self.ty_use(self.vcx.tcx().mk_ty_from_kind(ty::TyKind::Uint(ty::UintTy::Usize))).expect_primitive();
+                let usize_domain = self
+                    .ty_use(
+                        self.vcx
+                            .tcx()
+                            .mk_ty_from_kind(ty::TyKind::Uint(ty::UintTy::Usize)),
+                    )
+                    .expect_primitive();
                 let orig_addr = addr_fns.ref_to_addr.call()(derefed).as_dyn();
-                let offset_val = usize_domain.expect_native().snap_to_prim.call()(self.encode_operand_snap(&args[1].node, curr_ver)?.downcast_ty()).as_dyn();
-                let new_addr = self.vcx.mk_bin_op_expr(vir::BinOpKind::Add, orig_addr, offset_val).downcast_ty(); // TODO offset_val * size of type
+                let offset_val = usize_domain.expect_native().snap_to_prim.call()(
+                    self.encode_operand_snap(&args[1].node, curr_ver)?
+                        .downcast_ty(),
+                )
+                .as_dyn();
+                let new_addr = self
+                    .vcx
+                    .mk_bin_op_expr(vir::BinOpKind::Add, orig_addr, offset_val)
+                    .downcast_ty(); // TODO offset_val * size of type
                 MirPureEncOutput::MirPureEncOutputExpr(
-                    rawptr.prim_to_snap(addr_fns.addr_to_ref.call()(new_addr, addr_fns.base_ref.call()(derefed))).upcast_ty()
+                    rawptr
+                        .prim_to_snap(addr_fns.addr_to_ref.call()(
+                            new_addr,
+                            addr_fns.base_ref.call()(derefed),
+                        ))
+                        .upcast_ty(),
                 )
             }
             PrustiBuiltin::PtrSub => {
@@ -1697,13 +1754,31 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .expect_rawptr();
                 let rawptr_val = self.encode_operand_snap(&args[0].node, curr_ver)?;
                 let derefed = rawptr.deref_access(rawptr_val.downcast_ty());
-                let usize_domain = self.ty_use(self.vcx.tcx().mk_ty_from_kind(ty::TyKind::Uint(ty::UintTy::Usize))).expect_primitive();
+                let usize_domain = self
+                    .ty_use(
+                        self.vcx
+                            .tcx()
+                            .mk_ty_from_kind(ty::TyKind::Uint(ty::UintTy::Usize)),
+                    )
+                    .expect_primitive();
                 let orig_addr = addr_fns.ref_to_addr.call()(derefed).as_dyn();
-                let offset_val = usize_domain.expect_native().snap_to_prim.call()(self.encode_operand_snap(&args[1].node, curr_ver)?.downcast_ty()).as_dyn();
-                let new_addr = self.vcx.mk_bin_op_expr(vir::BinOpKind::Sub, orig_addr, offset_val).downcast_ty(); // TODO offset_val * size of type
-                
+                let offset_val = usize_domain.expect_native().snap_to_prim.call()(
+                    self.encode_operand_snap(&args[1].node, curr_ver)?
+                        .downcast_ty(),
+                )
+                .as_dyn();
+                let new_addr = self
+                    .vcx
+                    .mk_bin_op_expr(vir::BinOpKind::Sub, orig_addr, offset_val)
+                    .downcast_ty(); // TODO offset_val * size of type
+
                 MirPureEncOutput::MirPureEncOutputExpr(
-                    rawptr.prim_to_snap(addr_fns.addr_to_ref.call()(new_addr, addr_fns.base_ref.call()(derefed))).upcast_ty()
+                    rawptr
+                        .prim_to_snap(addr_fns.addr_to_ref.call()(
+                            new_addr,
+                            addr_fns.base_ref.call()(derefed),
+                        ))
+                        .upcast_ty(),
                 )
             }
         })
