@@ -1702,11 +1702,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     ))
                     .unwrap();
                 let perm = mk_perm(self.encode_operand_snap(&args[1].node, curr_ver)?);
-                MirPureEncOutput::MirPureEncOutputPred(inner_ty.ref_to_pred(
+                let ty_name = RustTyDecomposition::from_ty(arg_tys[0].expect_ty(), self.vcx.tcx(), self.context).ty.name();
+                let frac_field = self.vcx.mk_field(vir::vir_format!(self.vcx, "p_{ty_name}_frac"), vir::TYPE_PERM);
+                let acc_frac = self.vcx.mk_acc_field_expr(derefed, frac_field, None);
+                MirPureEncOutput::MirPureEncOutputPred(self.vcx.mk_conj(&[inner_ty.ref_to_pred(
                     self.vcx,
                     derefed,
                     Some(perm),
-                ))
+                ), acc_frac]))
             }
             PrustiBuiltin::PtrAdd => {
                 let addr_fns = self.deps.require_dep::<RefDataEnc>(())?;
