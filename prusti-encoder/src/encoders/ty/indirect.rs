@@ -57,7 +57,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                 // ignore for now). Plus it skips unsupported types if they
                 // don't have lifetimes.
                 _ if ty.args.args().is_empty() => (),
-                TySpecifics::Primitive(_) | TySpecifics::ImmRef(_) => (),
+                TySpecifics::Primitive(_) | TySpecifics::ImmRef(_) | TySpecifics::Builtin(_) => (),
                 // TODO: it's not valid to have nothing for these. We should fix
                 // this by using an opaque predicate to represent potential
                 // indirect stuff. For example:
@@ -142,8 +142,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                         }
                     }
                 }
-                // TODO: recurse into other types
-                _ => {}
+                TySpecifics::EnumLike(..) => todo!(),
             };
             Ok((
                 (),
