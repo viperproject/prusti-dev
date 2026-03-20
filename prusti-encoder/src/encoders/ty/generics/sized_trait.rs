@@ -2,24 +2,29 @@ use crate::{
     TaskEncoder,
     encoders::ty::{
         RustTy,
-        generics::{GParams, r#trait::TraitEnc, trait_impls::TraitImplEnc},
+        generics::{
+            GParams, GenericParams, GenericParamsEnc, r#trait::TraitEnc, trait_impls::TraitImplEnc,
+        },
         lifted::TyConstructorEnc,
     },
 };
 use prusti_rustc_interface::middle::{ty, ty::Upcast};
 use task_encoder::EncodeFullError;
+use vir::vir_format_identifier;
 
 pub struct SizedTraitEnc;
-
-const SIZED_TRAIT_NAME: &str = "Sized";
-const SIZED_ARGS: <(vir::ManyTyVal, vir::ManyCSnap) as vir::Arity>::Tys<'static> =
-    (&[vir::TYPE_TYVAL], &[]);
 
 impl TaskEncoder for SizedTraitEnc {
     task_encoder::encoder_cache!(SizedTraitEnc);
     type TaskDescription<'vir> = RustTy<'vir>;
 
-    type OutputFullLocal<'vir> = Option<vir::ExprBool<'vir>>;
+    type OutputFullLocal<'vir> = (
+        // This will be unfortunately copied with every type that the `Sized` encoder is called
+        // with
+        <TraitEnc as TaskEncoder>::OutputRef<'vir>,
+        GenericParams<'vir>,
+        Option<vir::ExprBool<'vir>>,
+    );
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task
@@ -33,6 +38,14 @@ impl TaskEncoder for SizedTraitEnc {
         deps.emit_output_ref(*task_key, ())?;
 
         vir::with_vcx(|vcx| {
+            let sized_did = vcx.tcx().lang_items().sized_trait().unwrap();
+            let sized_trait = deps.require_ref::<TraitEnc>(sized_did)?;
+
+            let trait_generics = {
+                let params = TraitEnc::trait_params(sized_did);
+                deps.require_dep::<GenericParamsEnc>(params)?
+            };
+
             let ty = task_key.erased_ty_for_special_traits();
             let sizedness = sizedness_for_ty(vcx.tcx(), ty);
             let check = match sizedness {
@@ -49,53 +62,61 @@ impl TaskEncoder for SizedTraitEnc {
                 )?),
             };
 
-            Ok((check, ()))
+            Ok(((sized_trait, trait_generics, check), ()))
         })
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
+        let outputs = Self::all_outputs_local_no_errors();
+        let Some((sized_trait, sized_generics, _)) = outputs.first() else {
+            return;
+        };
         vir::with_vcx(|vcx| {
             let mut checks: Vec<_> = Self::all_outputs_local_no_errors()
                 .into_iter()
-                .flatten()
+                .filter_map(|(.., check)| check)
                 .collect();
 
-            let sized_impl_idn = TraitEnc::trait_impl_idn(vcx, SIZED_TRAIT_NAME, SIZED_ARGS);
-            let sized_impl_unknown_idn =
-                TraitEnc::trait_unknown_impl_idn(vcx, SIZED_TRAIT_NAME, SIZED_ARGS);
+            let sized_impl_fun = sized_trait.impl_fun;
+            let sized_impl_for_unknown_fun = sized_trait.impl_for_unknown_fun;
 
-            let self_decl = Self::sized_self_decl(vcx);
-            let self_expr = vcx.mk_local_ex(self_decl);
+            let unknown_type_check = {
+                let self_expr = sized_generics.ty_exprs()[0];
 
-            let unknown_check = {
                 let is_unknown =
                     vcx.mk_adt_discriminator_expr(self_expr, TyConstructorEnc::UNKNOWN_TYPE_NAME);
-                let unknown_id = TyConstructorEnc::unknown_type_id_accessor(vcx).call()(self_expr);
+                let extracted_id =
+                    TyConstructorEnc::unknown_type_id_accessor(vcx).call()(self_expr);
 
-                let unknown_impls = sized_impl_unknown_idn.call()(unknown_id, &[], &[]);
+                let unknown_impls = sized_impl_for_unknown_fun.call()(
+                    extracted_id,
+                    &sized_generics.ty_exprs()[1..],
+                    sized_generics.const_exprs(),
+                );
 
                 vir::expr! {vcx; (is_unknown) && (unknown_impls) }
             };
 
-            checks.push(unknown_check);
+            checks.push(unknown_type_check);
 
             let ensures = vcx.mk_eq_expr(vcx.mk_result(vir::TYPE_BOOL), vcx.mk_disj(&checks));
 
             let sized_impl_fun = vcx.mk_function(
-                sized_impl_idn,
-                (&[self_decl], &[]),
+                sized_impl_fun,
+                (sized_generics.ty_decls(), sized_generics.const_decls()),
                 &[],
                 vcx.alloc_slice(&[ensures]),
                 Some(&vir::DecreasesGenData::Star),
                 None,
             );
+
             program.add_function(sized_impl_fun);
 
             let sized_impl_unknown_fun =
-                vcx.mk_domain_function(sized_impl_unknown_idn, false, None);
+                vcx.mk_domain_function(sized_impl_for_unknown_fun, false, None);
 
             let sized_domain = vcx.mk_domain(
-                TraitEnc::trait_domain_idn(vcx, SIZED_TRAIT_NAME),
+                vir_format_identifier!(vcx, "trait_{}", sized_trait.trait_name),
                 &[],
                 &[],
                 vcx.alloc_slice(&[sized_impl_unknown_fun]),
@@ -107,10 +128,6 @@ impl TaskEncoder for SizedTraitEnc {
 }
 
 impl SizedTraitEnc {
-    fn sized_self_decl<'vir>(vcx: &'vir vir::VirCtxt<'vir>) -> vir::LocalDecl<'vir, vir::TyVal> {
-        vcx.mk_local_decl("Self$0_trait", vir::TYPE_TYVAL)
-    }
-
     fn sizedness_check<'vir>(
         vcx: &'vir vir::VirCtxt<'vir>,
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, SizedTraitEnc>,

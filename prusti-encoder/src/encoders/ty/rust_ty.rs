@@ -350,12 +350,9 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         match ty.kind() {
             _ if ty.is_primitive() => Self::prim_ty_name(ty),
             ty::TyKind::Str => String::from("Str"),
-            ty::TyKind::Adt(adt, _) => vir::with_vcx(|vcx| {
-                let did = adt.did();
-                let base_name = vcx.tcx().item_name(did).to_ident_string();
-                let hash = vcx.tcx().def_path_hash(did).0.to_smaller_hash().as_u64();
-                format!("{base_name}_{hash:x}")
-            }),
+            ty::TyKind::Adt(adt, _) => {
+                vir::with_vcx(|vcx| vcx.tcx().item_name(adt.did()).to_ident_string())
+            }
             ty::TyKind::Tuple(params) => format!("{}_Tuple", params.len()),
             ty::TyKind::Never => String::from("Never"),
             ty::TyKind::Ref(_, _, ty::Mutability::Not) => String::from("Ref_immutable"),
