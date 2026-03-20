@@ -11,8 +11,7 @@ use crate::encoders::ty::{
 /// ### Example
 /// `GParams([T], [T: Iterator<Item = i32>])` will be encoded as
 /// `Iterator_impl(T) && Iterator_assoc_type_Item(T) == i32_type()`
-#[allow(unused)]
-struct ClausesEnc;
+pub struct ClausesEnc;
 
 impl TaskEncoder for ClausesEnc {
     task_encoder::encoder_cache!(ClausesEnc);

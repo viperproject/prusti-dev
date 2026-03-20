@@ -293,11 +293,6 @@ impl<'tcx> EnvBody<'tcx> {
         self.set_monomorphised(def_id, substs, caller_def_id, body)
     }
 
-    pub fn get_caller_bounds(&self, def_id: DefId) -> Vec<ty::Clause<'tcx>> {
-        let param_env = self.tcx.param_env(def_id);
-        param_env.caller_bounds().to_vec()
-    }
-
     pub fn get_promoted_constant_body(
         &self,
         def_id: DefId,

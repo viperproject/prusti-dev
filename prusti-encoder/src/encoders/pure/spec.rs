@@ -5,7 +5,7 @@ use prusti_interface::{
     specs::{specifications::find_trait_method_substs, typed::Pledge},
 };
 use prusti_rustc_interface::{
-    middle::{mir, ty},
+    middle::mir,
     span::{Span, def_id::DefId},
 };
 
@@ -17,7 +17,7 @@ use crate::encoders::{
     mir_pure::{ExprInput, PureKind},
     ty::{
         RustTyDecomposition,
-        generics::{GArgs, GArgsTyEnc, GParams, GenericParamsEnc, r#trait::TraitEnc},
+        generics::{GParams, caller_bounds::ClausesEnc},
         use_pure::TyUsePureEnc,
     },
 };
@@ -186,8 +186,14 @@ impl TaskEncoder for MirSpecEnc {
                 }
             };
 
-            let refine_spec_cond =
-                refine_spec_cond(vcx, deps, specs.refined_pres, specs.refined_posts);
+            // Get the condition from the first refined pre/post, if any.
+            let refine_spec_cond = specs
+                .refined_pres
+                .first()
+                .or(specs.refined_posts.first())
+                .map(|did| deps.require_dep::<ClausesEnc>(GParams::from(*did)))
+                .transpose()?;
+
             let not_refine_spec_cond = refine_spec_cond.map(|cond| {
                 vcx.mk_unary_op_expr(vir::UnOpKind::Not, cond.upcast_ty())
                     .downcast_ty()
@@ -389,62 +395,4 @@ impl TaskEncoder for MirSpecEnc {
             Ok(((), data))
         })
     }
-}
-
-fn refine_spec_cond<'vir>(
-    vcx: &'vir vir::VirCtxt<'vir>,
-    deps: &mut TaskEncoderDependencies<'vir, MirSpecEnc>,
-    refined_pres: &[DefId],
-    refined_posts: &[DefId],
-) -> Option<vir::ExprBool<'vir>> {
-    let tcx = vcx.tcx();
-    // Obtain the bounds from any of the pre/post items
-    let did = refined_pres.first().or(refined_posts.first())?.to_owned();
-    let clauses = vcx.body_mut().get_caller_bounds(did);
-
-    let mut checks = Vec::new();
-    for clause in clauses {
-        match clause.kind().skip_binder() {
-            ty::ClauseKind::Trait(trait_pred) => {
-                let trait_ = deps.require_ref::<TraitEnc>(trait_pred.def_id()).unwrap();
-
-                let args = deps
-                    .require_dep::<GArgsTyEnc>(GArgs::new(did, trait_pred.trait_ref.args))
-                    .unwrap();
-
-                let impl_check = (trait_.impl_fun)(args.get_ty(), args.get_const());
-                checks.push(impl_check);
-            }
-            ty::ClauseKind::Projection(proj_pred) => {
-                let trait_ = deps
-                    .require_ref::<TraitEnc>(proj_pred.trait_def_id(tcx))
-                    .unwrap();
-
-                let args = deps
-                    .require_dep::<GArgsTyEnc>(GArgs::new(did, proj_pred.projection_term.args))
-                    .unwrap();
-
-                match proj_pred.term.kind() {
-                    ty::TermKind::Ty(ty) => {
-                        let projection = trait_.assoc_types[&proj_pred.def_id()](
-                            args.get_ty(),
-                            args.get_const(),
-                        );
-                        let decomp = RustTyDecomposition::from_ty(ty, did);
-                        let gparams = deps.require_dep::<GenericParamsEnc>(did.into()).unwrap();
-                        let ty_expr = gparams.ty_expr(deps, decomp);
-                        checks.push(vcx.mk_eq_expr(projection, ty_expr));
-                    }
-                    ty::TermKind::Const(_) => {
-                        todo!("Implement const projections in `refine_spec` bounds")
-                    }
-                }
-            }
-            _ => unimplemented!(
-                "Only trait and projection predicates are expected in `refine_spec` bounds"
-            ),
-        }
-    }
-
-    Some(vcx.mk_conj(&checks))
 }
