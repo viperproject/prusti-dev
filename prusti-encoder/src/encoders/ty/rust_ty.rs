@@ -252,11 +252,11 @@ impl<'tcx> RustTyData<'tcx> {
         self.name.as_str()
     }
 
-    /// NOTE: this is a temporary hack to get the `ty::Ty` for the `SizedTraitEnc`. Should not be
-    /// used in other places
-    pub(super) fn erased_ty_for_sizedness(&self) -> ty::Ty<'tcx> {
+    /// NOTE: a hack to get the `ty::Ty` to the encoders for special traits like `Sized` or `Tuple`.
+    /// Should not be used for other purposes
+    pub(super) fn erased_ty_for_special_traits(&self) -> ty::Ty<'tcx> {
         self.erased_ty
-            .expect("erased_ty should be Some for the `Sized` trait encoder")
+            .expect("should be `Some` when called in special trait encoders")
     }
 }
 

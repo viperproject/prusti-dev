@@ -33,7 +33,7 @@ impl TaskEncoder for SizedTraitEnc {
         deps.emit_output_ref(*task_key, ())?;
 
         vir::with_vcx(|vcx| {
-            let ty = task_key.erased_ty_for_sizedness();
+            let ty = task_key.erased_ty_for_special_traits();
             let sizedness = sizedness_for_ty(vcx.tcx(), ty);
             let check = match sizedness {
                 Sizedness::Unsized => None,
