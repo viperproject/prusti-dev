@@ -1,13 +1,23 @@
+use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 
-use crate::encoders::ty::generics::GParams;
+use crate::encoders::ty::{
+    RustTyDecomposition,
+    generics::{GArgs, GArgsTyEnc, GParams, GenericParamsEnc, r#trait::TraitEnc},
+};
 
-struct CallerBoundsEnc;
+/// Encodes clauses as a viper expression.
+///
+/// ### Example
+/// `GParams([T], [T: Iterator<Item = i32>])` will be encoded as
+/// `Iterator_impl(T) && Iterator_assoc_type_Item(T) == i32_type()`
+#[allow(unused)]
+struct ClausesEnc;
 
-impl TaskEncoder for CallerBoundsEnc {
-    task_encoder::encoder_cache!(CallerBoundsEnc);
+impl TaskEncoder for ClausesEnc {
+    task_encoder::encoder_cache!(ClausesEnc);
 
-    const ENCODER_NAME: &'static str = "caller bounds encoder";
+    const ENCODER_NAME: &'static str = "clauses encoder";
 
     type TaskDescription<'vir> = GParams<'vir>;
 
@@ -18,8 +28,63 @@ impl TaskEncoder for CallerBoundsEnc {
     }
 
     fn do_encode_full<'vir>(
-        _task_key: &Self::TaskKey<'vir>,
-        _deps: &mut TaskEncoderDependencies<'vir, Self>,
+        task_key: &Self::TaskKey<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
+        deps.emit_output_ref(*task_key, ())?;
+        let clauses = task_key.typing_env().param_env.caller_bounds();
+
+        let mut checks = Vec::new();
+
+        vir::with_vcx(|vcx| {
+            for clause in clauses {
+                match clause.kind().skip_binder() {
+                    ty::ClauseKind::Trait(trait_pred) => {
+                        let trait_ = deps.require_ref::<TraitEnc>(trait_pred.def_id()).unwrap();
+
+                        let args = deps
+                            .require_dep::<GArgsTyEnc>(GArgs::new(
+                                *task_key,
+                                trait_pred.trait_ref.args,
+                            ))
+                            .unwrap();
+
+                        let impl_check = (trait_.impl_fun)(args.get_ty(), args.get_const());
+                        checks.push(impl_check);
+                    }
+                    ty::ClauseKind::Projection(proj_pred) => {
+                        let trait_ = deps
+                            .require_ref::<TraitEnc>(proj_pred.trait_def_id(vcx.tcx()))
+                            .unwrap();
+
+                        let args = deps
+                            .require_dep::<GArgsTyEnc>(GArgs::new(
+                                *task_key,
+                                proj_pred.projection_term.args,
+                            ))
+                            .unwrap();
+
+                        match proj_pred.term.kind() {
+                            ty::TermKind::Ty(ty) => {
+                                let projection = trait_.assoc_types[&proj_pred.def_id()](
+                                    args.get_ty(),
+                                    args.get_const(),
+                                );
+                                let decomp = RustTyDecomposition::from_ty(ty, *task_key);
+                                let gparams =
+                                    deps.require_dep::<GenericParamsEnc>(*task_key).unwrap();
+                                let ty_expr = gparams.ty_expr(deps, decomp);
+                                checks.push(vcx.mk_eq_expr(projection, ty_expr));
+                            }
+                            ty::TermKind::Const(_) => {
+                                todo!("Implement const projections")
+                            }
+                        }
+                    }
+                    clause => unimplemented!("Encoding a {clause:?} is not yet supported"),
+                }
+            }
+            Ok(((), vcx.mk_conj(&checks)))
+        })
     }
 }
