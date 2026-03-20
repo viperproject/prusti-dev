@@ -350,9 +350,12 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         match ty.kind() {
             _ if ty.is_primitive() => Self::prim_ty_name(ty),
             ty::TyKind::Str => String::from("Str"),
-            ty::TyKind::Adt(adt, _) => {
-                vir::with_vcx(|vcx| vcx.tcx().item_name(adt.did()).to_ident_string())
-            }
+            ty::TyKind::Adt(adt, _) => vir::with_vcx(|vcx| {
+                let did = adt.did();
+                let base_name = vcx.tcx().item_name(did).to_ident_string();
+                let hash = vcx.tcx().def_path_hash(did).0.to_smaller_hash().as_u64();
+                format!("{base_name}_{hash:x}")
+            }),
             ty::TyKind::Tuple(params) => format!("{}_Tuple", params.len()),
             ty::TyKind::Never => String::from("Never"),
             ty::TyKind::Ref(_, _, ty::Mutability::Not) => String::from("Ref_immutable"),
@@ -464,10 +467,19 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             }
             ty::TyKind::Closure(did, args) => {
                 let identity = ty::List::identity_for_item(tcx, did);
+                // We only want to fully erase the parent information
+                let parts = ty::ClosureArgsParts {
+                    parent_args: identity.as_closure().parent_args(),
+                    closure_kind_ty: tcx.erase_regions(args.as_closure().kind_ty()),
+                    closure_sig_as_fn_ptr_ty: tcx
+                        .erase_regions(args.as_closure().sig_as_fn_ptr_ty()),
+                    tupled_upvars_ty: tcx.erase_regions(args.as_closure().tupled_upvars_ty()),
+                };
+                let erased = ty::ClosureArgs::new(tcx, parts);
                 let gargs = tcx.mk_args(identity.as_closure().parent_args());
                 let args = tcx.mk_args(args.as_closure().parent_args());
                 (
-                    ty::Ty::new_closure(tcx, did, identity),
+                    ty::Ty::new_closure(tcx, did, erased.args),
                     GParams::new(gargs, tcx.param_env(did), is_trait_extern_spec),
                     args,
                 )
