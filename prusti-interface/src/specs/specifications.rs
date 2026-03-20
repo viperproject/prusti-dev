@@ -2,7 +2,7 @@ use rustc_hash::FxHashMap;
 
 use super::typed::{
     DefSpecificationMap, GhostBegin, GhostEnd, LoopSpecification, ProcedureSpecification,
-    PrustiAssertion, PrustiAssumption, PrustiRefutation, TypeSpecification,
+    PrustiAssertion, PrustiAssumption, PrustiRefutation, SpecGraph, TypeSpecification,
 };
 use crate::{
     data::ProcedureDefId,
@@ -98,9 +98,8 @@ pub struct Specifications<'tcx> {
 
     /// A refinement can be different based on the query.
     /// The query can resolve to different [ProcedureSpecification]s due to type-conditional spec refinements.
-    /// Since Prusti does currently not support refinements of type-conditional spec refinements, we
-    /// store different refined versions for different queries.
-    refined_specs: FxHashMap<SpecQuery<'tcx>, ProcedureSpecification>,
+    /// We store refined SpecGraphs (including both base and constrained specs) for different queries.
+    refined_specs: FxHashMap<SpecQuery<'tcx>, SpecGraph<ProcedureSpecification>>,
 }
 
 impl<'tcx> Specifications<'tcx> {
@@ -161,6 +160,7 @@ impl<'tcx> Specifications<'tcx> {
 
         match RefinementContext::try_from(tcx, &query) {
             Some(context) => {
+                eprintln!("Performing refinement for {query:?} based on {context:?}");
                 let refined =
                     self.perform_proc_spec_refinement(context.impl_query, &context.trait_query);
                 assert!(
@@ -179,35 +179,40 @@ impl<'tcx> Specifications<'tcx> {
         impl_query: &SpecQuery<'tcx>,
         trait_query: &SpecQuery<'tcx>,
     ) -> Option<&'a ProcedureSpecification> {
-        let impl_spec = self
-            .get_proc_spec(impl_query)
+        let impl_spec_graph = self
+            .user_typed_specs
+            .get_proc_spec(&impl_query.referred_def_id())
             .cloned()
-            .unwrap_or_else(|| ProcedureSpecification::empty(impl_query.referred_def_id()));
+            .unwrap_or_else(|| {
+                SpecGraph::new(ProcedureSpecification::empty(impl_query.referred_def_id()))
+            });
 
-        let trait_spec = self
-            .get_proc_spec(trait_query)
+        let trait_spec_graph = self
+            .user_typed_specs
+            .get_proc_spec(&trait_query.referred_def_id())
             .cloned()
-            .unwrap_or_else(|| ProcedureSpecification::empty(trait_query.referred_def_id()));
-        let refined = impl_spec.refine(&trait_spec);
+            .unwrap_or_else(|| {
+                SpecGraph::new(ProcedureSpecification::empty(trait_query.referred_def_id()))
+            });
+        
+        let refined_graph = impl_spec_graph.refine(&trait_spec_graph);
 
-        self.refined_specs.insert(*impl_query, refined);
+        self.refined_specs.insert(*impl_query, refined_graph);
         self.get_proc_spec(impl_query)
     }
 
     fn get_proc_spec<'a>(&'a self, query: &SpecQuery<'tcx>) -> Option<&'a ProcedureSpecification> {
-        self.refined_specs.get(query).or_else(|| {
+        self.refined_specs.get(query).map(|graph| &graph.base_spec).or_else(|| {
             self.user_typed_specs
                 .get_proc_spec(&query.referred_def_id())
                 .map(|spec| &spec.base_spec)
         })
     }
-
     pub fn get_proc_spec_constrained<'a>(
         &'a self,
         query: &SpecQuery<'tcx>,
     ) -> Option<Vec<&'a ProcedureSpecification>> {
-        self.user_typed_specs
-            .get_proc_spec(&query.referred_def_id())
+        self.refined_specs.get(query)
             .map(|spec| {
                 spec.specs_with_constraints
                     .iter()
@@ -215,6 +220,18 @@ impl<'tcx> Specifications<'tcx> {
                         SpecConstraintKind::ResolveGenericParamTraitBounds(_) => v,
                     })
                     .collect()
+            })
+            .or_else(|| {
+                self.user_typed_specs
+                    .get_proc_spec(&query.referred_def_id())
+                    .map(|spec| {
+                        spec.specs_with_constraints
+                            .iter()
+                            .map(|(k, v)| match k {
+                                SpecConstraintKind::ResolveGenericParamTraitBounds(_) => v,
+                            })
+                            .collect()
+                    })
             })
     }
 
