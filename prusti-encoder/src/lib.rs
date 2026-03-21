@@ -24,8 +24,8 @@ use crate::encoders::{
     custom::PairUseEnc,
     ty::{
         generics::{
-            GArgsCastEnc, sized_trait::SizedTraitEnc, r#trait::TraitEnc, trait_fn::TraitFnEnc,
-            trait_impls::TraitImplEnc, tuple_trait::TupleTraitEnc,
+            GArgsCastEnc, SizedTraitEnc, TupleTraitEnc, r#trait::TraitEnc, trait_fn::TraitFnEnc,
+            trait_impls::TraitImplEnc,
         },
         interpretation::bitvec::BitVecEnc,
         lifted::{TyConstructorEnc, TypeOfEnc},

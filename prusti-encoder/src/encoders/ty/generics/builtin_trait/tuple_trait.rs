@@ -1,40 +1,25 @@
-use crate::{
-    TaskEncoder,
-    encoders::ty::{RustTy, generics::trait_impls::TraitImplEnc},
+use crate::encoders::ty::generics::{
+    GParams, builtin_trait::BuiltinTraitEnc, trait_impls::TraitImplEnc,
 };
-use prusti_rustc_interface::middle::ty;
+use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
+use task_encoder::EncodeFullError;
 
-struct TupleTrait;
+pub struct TupleTrait;
 
 impl super::BuiltinTrait for TupleTrait {
-    const NAME: &'static str = "Tuple";
-    const ARGS: <(vir::ManyTyVal, vir::ManyCSnap) as vir::Arity>::Tys<'static> =
-        (&[vir::TYPE_TYVAL], &[]);
-    type Encoder = TupleTraitEnc;
-}
+    task_encoder::encoder_cache!(BuiltinTraitEnc<TupleTrait>);
 
-pub struct TupleTraitEnc;
-
-impl TaskEncoder for TupleTraitEnc {
-    task_encoder::encoder_cache!(TupleTraitEnc);
-    type TaskDescription<'vir> = RustTy<'vir>;
-
-    type OutputFullLocal<'vir> = Option<vir::ExprBool<'vir>>;
-
-    fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
-        *task
+    fn def_id() -> DefId {
+        vir::with_vcx(|vcx| vcx.tcx().lang_items().tuple_trait().unwrap())
     }
 
-    fn do_encode_full<'vir>(
-        task_key: &Self::TaskKey<'vir>,
-        deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
-    ) -> task_encoder::EncodeFullResult<'vir, Self> {
-        assert!(!task_key.specifics.is_param());
-        deps.emit_output_ref(*task_key, ())?;
-
+    fn does_impl<'vir>(
+        deps: &mut task_encoder::TaskEncoderDependencies<'vir, BuiltinTraitEnc<Self>>,
+        ctx: GParams<'vir>,
+        ty: ty::Ty<'vir>,
+    ) -> Result<Option<vir::ExprBool<'vir>>, EncodeFullError<'vir, BuiltinTraitEnc<Self>>> {
         vir::with_vcx(|vcx| {
             let tcx = vcx.tcx();
-            let ty = task_key.erased_ty_for_sizedness();
 
             let tuple_trait_did = tcx.lang_items().tuple_trait().unwrap();
 
@@ -44,21 +29,12 @@ impl TaskEncoder for TupleTraitEnc {
                     tuple_trait_did,
                     tcx.mk_args_trait(ty, std::iter::empty()),
                 );
-                Some(TraitImplEnc::impl_block_check(
-                    vcx,
-                    deps,
-                    task_key.params,
-                    impls_tuple,
-                )?)
+                Some(TraitImplEnc::impl_block_check(vcx, deps, ctx, impls_tuple)?)
             } else {
                 None
             };
 
-            Ok((check, ()))
+            Ok(check)
         })
-    }
-
-    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        super::emit_builtin_trait_outputs::<TupleTrait>(program);
     }
 }

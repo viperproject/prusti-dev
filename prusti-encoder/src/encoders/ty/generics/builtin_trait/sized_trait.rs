@@ -1,97 +1,67 @@
-use crate::{
-    TaskEncoder,
-    encoders::ty::{
-        RustTy,
-        generics::{GParams, trait_impls::TraitImplEnc},
-    },
+use crate::encoders::ty::generics::{
+    GParams, builtin_trait::BuiltinTraitEnc, trait_impls::TraitImplEnc,
 };
 use prusti_rustc_interface::middle::{ty, ty::Upcast};
 use task_encoder::EncodeFullError;
 
-struct SizedTrait;
+use prusti_rustc_interface::span::def_id::DefId;
+pub struct SizedTrait;
 
 impl super::BuiltinTrait for SizedTrait {
-    const NAME: &'static str = "Sized";
-    const ARGS: <(vir::ManyTyVal, vir::ManyCSnap) as vir::Arity>::Tys<'static> =
-        (&[vir::TYPE_TYVAL], &[]);
-    type Encoder = SizedTraitEnc;
-}
+    task_encoder::encoder_cache!(BuiltinTraitEnc<SizedTrait>);
 
-pub struct SizedTraitEnc;
-
-impl TaskEncoder for SizedTraitEnc {
-    task_encoder::encoder_cache!(SizedTraitEnc);
-    type TaskDescription<'vir> = RustTy<'vir>;
-
-    type OutputFullLocal<'vir> = Option<vir::ExprBool<'vir>>;
-
-    fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
-        *task
+    fn def_id() -> DefId {
+        vir::with_vcx(|vcx| vcx.tcx().lang_items().sized_trait().unwrap())
     }
 
-    fn do_encode_full<'vir>(
-        task_key: &Self::TaskKey<'vir>,
-        deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
-    ) -> task_encoder::EncodeFullResult<'vir, Self> {
-        assert!(!task_key.specifics.is_param());
-        deps.emit_output_ref(*task_key, ())?;
-
+    fn does_impl<'vir>(
+        deps: &mut task_encoder::TaskEncoderDependencies<'vir, BuiltinTraitEnc<Self>>,
+        ctx: GParams<'vir>,
+        ty: ty::Ty<'vir>,
+    ) -> Result<Option<vir::ExprBool<'vir>>, EncodeFullError<'vir, BuiltinTraitEnc<Self>>> {
         vir::with_vcx(|vcx| {
-            let ty = task_key.erased_ty_for_sizedness();
             let sizedness = sizedness_for_ty(vcx.tcx(), ty);
             let check = match sizedness {
                 Sizedness::Unsized => None,
-                Sizedness::Sized => {
-                    Some(Self::sizedness_check(vcx, deps, task_key.params, ty, None)?)
+                Sizedness::Sized => Some(sizedness_check(vcx, deps, ctx, ty, None)?),
+                Sizedness::Dependent(dep_ty) => {
+                    Some(sizedness_check(vcx, deps, ctx, ty, Some(dep_ty))?)
                 }
-                Sizedness::Dependent(dep_ty) => Some(Self::sizedness_check(
-                    vcx,
-                    deps,
-                    task_key.params,
-                    ty,
-                    Some(dep_ty),
-                )?),
             };
 
-            Ok((check, ()))
+            Ok(check)
         })
-    }
-
-    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        super::emit_builtin_trait_outputs::<SizedTrait>(program);
     }
 }
 
-impl SizedTraitEnc {
-    fn sizedness_check<'vir>(
-        vcx: &'vir vir::VirCtxt<'vir>,
-        deps: &mut task_encoder::TaskEncoderDependencies<'vir, SizedTraitEnc>,
-        impl_ctx: GParams<'vir>,
-        impl_ty: ty::Ty<'vir>,
-        depended_on: Option<ty::Ty<'vir>>,
-    ) -> Result<vir::ExprBool<'vir>, EncodeFullError<'vir, SizedTraitEnc>> {
-        let tcx = vcx.tcx();
+fn sizedness_check<'vir>(
+    vcx: &'vir vir::VirCtxt<'vir>,
+    deps: &mut task_encoder::TaskEncoderDependencies<'vir, BuiltinTraitEnc<SizedTrait>>,
+    impl_ctx: GParams<'vir>,
+    impl_ty: ty::Ty<'vir>,
+    depended_on: Option<ty::Ty<'vir>>,
+) -> Result<vir::ExprBool<'vir>, EncodeFullError<'vir, BuiltinTraitEnc<SizedTrait>>> {
+    let tcx = vcx.tcx();
 
-        let sized_did = tcx.lang_items().sized_trait().unwrap();
+    let sized_did = tcx.lang_items().sized_trait().unwrap();
 
-        let impls_sized = ty::TraitRef::new_from_args(
-            tcx,
-            sized_did,
-            tcx.mk_args_trait(impl_ty, std::iter::empty()),
-        );
+    let impls_sized = ty::TraitRef::new_from_args(
+        tcx,
+        sized_did,
+        tcx.mk_args_trait(impl_ty, std::iter::empty()),
+    );
 
-        let param_env = ty::ParamEnv::new(
-            tcx.mk_clauses(
-                depended_on
-                    .map(|dep_ty| ty::TraitRef::new(tcx, sized_did, [dep_ty]).upcast(tcx))
-                    .as_slice(),
-            ),
-        );
+    let param_env = ty::ParamEnv::new(
+        tcx.mk_clauses(
+            depended_on
+                .map(|dep_ty| ty::TraitRef::new(tcx, sized_did, [dep_ty]).upcast(tcx))
+                .as_slice(),
+        ),
+    );
 
-        let impl_ctx = GParams::new(impl_ctx.rust_params(), param_env, false);
+    let impl_ctx = GParams::new(impl_ctx.rust_params(), param_env, false);
 
-        TraitImplEnc::impl_block_check(vcx, deps, impl_ctx, impls_sized)
-    }
+    TraitImplEnc::impl_block_check(vcx, deps, impl_ctx, impls_sized)
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]

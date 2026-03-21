@@ -212,7 +212,7 @@ pub struct RustTyDatas;
 impl<'tcx> TyDatas<'tcx> for RustTyDatas {
     type TyData = RustTyData<'tcx>;
     type PrimitiveData = ty::Ty<'tcx>;
-    type ParamData = ();
+    type ParamData = RustParamData;
     type ArrayData = LazyRustTy<'tcx>;
     type ImmRefData = LazyRustTy<'tcx>;
     type MutRefData = LazyRustTy<'tcx>;
@@ -252,11 +252,11 @@ impl<'tcx> RustTyData<'tcx> {
         self.name.as_str()
     }
 
-    /// NOTE: this is a temporary hack to get the `ty::Ty` for the `SizedTraitEnc`. Should not be
-    /// used in other places
-    pub(super) fn erased_ty_for_sizedness(&self) -> ty::Ty<'tcx> {
+    /// NOTE: a hack to get the `ty::Ty` to the encoders for special traits like `Sized` or `Tuple`.
+    /// Should not be used for other purposes
+    pub(super) fn erased_ty_for_special_traits(&self) -> ty::Ty<'tcx> {
         self.erased_ty
-            .expect("erased_ty should be Some for the `Sized` trait encoder")
+            .expect("should be `Some` when called in special trait encoders")
     }
 }
 
@@ -283,6 +283,14 @@ pub struct RustVariantData {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RustEnumData<'tcx> {
     pub discr: ty::Ty<'tcx>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum RustParamData {
+    /// Represents actual type parameters.
+    Generic,
+    /// Represents a trait object (`dyn Trait`).
+    Dyn,
 }
 
 // Internal methods
@@ -371,6 +379,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             ty::TyKind::FnPtr(..) => String::from("FnPtr"),
             ty::TyKind::Array(..) => String::from("Array"),
             ty::TyKind::Slice(..) => String::from("Slice"),
+            ty::TyKind::Dynamic(..) => String::from("Dyn"),
             other => unimplemented!("ty_name for {:?}", other),
         }
     }
@@ -446,7 +455,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
                     Self::args_from_generics([region.into(), ty.into()]),
                 )
             }
-            ty::TyKind::Alias(_, _) | ty::TyKind::Param(_) => {
+            ty::TyKind::Alias(_, _) | ty::TyKind::Param(_) | ty::TyKind::Dynamic(..) => {
                 let gty = TySpecifics::new_param_ty(0);
                 let gargs = Self::args_from_tys([gty]);
                 // Note: an `Alias` is turned into a `Param` here with the alias
@@ -455,10 +464,19 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             }
             ty::TyKind::Closure(did, args) => {
                 let identity = ty::List::identity_for_item(tcx, did);
+                // We only want to fully erase the parent information
+                let parts = ty::ClosureArgsParts {
+                    parent_args: identity.as_closure().parent_args(),
+                    closure_kind_ty: tcx.erase_regions(args.as_closure().kind_ty()),
+                    closure_sig_as_fn_ptr_ty: tcx
+                        .erase_regions(args.as_closure().sig_as_fn_ptr_ty()),
+                    tupled_upvars_ty: tcx.erase_regions(args.as_closure().tupled_upvars_ty()),
+                };
+                let erased = ty::ClosureArgs::new(tcx, parts);
                 let gargs = tcx.mk_args(identity.as_closure().parent_args());
                 let args = tcx.mk_args(args.as_closure().parent_args());
                 (
-                    ty::Ty::new_closure(tcx, did, identity),
+                    ty::Ty::new_closure(tcx, did, erased.args),
                     GParams::new(gargs, tcx.param_env(did), is_trait_extern_spec),
                     args,
                 )
@@ -527,7 +545,9 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
             },
             // TODO: add raw pointer support
             ty::TyKind::RawPtr(..) => TySpecifics::mk_opaque(()),
-            ty::TyKind::Alias(..) | ty::TyKind::Param(_) => TySpecifics::mk_param(()),
+            ty::TyKind::Alias(..) | ty::TyKind::Param(_) => {
+                TySpecifics::mk_param(RustParamData::Generic)
+            }
             ty::TyKind::Closure(_, args) => {
                 let captured = args.as_closure().upvar_tys();
                 let fields = vir::with_vcx(|vcx| {
@@ -551,6 +571,9 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
             }
             // TODO: add str support
             ty::TyKind::Str => TySpecifics::mk_opaque(()),
+            // TODO: give dyn Trait a type witness parameter (the concrete type behind the
+            // pointer), enabling virtual dispatch and distinguishing dyn TraitA from dyn TraitB.
+            ty::TyKind::Dynamic(..) => TySpecifics::mk_param(RustParamData::Dyn),
             _ => TySpecifics::mk_opaque(()),
         }
     }

@@ -1,7 +1,7 @@
 use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use rustc_hash::FxHashMap;
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies};
-use vir::{Arity, FunctionIdn, vir_format_identifier};
+use vir::{FunctionIdn, vir_format_identifier};
 
 use crate::encoders::ty::{
     RustTyDecomposition,
@@ -20,6 +20,8 @@ pub struct TraitEncOutputRef<'vir> {
     pub assoc_consts:
         FxHashMap<DefId, FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Snap>>,
     pub impl_fun: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
+    pub impl_for_unknown_fun:
+        FunctionIdn<'vir, (vir::Int, vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
 }
 
 #[derive(Debug, Clone)]
@@ -103,11 +105,21 @@ impl TaskEncoder for TraitEnc {
                 }
             }
 
-            let impl_fun = Self::trait_impl_idn(
-                vcx,
-                trait_name,
-                (trait_generics.ty_args(), trait_generics.const_args()),
+            let impl_fun = FunctionIdn::new(
+                vir_format_identifier!(vcx, "{trait_name}_impl"),
+                trait_args,
+                vir::TYPE_BOOL,
             );
+            let impl_for_unknown_fun = {
+                // Omit the `Self` type as it is known to be the unknown type
+                let ty_args = &trait_args.0[1..];
+                let const_args = trait_args.1;
+                FunctionIdn::new(
+                    vir_format_identifier!(vcx, "{trait_name}_impl_for_unknown"),
+                    (vir::TYPE_INT, ty_args, const_args),
+                    vir::TYPE_BOOL,
+                )
+            };
 
             // Emit the impl function reference early, so that it can be used to encode caller
             // bounds without causing dependency cycles.
@@ -118,6 +130,7 @@ impl TaskEncoder for TraitEnc {
                     assoc_types,
                     assoc_consts,
                     impl_fun,
+                    impl_for_unknown_fun,
                 },
             )?;
 
@@ -131,8 +144,6 @@ impl TaskEncoder for TraitEnc {
                 return Ok((None, ()));
             }
 
-            let impl_for_unknown_idn = Self::trait_unknown_impl_idn(vcx, trait_name, trait_args);
-
             let impl_fun_body = {
                 let mut trait_impl_checks: Vec<_> = tcx
                     .all_impls(*task_key)
@@ -143,8 +154,7 @@ impl TaskEncoder for TraitEnc {
                     })
                     .collect();
 
-                // Case for unknown types
-                {
+                let unknown_type_check = {
                     let self_expr = trait_generics.ty_exprs()[0];
 
                     let is_unknown_type = vcx
@@ -153,18 +163,17 @@ impl TaskEncoder for TraitEnc {
                     let extracted_id =
                         TyConstructorEnc::unknown_type_id_accessor(vcx).call()(self_expr);
 
-                    let unknown_impls = impl_for_unknown_idn(
+                    let unknown_impls = impl_for_unknown_fun(
                         extracted_id,
                         &trait_generics.ty_exprs()[1..],
                         trait_generics.const_exprs(),
                     );
 
-                    let unknown_check = vir::expr! { vcx;
+                    vir::expr! { vcx;
                          (is_unknown_type) && (unknown_impls)
-                    };
-
-                    trait_impl_checks.push(unknown_check);
-                }
+                    }
+                };
+                trait_impl_checks.push(unknown_type_check);
 
                 vcx.mk_disj(&trait_impl_checks)
             };
@@ -180,11 +189,11 @@ impl TaskEncoder for TraitEnc {
                 None,
             );
 
-            let impl_for_unknown_fun = vcx.mk_domain_function(impl_for_unknown_idn, false, None);
+            let impl_for_unknown_fun = vcx.mk_domain_function(impl_for_unknown_fun, false, None);
             dom_funcs.push(impl_for_unknown_fun);
 
             let trait_domain = vcx.mk_domain(
-                Self::trait_domain_idn(vcx, trait_name),
+                vir_format_identifier!(vcx, "trait_{trait_name}"),
                 &[],
                 &[],
                 vcx.alloc_slice(&dom_funcs),
@@ -203,40 +212,6 @@ impl TaskEncoder for TraitEnc {
 }
 
 impl TraitEnc {
-    pub(super) fn trait_impl_idn<'vir, 'a>(
-        vcx: &'vir vir::VirCtxt<'vir>,
-        trait_name: &'a str,
-        args: <(vir::ManyTyVal, vir::ManyCSnap) as Arity>::Tys<'vir>,
-    ) -> FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool> {
-        FunctionIdn::new(
-            vir_format_identifier!(vcx, "{trait_name}_impl"),
-            args,
-            vir::TYPE_BOOL,
-        )
-    }
-
-    pub(super) fn trait_unknown_impl_idn<'vir, 'a>(
-        vcx: &'vir vir::VirCtxt<'vir>,
-        trait_name: &'a str,
-        args: <(vir::ManyTyVal, vir::ManyCSnap) as Arity>::Tys<'vir>,
-    ) -> FunctionIdn<'vir, (vir::Int, vir::ManyTyVal, vir::ManyCSnap), vir::Bool> {
-        // Omit the `Self` type as it is known to be the unknown type
-        let ty_args = &args.0[1..];
-        let const_args = args.1;
-        FunctionIdn::new(
-            vir_format_identifier!(vcx, "{trait_name}_impl_for_unknown"),
-            (vir::TYPE_INT, ty_args, const_args),
-            vir::TYPE_BOOL,
-        )
-    }
-
-    pub(super) fn trait_domain_idn<'vir, 'a>(
-        vcx: &'vir vir::VirCtxt<'vir>,
-        trait_name: &'a str,
-    ) -> vir::ViperIdent<'vir> {
-        vir_format_identifier!(vcx, "trait_{trait_name}")
-    }
-
     pub(super) fn trait_params<'tcx>(trait_did: DefId) -> GParams<'tcx> {
         GParams::from(trait_did).with_suffix("trait")
     }
