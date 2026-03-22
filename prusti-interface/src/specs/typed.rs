@@ -818,34 +818,34 @@ impl<T: Refinable + Clone> Refinable for SpecGraph<T> {
         // Clone base_spec for use in fallback before consuming it
         let base_spec_for_fallback = self.base_spec.clone();
         let base_spec = self.base_spec.refine(&other.base_spec);
-        
+
         let mut specs_with_constraints = FxHashMap::default();
-        
+
         // Refine constrained specs from trait with corresponding impl specs
         for (constraint, trait_constrained_spec) in &other.specs_with_constraints {
-            let impl_constrained_spec = self.specs_with_constraints
+            let impl_constrained_spec = self
+                .specs_with_constraints
                 .get(constraint)
                 .cloned()
                 .unwrap_or_else(|| base_spec_for_fallback.clone());
-            
+
             let refined_constrained = impl_constrained_spec.refine(trait_constrained_spec);
             specs_with_constraints.insert(constraint.clone(), refined_constrained);
         }
-        
+
         // Add any impl-only constrained specs that weren't in the trait
         for (constraint, impl_constrained_spec) in self.specs_with_constraints {
-            if !specs_with_constraints.contains_key(&constraint) {
-                specs_with_constraints.insert(constraint, impl_constrained_spec);
-            }
+            specs_with_constraints
+                .entry(constraint)
+                .or_insert(impl_constrained_spec);
         }
-        
+
         SpecGraph {
             base_spec,
             specs_with_constraints,
         }
     }
 }
-
 
 /// Identical to `prusti_specs::ExternSpecKind` or `ExternSpecDeclaration` but
 /// implements required traits.
