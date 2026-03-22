@@ -13,12 +13,20 @@ use crate::encoders::ty::{
 /// `Iterator_impl(T) && Iterator_assoc_type_Item(T) == i32_type()`
 pub struct ClausesEnc;
 
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub struct ClausesEncTask<'tcx> {
+    /// The GParams that provides the bounds to encode
+    pub gparams: GParams<'tcx>,
+    /// Substitutions to apply to the bounds
+    pub substs: ty::GenericArgsRef<'tcx>,
+}
+
 impl TaskEncoder for ClausesEnc {
     task_encoder::encoder_cache!(ClausesEnc);
 
     const ENCODER_NAME: &'static str = "clauses encoder";
 
-    type TaskDescription<'vir> = GParams<'vir>;
+    type TaskDescription<'vir> = ClausesEncTask<'vir>;
 
     type OutputFullDependency<'vir> = vir::ExprBool<'vir>;
 
@@ -31,19 +39,21 @@ impl TaskEncoder for ClausesEnc {
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
         deps.emit_output_ref(*task_key, ())?;
-        let clauses = task_key.typing_env().param_env.caller_bounds();
+        let clauses = task_key.gparams.typing_env().param_env.caller_bounds();
 
         let mut checks = Vec::new();
 
         vir::with_vcx(|vcx| {
             for clause in clauses {
+                let clause = ty::EarlyBinder::bind(clause).instantiate(vcx.tcx(), task_key.substs);
+
                 match clause.kind().skip_binder() {
                     ty::ClauseKind::Trait(trait_pred) => {
                         let trait_ = deps.require_ref::<TraitEnc>(trait_pred.def_id()).unwrap();
 
                         let args = deps
                             .require_dep::<GArgsTyEnc>(GArgs::new(
-                                *task_key,
+                                task_key.gparams,
                                 trait_pred.trait_ref.args,
                             ))
                             .unwrap();
@@ -58,7 +68,7 @@ impl TaskEncoder for ClausesEnc {
 
                         let args = deps
                             .require_dep::<GArgsTyEnc>(GArgs::new(
-                                *task_key,
+                                task_key.gparams,
                                 proj_pred.projection_term.args,
                             ))
                             .unwrap();
@@ -69,9 +79,10 @@ impl TaskEncoder for ClausesEnc {
                                     args.get_ty(),
                                     args.get_const(),
                                 );
-                                let decomp = RustTyDecomposition::from_ty(ty, *task_key);
-                                let gparams =
-                                    deps.require_dep::<GenericParamsEnc>(*task_key).unwrap();
+                                let decomp = RustTyDecomposition::from_ty(ty, task_key.gparams);
+                                let gparams = deps
+                                    .require_dep::<GenericParamsEnc>(task_key.gparams)
+                                    .unwrap();
                                 let ty_expr = gparams.ty_expr(deps, decomp);
                                 checks.push(vcx.mk_eq_expr(projection, ty_expr));
                             }

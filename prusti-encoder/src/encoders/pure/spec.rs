@@ -17,7 +17,10 @@ use crate::encoders::{
     mir_pure::{ExprInput, PureKind},
     ty::{
         RustTyDecomposition,
-        generics::{GParams, caller_bounds::ClausesEnc},
+        generics::{
+            GParams,
+            clauses::{ClausesEnc, ClausesEncTask},
+        },
         use_pure::TyUsePureEnc,
     },
 };
@@ -191,7 +194,13 @@ impl TaskEncoder for MirSpecEnc {
                 .refined_pres
                 .first()
                 .or(specs.refined_posts.first())
-                .map(|did| deps.require_dep::<ClausesEnc>(GParams::from(*did)))
+                .map(|did| {
+                    let refined_gparams = GParams::from(*did);
+                    deps.require_dep::<ClausesEnc>(ClausesEncTask {
+                        gparams: refined_gparams,
+                        substs, // Substitute the known types
+                    })
+                })
                 .transpose()?;
 
             let not_refine_spec_cond = refine_spec_cond.map(|cond| {

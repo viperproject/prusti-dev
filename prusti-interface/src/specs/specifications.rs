@@ -160,7 +160,6 @@ impl<'tcx> Specifications<'tcx> {
 
         match RefinementContext::try_from(tcx, &query) {
             Some(context) => {
-                eprintln!("Performing refinement for {query:?} based on {context:?}");
                 let refined =
                     self.perform_proc_spec_refinement(context.impl_query, &context.trait_query);
                 assert!(
@@ -194,7 +193,7 @@ impl<'tcx> Specifications<'tcx> {
             .unwrap_or_else(|| {
                 SpecGraph::new(ProcedureSpecification::empty(trait_query.referred_def_id()))
             });
-        
+
         let refined_graph = impl_spec_graph.refine(&trait_spec_graph);
 
         self.refined_specs.insert(*impl_query, refined_graph);
@@ -202,17 +201,21 @@ impl<'tcx> Specifications<'tcx> {
     }
 
     fn get_proc_spec<'a>(&'a self, query: &SpecQuery<'tcx>) -> Option<&'a ProcedureSpecification> {
-        self.refined_specs.get(query).map(|graph| &graph.base_spec).or_else(|| {
-            self.user_typed_specs
-                .get_proc_spec(&query.referred_def_id())
-                .map(|spec| &spec.base_spec)
-        })
+        self.refined_specs
+            .get(query)
+            .map(|graph| &graph.base_spec)
+            .or_else(|| {
+                self.user_typed_specs
+                    .get_proc_spec(&query.referred_def_id())
+                    .map(|spec| &spec.base_spec)
+            })
     }
     pub fn get_proc_spec_constrained<'a>(
         &'a self,
         query: &SpecQuery<'tcx>,
     ) -> Option<Vec<&'a ProcedureSpecification>> {
-        self.refined_specs.get(query)
+        self.refined_specs
+            .get(query)
             .map(|spec| {
                 spec.specs_with_constraints
                     .iter()
