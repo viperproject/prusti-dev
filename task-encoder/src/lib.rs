@@ -126,7 +126,7 @@ pub trait TaskEncoder {
     type EncodingError: Clone + std::fmt::Debug = NeverError;
 
     /// User-presentable name of this encoder.
-    const ENCODER_NAME: &'static str = "<untitled encoder>";
+    const ENCODER_NAME: &'static str;
 
     fn describe_task<'vir>(task: Self::TaskDescription<'vir>) -> String {
         format!("{task:?}")

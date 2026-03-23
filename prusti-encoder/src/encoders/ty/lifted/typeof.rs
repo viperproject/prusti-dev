@@ -17,6 +17,7 @@ pub struct TypeOfEnc;
 
 impl TaskEncoder for TypeOfEnc {
     task_encoder::encoder_cache!(TypeOfEnc);
+    const ENCODER_NAME: &'static str = "typeof encoder";
     type TaskDescription<'tcx> = RustTy<'tcx>;
 
     type TaskKey<'tcx> = Self::TaskDescription<'tcx>;

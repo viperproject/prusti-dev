@@ -170,6 +170,7 @@ impl ConstEnc {
 
 impl TaskEncoder for ConstEnc {
     task_encoder::encoder_cache!(ConstEnc);
+    const ENCODER_NAME: &'static str = "const encoder";
 
     type TaskDescription<'vir> = ConstEncTask<'vir>;
     type OutputFullDependency<'vir> = vir::ExprCSnap<'vir>;

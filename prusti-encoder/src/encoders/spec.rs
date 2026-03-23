@@ -77,6 +77,7 @@ pub struct SpecEncTask {
 
 impl TaskEncoder for SpecEnc {
     task_encoder::encoder_cache!(SpecEnc);
+    const ENCODER_NAME: &'static str = "spec encoder";
 
     type TaskDescription<'vir> = SpecEncTask;
 

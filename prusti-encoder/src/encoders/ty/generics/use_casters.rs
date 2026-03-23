@@ -92,6 +92,7 @@ fn alloc_stmt<'vir>(stmt: vir::StmtKindData<'vir>) -> vir::Stmt<'vir> {
 
 impl TaskEncoder for GArgsCastEnc<Pure> {
     task_encoder::encoder_cache!(GArgsCastEnc<Pure>);
+    const ENCODER_NAME: &'static str = "pure generic args cast encoder";
     type TaskDescription<'tcx> = Option<RustTyNormalized<'tcx>>;
     type OutputFullDependency<'vir> = GArgCaster<'vir, Pure>;
     type OutputFullLocal<'vir> = ();
@@ -121,6 +122,7 @@ impl TaskEncoder for GArgsCastEnc<Pure> {
 
 impl TaskEncoder for GArgsCastEnc<Impure> {
     task_encoder::encoder_cache!(GArgsCastEnc<Impure>);
+    const ENCODER_NAME: &'static str = "impure generic args cast encoder";
     type TaskDescription<'tcx> = Option<RustTyNormalized<'tcx>>;
     type OutputFullDependency<'vir> = GArgCaster<'vir, Impure>;
     type OutputFullLocal<'vir> = ();
