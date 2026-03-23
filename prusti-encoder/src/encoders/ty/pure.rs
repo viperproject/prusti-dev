@@ -207,6 +207,7 @@ pub enum TyPureEncError {}
 
 impl TaskEncoder for TyPureEnc {
     task_encoder::encoder_cache!(TyPureEnc);
+    const ENCODER_NAME: &'static str = "type pure encoder";
     type TaskDescription<'vir> = RustTy<'vir>;
 
     type OutputRef<'vir> = TyPureRef<'vir>;

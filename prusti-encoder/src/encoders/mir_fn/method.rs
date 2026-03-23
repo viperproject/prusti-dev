@@ -56,6 +56,8 @@ impl TaskEncoder for MethodCallEnc {
     type TaskDescription<'tcx> = CallTaskDescription<'tcx>;
     type OutputFullDependency<'vir> = MethodCallEncOutput<'vir>;
 
+    const ENCODER_NAME: &'static str = "method call encoder";
+
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task
     }
@@ -124,6 +126,7 @@ pub enum MethodEncError {}
 
 impl TaskEncoder for MethodEnc {
     task_encoder::encoder_cache!(MethodEnc);
+    const ENCODER_NAME: &'static str = "method encoder";
     type TaskDescription<'tcx> = DefId;
 
     type OutputRef<'vir> = MethodEncOutputRef<'vir>;

@@ -26,6 +26,7 @@ pub struct TraitImplEnc;
 
 impl TaskEncoder for TraitImplEnc {
     task_encoder::encoder_cache!(TraitImplEnc);
+    const ENCODER_NAME: &'static str = "trait impl encoder";
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task

@@ -182,6 +182,7 @@ impl<'vir> MirLocalDefEncTask<'vir> {
 
 impl TaskEncoder for MirLocalDefEnc {
     task_encoder::encoder_cache!(MirLocalDefEnc);
+    const ENCODER_NAME: &'static str = "MIR local def encoder";
 
     type TaskDescription<'vir> = MirLocalDefEncTask<'vir>;
 
