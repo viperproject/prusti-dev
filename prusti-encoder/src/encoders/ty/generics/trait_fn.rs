@@ -50,7 +50,7 @@ impl TaskEncoder for TraitFnEnc {
     );
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for (dom, funcs, methods) in Self::all_outputs_local_no_errors() {
+        for (dom, funcs, methods) in Self::all_outputs_local_no_errors(program) {
             program.add_domain(dom);
             for func in funcs {
                 program.add_function(func);

@@ -198,7 +198,7 @@ impl TaskEncoder for TyImpureEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for output in Self::all_outputs_local_no_errors() {
+        for output in Self::all_outputs_local_no_errors(program) {
             for field in output.fields {
                 program.add_field(field);
             }

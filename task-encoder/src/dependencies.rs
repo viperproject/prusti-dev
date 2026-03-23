@@ -58,6 +58,7 @@ impl<'vir, E: TaskEncoder + 'vir + ?Sized> TaskEncoderDependencies<'vir, E> {
                             "? DependencyError".to_string()
                         }
                         TaskEncoderError::CyclicError => "? CyclicError".to_string(),
+                        TaskEncoderError::PanicError(_) => "? PanicError".to_string(),
                     },
                     Vec::new(),
                 ),

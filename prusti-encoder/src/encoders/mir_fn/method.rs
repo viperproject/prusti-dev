@@ -342,7 +342,7 @@ impl TaskEncoder for MethodEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for output in Self::all_outputs_local_no_errors() {
+        for output in Self::all_outputs_local_no_errors(program) {
             program.add_method(output.method);
         }
     }

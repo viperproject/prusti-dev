@@ -1,6 +1,7 @@
 #![feature(rustc_private)]
 #![feature(associated_type_defaults)]
 
+use core::panic;
 use hashlink::LinkedHashMap;
 use prusti_rustc_interface::span::Span;
 use std::cell::RefCell;
@@ -23,6 +24,7 @@ pub struct Program<'vir> {
     methods: Vec<vir::Method<'vir>>,
 
     code: String,
+    encoder_errors: Vec<String>,
 }
 
 impl<'vir> Program<'vir> {
@@ -77,6 +79,10 @@ impl<'vir> Program<'vir> {
                 vcx.alloc_slice(&self.methods),
             )
         })
+    }
+
+    pub fn encoder_errors(&mut self) -> &mut Vec<String> {
+        &mut self.encoder_errors
     }
 }
 
@@ -265,8 +271,51 @@ pub trait TaskEncoder {
             return in_cache;
         }
 
-        let mut deps = TaskEncoderDependencies::new();
-        let encode_result = Self::do_encode_full(&task_key, &mut deps);
+        let value = task_key.clone();
+        let catch_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(move || {
+            let mut deps = TaskEncoderDependencies::new();
+            let encode_result = Self::do_encode_full(&value, &mut deps);
+            (encode_result, deps)
+        }));
+
+        let (encode_result, deps) = catch_result.map_err(|panic_payload| {
+            // There was a panic within the encoder. We want to report it
+            // and return an error to the caller.
+            let msg = if let Some(s) = panic_payload.downcast_ref::<&str>() {
+                s.to_string()
+            } else if let Some(s) = panic_payload.downcast_ref::<String>() {
+                s.clone()
+            } else {
+                "<unknown panic>".to_string()
+            };
+            let error = TaskEncoderError::PanicError(msg);
+            Self::with_cache(|cache| {
+                let mut cache = cache.borrow_mut();
+                match cache.get(&task_key) {
+                    Some(TaskEncoderCacheState::Started { output_ref }) => {
+                        let output_ref = output_ref.clone();
+                        cache.insert(
+                            task_key.clone(),
+                            TaskEncoderCacheState::ErrorEncode {
+                                output_ref,
+                                deps: TaskEncoderDependencies::new(),
+                                error: error.clone(),
+                                output_dep: None,
+                            },
+                        );
+                    }
+                    _ => {
+                        cache.insert(
+                            task_key.clone(),
+                            TaskEncoderCacheState::ErrorEnqueue {
+                                error: error.clone(),
+                            },
+                        );
+                    }
+                }
+            });
+            error
+        })?;
 
         let output_ref = Self::with_cache(|cache| match cache.borrow().get(&task_key) {
             Some(
@@ -484,29 +533,28 @@ pub trait TaskEncoder {
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self>;
 
-    #[track_caller]
-    fn all_outputs_local_no_errors<'vir>() -> Vec<Self::OutputFullLocal<'vir>>
+    fn all_outputs_local_no_errors<'vir>(
+        program: &mut Program<'vir>,
+    ) -> Vec<Self::OutputFullLocal<'vir>>
     where
         Self: 'vir,
     {
         let (outputs, errored) = Self::all_outputs_local();
-        assert!(
-            errored.is_empty(),
-            "Encoder {} has errored outputs: {:?}",
-            Self::ENCODER_NAME,
-            errored
-        );
+        for (key, error) in errored {
+            program.encoder_errors.push(format!(
+                "encoder '{}' failed to encode {:?}:\n {:?}",
+                Self::ENCODER_NAME,
+                key,
+                error
+            ));
+        }
         outputs
     }
 
     #[allow(clippy::type_complexity)]
     fn all_outputs_local<'vir>() -> (
         Vec<Self::OutputFullLocal<'vir>>,
-        Vec<(
-            Self::TaskKey<'vir>,
-            Self::OutputRef<'vir>,
-            TaskEncoderError<Self>,
-        )>,
+        Vec<(Self::TaskKey<'vir>, TaskEncoderError<Self>)>,
     )
     where
         Self: 'vir,
@@ -519,10 +567,9 @@ pub trait TaskEncoder {
                     TaskEncoderCacheState::Encoded { output_local, .. } => {
                         outputs.push(output_local.clone());
                     }
-                    TaskEncoderCacheState::ErrorEncode {
-                        output_ref, error, ..
-                    } => {
-                        errored.push((key.clone(), output_ref.clone(), error.clone()));
+                    TaskEncoderCacheState::ErrorEncode { error, .. }
+                    | TaskEncoderCacheState::ErrorEnqueue { error } => {
+                        errored.push((key.clone(), error.clone()));
                     }
                     _ => panic!("task encoder not completed: {key:?}"),
                 }
