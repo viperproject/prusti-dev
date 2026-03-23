@@ -28,6 +28,7 @@ impl<'vir> task_encoder::OutputRefAny for IndirectPredicatesEncOutputRef<'vir> {
 
 impl TaskEncoder for IndirectPredicatesEnc {
     task_encoder::encoder_cache!(IndirectPredicatesEnc);
+    const ENCODER_NAME: &'static str = "indirect predicates encoder";
 
     type TaskDescription<'vir> = LifetimeProjection<'vir, RustTyDecomposition<'vir>>;
 

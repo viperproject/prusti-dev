@@ -34,6 +34,7 @@ impl<'vir> OutputRefAny for TraitFnEncOutputRef<'vir> {}
 
 impl TaskEncoder for TraitFnEnc {
     task_encoder::encoder_cache!(TraitFnEnc);
+    const ENCODER_NAME: &'static str = "trait fn encoder";
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task

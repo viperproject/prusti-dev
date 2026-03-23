@@ -56,6 +56,7 @@ pub struct TyConstructorEnc;
 
 impl TaskEncoder for TyConstructorEnc {
     task_encoder::encoder_cache!(TyConstructorEnc);
+    const ENCODER_NAME: &'static str = "type constructor encoder";
     type TaskDescription<'tcx> = RustTy<'tcx>;
 
     type OutputRef<'vir> = TyConstructorEncOutputRef<'vir>;
