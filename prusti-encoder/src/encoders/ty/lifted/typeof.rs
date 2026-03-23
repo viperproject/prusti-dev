@@ -53,7 +53,7 @@ impl TaskEncoder for TypeOfEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let typeof_fns = Self::all_outputs_local_no_errors();
+        let typeof_fns = Self::all_outputs_local_no_errors(program);
         vir::with_vcx(|vcx| {
             let domain = vcx.mk_domain(
                 vir::ViperIdent::new("TypeOf"),
