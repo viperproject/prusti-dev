@@ -283,6 +283,7 @@ impl<'vir> GenericParams<'vir> {
 
 impl TaskEncoder for GenericParamsEnc {
     task_encoder::encoder_cache!(GenericParamsEnc);
+    const ENCODER_NAME: &'static str = "generic params encoder";
     type TaskDescription<'tcx> = GParams<'tcx>;
     type OutputFullDependency<'vir> = GenericParams<'vir>;
 

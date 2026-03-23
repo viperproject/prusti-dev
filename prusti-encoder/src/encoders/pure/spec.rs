@@ -112,6 +112,7 @@ pub enum MirSpecEncMode {
 
 impl TaskEncoder for MirSpecEnc {
     task_encoder::encoder_cache!(MirSpecEnc);
+    const ENCODER_NAME: &'static str = "MIR spec encoder";
 
     type TaskDescription<'tcx> = (
         DefId, // The function annotated with specs

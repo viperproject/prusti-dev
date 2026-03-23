@@ -86,6 +86,7 @@ pub struct MirBuiltinEncOutput<'vir> {
 
 impl TaskEncoder for MirBuiltinEnc {
     task_encoder::encoder_cache!(MirBuiltinEnc);
+    const ENCODER_NAME: &'static str = "MIR builtin encoder";
 
     type TaskDescription<'vir> = MirBuiltinEncTask<'vir>;
 

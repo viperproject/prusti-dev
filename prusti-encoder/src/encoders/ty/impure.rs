@@ -112,6 +112,7 @@ pub struct TyImpureEncLocal<'vir> {
 
 impl TaskEncoder for TyImpureEnc {
     task_encoder::encoder_cache!(TyImpureEnc);
+    const ENCODER_NAME: &'static str = "type impure encoder";
     type TaskDescription<'vir> = RustTy<'vir>;
 
     type OutputRef<'vir> = TyImpureRef<'vir>;

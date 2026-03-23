@@ -103,6 +103,7 @@ pub type TyUseImpureEnc = TyUseEnc<Impure>;
 
 impl TaskEncoder for TyUseImpureEnc {
     task_encoder::encoder_cache!(TyUseImpureEnc);
+    const ENCODER_NAME: &'static str = "impure type use encoder";
 
     type TaskDescription<'vir> = super::RustTyDecomposition<'vir>;
 

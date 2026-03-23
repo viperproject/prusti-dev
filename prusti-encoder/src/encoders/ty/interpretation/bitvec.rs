@@ -21,6 +21,7 @@ pub struct BitVecEnc;
 
 impl TaskEncoder for BitVecEnc {
     task_encoder::encoder_cache!(BitVecEnc);
+    const ENCODER_NAME: &'static str = "bitvec encoder";
 
     type TaskDescription<'vir> = BitVecSize;
 

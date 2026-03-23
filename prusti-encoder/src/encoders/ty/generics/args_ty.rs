@@ -30,6 +30,7 @@ impl<'vir> GArgsTy<'vir> {
 
 impl TaskEncoder for GArgsTyEnc {
     task_encoder::encoder_cache!(GArgsTyEnc);
+    const ENCODER_NAME: &'static str = "generic args type encoder";
     type TaskDescription<'tcx> = GArgs<'tcx>;
     type OutputFullDependency<'vir> = GArgsTy<'vir>;
 

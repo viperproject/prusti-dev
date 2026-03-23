@@ -49,6 +49,7 @@ impl<'vir, P: PurityCasters> task_encoder::OutputRefAny for GArgCasters<'vir, P>
 
 impl TaskEncoder for CastersEnc<Pure> {
     task_encoder::encoder_cache!(CastersEnc<Pure>);
+    const ENCODER_NAME: &'static str = "pure casters encoder";
 
     type TaskDescription<'vir> = (RustTy<'vir>, RustTy<'vir>);
     type OutputRef<'vir> = GArgCasters<'vir, Pure>;
@@ -199,6 +200,7 @@ impl TaskEncoder for CastersEnc<Pure> {
 
 impl TaskEncoder for CastersEnc<Impure> {
     task_encoder::encoder_cache!(CastersEnc<Impure>);
+    const ENCODER_NAME: &'static str = "impure casters encoder";
 
     type TaskDescription<'vir> = (RustTy<'vir>, RustTy<'vir>);
     type OutputRef<'vir> = GArgCasters<'vir, Impure>;
