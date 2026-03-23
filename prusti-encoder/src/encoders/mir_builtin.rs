@@ -131,7 +131,7 @@ impl TaskEncoder for MirBuiltinEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for output in Self::all_outputs_local_no_errors() {
+        for output in Self::all_outputs_local_no_errors(program) {
             for function in output.functions {
                 program.add_function(function);
             }

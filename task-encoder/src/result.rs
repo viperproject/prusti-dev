@@ -62,6 +62,7 @@ pub enum TaskEncoderError<E: TaskEncoder + ?Sized> {
     EncodingError(<E as TaskEncoder>::EncodingError),
     DependencyError(Vec<(&'static str, String, Vec<Span>)>),
     CyclicError,
+    PanicError(String),
 }
 
 impl<E: TaskEncoder + ?Sized> std::fmt::Debug for TaskEncoderError<E>
@@ -75,6 +76,7 @@ where
             Self::EnqueueingError(err) => helper.field("EnqueueingError", err),
             Self::DependencyError(stack) => helper.field("DependencyError", stack),
             Self::CyclicError => helper.field("CyclicError", &""),
+            Self::PanicError(msg) => helper.field("PanicError", msg),
         };
         helper.finish()
     }
@@ -88,6 +90,7 @@ impl<E: TaskEncoder + ?Sized> Clone for TaskEncoderError<E> {
             Self::EnqueueingError(err) => Self::EnqueueingError(err.clone()),
             Self::DependencyError(stack) => Self::DependencyError(stack.clone()),
             Self::CyclicError => Self::CyclicError,
+            Self::PanicError(msg) => Self::PanicError(msg.clone()),
         }
     }
 }
