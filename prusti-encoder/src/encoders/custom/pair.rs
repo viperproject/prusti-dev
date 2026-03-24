@@ -13,6 +13,7 @@ pub struct PairUse<'vir> {
 
 impl TaskEncoder for PairUseEnc {
     task_encoder::encoder_cache!(PairUseEnc);
+    const ENCODER_NAME: &'static str = "pair use encoder";
     type TaskDescription<'vir> = Vec<vir::TypeDyn<'vir>>;
     type OutputFullDependency<'vir> = PairUse<'vir>;
 
@@ -63,6 +64,7 @@ struct PairEnc;
 
 impl TaskEncoder for PairEnc {
     task_encoder::encoder_cache!(PairEnc);
+    const ENCODER_NAME: &'static str = "pair encoder";
 
     type TaskDescription<'vir> = usize;
     type OutputFullDependency<'vir> = Pair<'vir>;
@@ -115,7 +117,7 @@ impl TaskEncoder for PairEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let outputs = Self::all_outputs_local_no_errors();
+        let outputs = Self::all_outputs_local_no_errors(program);
         for output in outputs {
             program.add_adt(output);
         }

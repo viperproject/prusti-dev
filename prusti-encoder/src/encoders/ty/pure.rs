@@ -207,6 +207,7 @@ pub enum TyPureEncError {}
 
 impl TaskEncoder for TyPureEnc {
     task_encoder::encoder_cache!(TyPureEnc);
+    const ENCODER_NAME: &'static str = "type pure encoder";
     type TaskDescription<'vir> = RustTy<'vir>;
 
     type OutputRef<'vir> = TyPureRef<'vir>;
@@ -285,7 +286,7 @@ impl TaskEncoder for TyPureEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for output in Self::all_outputs_local_no_errors() {
+        for output in Self::all_outputs_local_no_errors(program) {
             program.add_function(output.unreachable_to_snap);
             for function in output.functions {
                 program.add_function(function);

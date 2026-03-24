@@ -49,6 +49,7 @@ impl<'vir, P: PurityCasters> task_encoder::OutputRefAny for GArgCasters<'vir, P>
 
 impl TaskEncoder for CastersEnc<Pure> {
     task_encoder::encoder_cache!(CastersEnc<Pure>);
+    const ENCODER_NAME: &'static str = "pure casters encoder";
 
     type TaskDescription<'vir> = (RustTy<'vir>, RustTy<'vir>);
     type OutputRef<'vir> = GArgCasters<'vir, Pure>;
@@ -189,7 +190,7 @@ impl TaskEncoder for CastersEnc<Pure> {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for output in Self::all_outputs_local_no_errors() {
+        for output in Self::all_outputs_local_no_errors(program) {
             for function in output {
                 program.add_function(function);
             }
@@ -199,6 +200,7 @@ impl TaskEncoder for CastersEnc<Pure> {
 
 impl TaskEncoder for CastersEnc<Impure> {
     task_encoder::encoder_cache!(CastersEnc<Impure>);
+    const ENCODER_NAME: &'static str = "impure casters encoder";
 
     type TaskDescription<'vir> = (RustTy<'vir>, RustTy<'vir>);
     type OutputRef<'vir> = GArgCasters<'vir, Impure>;
@@ -307,7 +309,7 @@ impl TaskEncoder for CastersEnc<Impure> {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for output in Self::all_outputs_local_no_errors() {
+        for output in Self::all_outputs_local_no_errors(program) {
             for method in output {
                 program.add_method(method);
             }

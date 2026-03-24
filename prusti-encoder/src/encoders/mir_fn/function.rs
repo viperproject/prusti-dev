@@ -59,6 +59,7 @@ impl<'vir> FunctionCallEncOutput<'vir> {
 
 impl TaskEncoder for FunctionCallEnc {
     task_encoder::encoder_cache!(FunctionCallEnc);
+    const ENCODER_NAME: &'static str = "function call encoder";
     type TaskDescription<'tcx> = CallTaskDescription<'tcx>;
     type OutputFullDependency<'vir> = FunctionCallEncOutput<'vir>;
 
@@ -133,6 +134,7 @@ pub enum FunctionEncError {}
 
 impl TaskEncoder for FunctionEnc {
     task_encoder::encoder_cache!(FunctionEnc);
+    const ENCODER_NAME: &'static str = "function encoder";
     type TaskDescription<'tcx> = DefId;
 
     type OutputRef<'vir> = FunctionEncOutputRef<'vir>;
@@ -257,7 +259,7 @@ impl TaskEncoder for FunctionEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for output in Self::all_outputs_local_no_errors() {
+        for output in Self::all_outputs_local_no_errors(program) {
             program.add_function(output.caller);
             program.add_function(output.function);
         }

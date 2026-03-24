@@ -86,6 +86,7 @@ pub struct MirBuiltinEncOutput<'vir> {
 
 impl TaskEncoder for MirBuiltinEnc {
     task_encoder::encoder_cache!(MirBuiltinEnc);
+    const ENCODER_NAME: &'static str = "MIR builtin encoder";
 
     type TaskDescription<'vir> = MirBuiltinEncTask<'vir>;
 
@@ -130,7 +131,7 @@ impl TaskEncoder for MirBuiltinEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for output in Self::all_outputs_local_no_errors() {
+        for output in Self::all_outputs_local_no_errors(program) {
             for function in output.functions {
                 program.add_function(function);
             }

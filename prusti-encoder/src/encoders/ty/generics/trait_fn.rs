@@ -34,6 +34,7 @@ impl<'vir> OutputRefAny for TraitFnEncOutputRef<'vir> {}
 
 impl TaskEncoder for TraitFnEnc {
     task_encoder::encoder_cache!(TraitFnEnc);
+    const ENCODER_NAME: &'static str = "trait fn encoder";
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task
@@ -49,7 +50,7 @@ impl TaskEncoder for TraitFnEnc {
     );
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for (dom, funcs, methods) in Self::all_outputs_local_no_errors() {
+        for (dom, funcs, methods) in Self::all_outputs_local_no_errors(program) {
             program.add_domain(dom);
             for func in funcs {
                 program.add_function(func);

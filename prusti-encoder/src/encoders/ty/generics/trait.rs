@@ -5,7 +5,11 @@ use vir::{FunctionIdn, vir_format_identifier};
 
 use crate::encoders::ty::{
     RustTyDecomposition,
-    generics::{GParams, GenericParamsEnc, trait_impls::TraitImplEnc},
+    generics::{
+        GParams, GenericParamsEnc, 
+        builtin_trait::{SizedTraitEnc, TupleTraitEnc, BuiltinTraitEncTask},
+        trait_impls::TraitImplEnc,
+    },
     lifted::TyConstructorEnc,
     pure::TyPureEnc,
 };
@@ -34,6 +38,7 @@ impl<'vir> OutputRefAny for TraitEncOutputRef<'vir> {}
 
 impl TaskEncoder for TraitEnc {
     task_encoder::encoder_cache!(TraitEnc);
+    const ENCODER_NAME: &'static str = "trait encoder";
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task
@@ -45,7 +50,7 @@ impl TaskEncoder for TraitEnc {
     type OutputFullLocal<'vir> = Option<TraitEncOutput<'vir>>;
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for output in TraitEnc::all_outputs_local_no_errors() {
+        for output in TraitEnc::all_outputs_local_no_errors(program) {
             let Some(output) = output else { continue };
             program.add_domain(output.trait_domain);
             program.add_function(output.impl_fun);
@@ -134,13 +139,14 @@ impl TaskEncoder for TraitEnc {
                 },
             )?;
 
-            // When encoding traits without explicit impl blocks, emitting of the impl block is
-            // handled by their respective encoders
-            let special_traits = {
-                let items = tcx.lang_items();
-                [items.sized_trait().unwrap(), items.tuple_trait().unwrap()]
-            };
-            if special_traits.contains(task_key) {
+            // When encoding builtin traits, emitting of the impl function is handled by
+            // their respective builtin trait encoders. Activate them here.
+            if tcx.lang_items().sized_trait() == Some(*task_key) {
+                deps.require_dep::<SizedTraitEnc>(BuiltinTraitEncTask::Activate)?;
+                return Ok((None, ()));
+            }
+            if tcx.lang_items().tuple_trait() == Some(*task_key) {
+                deps.require_dep::<TupleTraitEnc>(BuiltinTraitEncTask::Activate)?;
                 return Ok((None, ()));
             }
 

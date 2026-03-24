@@ -17,6 +17,7 @@ pub struct TypeOfEnc;
 
 impl TaskEncoder for TypeOfEnc {
     task_encoder::encoder_cache!(TypeOfEnc);
+    const ENCODER_NAME: &'static str = "typeof encoder";
     type TaskDescription<'tcx> = RustTy<'tcx>;
 
     type TaskKey<'tcx> = Self::TaskDescription<'tcx>;
@@ -52,7 +53,7 @@ impl TaskEncoder for TypeOfEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let typeof_fns = Self::all_outputs_local_no_errors();
+        let typeof_fns = Self::all_outputs_local_no_errors(program);
         vir::with_vcx(|vcx| {
             let domain = vcx.mk_domain(
                 vir::ViperIdent::new("TypeOf"),

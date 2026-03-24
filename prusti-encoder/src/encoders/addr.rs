@@ -18,6 +18,7 @@ pub struct RefDataLocal<'vir> {
 
 impl TaskEncoder for RefDataEnc {
     task_encoder::encoder_cache!(RefDataEnc);
+    const ENCODER_NAME: &'static str = "ref data encoder";
     type TaskDescription<'vir> = ();
     type OutputFullLocal<'vir> = RefDataLocal<'vir>;
     type OutputFullDependency<'vir> = RefData<'vir>;
@@ -41,7 +42,7 @@ impl TaskEncoder for RefDataEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let outputs = RefDataEnc::all_outputs_local_no_errors();
+        let outputs = RefDataEnc::all_outputs_local_no_errors(program);
         for output in outputs {
             program.add_function(output.addr_to_ref_fn);
         }

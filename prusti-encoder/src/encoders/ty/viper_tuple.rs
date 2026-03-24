@@ -51,6 +51,7 @@ impl<'vir> ViperTupleEncOutput<'vir> {
 
 impl TaskEncoder for ViperTupleEnc {
     task_encoder::encoder_cache!(ViperTupleEnc);
+    const ENCODER_NAME: &'static str = "Viper tuple encoder";
 
     type TaskDescription<'vir> = (DefId, Vec<ty::Ty<'vir>>);
     type TaskKey<'vir> = RustTyDecomposition<'vir>;

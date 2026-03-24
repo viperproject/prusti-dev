@@ -54,7 +54,37 @@ trait BuiltinTrait: 'static {
 /// logic while delegating trait-specific decisions to the marker type.
 pub struct BuiltinTraitEnc<T>(std::marker::PhantomData<T>);
 
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Hash)]
+pub enum BuiltinTraitEncTask<'a> {
+    Activate,
+    Encode(RustTy<'a>),
+}
+
+#[derive(Clone, Debug)]
+pub struct TraitData<'a> {
+    trait_: <TraitEnc as TaskEncoder>::OutputRef<'a>,
+    trait_generics: GenericParams<'a>,
+}
+impl<'a> TraitData<'a> {
+    fn new(
+        trait_: <TraitEnc as TaskEncoder>::OutputRef<'a>,
+        trait_generics: GenericParams<'a>,
+    ) -> Box<Self> {
+        Box::new(Self {
+            trait_,
+            trait_generics,
+        })
+    }
+}
+
+#[derive(Clone, Debug)]
+pub enum BuiltinTraitEncOutput<'a> {
+    Activated(Box<TraitData<'a>>),
+    TypeCheck(Option<vir::ExprBool<'a>>),
+}
+
 impl<T: BuiltinTrait> TaskEncoder for BuiltinTraitEnc<T> {
+    const ENCODER_NAME: &'static str = "builtin trait encoder";
     // Need to delegate to the `BuiltinTrait` to implement the `with_cache` due to issues
     // described in `task_encoder::encoder_cache!`
     fn with_cache<'vir, F, R>(f: F) -> R
@@ -65,16 +95,8 @@ impl<T: BuiltinTrait> TaskEncoder for BuiltinTraitEnc<T> {
         T::with_cache(f)
     }
 
-    type TaskDescription<'vir> = RustTy<'vir>;
-    type OutputFullLocal<'vir>
-        = (
-        // These will, unfortunately, be copied with every type that the trait encoder is called with
-        <TraitEnc as TaskEncoder>::OutputRef<'vir>,
-        GenericParams<'vir>,
-        Option<vir::ExprBool<'vir>>,
-    )
-    where
-        T: 'vir;
+    type TaskDescription<'vir> = BuiltinTraitEncTask<'vir>;
+    type OutputFullLocal<'vir> = BuiltinTraitEncOutput<'vir>;
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task
@@ -84,40 +106,55 @@ impl<T: BuiltinTrait> TaskEncoder for BuiltinTraitEnc<T> {
         task_key: &Self::TaskKey<'vir>,
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
     ) -> task_encoder::EncodeFullResult<'vir, Self> {
-        assert!(!task_key.specifics.is_param());
         deps.emit_output_ref(*task_key, ())?;
+        match task_key {
+            BuiltinTraitEncTask::Activate => {
+                let trait_did = T::def_id();
+                let trait_ = deps.require_ref::<TraitEnc>(trait_did)?;
 
-        let trait_did = T::def_id();
-        let trait_ = deps.require_ref::<TraitEnc>(trait_did)?;
+                let trait_generics = {
+                    let params = TraitEnc::trait_params(trait_did);
+                    deps.require_dep::<GenericParamsEnc>(params)?
+                };
+                Ok((
+                    (BuiltinTraitEncOutput::Activated(TraitData::new(trait_, trait_generics))),
+                    (),
+                ))
+            }
+            BuiltinTraitEncTask::Encode(rust_ty) => {
+                assert!(!rust_ty.specifics.is_param());
 
-        let trait_generics = {
-            let params = TraitEnc::trait_params(trait_did);
-            deps.require_dep::<GenericParamsEnc>(params)?
-        };
+                let ty = rust_ty.erased_ty_for_buitin_traits();
 
-        let ty = task_key.erased_ty_for_special_traits();
+                let check = T::does_impl(deps, rust_ty.params, ty)?;
 
-        Ok((
-            (
-                trait_,
-                trait_generics,
-                T::does_impl(deps, task_key.params, ty)?,
-            ),
-            (),
-        ))
+                Ok(((BuiltinTraitEncOutput::TypeCheck(check)), ()))
+            }
+        }
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let outputs = Self::all_outputs_local_no_errors();
-        let Some((trait_, trait_generics, _)) = outputs.first() else {
+        let outputs = Self::all_outputs_local_no_errors(program);
+
+        let mut trait_info = None;
+        let mut checks = Vec::new();
+
+        for output in outputs {
+            match output {
+                BuiltinTraitEncOutput::Activated(box data) => {
+                    trait_info = Some((data.trait_, data.trait_generics));
+                }
+                BuiltinTraitEncOutput::TypeCheck(Some(check)) => {
+                    checks.push(check);
+                }
+                _ => {}
+            }
+        }
+        let Some((trait_, trait_generics)) = trait_info else {
             return;
         };
-        vir::with_vcx(|vcx| {
-            let mut checks: Vec<_> = Self::all_outputs_local_no_errors()
-                .into_iter()
-                .filter_map(|(.., check)| check)
-                .collect();
 
+        vir::with_vcx(|vcx| {
             let trait_impl_fun = trait_.impl_fun;
             let trait_impl_for_unknown_fun = trait_.impl_for_unknown_fun;
 

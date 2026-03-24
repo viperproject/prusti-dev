@@ -3,7 +3,7 @@ use vir::{CallableIdn, CastType, FunctionIdn, HasType};
 
 use crate::encoders::ty::{
     RustParamData, RustTy, TySpecifics,
-    generics::{GenericParamsEnc, SizedTraitEnc, TupleTraitEnc},
+    generics::{BuiltinTraitEncTask, GenericParamsEnc, SizedTraitEnc, TupleTraitEnc},
 };
 
 use super::r#typeof::{TypeOfEnc, TypeOfEncOutputRef};
@@ -59,6 +59,7 @@ pub struct TyConstructorEnc;
 
 impl TaskEncoder for TyConstructorEnc {
     task_encoder::encoder_cache!(TyConstructorEnc);
+    const ENCODER_NAME: &'static str = "type constructor encoder";
     type TaskDescription<'tcx> = RustTy<'tcx>;
 
     type OutputRef<'vir> = TyConstructorEncOutputRef<'vir>;
@@ -136,15 +137,16 @@ impl TaskEncoder for TyConstructorEnc {
                 vcx.mk_adt_constructor(type_function_ident.name().to_str(), vcx.alloc_slice(&args));
 
             // NOTE: These calls depend on the ref output of this encoder
-            deps.require_dep::<SizedTraitEnc>(task_key)?;
-            deps.require_dep::<TupleTraitEnc>(task_key)?;
+            let builtin_trait_task = BuiltinTraitEncTask::Encode(task_key);
+            deps.require_dep::<SizedTraitEnc>(builtin_trait_task)?;
+            deps.require_dep::<TupleTraitEnc>(builtin_trait_task)?;
 
             Ok((variant, ()))
         })
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let mut constructors = Self::all_outputs_local_no_errors();
+        let mut constructors = Self::all_outputs_local_no_errors(program);
         vir::with_vcx(|vcx| {
             let args = vcx.alloc_array(&[vcx.mk_local_decl(Self::UNKNOWN_TYPE_ID, vir::TYPE_INT)]);
             constructors.push(vcx.mk_adt_constructor(Self::UNKNOWN_TYPE_NAME, args));

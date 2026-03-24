@@ -36,13 +36,14 @@ pub struct TraitImplEncOutput<'vir> {
 
 impl TaskEncoder for TraitImplEnc {
     task_encoder::encoder_cache!(TraitImplEnc);
+    const ENCODER_NAME: &'static str = "trait impl encoder";
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for (dom, methods) in Self::all_outputs_local_no_errors() {
+        for (dom, methods) in Self::all_outputs_local_no_errors(program) {
             program.add_domain(dom);
             for method in methods {
                 program.add_method(method);

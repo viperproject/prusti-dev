@@ -112,6 +112,7 @@ pub struct TyImpureEncLocal<'vir> {
 
 impl TaskEncoder for TyImpureEnc {
     task_encoder::encoder_cache!(TyImpureEnc);
+    const ENCODER_NAME: &'static str = "type impure encoder";
     type TaskDescription<'vir> = RustTy<'vir>;
 
     type OutputRef<'vir> = TyImpureRef<'vir>;
@@ -197,7 +198,7 @@ impl TaskEncoder for TyImpureEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for output in Self::all_outputs_local_no_errors() {
+        for output in Self::all_outputs_local_no_errors(program) {
             for field in output.fields {
                 program.add_field(field);
             }

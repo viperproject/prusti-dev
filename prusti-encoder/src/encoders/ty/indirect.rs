@@ -28,6 +28,7 @@ impl<'vir> task_encoder::OutputRefAny for IndirectPredicatesEncOutputRef<'vir> {
 
 impl TaskEncoder for IndirectPredicatesEnc {
     task_encoder::encoder_cache!(IndirectPredicatesEnc);
+    const ENCODER_NAME: &'static str = "indirect predicates encoder";
 
     type TaskDescription<'vir> = LifetimeProjection<'vir, RustTyDecomposition<'vir>>;
 
@@ -57,7 +58,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                 // ignore for now). Plus it skips unsupported types if they
                 // don't have lifetimes.
                 _ if ty.args.args().is_empty() => (),
-                TySpecifics::Primitive(_) | TySpecifics::ImmRef(_) => (),
+                TySpecifics::Primitive(_) | TySpecifics::ImmRef(_) | TySpecifics::Builtin(_) => (),
                 // TODO: it's not valid to have nothing for these. We should fix
                 // this by using an opaque predicate to represent potential
                 // indirect stuff. For example:
@@ -128,21 +129,21 @@ impl TaskEncoder for IndirectPredicatesEnc {
                         // TODO: invalid recursion here if the defined struct is
                         // recursive!
                         let field_ty = field_ty.decompose_context(ty.ty.params, ty.args);
-                        let new_projection =
+                        if let Some(new_projection) =
                             LifetimeProjection::new(field_ty, task_key.region(()), None, ())
-                                .unwrap();
-                        let field_indirect =
-                            deps.require_dep::<IndirectPredicatesEnc>(new_projection)?;
-                        predicate_applications.extend(
-                            field_indirect
-                                .predicate_applications
-                                .into_iter()
-                                .map(project),
-                        );
+                        {
+                            let field_indirect =
+                                deps.require_dep::<IndirectPredicatesEnc>(new_projection)?;
+                            predicate_applications.extend(
+                                field_indirect
+                                    .predicate_applications
+                                    .into_iter()
+                                    .map(project),
+                            );
+                        }
                     }
                 }
-                // TODO: recurse into other types
-                _ => {}
+                TySpecifics::EnumLike(..) => todo!(),
             };
             Ok((
                 (),
