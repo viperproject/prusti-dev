@@ -6,8 +6,8 @@ use vir::{FunctionIdn, vir_format_identifier};
 use crate::encoders::ty::{
     RustTyDecomposition,
     generics::{
-        GParams, GenericParamsEnc, 
-        builtin_trait::{SizedTraitEnc, TupleTraitEnc, BuiltinTraitEncTask},
+        GParams, GenericParamsEnc,
+        builtin_trait::{BuiltinTraitEncTask, SizedTraitEnc, TupleTraitEnc},
         trait_impls::TraitImplEnc,
     },
     lifted::TyConstructorEnc,
