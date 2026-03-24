@@ -18,7 +18,7 @@ pub type TupleTraitEnc = BuiltinTraitEnc<tuple_trait::TupleTrait>;
 ///
 /// This trait defines the interface that marker types must implement to work with
 /// `SpecialTraitEnc<T>`. The marker types should be zero-sized structs that are `'static`.
-trait BuiltinTrait: 'static {
+trait BuiltinTrait {
     /// Returns the DefId of this builtin trait.
     fn def_id() -> DefId;
 
@@ -36,14 +36,14 @@ trait BuiltinTrait: 'static {
         ty: ty::Ty<'vir>,
     ) -> Result<Option<vir::ExprBool<'vir>>, EncodeFullError<'vir, BuiltinTraitEnc<Self>>>
     where
-        Self: Sized;
+        Self: Sized + 'static;
 
     /// Provides access to the encoder cache for this builtin trait.
     ///
     /// This should be implemented using the `task_encoder::encoder_cache!` macro.
     fn with_cache<'vir, F, R>(f: F) -> R
     where
-        Self: Sized,
+        Self: Sized + 'static,
         F: FnOnce(&'vir CacheRef<'vir, BuiltinTraitEnc<Self>>) -> R;
 }
 
@@ -83,7 +83,7 @@ pub enum BuiltinTraitEncOutput<'a> {
     TypeCheck(Option<vir::ExprBool<'a>>),
 }
 
-impl<T: BuiltinTrait> TaskEncoder for BuiltinTraitEnc<T> {
+impl<T: BuiltinTrait + 'static> TaskEncoder for BuiltinTraitEnc<T> {
     const ENCODER_NAME: &'static str = "builtin trait encoder";
     // Need to delegate to the `BuiltinTrait` to implement the `with_cache` due to issues
     // described in `task_encoder::encoder_cache!`
@@ -124,7 +124,7 @@ impl<T: BuiltinTrait> TaskEncoder for BuiltinTraitEnc<T> {
             BuiltinTraitEncTask::Encode(rust_ty) => {
                 assert!(!rust_ty.specifics.is_param());
 
-                let ty = rust_ty.erased_ty_for_buitin_traits();
+                let ty = rust_ty.erased_ty_for_builtin_traits();
 
                 let check = T::does_impl(deps, rust_ty.params, ty)?;
 

@@ -254,7 +254,7 @@ impl<'tcx> RustTyData<'tcx> {
 
     /// NOTE: a hack to get the `ty::Ty` to the encoders for builtin traits like `Sized` or `Tuple`.
     /// Should not be used for other purposes
-    pub(super) fn erased_ty_for_buitin_traits(&self) -> ty::Ty<'tcx> {
+    pub(super) fn erased_ty_for_builtin_traits(&self) -> ty::Ty<'tcx> {
         self.erased_ty
             .expect("should be `Some` when called in special trait encoders")
     }
