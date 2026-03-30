@@ -153,7 +153,7 @@ impl<'tcx> LazyRustTy<'tcx> {
     /// removing definitional generics. For example a `Foo<i32>` with definition
     /// `struct Foo<T>(T);` would yield `i32` instead of `T` when called on the
     /// field of `Foo`.
-    pub(super) fn decompose_normalize(&self, args: GArgs<'tcx>) -> RustTyDecomposition<'tcx> {
+    pub fn decompose_normalize(&self, args: GArgs<'tcx>) -> RustTyDecomposition<'tcx> {
         RustTyDecomposition::from_ty(args.normalize(self.0), args.context())
     }
 

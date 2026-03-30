@@ -19,7 +19,7 @@ use prusti_utils::config;
 use task_encoder::TaskEncoder;
 
 use crate::encoders::{
-    Impure, Pure,
+    ConstEnc, Impure, Pure,
     addr::RefDataEnc,
     custom::PairUseEnc,
     ty::{
@@ -104,6 +104,9 @@ pub fn test_entrypoint<'tcx>(
     program.header("type constructors");
     TyConstructorEnc::emit_outputs(&mut program);
     TypeOfEnc::emit_outputs(&mut program);
+
+    program.header("constants");
+    ConstEnc::emit_outputs(&mut program);
 
     program.header("custom");
     PairUseEnc::emit_outputs(&mut program);
