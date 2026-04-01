@@ -287,9 +287,13 @@ impl TaskEncoder for CastersEnc<Impure> {
                 make_generic_pure(concrete_snap, generics.ty_exprs(), generics.const_exprs()),
             );
             let generic_name = param.name();
-            let concrete_frac_field = vcx.mk_field(vir::vir_format!(vcx, "p_{base_name}_frac"), vir::TYPE_PERM);
+            let concrete_frac_field =
+                vcx.mk_field(vir::vir_format!(vcx, "p_{base_name}_frac"), vir::TYPE_PERM);
             let concrete_frac_field_ex = vcx.mk_field_expr(self_expr, concrete_frac_field);
-            let generic_frac_field = vcx.mk_field(vir::vir_format!(vcx, "p_{generic_name}_frac"), vir::TYPE_PERM);
+            let generic_frac_field = vcx.mk_field(
+                vir::vir_format!(vcx, "p_{generic_name}_frac"),
+                vir::TYPE_PERM,
+            );
             let generic_frac_field_ex = vcx.mk_field_expr(self_expr, generic_frac_field);
             let old_concrete_frac = vcx.mk_old_expr(concrete_frac_field_ex);
             let old_generic_frac = vcx.mk_old_expr(generic_frac_field_ex);
@@ -297,8 +301,16 @@ impl TaskEncoder for CastersEnc<Impure> {
                 make_generic_ident,
                 decls,
                 &[],
-                vcx.alloc_slice(&[concrete_predicate, vir::expr!{ acc((self_expr).[concrete_frac_field]) }]),
-                vcx.alloc_slice(&[generic_predicate, vir::expr!{ acc((self_expr).[generic_frac_field]) }, vir::expr!{(old_concrete_frac) == (generic_frac_field_ex)}, make_generic_same_snap]),
+                vcx.alloc_slice(&[
+                    concrete_predicate,
+                    vir::expr! { acc((self_expr).[concrete_frac_field]) },
+                ]),
+                vcx.alloc_slice(&[
+                    generic_predicate,
+                    vir::expr! { acc((self_expr).[generic_frac_field]) },
+                    vir::expr! {(old_concrete_frac) == (generic_frac_field_ex)},
+                    make_generic_same_snap,
+                ]),
                 None,
             );
 
@@ -306,8 +318,16 @@ impl TaskEncoder for CastersEnc<Impure> {
                 make_concrete_ident,
                 decls,
                 &[],
-                vcx.alloc_slice(&[generic_predicate, vir::expr!{ acc((self_expr).[generic_frac_field]) }]),
-                vcx.alloc_slice(&[concrete_predicate, vir::expr!{ acc((self_expr).[concrete_frac_field]) }, vir::expr!{(old_generic_frac) == (concrete_frac_field_ex)}, make_concrete_same_snap]),
+                vcx.alloc_slice(&[
+                    generic_predicate,
+                    vir::expr! { acc((self_expr).[generic_frac_field]) },
+                ]),
+                vcx.alloc_slice(&[
+                    concrete_predicate,
+                    vir::expr! { acc((self_expr).[concrete_frac_field]) },
+                    vir::expr! {(old_generic_frac) == (concrete_frac_field_ex)},
+                    make_concrete_same_snap,
+                ]),
                 None,
             );
             Ok((vec![make_generic, make_concrete], ()))

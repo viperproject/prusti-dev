@@ -24,7 +24,7 @@ pub(crate) fn ty_impure<'vir>(
     _deps: &mut TaskEncoderDependencies<'vir, TyImpureEnc>,
     builder: &mut PredicateBuilder<'vir>,
 ) -> Result<TyImpureRawPtr<'vir>, EncodeFullError<'vir, TyImpureEnc>> {
-    let snap_type = builder.snap_type();
+    let snap_type = builder.csnap_type();
 
     let ref_self_decl = builder.ref_self_decl();
     let ref_self = builder.vcx.mk_local_ex(ref_self_decl);
@@ -51,21 +51,7 @@ pub(crate) fn ty_impure<'vir>(
         );
 
     // Ref-to-snap
-    builder.function_snap = Some(
-        builder
-            .mk_function::<(vir::Ref, vir::ManyTyVal, vir::ManyCSnap), _>(
-                "snap",
-                (ref_self_decl.ty(), builder.params.ty_args(), builder.params.const_args()),
-                snap_type,
-                (ref_self_decl, builder.params.ty_decls(), builder.params.const_decls()),
-                &[vir::expr! { acc([self_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) }],
-                &[],
-                Some(vir::expr! {
-                    unfolding ([self_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) in ([ref_field](ref_self))
-                }),
-            )
-            .1,
-    );
+    builder.mk_snap_function(Some(vir::expr! { [ref_field](ref_self) }));
 
     // Ref-to-Ref
     let deref_func = builder.inner.function(

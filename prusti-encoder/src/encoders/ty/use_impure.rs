@@ -346,9 +346,9 @@ impl<'vir> TyUseImpureData<'vir> {
     pub fn ref_to_pred<'tcx, Curr, Next>(
         &self,
         vcx: &'vir vir::VirCtxt<'tcx>,
-        self_ref: vir::ExprRef<'vir>,
-        perm: Option<vir::ExprPerm<'vir>>,
-    ) -> vir::ExprBool<'vir> {
+        self_ref: vir::ExprGenRef<'vir, Curr, Next>,
+        perm: Option<vir::ExprGenPerm<'vir, Curr, Next>>,
+    ) -> vir::ExprGenBool<'vir, Curr, Next> {
         if self.maybe_inhabited {
             vcx.mk_predicate_app_expr(self.ref_to_pred_app(self_ref, perm))
         } else {
@@ -581,7 +581,7 @@ impl<'vir> TyUseImpureEnum<'vir> {
 }
 
 impl<'vir> TyUseImpureImmRef<'vir> {
-    pub fn snap(&self, self_ref: vir::ExprRef<'vir>) -> vir::ExprCSnap<'vir> {
+    pub fn snap(&self, self_ref: vir::ExprRef<'vir>) -> vir::ExprSnap<'vir> {
         (self.impure.snap)(self_ref, self.args.get_ty(), self.args.get_const())
     }
 }

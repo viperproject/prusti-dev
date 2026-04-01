@@ -14,15 +14,12 @@ use vir::{CastType, HasType, Reify};
 
 use crate::encoders::{
     MirLocalDefEncTask, MirPureEnc,
-    mir_pure::{ExprInput, PureKind},
-    ty::{RustTyDecomposition, generics::GParams, use_pure::TyUsePureEnc},
-    MirLocalDefEncTask,
-    MirPureEnc,
     mir_pure::{
+        ExprInput,
         MirPureEncOutput::{MirPureEncOutputExpr, MirPureEncOutputPred},
         PureKind,
     },
-    ty::{RustTyDecomposition, use_pure::TyUsePureEnc},
+    ty::{RustTyDecomposition, generics::GParams, use_pure::TyUsePureEnc},
 };
 pub struct MirSpecEnc;
 
@@ -297,7 +294,7 @@ impl TaskEncoder for MirSpecEnc {
                                 },
                             )
                             .unwrap()
-                            .expr
+                            .expect_expr()
                             .downcast_ty::<vir::CSnap>()
                         });
                         let rhs_expr = deps

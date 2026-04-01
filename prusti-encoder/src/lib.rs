@@ -19,11 +19,13 @@ use prusti_utils::config;
 use task_encoder::TaskEncoder;
 
 use crate::encoders::{
-    Impure, Pure,
+    ConstEnc, Impure, Pure,
     addr::RefDataEnc,
     custom::PairUseEnc,
     ty::{
-        generics::{GArgsCastEnc, trait_impls::TraitImplEnc, traits::TraitEnc},
+        generics::{
+            GArgsCastEnc, r#trait::TraitEnc, trait_fn::TraitFnEnc, trait_impls::TraitImplEnc,
+        },
         interpretation::bitvec::BitVecEnc,
         lifted::{TyConstructorEnc, TypeOfEnc},
     },
@@ -98,7 +100,6 @@ pub fn test_entrypoint<'tcx>(
 
     program.header("predicates");
     crate::encoders::TyUseImpureEnc::emit_outputs(&mut program);
-    RefDataEnc::emit_outputs(&mut program);
 
     program.header("type constructors");
     TyConstructorEnc::emit_outputs(&mut program);

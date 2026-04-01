@@ -111,7 +111,7 @@ impl<'vir, D: TyDatas<'vir>> TySpecifics<'vir, D> {
     pub fn mk_structlike(data: D::StructData, fields: Vec<D::FieldData>) -> Self {
         Self::StructLike(StructData::new(data, fields))
     }
-    
+
     pub fn mk_rawptr(data: D::RawPtrData) -> Self {
         Self::RawPtr(data)
     }
@@ -310,12 +310,10 @@ impl<'vir, D: TyDatas<'vir>, D2: TyDatas<'vir>> ArrayData<'vir, (D, D2)> {
             ArrayData {
                 slice: self.slice,
                 data: self.data.0.clone(),
-                inhabited: self.inhabited,
             },
             ArrayData {
                 slice: self.slice,
                 data: self.data.1.clone(),
-                inhabited: self.inhabited,
             },
         )
     }
@@ -345,12 +343,10 @@ impl<'vir, D: TyDatas<'vir>, D2: TyDatas<'vir>> StructData<'vir, (D, D2)> {
         (
             StructData {
                 data: (*self.data.0).clone(),
-                inhabited: self.inhabited,
                 fields: fields.0,
             },
             StructData {
                 data: (*self.data.1).clone(),
-                inhabited: self.inhabited,
                 fields: fields.1,
             },
         )
@@ -378,12 +374,10 @@ impl<'vir, D: TyDatas<'vir> + 'vir, D2: TyDatas<'vir> + 'vir> EnumData<'vir, (D,
         (
             EnumData {
                 data: (*self.data.0).clone(),
-                inhabited: self.inhabited,
                 variants: variants.0,
             },
             EnumData {
                 data: (*self.data.1).clone(),
-                inhabited: self.inhabited,
                 variants: variants.1,
             },
         )
@@ -520,11 +514,9 @@ impl<'vir, D: TyDatas<'vir> + 'vir, D2: TyDatas<'vir> + 'vir> $container<'vir, (
         $(let unzipped_field = self.$field.unzip();)?
         ($container {
             data: (*self.data.0).clone(),
-            inhabited: self.inhabited,
             $($field: unzipped_field.0.clone())?
         }, $container {
             data: (*self.data.1).clone(),
-            inhabited: self.inhabited,
             $($field: unzipped_field.1.clone())?
         })
     }

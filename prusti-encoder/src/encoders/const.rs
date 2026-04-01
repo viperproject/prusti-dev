@@ -65,7 +65,8 @@ impl<'enc, 'vir: 'enc> Enc<'enc, 'vir> {
         ty: RustTyDecomposition<'vir>,
     ) -> Result<(vir::ExprRef<'vir>, vir::ExprSnap<'vir>), EncodeFullError<'vir, ConstEnc>> {
         let inner_ty = ty.args.args()[1].expect_ty();
-        let addr_to_ref = self.deps.require_dep::<RefDataEnc>(())?.addr_to_ref;
+        let ref_data_enc = self.deps.require_dep::<RefDataEnc>(())?;
+        let addr_to_ref = ref_data_enc.addr_to_ref;
         vir::with_vcx(|vcx| {
             Ok(if inner_ty.is_str() || inner_ty.is_slice() {
                 let sl_ty = inner_ty.peel_refs();
@@ -91,6 +92,7 @@ impl<'enc, 'vir: 'enc> Enc<'enc, 'vir> {
                     addr_to_ref(
                         vcx.mk_const_expr(vir::ConstData::Int(rel_addr))
                             .downcast_ty(),
+                        vcx.mk_null(),
                     ),
                     snap.upcast_ty(),
                 )

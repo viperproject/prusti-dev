@@ -497,8 +497,8 @@ impl MirBuiltinEnc {
         {
             // TODO other operations
             vir::with_vcx(|vcx| {
-                let l_ty_task = RustTyDecomposition::from_ty(l_ty, vcx.tcx(), GParams::empty()); // TODO: Is this really correct
-                let r_ty_task = RustTyDecomposition::from_ty(r_ty, vcx.tcx(), GParams::empty());
+                let l_ty_task = RustTyDecomposition::from_ty(l_ty, GParams::empty()); // TODO: Is this really correct
+                let r_ty_task = RustTyDecomposition::from_ty(r_ty, GParams::empty());
                 let res_ty_task = RustTyDecomposition::from_prim_ty(res_ty);
                 let e_l_ty = deps.require_dep::<TyUsePureEnc>(l_ty_task)?;
                 let e_r_ty = deps.require_dep::<TyUsePureEnc>(r_ty_task)?;

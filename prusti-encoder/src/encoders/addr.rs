@@ -97,7 +97,7 @@ impl TaskEncoder for RefDataEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let outputs = RefDataEnc::all_outputs_local_no_errors();
+        let outputs = RefDataEnc::all_outputs_local_no_errors(program);
         for output in outputs {
             program.add_function(output.addr_to_ref_fn);
             program.add_function(output.ref_to_addr_fn);

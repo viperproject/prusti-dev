@@ -170,7 +170,9 @@ pub(crate) fn ty_impure_variant<'vir>(
                 addr_of_fn.call()(ref_self).upcast_ty(),
                 offset,
             );
-            let frac_field = builder.vcx.mk_field(builder.vcx.alloc_str("p_Param_frac"), vir::TYPE_PERM);
+            let frac_field = builder
+                .vcx
+                .mk_field(builder.vcx.alloc_str("p_Param_frac"), vir::TYPE_PERM);
             [
                 field.ref_to_pred(builder.vcx, self_ref, None),
                 vir::expr! {acc((self_ref).[frac_field])},

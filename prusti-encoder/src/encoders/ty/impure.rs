@@ -1,7 +1,7 @@
 use std::ops::{Deref, DerefMut};
 
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CastType, FunctionIdn, HasType, MethodIdn, PredicateIdn};
+use vir::{CallableIdn, CastType, FunctionIdn, HasType, MethodIdn, PredicateIdn};
 
 use crate::encoders::{Impure, addr::RefDataEnc, ty::use_impure::TyUseImpure};
 
@@ -39,7 +39,7 @@ pub type TyImpureRawPtr<'vir> = <ImpureTyDatas as TyDatas<'vir>>::RawPtrData;
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyImpureImmRefData<'vir> {
-    pub snap: FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::CSnap>,
+    pub snap: FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -231,7 +231,7 @@ impl TaskEncoder for TyImpureEnc {
                     vir::expr! { ((zero_perms) < (frac)) && ((frac) <= (full_perms)) },
                     vir::expr! { acc((ref_self).[frac_field]) },
                     vir::expr! { ((zero_perms) < (ref_self_frac)) && ((ref_self_frac) <= (full_perms)) },
-                    vir::expr! { acc([self_pred_ident](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]), [ref_self_frac]) },
+                    vir::expr! { acc([builder.ref_to_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]), [ref_self_frac]) },
                 ],
                 &[
                     vir::expr! { acc((ref_self).[frac_field]) },
@@ -241,10 +241,10 @@ impl TaskEncoder for TyImpureEnc {
                     vir::expr! { (ref_self) == ([parent_of_ref_fun](child)) },
                     vir::expr! { (ref_self_frac_old) == (ref_self_frac_old_using_add) },
                     vir::expr! { (child_frac) == (frac) },
-                    vir::expr! { ((zero_perms) < (ref_self_frac)) ==> (acc([self_pred_ident](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]), [ref_self_frac])) },
-                    vir::expr! { acc([self_pred_ident](child, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]), [frac]) },
-                    vir::expr! { ([snap_func_ident](child, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) == (old([snap_func_ident](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]))) },
-                    vir::expr! { ((zero_perms) < (ref_self_frac)) ==> (([snap_func_ident](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) == (old([snap_func_ident](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])))) }
+                    vir::expr! { ((zero_perms) < (ref_self_frac)) ==> (acc([builder.ref_to_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]), [ref_self_frac])) },
+                    vir::expr! { acc([builder.ref_to_pred](child, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]), [frac]) },
+                    vir::expr! { ([builder.ref_to_snap](child, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) == (old([builder.ref_to_snap](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]))) },
+                    vir::expr! { ((zero_perms) < (ref_self_frac)) ==> (([builder.ref_to_snap](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) == (old([builder.ref_to_snap](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])))) }
                 ],
             );
 
@@ -286,7 +286,7 @@ impl TaskEncoder for TyImpureEnc {
                     vir::expr! { acc((ref_self).[frac_field]) },
                     vir::expr! { acc((child).[frac_field]) },
                     vir::expr! { ((zero_perms) < (new_frac)) && ((new_frac) <= (full_perms)) },
-                    vir::expr! { acc([self_pred_ident](child, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]), [frac]) },
+                    vir::expr! { acc([builder.ref_to_pred](child, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]), [frac]) },
                     vir::expr! { ([addr_of_ref_fun](ref_self)) == ([addr_of_ref_fun](child)) },
                     vir::expr! { (child) == ([base_of_ref_fun](child)) },
                     vir::expr! { (ref_self) == ([parent_of_ref_fun](child)) },
@@ -294,10 +294,18 @@ impl TaskEncoder for TyImpureEnc {
                 &[
                     vir::expr! { acc((ref_self).[frac_field]) },
                     vir::expr! { (ref_self_frac) == (old(new_frac)) },
-                    vir::expr! { acc([self_pred_ident](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]), [frac]) },
-                    vir::expr! { ([snap_func_ident](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) == (old([snap_func_ident](child, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]))) },
+                    vir::expr! { acc([builder.ref_to_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]), [frac]) },
+                    vir::expr! { ([builder.ref_to_snap](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) == (old([builder.ref_to_snap](child, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]))) },
                 ]
             );
+            let data = TyImpureRef {
+                ref_to_pred: builder.ref_to_pred,
+                ref_to_snap: builder.ref_to_snap.cast_ty(builder.ref_to_snap.arity()),
+                method_assign,
+                method_block,
+                method_unblock,
+            };
+            deps.emit_output_ref(*task_key, data)?;
 
             let specifics = match &ty.specifics {
                 TySpecifics::Param(param) => {
@@ -324,24 +332,14 @@ impl TaskEncoder for TyImpureEnc {
                 TySpecifics::EnumLike(enumlike) => TySpecifics::EnumLike(
                     super::kinds::enumlike::ty_impure(&ty, enumlike, deps, &mut builder)?,
                 ),
-                TySpecifics::Builtin((_, TyPureBuiltinData::TyPureBuiltinReal(..))) => {
-                    TySpecifics::Builtin(super::interpretation::real::ty_impure(
-                        (),
-                        deps,
-                        &mut builder,
-                    )?)
-                }
+                TySpecifics::Builtin(builtin) => TySpecifics::Builtin(
+                    super::kinds::builtin::ty_impure(builtin, deps, &mut builder)?,
+                ),
                 TySpecifics::RawPtr(rawptr) => TySpecifics::RawPtr(
                     super::kinds::rawptr::ty_impure(rawptr, deps, &mut builder)?,
                 ),
             };
-            let data = TyImpureRef {
-                ref_to_pred: self_pred_ident,
-                ref_to_snap: snap_func_ident.cast_ty(snap_func_ident.arity()),
-                method_assign,
-                method_block,
-                method_unblock,
-            };
+
             let output = TyData::new(data, specifics).alloc();
 
             Ok((builder.inner.build(), output))

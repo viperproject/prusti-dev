@@ -296,7 +296,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         fields: &'vir List<(VariantIdx, FieldIdx)>,
     ) -> Result<EncodedRvalue<'vir>, EncodeRvalueError<'vir, E>> {
         let addr_fns = self.deps.require_dep::<RefDataEnc>(())?;
-        let ty_task = RustTyDecomposition::from_ty(base_ty, self.vcx.tcx(), GParams::empty());
+        let ty_task = RustTyDecomposition::from_ty(base_ty, GParams::empty());
 
         let ty_constructor = self.deps.require_ref::<TyConstructorEnc>(ty_task.ty)?;
         let int_ty =
@@ -451,14 +451,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 TyKind::Ref(.., ty::Mutability::Not) => {
                     let (address, snap, _, _) = self.encode_place_with_snap((*place).into());
 
-                    let ty_name = RustTyDecomposition::from_ty(
-                        address.ty.ty,
-                        self.vcx.tcx(),
-                        GParams::empty(),
-                    )
-                    .ty
-                    .name
-                    .as_str();
+                    let ty_name = RustTyDecomposition::from_ty(address.ty.ty, GParams::empty())
+                        .ty
+                        .name
+                        .as_str();
                     let ref_self_frac = self.vcx.mk_field_expr(
                         address.expr.expect_predicate(),
                         self.vcx.mk_field(
@@ -523,7 +519,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
                     EncodedRvalue {
                         pre_assign_stmts: vec![block_stmt],
-                        expr: inner.prim_to_snap(child_expr).upcast_ty(),
+                        expr: inner.prim_to_snap_assign(child_expr).upcast_ty(),
                         post_assign_folds: Some(Box::new(move |lhs_place| {
                             p_rvalue_ty.fold(None, lhs_place, None, None, None)
                         })),
@@ -761,21 +757,18 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     self.encode_place_with_snap(borrow.blocked_place().place());
                 let (child_expr, _, _, _) =
                     self.encode_place_with_snap(borrow.assigned_ref().place());
-                let ty_name = RustTyDecomposition::from_ty(
-                    parent_expr.ty.ty,
-                    self.vcx.tcx(),
-                    GParams::empty(),
-                )
-                .ty
-                .name
-                .as_str();
+                let ty_name = RustTyDecomposition::from_ty(parent_expr.ty.ty, GParams::empty())
+                    .ty
+                    .name
+                    .as_str();
                 let child = self
                     .ty_use_pure(child_expr.ty.ty)
                     .expect_immref()
                     .deref_access(
                         self.ty_use_impure(child_expr.ty.ty)
                             .expect_immref()
-                            .snap(child_expr.expr.expect_predicate()),
+                            .snap(child_expr.expr.expect_predicate())
+                            .downcast_ty(),
                     );
                 let ref_self_frac = self.vcx.mk_field_expr(
                     child,
@@ -1150,7 +1143,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             None,
         )));
 
-        let ty_name = RustTyDecomposition::from_ty(place_ty.ty, self.vcx.tcx(), GParams::empty())
+        let ty_name = RustTyDecomposition::from_ty(place_ty.ty, GParams::empty())
             .ty
             .name
             .as_str();

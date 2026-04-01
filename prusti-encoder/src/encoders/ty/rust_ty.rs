@@ -23,7 +23,7 @@ pub struct RustTyDecomposition<'tcx> {
 }
 
 impl<'tcx, Ctxt: Copy> HasRegions<'tcx, Ctxt> for RustTyDecomposition<'tcx> {
-    fn regions(&self, _ctxt: Ctxt) -> IndexVec<RegionIdx, PcgRegion> {
+    fn regions(&self, _ctxt: Ctxt) -> IndexVec<RegionIdx, PcgRegion<'tcx>> {
         self.args
             .args()
             .iter()
@@ -517,8 +517,10 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
             },
             ty::TyKind::RawPtr(..) => {
                 TySpecifics::mk_rawptr(LazyRustTy(TySpecifics::new_param_ty(1)))
-            },
-            ty::TyKind::Alias(..) | ty::TyKind::Param(_) => TySpecifics::mk_param(RustParamData::Generic),
+            }
+            ty::TyKind::Alias(..) | ty::TyKind::Param(_) => {
+                TySpecifics::mk_param(RustParamData::Generic)
+            }
             ty::TyKind::Closure(_, args) => {
                 let captured = args.as_closure().upvar_tys();
                 let fields = vir::with_vcx(|vcx| {

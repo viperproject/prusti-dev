@@ -32,7 +32,6 @@ use prusti_rustc_interface::{
 };
 use rustc_hash::FxHashMap;
 use std::fmt;
-use std::{collections::HashMap};
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, CompType, add_debug_note};
 
@@ -163,7 +162,7 @@ impl TaskEncoder for MirPureEnc {
                     // We wrap the expression with an additional lazy that will perform
                     // some sanity checks. These requirements cannot be expressed using
                     // only the type system.
-                    let ret = RustTyDecomposition::from_ty(body.return_ty(),  def_id);
+                    let ret = RustTyDecomposition::from_ty(body.return_ty(), def_id);
                     let expr = vcx.mk_lazy_expr(
                         vir::vir_format!(vcx, "pure body {def_id:?}"),
                         deps.require_ref::<TyUsePureEnc>(ret)?.snapshot,
@@ -845,7 +844,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             .map(|arg| self.encode_operand_snap(&arg.node, &new_curr_ver))
                             .collect::<Result<Vec<_>, _>>()?;
                         Ok(MirPureEncOutput::MirPureEncOutputExpr(
-                            pure_func.call(snap_args),
+                            pure_func.call_pure(snap_args),
                         ))
                     } else {
                         panic!("call to unknown non-pure function in pure code ({def_id:?})");
@@ -860,8 +859,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         term_update.add_to_map(&mut new_curr_ver);
 
                         // walk rest of CFG
-                        let end_update =
-                            self.encode_cfg(&new_curr_ver, target, join_point);
+                        let end_update = self.encode_cfg(&new_curr_ver, target, join_point);
 
                         if let Ok(Some(EncodeCfgRes::EncodeCfgResPred(pred, end_update))) =
                             end_update
@@ -922,7 +920,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         fields: &'vir List<(VariantIdx, FieldIdx)>,
     ) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
         let addr_fns = self.deps.require_dep::<RefDataEnc>(())?;
-        let ty_task = RustTyDecomposition::from_ty(base_ty, self.vcx.tcx(), GParams::empty());
+        let ty_task = RustTyDecomposition::from_ty(base_ty, GParams::empty());
 
         let ty_constructor = self.deps.require_ref::<TyConstructorEnc>(ty_task.ty)?;
         let int_ty =
@@ -1093,14 +1091,13 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         EncodedPlace::new(val_expr, encoded_place.place_ref)
                     }
                     TyKind::RawPtr(inner_ty, _) => {
+                        let ty_task = RustTyDecomposition::from_ty(place_ty.ty, self.context);
                         let e_ty = self
                             .deps
                             .require_dep::<TyUsePureEnc>(ty_task)
                             .unwrap()
                             .expect_rawptr();
-                        let inner_ty = vir::with_vcx(|vcx| {
-                            RustTyDecomposition::from_ty(*inner_ty, vcx.tcx(), self.context)
-                        });
+                        let inner_ty = RustTyDecomposition::from_ty(*inner_ty, self.context);
                         let inner_ty_out =
                             self.deps.require_dep::<TyUseImpureEnc>(inner_ty).unwrap();
                         let val_expr =
@@ -1202,10 +1199,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         bin_op: vir::BinOpKind,
         args: &[Spanned<mir::Operand<'vir>>],
         curr_ver: &FxHashMap<mir::Local, Version<'vir>>,
-    ) -> Result<
-        MirPureEncOutput<'vir>,
-        EncodeFullError<'vir, MirPureEnc>,
-    > {
+    ) -> Result<MirPureEncOutput<'vir>, EncodeFullError<'vir, MirPureEnc>> {
         let real = self.ty_use_real();
         let real1 = real.snap_to_perm.call()(
             self.encode_operand_snap(&args[0].node, curr_ver)?
@@ -1225,7 +1219,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         &mut self,
         bin_op: vir::BinOpKind,
         args: &[Spanned<mir::Operand<'vir>>],
-        curr_ver: &HashMap<mir::Local, Version<'vir>>,
+        curr_ver: &FxHashMap<mir::Local, Version<'vir>>,
     ) -> Result<MirPureEncOutput<'vir>, EncodeFullError<'vir, MirPureEnc>> {
         let real = self.ty_use_real();
         let bool = self.ty_use(self.vcx.tcx().types.bool);
@@ -1268,7 +1262,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         _sig: Binder<'vir, FnSig<'vir>>,
         arg_tys: ty::GenericArgsRef<'vir>,
         args: &[Spanned<mir::Operand<'vir>>],
-        curr_ver: &HashMap<mir::Local, Version<'vir>>,
+        curr_ver: &FxHashMap<mir::Local, Version<'vir>>,
     ) -> Result<MirPureEncOutput<'vir>, EncodeFullError<'vir, MirPureEnc>> {
         #[derive(Debug, PartialEq, Eq)]
         enum PrustiBuiltin {
@@ -1697,19 +1691,20 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .deps
                     .require_dep::<TyUseImpureEnc>(RustTyDecomposition::from_ty(
                         arg_tys[0].expect_ty(),
-                        self.vcx.tcx(),
                         GParams::empty(),
                     ))
                     .unwrap();
                 let perm = mk_perm(self.encode_operand_snap(&args[1].node, curr_ver)?);
-                let ty_name = RustTyDecomposition::from_ty(arg_tys[0].expect_ty(), self.vcx.tcx(), self.context).ty.name();
-                let frac_field = self.vcx.mk_field(vir::vir_format!(self.vcx, "p_{ty_name}_frac"), vir::TYPE_PERM);
+                let ty_name = RustTyDecomposition::from_ty(arg_tys[0].expect_ty(), self.context)
+                    .ty
+                    .name();
+                let frac_field = self.vcx.mk_field(
+                    vir::vir_format!(self.vcx, "p_{ty_name}_frac"),
+                    vir::TYPE_PERM,
+                );
                 let acc_frac = self.vcx.mk_acc_field_expr(derefed, frac_field, None);
-                MirPureEncOutput::MirPureEncOutputPred(self.vcx.mk_conj(&[inner_ty.ref_to_pred(
-                    self.vcx,
-                    derefed,
-                    Some(perm),
-                ), acc_frac]))
+                let pred = inner_ty.ref_to_pred(self.vcx, derefed, Some(perm));
+                MirPureEncOutput::MirPureEncOutputPred(self.vcx.mk_conj(&[pred, acc_frac]))
             }
             PrustiBuiltin::PtrAdd => {
                 let addr_fns = self.deps.require_dep::<RefDataEnc>(())?;
