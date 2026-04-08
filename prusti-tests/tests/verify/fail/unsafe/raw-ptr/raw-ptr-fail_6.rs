@@ -8,7 +8,7 @@ fn main() {
 }
 
 
-#[ensures(acc!(*result))]
+#[ensures(acc(*result))]
 #[ensures(unsafe { *result == 5 })]
 fn bar() -> *mut i32 {
     let mut x = 5;

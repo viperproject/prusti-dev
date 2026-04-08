@@ -18,7 +18,7 @@ fn foo() {
 	let mut val = (1, 2);
 	let ptr = &raw mut val.1;
 	bar(ptr);
-	// assert!(val.0 == 1); // would fail
+	//assert!(val.0 == 1); // would fail
  	assert!(val.1 == 2); // OK
 }
 

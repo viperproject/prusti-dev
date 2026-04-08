@@ -1704,7 +1704,25 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 );
                 let acc_frac = self.vcx.mk_acc_field_expr(derefed, frac_field, None);
                 let pred = inner_ty.ref_to_pred(self.vcx, derefed, Some(perm));
-                MirPureEncOutput::MirPureEncOutputPred(self.vcx.mk_conj(&[pred, acc_frac]))
+                let zero_perms = self.vcx
+                    .mk_bin_op_expr(
+                        vir::BinOpKind::FractionalPerm,
+                        self.vcx.mk_const_expr(vir::ConstData::Int(0)),
+                        self.vcx.mk_const_expr(vir::ConstData::Int(1)),
+                    )
+                    .downcast_ty();
+                let full_perms = self.vcx
+                    .mk_bin_op_expr(
+                        vir::BinOpKind::FractionalPerm,
+                        self.vcx.mk_const_expr(vir::ConstData::Int(1)),
+                        self.vcx.mk_const_expr(vir::ConstData::Int(1)),
+                    )
+                    .downcast_ty();
+                let ref_derefed_frac= self.vcx.mk_field_expr(derefed, frac_field);
+                let greater_zero = self.vcx.mk_bin_op_expr(vir::BinOpKind::CmpLt, zero_perms, ref_derefed_frac);
+                let at_most_full = self.vcx.mk_bin_op_expr(vir::BinOpKind::CmpLe, ref_derefed_frac, full_perms);
+                let ref_derefed_frac_expr = self.vcx.mk_bin_op_expr(vir::BinOpKind::And, greater_zero, at_most_full).downcast_ty();
+                MirPureEncOutput::MirPureEncOutputPred(self.vcx.mk_conj(&[pred, acc_frac, ref_derefed_frac_expr]))
             }
             PrustiBuiltin::PtrAdd => {
                 let addr_fns = self.deps.require_dep::<RefDataEnc>(())?;

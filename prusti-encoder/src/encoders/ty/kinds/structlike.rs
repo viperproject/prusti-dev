@@ -170,12 +170,34 @@ pub(crate) fn ty_impure_variant<'vir>(
                 addr_of_fn.call()(ref_self).upcast_ty(),
                 offset,
             );
+            
             let frac_field = builder
                 .vcx
                 .mk_field(builder.vcx.alloc_str("p_Param_frac"), vir::TYPE_PERM);
+
+            // TODO: Saying that permissions have to be between 0 and 1 should only be temporary. We should somehow say that the permissions are equal to the unpacked place.
+            let zero_perms = builder.vcx
+                    .mk_bin_op_expr(
+                        vir::BinOpKind::FractionalPerm,
+                        builder.vcx.mk_const_expr(vir::ConstData::Int(0)),
+                        builder.vcx.mk_const_expr(vir::ConstData::Int(1)),
+                    )
+                    .downcast_ty();
+                let full_perms = builder.vcx
+                    .mk_bin_op_expr(
+                        vir::BinOpKind::FractionalPerm,
+                        builder.vcx.mk_const_expr(vir::ConstData::Int(1)),
+                        builder.vcx.mk_const_expr(vir::ConstData::Int(1)),
+                    )
+                    .downcast_ty();
+            let ref_self_frac = builder.vcx.mk_field_expr(self_ref, frac_field);
+                let greater_zero = builder.vcx.mk_bin_op_expr(vir::BinOpKind::CmpLt, zero_perms, ref_self_frac);
+                let at_most_full = builder.vcx.mk_bin_op_expr(vir::BinOpKind::CmpLe, ref_self_frac, full_perms);
+                let ref_self_frac_expr = builder.vcx.mk_bin_op_expr(vir::BinOpKind::And, greater_zero, at_most_full).downcast_ty();
             [
                 field.ref_to_pred(builder.vcx, self_ref, None),
                 vir::expr! {acc((self_ref).[frac_field])},
+                ref_self_frac_expr,
                 vir::expr! {(base) == (ref_self)},
                 vir::expr! {(zero) <= (addr)},
                 vir::expr! {(addr) <= (usize_bounds)},

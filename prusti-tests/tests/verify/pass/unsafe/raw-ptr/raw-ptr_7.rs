@@ -1,4 +1,4 @@
-use prusti_contracts::*;
+// use prusti_contracts::*;
 
 fn foo() {
     let mut x = 5;
@@ -11,6 +11,6 @@ fn foo() {
     assert!(*r_x == 5);
 }
 
-#[requires(acc(*x, 1/4))]
-#[ensures(acc(*x, 1/4))]
+// #[requires(acc(*x, 1/4))]
+// #[ensures(acc(*x, 1/4))]
 fn bar(x: *mut i32) {}

@@ -8,8 +8,8 @@ fn foo() {
     assert!(*r_x == 6);
 }
 
-#[requires(acc!(*x))]
-#[ensures(acc!(*x))]
+#[requires(acc(*x))]
+#[ensures(acc(*x))]
 #[ensures(unsafe { *x == 6 })]
 fn bar(x: *mut i32) {
     unsafe {
