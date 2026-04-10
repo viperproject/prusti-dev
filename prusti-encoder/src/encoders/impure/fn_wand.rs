@@ -294,8 +294,8 @@ impl<'tcx> WandEncTask<'tcx> {
     pub fn function_shape(
         &self,
         vcx: &vir::VirCtxt<'tcx>,
-    ) -> Result<FunctionShape, MakeFunctionShapeError<'_>> {
-        self.data.shape(None, vcx.tcx())
+    ) -> Result<FunctionShape, MakeFunctionShapeError<'tcx>> {
+        self.data.shape(vcx.tcx())
     }
 }
 
