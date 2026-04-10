@@ -566,7 +566,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         // For each block `b` where the edge is only valid if control flow
         // continues from `b` to a specified subset of its successors, `cond`
         // contains the corresponding VIR expression.
-        let cond = conditions
+        let cond_conjuncts = conditions
             .all_branch_choices()
             .map(|choices| {
                 let successors = choices.successors(self.body);
@@ -581,7 +581,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             .collect::<Vec<_>>();
         // For each block `b` where the edge validity depends on the successor taken from `b`,
         // every successor must be valid.
-        let cond = self.vcx.mk_conj(self.vcx.alloc_slice(&cond));
+        let cond = self.vcx.mk_conj(self.vcx.alloc_slice(&cond_conjuncts));
         let stmts = self.block(|self_| {
             self_.pcs_handle_edge_conditionless(
                 borrows_state,
@@ -596,6 +596,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             || stmts
                 .iter()
                 .all(|stmt| matches!(stmt.kind, vir::StmtKindData::Comment(_)))
+            || cond_conjuncts.is_empty()
         {
             self.stmts(stmts);
             return Ok(());
