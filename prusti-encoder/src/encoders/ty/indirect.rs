@@ -4,7 +4,11 @@ use vir::{CastType, Reify};
 
 use crate::encoders::{TyUseImpureEnc, ty::RustTyDecomposition};
 
-use super::{data::TySpecifics, use_pure::TyUsePureEnc};
+use super::{
+    data::{StructData, TySpecifics},
+    rust_ty::RustTyDatas,
+    use_pure::{TyUsePureEnc, UsePureTyDatas},
+};
 
 pub struct IndirectPredicatesEnc;
 
@@ -52,6 +56,26 @@ impl TaskEncoder for IndirectPredicatesEnc {
             let self_ty_enc = deps.require_dep::<TyUsePureEnc>(ty)?;
             let combined = ty.ty.zip(self_ty_enc);
             let mut predicate_applications = vec![];
+            // Collects (accessor, indirect_predicate) pairs for the fields of a
+            // struct-like (used for structs and enum variants).
+            let collect_field_predicates =
+                |struct_data: StructData<'vir, (RustTyDatas, UsePureTyDatas)>,
+                 deps: &mut TaskEncoderDependencies<'vir, IndirectPredicatesEnc>| {
+                    let mut result = vec![];
+                    for (field_ty, accessor) in struct_data.fields {
+                        let field_ty = field_ty.decompose_context(ty.ty.params, ty.args);
+                        if let Some(new_projection) =
+                            LifetimeProjection::new(field_ty, task_key.region(()), None, ())
+                        {
+                            let field_indirect =
+                                deps.require_dep::<IndirectPredicatesEnc>(new_projection)?;
+                            for inner_expr in field_indirect.predicate_applications {
+                                result.push((accessor, inner_expr));
+                            }
+                        }
+                    }
+                    Ok(result)
+                };
             match combined.specifics {
                 // Optimisation: if there are no type arguments, there cannot be
                 // anything behind a ref inside (except for 'static, which we
@@ -113,37 +137,65 @@ impl TaskEncoder for IndirectPredicatesEnc {
                     }
                 }
                 TySpecifics::StructLike(data) => {
-                    for (field_ty, accessor) in data.fields {
-                        let project = |inner_expr: ExprOutput<'vir>| {
-                            vcx.mk_lazy_expr(
-                                "ref_inner_indirect",
-                                vir::TYPE_BOOL,
-                                Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
-                                    inner_expr
-                                        .reify(vcx, accessor.read(self_expr.downcast_ty()))
-                                        .kind
-                                }),
-                            )
-                        };
-
-                        // TODO: invalid recursion here if the defined struct is
-                        // recursive!
-                        let field_ty = field_ty.decompose_context(ty.ty.params, ty.args);
-                        if let Some(new_projection) =
-                            LifetimeProjection::new(field_ty, task_key.region(()), None, ())
-                        {
-                            let field_indirect =
-                                deps.require_dep::<IndirectPredicatesEnc>(new_projection)?;
-                            predicate_applications.extend(
-                                field_indirect
-                                    .predicate_applications
-                                    .into_iter()
-                                    .map(project),
-                            );
-                        }
+                    // TODO: invalid recursion here if the defined struct is
+                    // recursive!
+                    for (accessor, inner_expr) in collect_field_predicates(data, deps)? {
+                        predicate_applications.push(vcx.mk_lazy_expr(
+                            "struct_field_indirect",
+                            vir::TYPE_BOOL,
+                            Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
+                                inner_expr
+                                    .reify(vcx, accessor.read(self_expr.downcast_ty()))
+                                    .kind
+                            }),
+                        ));
                     }
                 }
-                TySpecifics::EnumLike(..) => todo!(),
+                TySpecifics::EnumLike(data) => {
+                    let snap_to_discr_snap = data.data.1.snap_to_discr_snap;
+
+                    let variant_preds = data
+                        .variants
+                        .into_iter()
+                        .map(|variant| {
+                            let fields = collect_field_predicates(variant.inner, deps)?;
+                            Ok((variant.data.1.discr, fields))
+                        })
+                        .collect::<Result<Vec<_>, _>>()?;
+
+                    if variant_preds.is_empty() {
+                        return Ok(((), IndirectPredicatesEncOutputRef::new(vec![])));
+                    }
+
+                    predicate_applications.push(vcx.mk_lazy_expr(
+                        "enum_variant_indirect",
+                        vir::TYPE_BOOL,
+                        Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
+                            let self_csnap = self_expr.downcast_ty();
+                            let self_discr = snap_to_discr_snap.call()(self_csnap);
+                            let variant_conjs: Vec<_> = variant_preds
+                                .iter()
+                                .map(|(discr, fields)| {
+                                    let preds: Vec<_> = fields
+                                        .iter()
+                                        .map(|(acc, expr)| expr.reify(vcx, acc.read(self_csnap)))
+                                        .collect();
+                                    (discr, vcx.mk_conj(&preds))
+                                })
+                                .collect();
+                            let (first, rest) = variant_conjs.split_first().unwrap();
+                            rest.iter()
+                                .fold(first.1, |else_, (discr, conj)| {
+                                    vcx.mk_ternary_expr(
+                                        vir::expr! { ([self_discr]) == ([*discr]) },
+                                        *conj,
+                                        else_,
+                                    )
+                                })
+                                .kind
+                        }),
+                    ));
+                }
             };
             Ok((
                 (),
