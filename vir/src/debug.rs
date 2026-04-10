@@ -430,10 +430,12 @@ impl<'vir, Curr, Next> Debug for StmtKindGenData<'vir, Curr, Next> {
                     writeln!(f, "  {stmt:indent$?}")?;
                     f.pad("")?;
                 }
-                writeln!(f, "}} else {{")?;
-                for stmt in els.iter() {
-                    writeln!(f, "  {stmt:indent$?}")?;
-                    f.pad("")?;
+                if !els.is_empty() {
+                    writeln!(f, "}} else {{")?;
+                    for stmt in els.iter() {
+                        writeln!(f, "  {stmt:indent$?}")?;
+                        f.pad("")?;
+                    }
                 }
                 write!(f, "}}")
             }
@@ -475,9 +477,9 @@ impl<'vir, Curr, Next> Debug for TerminatorStmtGenData<'vir, Curr, Next> {
                         }
                         writeln!(f, "  goto {:?}", target.label)?;
                         f.pad("")?;
-                        write!(f, "}} else ")?;
+                        write!(f, "}} else")?;
                     }
-                    writeln!(f, "{{")?;
+                    writeln!(f, " {{")?;
                     let indent = indent + 2;
                     for extra in data.otherwise_statements {
                         writeln!(f, "  {extra:indent$?}")?;
