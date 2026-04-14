@@ -985,7 +985,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         .upcast_ty())
                 }
             }
-            mir::Rvalue::RawPtr(_, place) => {
+            mir::Rvalue::RawPtr(kind, place) => if !kind.is_fake() {
                 let rvalue_snapshot_encoding = self.ty_use(rvalue_ty);
                 let encoded_place = self.encode_place_with_ref(curr_ver, (*place).into());
                 let e_rvalue_ty = rvalue_snapshot_encoding.expect_rawptr();
