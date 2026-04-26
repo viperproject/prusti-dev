@@ -137,7 +137,7 @@ impl PrustiError {
             "This is likely to be a bug in Prusti. We would appreciate a bug report: https://github.com/viperproject/prusti-dev/issues/new",
             None
         ).add_note(
-            format!("Details: {}", message.to_string()),
+            message.to_string(),
             None
         );
         if config::internal_errors_as_warnings() {
