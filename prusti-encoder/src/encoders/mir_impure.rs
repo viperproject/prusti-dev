@@ -1214,71 +1214,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn set_from_to_flag(&mut self, from: mir::BasicBlock, to: mir::BasicBlock) -> vir::Stmt<'vir> {
         self.from_to_vars.set_from_to_flag_stmt(self.vcx, from, to)
     }
-}
 
-impl<'vir, 'enc, E: TaskEncoder> PureRvalueEnc<'vir> for ImpureEncVisitor<'vir, 'enc, E> {
-    type Encoder = E;
-    type EncodePlaceCtxt = ();
-    type ExprCurr = ();
-    type ExprNext = !;
-    fn def_id(&self) -> DefId {
-        self.def_id
-    }
-
-    fn deps(&mut self) -> &mut TaskEncoderDependencies<'vir, Self::Encoder> {
-        self.deps
-    }
-
-    fn vcx(&self) -> &'vir vir::VirCtxt<'vir> {
-        self.vcx
-    }
-
-    fn body(&self) -> &mir::Body<'vir> {
-        self.body
-    }
-
-    fn ty_use_pure(&mut self, ty: ty::Ty<'vir>) -> TyUsePure<'vir> {
-        let ty_task = RustTyDecomposition::from_ty(ty, self.def_id);
-        self.deps.require_dep::<TyUsePureEnc>(ty_task).unwrap()
-    }
-
-    fn encode_operand_snap(
+    fn visit_basic_block_data(
         &mut self,
-        operand: &mir::Operand<'vir>,
-        _ctxt: &Self::EncodePlaceCtxt,
-    ) -> Result<vir::ExprSnap<'vir>, EncodeFullError<'vir, E>> {
-        match operand {
-            &mir::Operand::Move(source) => {
-                let (result, snap_val, _, ty_out) =
-                    self.encode_place_with_snap(Place::from(source));
-
-                let tmp_exp = self.new_tmp(ty_out.snapshot());
-                self.stmt(self.vcx.mk_pure_assign_stmt(tmp_exp, snap_val));
-                self.stmt(self.vcx.mk_exhale_stmt(ty_out.ref_to_pred(
-                    self.vcx,
-                    result.expr.expect_predicate(),
-                    None,
-                )));
-                Ok(tmp_exp)
-            }
-            &mir::Operand::Copy(place) => Ok(self.encode_place_with_snap(place.into()).1),
-            mir::Operand::Constant(box constant) => {
-                Ok(self.encode_constant_snap(constant)?.upcast_ty())
-            }
-        }
-    }
-
-    fn encode_place_snap(
-        &mut self,
-        place: Place<'vir>,
-        _ctxt: &Self::EncodePlaceCtxt,
-    ) -> vir::ExprGenSnap<'vir, Self::ExprCurr, Self::ExprNext> {
-        self.encode_place_with_snap(place).1
-    }
-}
-
-impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<'vir, 'enc, E> {
-    fn visit_basic_block_data(&mut self, block: mir::BasicBlock, data: &mir::BasicBlockData<'vir>) {
+        block: mir::BasicBlock,
+        data: &mir::BasicBlockData<'vir>,
+    ) -> Result<(), EncodeFullError<'vir, E>> {
         // We are verifying the absence of panics, so cleanup block should never
         // be reached, or even referenced.
         if data.is_cleanup {
@@ -1292,11 +1233,9 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                         .mk_dummy_stmt(vir::vir_format!(self.vcx, "cleanup block")),
                 ),
             );
-            return;
+            return Ok(());
         }
-        if self.deps.check_cycle().is_err() {
-            return;
-        }
+        self.deps().check_cycle()?;
 
         self.current_stmts = Some(Vec::with_capacity(
             data.statements.len(), // TODO: not exact?
@@ -1343,7 +1282,18 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
         */
 
         assert!(self.current_terminator.is_none());
-        self.super_basic_block_data(block, data);
+        for (index, statement) in data.statements.iter().enumerate() {
+            let location = mir::Location {
+                block,
+                statement_index: index,
+            };
+            self.visit_statement(statement, location)?;
+        }
+        let location = mir::Location {
+            block,
+            statement_index: data.statements.len(),
+        };
+        self.visit_terminator(data.terminator(), location)?;
         let stmts = self.current_stmts.take().unwrap();
         let terminator = self.current_terminator.take().unwrap();
         self.encoded_blocks.push(self.vcx.mk_cfg_block(
@@ -1352,13 +1302,16 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
             self.vcx.alloc_slice(&stmts),
             terminator,
         ));
+        Ok(())
     }
 
-    fn visit_statement(&mut self, statement: &mir::Statement<'vir>, location: mir::Location) {
+    fn visit_statement(
+        &mut self,
+        statement: &mir::Statement<'vir>,
+        location: mir::Location,
+    ) -> Result<(), EncodeFullError<'vir, E>> {
         self.vcx.with_span(statement.source_info.span, |_vcx| {
-            if self.deps.check_cycle().is_err() {
-                return;
-            }
+            self.deps().check_cycle()?;
 
             self.new_before_label(location);
 
@@ -1380,7 +1333,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
             if IGNORE_NOP_STMTS {
                 match &statement.kind {
                     mir::StatementKind::StorageLive(..) | mir::StatementKind::StorageDead(..) => {
-                        return;
+                        return Ok(());
                     }
                     _ => {}
                 }
@@ -1400,7 +1353,7 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                         .expect_predicate();
                     let src_ty = src.ty(self.body(), self.vcx.tcx());
                     let def_id = self.def_id();
-                    let unsize = self.deps().require_ref::<MirBuiltinEnc>(MirBuiltinEncTask::Unsize(src_ty, *ty, def_id)).unwrap().unsize().unwrap();
+                    let unsize = self.deps().require_ref_spanned::<MirBuiltinEnc>(MirBuiltinEncTask::Unsize(src_ty, *ty, def_id), span)?.unsize().unwrap();
                     let params = GParams::from(def_id);
                     let generics = self.deps().require_dep::<GenericParamsEnc>(params).unwrap();
                     self.stmt(self.vcx.alloc(vir::StmtData::new(self.vcx.alloc((unsize.unsize)(
@@ -1473,13 +1426,17 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
                     statement.kind
                 ),
             }
-        });
+            Ok(())
+        })
     }
 
-    fn visit_terminator(&mut self, terminator: &mir::Terminator<'vir>, location: mir::Location) {
-        if self.deps.check_cycle().is_err() {
-            return;
-        }
+    fn visit_terminator(
+        &mut self,
+        terminator: &mir::Terminator<'vir>,
+        location: mir::Location,
+    ) -> Result<(), EncodeFullError<'vir, E>> {
+        self.deps().check_cycle()?;
+
         self.new_before_label(location);
         comment!(self, "[MIR] {location:?}: {:?}", terminator.kind);
         let span = terminator.source_info.span;
@@ -1925,5 +1882,74 @@ impl<'vir, 'enc, E: TaskEncoder> mir::visit::Visitor<'vir> for ImpureEncVisitor<
             }),
         };
         assert!(self.current_terminator.replace(terminator).is_none());
+        Ok(())
+    }
+
+    pub fn visit_body(&mut self, body: &mir::Body<'vir>) -> Result<(), EncodeFullError<'vir, E>> {
+        for (block, data) in body.basic_blocks.iter_enumerated() {
+            self.visit_basic_block_data(block, data)?;
+        }
+        Ok(())
+    }
+}
+
+impl<'vir, 'enc, E: TaskEncoder> PureRvalueEnc<'vir> for ImpureEncVisitor<'vir, 'enc, E> {
+    type Encoder = E;
+    type EncodePlaceCtxt = ();
+    type ExprCurr = ();
+    type ExprNext = !;
+    fn def_id(&self) -> DefId {
+        self.def_id
+    }
+
+    fn deps(&mut self) -> &mut TaskEncoderDependencies<'vir, Self::Encoder> {
+        self.deps
+    }
+
+    fn vcx(&self) -> &'vir vir::VirCtxt<'vir> {
+        self.vcx
+    }
+
+    fn body(&self) -> &mir::Body<'vir> {
+        self.body
+    }
+
+    fn ty_use_pure(&mut self, ty: ty::Ty<'vir>) -> TyUsePure<'vir> {
+        let ty_task = RustTyDecomposition::from_ty(ty, self.def_id);
+        self.deps.require_dep::<TyUsePureEnc>(ty_task).unwrap()
+    }
+
+    fn encode_operand_snap(
+        &mut self,
+        operand: &mir::Operand<'vir>,
+        _ctxt: &Self::EncodePlaceCtxt,
+    ) -> Result<vir::ExprSnap<'vir>, EncodeFullError<'vir, E>> {
+        match operand {
+            &mir::Operand::Move(source) => {
+                let (result, snap_val, _, ty_out) =
+                    self.encode_place_with_snap(Place::from(source));
+
+                let tmp_exp = self.new_tmp(ty_out.snapshot());
+                self.stmt(self.vcx.mk_pure_assign_stmt(tmp_exp, snap_val));
+                self.stmt(self.vcx.mk_exhale_stmt(ty_out.ref_to_pred(
+                    self.vcx,
+                    result.expr.expect_predicate(),
+                    None,
+                )));
+                Ok(tmp_exp)
+            }
+            &mir::Operand::Copy(place) => Ok(self.encode_place_with_snap(place.into()).1),
+            mir::Operand::Constant(box constant) => {
+                Ok(self.encode_constant_snap(constant)?.upcast_ty())
+            }
+        }
+    }
+
+    fn encode_place_snap(
+        &mut self,
+        place: Place<'vir>,
+        _ctxt: &Self::EncodePlaceCtxt,
+    ) -> vir::ExprGenSnap<'vir, Self::ExprCurr, Self::ExprNext> {
+        self.encode_place_with_snap(place).1
     }
 }

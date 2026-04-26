@@ -121,9 +121,8 @@ pub fn test_entrypoint<'tcx>(
         std::fs::write("local-testing/simple.vpr", program.code()).unwrap();
     }
 
-    for error_msg in program.encoder_errors().drain(..) {
-        PrustiError::internal(error_msg, prusti_rustc_interface::span::DUMMY_SP.into())
-            .emit(env_diagnostic);
+    for (error_msg, span) in program.encoder_errors().drain(..) {
+        PrustiError::internal(error_msg, span.into()).emit(env_diagnostic);
     }
 
     let program = program.mk_program();
