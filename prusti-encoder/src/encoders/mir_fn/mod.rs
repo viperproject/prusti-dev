@@ -14,7 +14,11 @@ use crate::encoders::ty::generics::{
 };
 
 use prusti_interface::specs::specifications::SpecQuery;
-use prusti_rustc_interface::{hir, middle::ty, span::def_id::DefId};
+use prusti_rustc_interface::{
+    hir,
+    middle::ty,
+    span::{DUMMY_SP, def_id::DefId},
+};
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -83,7 +87,7 @@ pub fn encode_all_in_crate<'tcx>(tcx: ty::TyCtxt<'tcx>) {
                 .unwrap_or_default();
 
                 if !(is_trusted && is_pure) {
-                    let _ = method::MethodEnc::encode(def_id, false);
+                    let _ = method::MethodEnc::encode(def_id, false, DUMMY_SP);
                 }
             }
             unsupported_item_kind => {
@@ -98,10 +102,10 @@ pub fn encode_all_in_crate<'tcx>(tcx: ty::TyCtxt<'tcx>) {
     for def_id in tcx.hir_crate_items(()).definitions() {
         match tcx.def_kind(def_id) {
             hir::def::DefKind::Trait => {
-                TraitEnc::encode(def_id.to_def_id(), false).unwrap();
+                TraitEnc::encode(def_id.to_def_id(), false, DUMMY_SP).unwrap();
             }
             hir::def::DefKind::Impl { of_trait: true } => {
-                TraitImplEnc::encode(def_id.to_def_id(), false).unwrap();
+                TraitImplEnc::encode(def_id.to_def_id(), false, DUMMY_SP).unwrap();
             }
             _ => (),
         }
