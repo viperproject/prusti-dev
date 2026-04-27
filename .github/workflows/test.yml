@@ -2,7 +2,7 @@ name: Test
 
 on:
   push:
-    branches: [master, rewrite-2023, staging, trying]
+    branches: [master, rewrite-2023, staging, trying, ci-doctests]
     paths-ignore: 'docs/**'
   pull_request:
     branches: [master, rewrite-2023]
@@ -226,6 +226,33 @@ jobs:
   #        python x.py build --release -p test-crates
   #    - name: Test Prusti on a collection of crates
   #      run: ./target/release/test-crates --fail-fast --num-shards=4 --shard-index=${{ matrix.shard_index }}
+
+  # Run Prusti on stdlib doctests
+  # TODO: Switch branch to rewrite-2023
+  doctests:
+    needs: [compile-check]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/ci-doctests'
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '16'
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "shared"
+      - name: Run doctests
+        run: uv run scripts/doctests/run_doctests.py ci
 
   # Dummy job to specify the jobs that must pass before merging on master
   can-merge:
