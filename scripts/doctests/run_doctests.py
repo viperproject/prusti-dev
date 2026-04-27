@@ -26,7 +26,7 @@ import polars as pl
 import analysis
 
 PRUSTI_SERVER_PORT  = 27010
-PRUSTI_SERVER_COUNT = max(1, (os.cpu_count() or 4) * 3 // 4)
+PRUSTI_SERVER_COUNT = os.cpu_count() or 4
 
 
 def _clean_crate_level(crate_level: str) -> str:
