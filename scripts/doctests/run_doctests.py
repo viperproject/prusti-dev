@@ -48,8 +48,11 @@ def cmd_extract(args):
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    cargo_cmd = ["cargo", "rustdoc", "--", "-Zunstable-options", "--output-format=doctest"]
+    if hasattr(args, 'channel') and args.channel:
+        cargo_cmd = ["cargo", f"+{args.channel}", "rustdoc", "--", "-Zunstable-options", "--output-format=doctest"]
     result = subprocess.run(
-        ["cargo", "rustdoc", "--", "-Zunstable-options", "--output-format=doctest"],
+        cargo_cmd,
         capture_output=True, text=True, cwd=str(src_dir),
     )
     if result.returncode != 0:
@@ -479,12 +482,17 @@ def cmd_snapshot(args):
     print(f"Snapshot created at {dest}/")
 
 
-def _get_toolchain_sysroot(prusti_dir: Path) -> Path:
-    """Read rust-toolchain TOML and return the sysroot for the specified channel."""
+def _get_toolchain_channel(prusti_dir: Path) -> str:
+    """Read rust-toolchain TOML and return the channel name."""
     toolchain_file = prusti_dir / "rust-toolchain"
     with open(toolchain_file, "rb") as f:
         data = tomllib.load(f)
-    channel = data["toolchain"]["channel"]
+    return data["toolchain"]["channel"]
+
+
+def _get_toolchain_sysroot(prusti_dir: Path) -> Path:
+    """Read rust-toolchain TOML and return the sysroot for the specified channel."""
+    channel = _get_toolchain_channel(prusti_dir)
     result = subprocess.run(
         ["rustc", f"+{channel}", "--print", "sysroot"],
         capture_output=True, text=True, check=True,
@@ -526,12 +534,13 @@ def cmd_full(args):
                     if f.is_file():
                         f.unlink()
 
+    channel = _get_toolchain_channel(prusti_dir)
     sysroot = _get_toolchain_sysroot(prusti_dir)
     lib_base = sysroot / "lib" / "rustlib" / "src" / "rust" / "library"
 
     for lib in ["alloc", "core"]:
         print(f"=== {lib} ===")
-        cmd_extract(argparse.Namespace(library=lib, source_dir=str(lib_base / lib), output_dir=f"{lib}/snippets/"))
+        cmd_extract(argparse.Namespace(library=lib, source_dir=str(lib_base / lib), output_dir=f"{lib}/snippets/", channel=channel))
         cmd_compile(argparse.Namespace(snippets_dir=f"{lib}/snippets/", bin_dir=f"{lib}/bin/", prusti_rustc=str(prusti_rustc), verbose=args.verbose))
         cmd_copy_passing(argparse.Namespace(snippets_dir=f"{lib}/snippets/", bin_dir=f"{lib}/bin/", dest_dir=args.dest_dir))
 
@@ -560,6 +569,7 @@ def cmd_ci(args):
         print(f"Error: prusti-rustc not found at {prusti_rustc}", file=sys.stderr)
         sys.exit(1)
 
+    channel = _get_toolchain_channel(prusti_dir)
     sysroot = _get_toolchain_sysroot(prusti_dir)
     lib_base = sysroot / "lib" / "rustlib" / "src" / "rust" / "library"
 
@@ -572,7 +582,7 @@ def cmd_ci(args):
             snippets = str(tmp / lib / "snippets")
             bins = str(tmp / lib / "bin")
             print(f"=== {lib} ===")
-            cmd_extract(argparse.Namespace(library=lib, source_dir=str(lib_base / lib), output_dir=snippets))
+            cmd_extract(argparse.Namespace(library=lib, source_dir=str(lib_base / lib), output_dir=snippets, channel=channel))
             # TODO: remove snippet limit after CI testing
             for f in sorted(Path(snippets).glob("*.rs"))[50:]:
                 f.unlink()
