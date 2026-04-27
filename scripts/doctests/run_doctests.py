@@ -584,9 +584,6 @@ def cmd_ci(args):
             bins = str(tmp / lib / "bin")
             print(f"=== {lib} ===")
             cmd_extract(argparse.Namespace(library=lib, source_dir=str(lib_base / lib), output_dir=snippets, channel=channel))
-            # TODO: remove snippet limit after CI testing
-            for f in sorted(Path(snippets).glob("*.rs"))[50:]:
-                f.unlink()
             cmd_compile(argparse.Namespace(snippets_dir=snippets, bin_dir=bins, prusti_rustc=str(prusti_rustc), verbose=True, channel=channel))
             cmd_copy_passing(argparse.Namespace(snippets_dir=snippets, bin_dir=bins, dest_dir=tests_dir))
 
