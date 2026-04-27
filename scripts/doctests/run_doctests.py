@@ -102,10 +102,10 @@ def cmd_extract(args):
     print(f"Done! Extracted {n_written} snippets to {output_dir}")
 
 
-def compile_one(rs_file: Path, bin_dir: Path, prusti_rustc: Path) -> tuple[bool, str]:
+def compile_one(rs_file: Path, bin_dir: Path, prusti_rustc: Path, channel: str = "nightly") -> tuple[bool, str]:
     out_bin = bin_dir / rs_file.stem
     result = subprocess.run(
-        ["rustc", "+nightly", "--edition", "2021", "-Zcrate-attr=feature(stmt_expr_attributes)", str(rs_file), "-o", str(out_bin)],
+        ["rustc", f"+{channel}", "--edition", "2021", "-Zcrate-attr=feature(stmt_expr_attributes)", str(rs_file), "-o", str(out_bin)],
         capture_output=True,
         text=True,
     )
@@ -144,8 +144,9 @@ def cmd_compile(args):
     ok = fail = 0
     failures = []
 
+    channel = getattr(args, "channel", "nightly")
     with ThreadPoolExecutor() as executor:
-        futures = {executor.submit(compile_one, f, bin_dir, prusti_rustc): f for f in rs_files}
+        futures = {executor.submit(compile_one, f, bin_dir, prusti_rustc, channel): f for f in rs_files}
         with tqdm(total=len(rs_files), desc="Compiling", unit="file") as pbar:
             for future in as_completed(futures):
                 success, stderr = future.result()
@@ -541,7 +542,7 @@ def cmd_full(args):
     for lib in ["alloc", "core"]:
         print(f"=== {lib} ===")
         cmd_extract(argparse.Namespace(library=lib, source_dir=str(lib_base / lib), output_dir=f"{lib}/snippets/", channel=channel))
-        cmd_compile(argparse.Namespace(snippets_dir=f"{lib}/snippets/", bin_dir=f"{lib}/bin/", prusti_rustc=str(prusti_rustc), verbose=args.verbose))
+        cmd_compile(argparse.Namespace(snippets_dir=f"{lib}/snippets/", bin_dir=f"{lib}/bin/", prusti_rustc=str(prusti_rustc), verbose=args.verbose, channel=channel))
         cmd_copy_passing(argparse.Namespace(snippets_dir=f"{lib}/snippets/", bin_dir=f"{lib}/bin/", dest_dir=args.dest_dir))
 
     for lib in ["alloc", "core"]:
@@ -586,7 +587,7 @@ def cmd_ci(args):
             # TODO: remove snippet limit after CI testing
             for f in sorted(Path(snippets).glob("*.rs"))[50:]:
                 f.unlink()
-            cmd_compile(argparse.Namespace(snippets_dir=snippets, bin_dir=bins, prusti_rustc=str(prusti_rustc), verbose=False))
+            cmd_compile(argparse.Namespace(snippets_dir=snippets, bin_dir=bins, prusti_rustc=str(prusti_rustc), verbose=True, channel=channel))
             cmd_copy_passing(argparse.Namespace(snippets_dir=snippets, bin_dir=bins, dest_dir=tests_dir))
 
         cmd_prusti(argparse.Namespace(
