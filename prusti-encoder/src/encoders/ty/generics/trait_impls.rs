@@ -146,7 +146,7 @@ impl TaskEncoder for TraitImplEnc {
                                 tcx.type_of(impl_item_def_id).instantiate_identity(),
                                 impl_item_context,
                             ),
-                        );
+                        )?;
                         axioms.push(vcx.mk_domain_axiom(
                             vir_format_identifier!(vcx, "{trait_name}_impl_{implementing_ty}_{idx}_assoc_type_{item_name}"),
                             vir::expr! {forall ..[trait_ty_decls], ..[trait_const_decls] :: {[assoc_type(trait_tys, trait_consts)]} ([assoc_type(trait_tys, trait_consts)]) == (assoc_type_expr)},

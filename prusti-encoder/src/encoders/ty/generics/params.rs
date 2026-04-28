@@ -3,7 +3,7 @@ use prusti_rustc_interface::{
     middle::ty,
     span::{def_id::DefId, symbol},
 };
-use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, HasType};
 
 use crate::encoders::{
@@ -257,10 +257,10 @@ impl<'vir> GenericParams<'vir> {
         &self,
         deps: &mut TaskEncoderDependencies<'vir, E>,
         ty: RustTyDecomposition<'vir>,
-    ) -> vir::ExprTyVal<'vir> {
+    ) -> Result<vir::ExprTyVal<'vir>, EncodeFullError<'vir, E>> {
         if let TySpecifics::Param(RustParamData::Generic) = &ty.ty.specifics {
             let param = ty.args.expect_param();
-            return match param {
+            return Ok(match param {
                 GParamVariant::Param(p) => self.ty_exprs[self.map_idx(p.index).unwrap()],
                 GParamVariant::Alias(alias) => vir::with_vcx(|vcx| {
                     let tcx = vcx.tcx();
@@ -270,14 +270,11 @@ impl<'vir> GenericParams<'vir> {
                     let args = deps.require_dep::<GArgsTyEnc>(args).unwrap();
                     (trait_data.assoc_types[&alias.def_id])(args.get_ty(), args.get_const())
                 }),
-            };
+            });
         }
-        let ty_constructor = deps
-            .require_ref::<TyConstructorEnc>(ty.ty)
-            .unwrap()
-            .ty_constructor;
-        let args = deps.require_dep::<GArgsTyEnc>(ty.args).unwrap();
-        ty_constructor(args.get_ty(), args.get_const())
+        let ty_constructor = deps.require_ref::<TyConstructorEnc>(ty.ty)?.ty_constructor;
+        let args = deps.require_dep::<GArgsTyEnc>(ty.args)?;
+        Ok(ty_constructor(args.get_ty(), args.get_const()))
     }
 }
 

@@ -53,7 +53,7 @@ impl TaskEncoder for GArgsTyEnc {
                 let decomp = RustTyDecomposition::from_ty(arg, task_key.context);
                 params.ty_expr(deps, decomp)
             })
-            .collect::<Vec<_>>();
+            .collect::<Result<Vec<_>, _>>()?;
         let const_args = task_key
             .args
             .iter()
