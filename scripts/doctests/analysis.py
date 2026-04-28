@@ -6,8 +6,11 @@ import polars as pl
 
 # ── regex constants ────────────────────────────────────────────────────────────
 const_overflow_re = r"range end index \d+ out of range for slice of length \d+"
-unsupported_mut_ptr_re = r"error: \[Prusti: verification error\] unsupported rvalue &raw (mut|const) [^ ]+ might be reached"
-unsupported_closure_re = r"error: \[Prusti: verification error\] unsupported rvalue {closure@[^}]+} \{[^\}]+\} might be reached"
+unsupported_mut_ptr_re = r"error: \[Prusti: verification error\] unsupported rvalue &raw (mut|const) .* might be reached"
+unsupported_closure_re = r"error: \[Prusti: verification error\] unsupported rvalue \{closure@[^}]+\}( \{[^}]+\})? might be reached"
+invalid_identifier_re = r"Consistency error: [^ ]+ is not a valid identifier."
+invalid_arguments_re = r"Consistency error: Domain function [^ ]+ with formal arguments .* cannot be applied to provided arguments"
+unsupported_unsizing_re = r"unsizing from `.*` to `.*` is not yet supported"
 c_str_re = r"not yet implemented: ConstValue::Slice: &'\?\d+ std::ffi::CStr"
 index_out_of_bounds_re = r"index out of bounds: the len is \d+ but the index is \d+"
 
@@ -32,9 +35,23 @@ def _categorize(
         elif re.search(unsupported_closure_re, output):
             return "unsupported: closure rvalue might be reached (no crash)"
         elif 'consistency error: ConsistencyError { message: "Consistency error: Duplicate identifier' in output:
-            return "bug: duplicate identifier in consistency check"
+            return "bug: duplicate identifier in consistency check (no crash)"
         elif 'consistency error: ConsistencyError { message: "Consistency error: Local variable' in output:
-            return "bug: local variable not found in consistency check"
+            return "bug: local variable not found in consistency check (no crash)"
+        #elif re.search(invalid_identifier_re, output):
+        #    return "bug: invalid identifier in consistency check (no crash)"
+        elif re.search(invalid_arguments_re, output):
+            return "bug: invalid arguments to domain function in consistency check (no crash)"
+        elif re.search(unsupported_unsizing_re, output):
+            return "unsupported: unsizing with unsupported types (no crash)"
+        # these errors can occur legitimately, they don't indicate an error in Prusti, but a legit verification error
+        # since we don't have a panic message, we categorize this as a success even if the exit code is non-zero
+        elif '[Prusti: verification error] bounds check may fail' in output:
+            return "success"
+        elif '[Prusti: verification error] cast may fail: value might not fit into the target type' in output:
+            return "success"
+        elif '[Prusti: verification error] division by zero may occur' in output:
+            return "success"
         return "other"
 
     # all cases with panic messages
@@ -91,7 +108,9 @@ def _categorize(
     elif panic_message == "not yet implemented" and panic_location == "prusti-encoder/src/encoders/ty/indirect.rs":
         return "unsupported: enum types in indirect predicate encoder"
     elif panic_message == "not yet implemented: unsizing with unsupported types":
-        return "unsupported: unsizing of other types than refs to arrays"
+        return "unsupported: unsizing with unsupported types (no crash)"
+    elif panic_location == "prusti-encoder/src/encoders/mir_builtin.rs" and panic_message.startswith("expected array") and "prusti_encoder::encoders::mir_builtin::MirBuiltinEnc::handle_unsize" in output:
+        return "unsupported: unsizing with unsupported types (no crash)"
 
     # class of errors: constant encoding
     elif first_prusti_frame == "prusti_encoder::encoders::ty::data::TyData<D>::expect_primitive" and panic_message.startswith("expected primitive") and "prusti_encoder::encoders::const::ConstEnc::encode_scalar" in output:
@@ -163,5 +182,11 @@ def transform(df: pl.DataFrame) -> pl.DataFrame:
             return_dtype=pl.String,
         )
         .alias("category")
+    )
+    df = df.with_columns(
+        pl.when(pl.col("category") == "success")
+            .then(pl.lit("success"))
+            .otherwise(pl.col("success"))
+            .alias("success")
     )
     return df
