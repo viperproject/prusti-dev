@@ -24,10 +24,6 @@ def _categorize(
 ) -> str | None:
     if success != "fail":
         return ""
-    
-    # can occur in panic message and outside
-    #if '("wand encoder", "Unsupported(\\"function shape: ContainsAliasType\\")"' in output:
-    #    return "unsupported: function shapes containing alias types (pcg)"
 
     if panic_message is None:
         if re.search(unsupported_mut_ptr_re, output):
@@ -38,8 +34,6 @@ def _categorize(
             return "bug: duplicate identifier in consistency check (no crash)"
         elif 'consistency error: ConsistencyError { message: "Consistency error: Local variable' in output:
             return "bug: local variable not found in consistency check (no crash)"
-        #elif re.search(invalid_identifier_re, output):
-        #    return "bug: invalid identifier in consistency check (no crash)"
         elif re.search(invalid_arguments_re, output):
             return "bug: invalid arguments to domain function in consistency check (no crash)"
         elif re.search(unsupported_unsizing_re, output):
@@ -55,24 +49,10 @@ def _categorize(
         return "other"
 
     # all cases with panic messages
-    #if "not implemented: ty_name for dyn" in panic_message:
-    #    return "unsupported: trait objects"
-    # elif "PcgError { kind: Unsupported(DerefUnsafePtr), context: [] }" in output:
-    #     return "unsupported (pcg): dereferencing unsafe pointers"
-    # elif "PcgError { kind: Unsupported(CallWithUnsafePtrWithNestedLifetime), context: [] }" in output:
-    #     return "unsupported (pcg): call with unsafe ptr with nested lifetimes"
     if panic_message == "called `Result::unwrap()` on an `Err` value: PcgError { kind: Unsupported(DerefUnsafePtr), context: [] }":
         return "unsupported (pcg): dereferencing unsafe pointers"
-    #elif "<prusti_encoder::encoders::ty::generics::args_ty::GArgsTyEnc as task_encoder::TaskEncoder>::do_encode_full" in output and "compiler/rustc_middle/src/ty/generic_args.rs" in panic_location:
-    #    return "bug: indexing during parametric const encoding"
-    #elif panic_location == "prusti-encoder/src/encoders/ty/indirect.rs" and first_prusti_frame == "prusti_encoder::encoders::impure::fn_wand::WandEncOutput::encode_predicates_for_function_shape_node" and panic_message == "called `Option::unwrap()` on a `None` value":
-    #    return "bug: lifetime-annotated structs"
-    #elif '("wand encoder", "Unsupported(\\"function shape: CheckOutlivesError(CannotCompareRegions' in panic_message:
-    #    return "unsupported: function shapes with incomparable regions (pcg)"
     elif panic_message.startswith("not implemented: ty_name for Coroutine"):
         return "unsupported: coroutine types"
-    #elif re.match(const_overflow_re, panic_message):
-    #    return "bug: const ptr offset overflow"
     elif re.match(index_out_of_bounds_re, panic_message) and first_prusti_frame == "prusti_encoder::encoders::ty::generics::params::GParams::try_normalize::{{closure}}":
         return "bug: ReVar from outer InferCtxt in try_normalize"
     elif panic_message.startswith("not implemented: ty_name for FnDef"):
@@ -86,14 +66,10 @@ def _categorize(
     elif panic_message.startswith("called `Result::unwrap()` on an `Err` value: PcgError { kind: Unsupported(MoveUnsafePtrWithNestedLifetime("):
         return "unsupported (pcg): move unsafe ptr with nested lifetime"
     elif panic_message == "internal error: entered unreachable code":
-        #if panic_location == "prusti-encoder/src/encoders/ty/generics/params.rs" and first_prusti_frame == "prusti_encoder::encoders::ty::generics::params::GParams::ty_params::{{closure}}":
-        #    return "bug: g_params uses concrete substs instead of identity args"
         if panic_location.endswith("pcg/src/borrow_pcg/region_projection.rs") and first_prusti_frame == "prusti_encoder::encoders::impure::fn_wand::WandEncOutput::encode_predicates_for_function_shape_node":
             return "bug: region index out-of-bounds"
     elif panic_message == "assertion failed: ty.is_primitive()" and panic_location == "prusti-encoder/src/encoders/ty/rust_ty.rs" and first_prusti_frame == "prusti_encoder::encoders::ty::rust_ty::RustTyDecomposition::from_prim_ty":
         return "unsupported: binary operation with one operand of pointer type"
-    #elif re.match(c_str_re, panic_message):
-    #    return "unsupported: CStr constants"
     elif panic_message == "called `Result::unwrap()` on an `Err` value: AlreadyEncoded":
         return "unsupported: recursive struct types"
     elif panic_message == "Box<dyn Any>":
@@ -103,22 +79,10 @@ def _categorize(
             return "unsupported: nested references in promoted constants"
         elif "`project_index` called on non-array type" in output and panic_location.endswith("rustc_const_eval/src/interpret/projection.rs"):
             return "unsupported: nested references in promoted constants"
-    #elif panic_message == "not yet implemented" and panic_location == "prusti-encoder/src/encoders/ty/indirect.rs":
-    #    return "unsupported: enum types in indirect predicate encoder"
     elif panic_message == "not yet implemented: unsizing with unsupported types":
         return "unsupported: unsizing with unsupported types (no crash)"
     elif panic_location == "prusti-encoder/src/encoders/mir_builtin.rs" and panic_message.startswith("expected array") and "prusti_encoder::encoders::mir_builtin::MirBuiltinEnc::handle_unsize" in output:
         return "unsupported: unsizing with unsupported types (no crash)"
-
-    # class of errors: constant encoding
-    #elif first_prusti_frame == "prusti_encoder::encoders::ty::data::TyData<D>::expect_primitive" and panic_message.startswith("expected primitive") and "prusti_encoder::encoders::const::ConstEnc::encode_scalar" in output:
-    #    return "unsupported: constant scalars that are not primitives"
-    #elif first_prusti_frame == "prusti_encoder::encoders::const::ConstEnc::encode_scalar::{{closure}}" and panic_message == "called `Result::unwrap()` on an `Err` value: ReadPointerAsInt(None)":
-    #    return "unsupported: constant pointer-to-pointers"
-    #elif panic_message == "not yet implemented: ConstValue::Indirect":
-    #    return "unsupported: indirect constant values"
-    #elif panic_message.startswith("called `Result::unwrap()` on an `Err` value: InvalidUninitBytes(Some(BadBytesAccess {") and first_prusti_frame == "prusti_encoder::encoders::const::ConstEnc::encode_scalar::{{closure}}":
-    #    return "unsupported: invalid uninitialized bytes in constants"
 
     return panic_message
 
