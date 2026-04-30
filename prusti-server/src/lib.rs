@@ -225,7 +225,6 @@ fn handle_result(
                             .unwrap(),
                         error.reason_pos_id.and_then(|id| id.parse::<usize>().ok()),
                     )
-                    .expect("verification error could not be backtranslated")
                     .into_iter()
                 })
                 .for_each(|prusti_error| {

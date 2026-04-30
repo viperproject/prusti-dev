@@ -158,7 +158,7 @@ impl<'tcx> VirCtxt<'tcx> {
         error_kind: &str,
         offending_pos_id: usize,
         reason_pos_id: Option<usize>,
-    ) -> Option<Vec<PrustiError>> {
+    ) -> Vec<PrustiError> {
         let manager = self.spans.borrow();
         let reason_span_opt = reason_pos_id
             .and_then(|id| manager.all.get(id))
@@ -169,15 +169,20 @@ impl<'tcx> VirCtxt<'tcx> {
             while let Some(handler) = handler_opt {
                 if handler.error_kind == error_kind {
                     if let Some(errors) = (handler.handler)(reason_span_opt) {
-                        return Some(errors);
+                        return errors;
                     }
                 }
                 handler_opt = handler.next.as_deref();
             }
             span_opt = span.parent.as_ref();
         }
-        eprintln!("no handler found for error kind: {error_kind}");
-        None
+        // No handler found for the error, this must be a bug. We'll try to provide a span at least.
+        let span = manager
+            .all
+            .get(offending_pos_id)
+            .map(|vir_span| vir_span.span)
+            .unwrap_or(DUMMY_SP);
+        vec![PrustiError::internal(format!("A verification error occurred, but it could not be backtranslated: no handler found for error kind: {error_kind}."), span.into())]
     }
 
     /// Attempt to backtranslate a position id to a rust span
