@@ -5,14 +5,10 @@ use crate::encoders::{
     mir_fn::{CallTaskDescription, RustSignature},
     mir_shared::PureRvalueEnc,
     ty::{
-        RustTyDecomposition,
-        generics::{GArgsTyEnc, GParams},
-        interpretation::real::TyRealLocal,
-        lifted::TyConstructorEnc,
-        use_pure::{TyUsePure, TyUsePureEnc},
+        RustTyDecomposition, generics::{GArgsTyEnc, GParams}, indirect::IndirectPredicatesEnc, interpretation::real::TyRealLocal, lifted::TyConstructorEnc, use_pure::{TyUsePure, TyUsePureEnc}
     },
 };
-use pcg::utils::Place;
+use pcg::{borrow_pcg::region_projection::{HasRegions, LifetimeProjection, PcgRegion}, utils::Place};
 use prusti_interface::{
     PrustiError,
     environment::EnvQuery,
@@ -33,7 +29,7 @@ use prusti_rustc_interface::{
 use rustc_hash::FxHashMap;
 use std::fmt;
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CastType, CompType, add_debug_note};
+use vir::{CastType, CompType, ExprGenData, ExprKindGenData, Reify, Snap, add_debug_note};
 
 pub struct MirPureEnc;
 
@@ -1722,7 +1718,47 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 let greater_zero = self.vcx.mk_bin_op_expr(vir::BinOpKind::CmpLt, zero_perms, ref_derefed_frac);
                 let at_most_full = self.vcx.mk_bin_op_expr(vir::BinOpKind::CmpLe, ref_derefed_frac, full_perms);
                 let ref_derefed_frac_expr = self.vcx.mk_bin_op_expr(vir::BinOpKind::And, greater_zero, at_most_full).downcast_ty();
-                MirPureEncOutput::MirPureEncOutputPred(self.vcx.mk_conj(&[pred, acc_frac, ref_derefed_frac_expr]))
+
+                    let param = arg_tys[0].expect_ty();
+                    if let TyKind::Ref(inner_reg, inner_ty, _) = param.kind() {
+                        let ref_ty = RustTyDecomposition::from_ty(param, GParams::empty());
+                        //let inner_ty = RustTyDecomposition::from_ty(*inner_ty, ty.ty.params);
+                        let inner_impure = self.deps.require_dep::<TyUseImpureEnc>(ref_ty)?;
+                        let inner_ltp = LifetimeProjection::new(ref_ty, PcgRegion::from(ref_ty.regions(()).pop().unwrap()), None, ()).unwrap();
+                        let inner_indirect = self.deps.require_dep::<IndirectPredicatesEnc>(inner_ltp)?;
+                        
+                        let mut conjs = vec![pred, acc_frac, ref_derefed_frac_expr];
+                        conjs.extend({
+                            let tmp = inner_indirect
+                                .predicate_applications
+                                .into_iter()
+                                .map(|inner_expr| {
+                                     let inner_tmp = self.vcx.mk_lazy_expr(
+                                        "ref_inner_indirect",
+                                        vir::TYPE_BOOL,
+                                        Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
+                                            inner_expr
+                                                .lift()
+                                                .reify(
+                                                    vcx,
+                                                    inner_impure.ref_to_snap::<(DefId, &'vir [&'vir ExprGenData<'vir, (), !, Snap>]), &'vir ExprKindGenData<'vir, (), !>>(
+                                                        derefed,
+                                                    ),
+                                                )
+                                                .kind
+                                        }),
+                                    );
+                                    inner_tmp
+                                });
+                            tmp
+                            }
+                                    );
+
+                        MirPureEncOutput::MirPureEncOutputPred(self.vcx.mk_conj(&conjs))
+                    } else {
+                        MirPureEncOutput::MirPureEncOutputPred(self.vcx.mk_conj(&[pred, acc_frac, ref_derefed_frac_expr]))
+                    }
+                
             }
             PrustiBuiltin::PtrAdd => {
                 let addr_fns = self.deps.require_dep::<RefDataEnc>(())?;

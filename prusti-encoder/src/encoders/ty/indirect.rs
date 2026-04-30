@@ -1,4 +1,4 @@
-use pcg::borrow_pcg::region_projection::{LifetimeProjection, PcgRegion};
+use pcg::borrow_pcg::region_projection::{HasRegions, LifetimeProjection, PcgRegion};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, Reify};
 
@@ -9,6 +9,8 @@ use super::{
     rust_ty::RustTyDatas,
     use_pure::{TyUsePureEnc, UsePureTyDatas},
 };
+
+use prusti_rustc_interface::middle::ty::TyKind;
 
 pub struct IndirectPredicatesEnc;
 
@@ -56,6 +58,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
             let self_ty_enc = deps.require_dep::<TyUsePureEnc>(ty)?;
             let combined = ty.ty.zip(self_ty_enc);
             let mut predicate_applications = vec![];
+
             // Collects (accessor, indirect_predicate) pairs for the fields of a
             // struct-like (used for structs and enum variants).
             let collect_field_predicates =
@@ -76,6 +79,23 @@ impl TaskEncoder for IndirectPredicatesEnc {
                     }
                     Ok(result)
                 };
+
+            let zero_perms = vcx
+                    .mk_bin_op_expr(
+                        vir::BinOpKind::FractionalPerm,
+                        vcx.mk_const_expr(vir::ConstData::Int(0)),
+                        vcx.mk_const_expr(vir::ConstData::Int(1)),
+                    )
+                    .downcast_ty();
+                let full_perms = vcx
+                    .mk_bin_op_expr(
+                        vir::BinOpKind::FractionalPerm,
+                        vcx.mk_const_expr(vir::ConstData::Int(1)),
+                        vcx.mk_const_expr(vir::ConstData::Int(1)),
+                    )
+                    .downcast_ty();
+
+
             match combined.specifics {
                 // Optimisation: if there are no type arguments, there cannot be
                 // anything behind a ref inside (except for 'static, which we
@@ -83,7 +103,7 @@ impl TaskEncoder for IndirectPredicatesEnc {
                 // don't have lifetimes.
                 _ if ty.args.args().is_empty() => (),
                 // TODO: What about references behind raw pointers?
-                TySpecifics::RawPtr(..) => (),
+                TySpecifics::RawPtr((data, ref_domain)) => (),
                 TySpecifics::Primitive(_) | TySpecifics::ImmRef(_) | TySpecifics::Builtin(_) => (),
                 // TODO: it's not valid to have nothing for these. We should fix
                 // this by using an opaque predicate to represent potential
@@ -100,6 +120,8 @@ impl TaskEncoder for IndirectPredicatesEnc {
                     let ref_region = PcgRegion::from(ty.args.args()[0].expect_region());
                     let task_region = task_key.region(());
                     if ref_region == task_region {
+
+
                         predicate_applications.push(vcx.mk_lazy_expr(
                             "ref_indirect",
                             vir::TYPE_BOOL,
@@ -108,6 +130,30 @@ impl TaskEncoder for IndirectPredicatesEnc {
                                 inner_impure.ref_to_pred(vcx, addr, None).kind
                             }),
                         ));
+
+
+                        
+                         let ty_name = inner_ty
+                            .ty
+                            .name();
+                        let frac_field = vcx.mk_field(
+                                vir::vir_format!(vcx, "p_{ty_name}_frac"),
+                                vir::TYPE_PERM,
+                            );
+                        predicate_applications.push(vcx.mk_lazy_expr(
+                            "ref_indirect_frac",
+                            vir::TYPE_BOOL,
+                            Box::new(move |vcx, self_expr: vir::ExprSnap<'vir>| {
+                                let derefed = ref_domain.deref_access(self_expr.downcast_ty());
+                                let acc_frac = vcx.mk_acc_field_expr(derefed, frac_field, None);
+                                let ref_derefed_frac= vcx.mk_field_expr(derefed, frac_field);
+                                let greater_zero = vcx.mk_bin_op_expr(vir::BinOpKind::CmpLt, zero_perms, ref_derefed_frac);
+                                let at_most_full = vcx.mk_bin_op_expr(vir::BinOpKind::CmpLe, ref_derefed_frac, full_perms);
+                                let ref_derefed_frac_expr = vcx.mk_bin_op_expr(vir::BinOpKind::And, greater_zero, at_most_full).downcast_ty();
+                                vcx.mk_conj(&[acc_frac, ref_derefed_frac_expr]).kind
+                            }),
+                        ));
+
                     }
                     if let Some(new_projection) =
                         LifetimeProjection::new(inner_ty, task_key.region(()), None, ())
