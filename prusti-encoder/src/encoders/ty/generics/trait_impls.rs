@@ -122,11 +122,17 @@ impl TaskEncoder for TraitImplEnc {
                 //     fn foo<'b, B>() {}
                 // }
                 // ```
-                // The `trait_item_context` of `foo` is `<Self, 'a, A, 'b, B>`
-                // and we combine the identity suffix of this with the args to
-                // the trait to get: `<MyType, 'static, (T, bool), 'b, B>`.
+                // The `impl_item_context` of `foo` is `<T, 'b, B>` and
+                // `impl_context` is `<T>`. We take the suffix of the impl
+                // item's params that are specific to the method (i.e. not
+                // inherited from the impl) and combine them with the trait
+                // args to get: `<MyType, 'static, (T, bool), 'b, B>`.
+                // We use `impl_item_context` rather than the trait item's
+                // context because the parameter indices must match the
+                // `impl_item_context` used in `GArgs::new` below.
                 let trait_item_context = GParams::from(trait_item_def_id);
-                let item_args = &trait_item_context.rust_params()[trait_ref.args.len()..];
+                let item_args =
+                    &impl_item_context.rust_params()[impl_context.rust_params().len()..];
                 let args = trait_ref.args.iter().chain(item_args.iter().copied());
                 let args = tcx.mk_args_from_iter(args);
                 let impl_item_args = GArgs::new(impl_item_context, args);
