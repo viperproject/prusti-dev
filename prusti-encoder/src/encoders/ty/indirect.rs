@@ -1,4 +1,4 @@
-use pcg::borrow_pcg::region_projection::{HasRegions, LifetimeProjection, PcgRegion};
+use pcg::borrow_pcg::region_projection::{LifetimeProjection, PcgRegion};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, Reify};
 
@@ -10,7 +10,6 @@ use super::{
     use_pure::{TyUsePureEnc, UsePureTyDatas},
 };
 
-use prusti_rustc_interface::middle::ty::TyKind;
 
 pub struct IndirectPredicatesEnc;
 

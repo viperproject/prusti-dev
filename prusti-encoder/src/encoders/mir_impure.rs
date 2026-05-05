@@ -1577,44 +1577,6 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         .encode_place(Place::from(*dest))
                         .expr
                         .expect_predicate();
-
-                    let place = Place::from(*dest);
-                    let place_ty = place.ty(self.pcg_ctxt());
-                    let place_ty_impure = self.ty_use_impure(place_ty.ty);
-                    for (proj_place, elem) in place.iter_projections() {
-                        match elem {
-                            mir::ProjectionElem::Deref => {
-                                match Place::from(proj_place).ty(self.pcg_ctxt()).ty.kind() {
-                                    TyKind::RawPtr(..) => {
-                                        self.stmt(self.vcx.mk_exhale_stmt(
-                                            place_ty_impure.ref_to_pred(
-                                                self.vcx,
-                                                proj_enc,
-                                                None,
-                                            )
-                                        ));
-                                        let ty_name = RustTyDecomposition::from_ty(place_ty.ty, GParams::empty())
-                                            .ty
-                                            .name
-                                            .as_str();
-                                        let place_enc = self.encode_place(place);
-                                        self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_acc_field_expr(
-                                            place_enc.expr.address,
-                                            self.vcx.mk_field(
-                                                vir::vir_format!(self.vcx, "p_{}_frac", ty_name),
-                                                vir::TYPE_REF,
-                                            ),
-                                            None,
-                                        )));
-                                        break; // break loop because a double dereference like **x = 6 would otherwise trigger double exhaling
-                                        // TODO If we later support mutable references behind rawptrs we must check if PCG+Prusti doesn't trigger double exhales
-                                    },
-                                    _ => {}
-                                }
-                            },
-                            _ => {}
-                        }
-                    }
                     
                     // The snapshot of the value that we are assigning.
                     let rval_enc = self.encode_rvalue(rvalue, span);
