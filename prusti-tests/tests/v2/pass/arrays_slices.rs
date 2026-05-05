@@ -28,7 +28,7 @@ fn test5() {
     test5_2(x);
 }
 
-//#[requires(x[1] == 3)]
+#[requires(x[1] == 3)]
 fn test5_2(x: [i32; 3]) {}
 
 fn main() {

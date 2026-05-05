@@ -275,16 +275,48 @@ impl MirBuiltinEnc {
         }
 
         match dst_ty_inner.kind() {
-            ty::TyKind::Slice(_) => {
+            ty::TyKind::Slice(elem_ty) => {
                 let src_value = match &src_ref_pure.specifics {
                     TySpecifics::ImmRef(data) => data.value_access(snap_src.downcast_ty()),
-                    TySpecifics::MutRef(data) => data.value_access(snap_src.downcast_ty()),
+                    TySpecifics::MutRef(data) => {
+                        let normalized = src_ty
+                            .ty
+                            .expect_mutref()
+                            .decompose_compare_normalize(src_ty.ty.params, src_ty.args);
+                        let caster = deps
+                            .require_dep::<crate::GArgsCastEnc<crate::Pure>>(normalized)
+                            .unwrap();
+                        let ty_task_param = src_ty
+                            .ty
+                            .expect_mutref()
+                            .decompose_context(src_ty.ty.params, src_ty.args);
+                        let src_param_impure = deps.require_dep::<TyUseImpureEnc>(ty_task_param)?;
+                        caster.cast_to_caller_ctx(
+                            src_param_impure.ref_to_snap(data.deref_access(snap_src.downcast_ty())),
+                        )
+                    }
                     _ => unreachable!(),
                 }
                 .downcast_ty();
                 let dst_value = match &dst_ref_pure.specifics {
                     TySpecifics::ImmRef(data) => data.value_access(snap_dst.downcast_ty()),
-                    TySpecifics::MutRef(data) => data.value_access(snap_dst.downcast_ty()),
+                    TySpecifics::MutRef(data) => {
+                        let normalized = dst_ty
+                            .ty
+                            .expect_mutref()
+                            .decompose_compare_normalize(dst_ty.ty.params, dst_ty.args);
+                        let caster = deps
+                            .require_dep::<crate::GArgsCastEnc<crate::Pure>>(normalized)
+                            .unwrap();
+                        let ty_task_param = dst_ty
+                            .ty
+                            .expect_mutref()
+                            .decompose_context(src_ty.ty.params, dst_ty.args);
+                        let dst_param_impure = deps.require_dep::<TyUseImpureEnc>(ty_task_param)?;
+                        caster.cast_to_caller_ctx(
+                            dst_param_impure.ref_to_snap(data.deref_access(snap_dst.downcast_ty())),
+                        )
+                    }
                     _ => unreachable!(),
                 }
                 .downcast_ty();
@@ -312,11 +344,23 @@ impl MirBuiltinEnc {
                             == (old([src_array_pure.index(src_value, idx)]))
                     },
                 ]);
-                posts_undo.push(vir::expr! {
-                    forall idx: Int :: {[src_array_pure.index(src_value, idx)]}
-                        ([src_array_pure.index(src_value, idx)])
-                        == (old([dst_array_pure.index(dst_value, idx)]))
-                });
+
+                let elem_ty_task = RustTyDecomposition::from_ty(*elem_ty, params);
+                let elem_pure = deps.require_dep::<TyUsePureEnc>(elem_ty_task)?;
+                posts_undo.extend(&[
+                    vir::expr! {
+                        forall idx: Int :: {[src_array_pure.index(src_value, idx)]}
+                            ([src_array_pure.index(src_value, idx)])
+                            == (old([dst_array_pure.index(dst_value, idx)]))
+                    },
+                    // TODO: this is very hacky! we let-bind an array access to
+                    //   make sure the quantifier is triggered at least once
+                    vcx.mk_let_expr(
+                        vcx.mk_local_decl("_trigger_hack", elem_pure.snapshot),
+                        src_array_pure.index(src_value, vcx.mk_int::<0>()),
+                        vcx.mk_bool::<true>(),
+                    ),
+                ]);
             }
             _ => {
                 return Err(EncodeFullError::EncodingError(

@@ -129,6 +129,10 @@ pub(crate) fn ty_impure<'vir>(
             &[
                 vir::expr! { [builder.ref_to_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]) },
                 vir::expr! {
+                    ([data.1.len](array_snap))
+                    == ([data.1.len](old([index_frame](ref_self, index, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]))))
+                },
+                vir::expr! {
                     forall idx: Int :: {[data.1.index_access](array_snap, idx)}
                         ([data.1.index_access](array_snap, idx)) == (
                             ((idx) == (index))
