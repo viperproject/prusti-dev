@@ -909,7 +909,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     _ => None,
                 };
                 let index = guide.and_then(|guide| match guide {
-                    RepackGuide::Index(index_local) => {
+                    RepackGuide::Index(index_local, _) => {
                         let index = self
                             .encode_operand_snap(&mir::Operand::Copy(index_local.into()), &())
                             .unwrap();
@@ -988,7 +988,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn loop_place_usages(&mut self, block: mir::BasicBlock) -> Option<PlaceUsages<'vir>> {
         self.fpcs_analysis
             .analysis()
-            .loop_place_usages(block)
+            .loop_place_usages_of_loop_with_head(block)
             .cloned()
     }
 
