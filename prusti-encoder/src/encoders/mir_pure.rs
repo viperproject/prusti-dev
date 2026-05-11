@@ -9,6 +9,7 @@ use crate::encoders::{
         use_pure::{TyUsePure, TyUsePureEnc},
     },
 };
+use itertools::Itertools;
 use pcg::utils::Place;
 use prusti_interface::{
     PrustiError,
@@ -25,7 +26,7 @@ use prusti_rustc_interface::{
     },
     span::{Span, def_id::DefId, source_map::Spanned},
 };
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::fmt;
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, CompType, add_debug_note};
@@ -55,6 +56,7 @@ type ExprRetAny<'vir, T> = vir::ExprGen<'vir, ExprInput<'vir>, vir::ExprKind<'vi
 pub struct MirPureEncOutput<'vir> {
     // TODO: is this a good place for argument types?
     //pub arg_tys: &'vir [Type<'vir>],
+    pub inputs: Vec<mir::Local>, // TODO: also with mode marker?
     pub expr: ExprRet<'vir>,
 }
 
@@ -125,7 +127,7 @@ impl TaskEncoder for MirPureEnc {
         let (_, kind, def_id, substs, caller_def_id) = *task_key;
 
         tracing::debug!("encoding {def_id:?}");
-        let expr = vir::with_vcx(move |vcx| {
+        let (versions_used, expr) = vir::with_vcx(move |vcx| {
             let body = match kind {
                 PureKind::Closure => vcx
                     .body_mut()
@@ -139,8 +141,8 @@ impl TaskEncoder for MirPureEnc {
                 }
             };
 
-            let expr_inner = Enc::new(vcx, task_key.0, def_id, caller_def_id, kind, &body, deps)
-                .encode_body()?;
+            let enc = Enc::new(vcx, task_key.0, def_id, caller_def_id, kind, &body, deps);
+            let (versions_used, expr_inner) = enc.encode_body()?;
 
             // We wrap the expression with an additional lazy that will perform
             // some sanity checks. These requirements cannot be expressed using
@@ -162,11 +164,20 @@ impl TaskEncoder for MirPureEnc {
                 }),
             );
             add_debug_note!(expr.debug_info, "Inner expr: {}", expr_inner.debug_info);
-            Ok(expr)
+            Ok((versions_used, expr))
         })?;
         tracing::debug!("finished {def_id:?}");
 
-        Ok(((), MirPureEncOutput { expr }))
+        let inputs = versions_used.into_iter()
+            .filter(|(_l, v)| *v == 0)
+            .map(|(l, _v)| l)
+            .unique()
+            .sorted()
+            .collect::<Vec<_>>();
+        Ok(((), MirPureEncOutput {
+            inputs,
+            expr
+        }))
     }
 }
 
@@ -241,6 +252,7 @@ struct Enc<'vir: 'enc, 'enc> {
     deps: &'enc mut TaskEncoderDependencies<'vir, MirPureEnc>,
     /// Always holds the next version to be used for a local.
     version_ctr: IndexVec<mir::Local, usize>,
+    versions_used: FxHashSet<(mir::Local, usize)>, // TODO: mode indicators?
     phi_ctr: usize,
     old_mode: bool,
     rel0_mode: bool,
@@ -345,6 +357,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             deps,
             // visited: IndexVec::from_elem_n(false, body.basic_blocks.len()),
             version_ctr: IndexVec::from_elem_n(0, body.local_decls.len()),
+            versions_used: Default::default(),
             phi_ctr: 0,
             old_mode: false,
             rel0_mode: false,
@@ -432,9 +445,16 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         expr: ExprRetAny<'vir, T>,
     ) -> ExprRetAny<'vir, T> {
         update.binds.iter().rfold(expr, |expr, bind| match bind {
-            UpdateBind::Local(_, version, val) => {
-                let decl = version.initialised.unwrap();
-                self.vcx.mk_let_expr(decl, val, expr)
+            UpdateBind::Local(local, version, val) => {
+                // skip bindings which were not used
+                // TODO: this might optimise away some function calls which
+                //   can act as triggers for quantifiers
+                if !self.versions_used.contains(&(*local, version.index)) {
+                    expr
+                } else {
+                    let decl = version.initialised.unwrap();
+                    self.vcx.mk_let_expr(decl, val, expr)
+                }
             }
             UpdateBind::Phi(version, val) => {
                 self.vcx
@@ -475,7 +495,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             .unwrap_or_else(|| tuple_ref.mk_unreachable(self.vcx))
     }
 
-    fn encode_body(&mut self) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
+    fn encode_body(mut self) -> Result<(FxHashSet<(mir::Local, usize)>, ExprRet<'vir>), EncodeFullError<'vir, MirPureEnc>> {
         let mut init = Update::new();
         let v0 = Version::default();
         // TODO: what about locals which never have StorageLive (i.e. always_live)?
@@ -497,9 +517,11 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             .merge(update)
             .expect("function unconditionally terminates with unreachable");
         let ret_version = res.versions.get(&mir::RETURN_PLACE).copied().unwrap_or(v0);
+        self.versions_used.insert((mir::RETURN_PLACE, ret_version.index));
 
+        let versions_used = self.versions_used.clone();
         let ex = self.mk_local_ex(mir::RETURN_PLACE, ret_version);
-        Ok(self.reify_binds(res, ex))
+        Ok((versions_used, self.reify_binds(res, ex)))
     }
 
     fn encode_cfg(
@@ -577,6 +599,18 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .iter()
                     .map(|l| self.body.local_decls[*l].ty)
                     .collect();
+
+                // for each branch, mark the updated versions as "used"
+                // TODO: this is an over-estimation: the variable after the
+                //   join point may not actually be used
+                for update in &updates {
+                    let Some(update) = update else { continue; };
+                    for local in &mod_locals {
+                        if let Some(version) = update.versions.get(&local) {
+                            self.versions_used.insert((*local, version.index));
+                        }
+                    }
+                }
 
                 // for each branch, create a Viper tuple of the updated locals
                 let tuple_ref = self
@@ -996,6 +1030,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     ) -> EncodedPlace<'vir> {
         // TODO: remove (debug)
         assert!(curr_ver.contains_key(&place.local));
+        self.versions_used.insert((place.local, curr_ver[&place.local].index));
 
         let mut place_ty = mir::PlaceTy::from_ty(self.body.local_decls[place.local].ty);
 
@@ -1005,11 +1040,11 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         };
 
         let expr = if should_wrap {
-            let local_as_uzize = place.local.as_usize();
+            let local_as_usize = place.local.as_usize();
             self.vcx.mk_lazy_expr(
-                vir::vir_format!(self.vcx, "wraped in _{}", local_as_uzize),
+                vir::vir_format!(self.vcx, "wrapped in _{}", local_as_usize),
                 self.get_ty_for_local(place.local),
-                Box::new(move |_vcx, lctx: ExprInput<'vir>| lctx.1[local_as_uzize - 1].kind),
+                Box::new(move |_vcx, lctx: ExprInput<'vir>| lctx.1[local_as_usize - 1].kind),
             )
         } else {
             self.mk_local_ex(place.local, curr_ver[&place.local])
