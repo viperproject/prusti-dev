@@ -1,11 +1,16 @@
 use crate::encoders::{
     ImpureEncVisitor, MirLocalDefEncOutput, MirSpecEnc,
     pure::spec::{EncodedPledge, MirSpecEncMode, PledgeArgs, PledgeExpr},
-    ty::{RustTyDecomposition, generics::GParams, indirect::IndirectPredicatesEnc},
+    ty::{
+        RustTyDecomposition,
+        generics::GParams,
+        indirect::{IndirectPredicatesEnc, projection_for_generalized_idx},
+    },
 };
 use pcg::borrow_pcg::{
     FunctionData, FunctionShape, FunctionShapeInput, FunctionShapeNode, FunctionShapeOutput,
-    MakeFunctionShapeError, state::BorrowsState, unblock_graph::UnblockGraph,
+    MakeFunctionShapeError, region_projection::Generalized, state::BorrowsState,
+    unblock_graph::UnblockGraph,
 };
 use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
@@ -90,12 +95,12 @@ pub struct WandEncOutput<'vir> {
     function_data: FunctionData<'vir>,
 
     /// The lifetime projections of all arguments to the function.
-    inputs: Vec<FunctionShapeInput>,
+    inputs: Vec<FunctionShapeInput<Generalized>>,
 
     /// The lifetime projections of all function outputs (according to the
     /// corresponding [`FunctionShape`]). This *includes* lifetime projections
     /// of nested lifetimes in the function arguments.
-    outputs: Vec<FunctionShapeOutput>,
+    outputs: Vec<FunctionShapeOutput<Generalized>>,
 
     /// Encoded VIR expressions for the magic wands.
     wands: Vec<WandData<'vir>>,
@@ -118,15 +123,18 @@ impl<'vir> WandEncOutput<'vir> {
         &self,
         vcx: &'vir vir::VirCtxt<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, impl TaskEncoder>,
-        g: impl Into<FunctionShapeNode>,
+        g: impl Into<FunctionShapeNode<Generalized>>,
         mut snap: impl FnMut(mir::Local) -> vir::ExprSnap<'vir>,
     ) -> Option<vir::ExprBool<'vir>> {
         use vir::Reify;
         let g = g.into();
         let fn_sig = self.fn_sig(vcx);
-        let ty = RustTyDecomposition::from_ty(g.ty(fn_sig), self.g_params(vcx));
+        let arg_ty = g.ty(fn_sig);
+        let decomp = RustTyDecomposition::from_ty(arg_ty, self.g_params(vcx));
+        let region_proj =
+            projection_for_generalized_idx(arg_ty, g.region_idx(), decomp, vcx.tcx())?;
         let predicates = deps
-            .require_dep::<IndirectPredicatesEnc>(g.with_base(ty))
+            .require_dep::<IndirectPredicatesEnc>(region_proj)
             .unwrap()
             .predicate_applications;
         if predicates.is_empty() {
@@ -294,13 +302,13 @@ impl<'tcx> WandEncTask<'tcx> {
     pub fn function_shape(
         &self,
         vcx: &vir::VirCtxt<'tcx>,
-    ) -> Result<FunctionShape, MakeFunctionShapeError<'tcx>> {
+    ) -> Result<FunctionShape<Generalized>, MakeFunctionShapeError> {
         self.data.shape(vcx.tcx())
     }
 }
 
-pub type WandRhsKey = FunctionShapeInput;
-pub type WandLhsKey = FunctionShapeNode;
+pub type WandRhsKey = FunctionShapeInput<Generalized>;
+pub type WandLhsKey = FunctionShapeNode<Generalized>;
 
 #[derive(Clone, Debug)]
 pub struct WandData<'vir> {
@@ -403,18 +411,18 @@ impl<'vir> WandEncOutput<'vir> {
 
     /// All lifetime projections in the arguments that are blocked by any of the
     /// lifetime projections in the function's result.
-    pub fn blocked_inputs(&self) -> FxHashSet<FunctionShapeInput> {
+    pub fn blocked_inputs(&self) -> FxHashSet<FunctionShapeInput<Generalized>> {
         self.wands
             .iter()
             .flat_map(|wand| wand.rhs.iter().copied())
             .collect()
     }
 
-    pub fn inputs(&self) -> impl Iterator<Item = FunctionShapeInput> + '_ {
+    pub fn inputs(&self) -> impl Iterator<Item = FunctionShapeInput<Generalized>> + '_ {
         self.inputs.iter().copied()
     }
 
-    pub fn outputs(&self) -> impl Iterator<Item = FunctionShapeOutput> + '_ {
+    pub fn outputs(&self) -> impl Iterator<Item = FunctionShapeOutput<Generalized>> + '_ {
         self.outputs.iter().copied()
     }
 }
