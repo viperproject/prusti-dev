@@ -46,17 +46,14 @@ pub enum Mode {
     BeforeExpiry,
 }
 
-// TODO: does this need to be `&'vir [..]`?
-pub type ExprInput<'vir> = (DefId, &'vir [vir::ExprSnap<'vir>]);
+// TODO: does this need to be `&'vir ...`?
+pub type ExprInput<'vir> = (DefId, &'vir FxHashMap<mir::Local, vir::ExprSnap<'vir>>);
 type ExprRet<'vir> = vir::ExprGenSnap<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
 type ExprRetRef<'vir> = vir::ExprGenRef<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
 type ExprRetAny<'vir, T> = vir::ExprGen<'vir, ExprInput<'vir>, vir::ExprKind<'vir>, T>;
 
 #[derive(Clone, Debug)]
 pub struct MirPureEncOutput<'vir> {
-    // TODO: is this a good place for argument types?
-    //pub arg_tys: &'vir [Type<'vir>],
-    pub inputs: Vec<mir::Local>, // TODO: also with mode marker?
     pub expr: ExprRet<'vir>,
 }
 
@@ -127,7 +124,7 @@ impl TaskEncoder for MirPureEnc {
         let (_, kind, def_id, substs, caller_def_id) = *task_key;
 
         tracing::debug!("encoding {def_id:?}");
-        let (versions_used, expr) = vir::with_vcx(move |vcx| {
+        let expr = vir::with_vcx(move |vcx| {
             let body = match kind {
                 PureKind::Closure => vcx
                     .body_mut()
@@ -141,8 +138,14 @@ impl TaskEncoder for MirPureEnc {
                 }
             };
 
-            let enc = Enc::new(vcx, task_key.0, def_id, caller_def_id, kind, &body, deps);
-            let (versions_used, expr_inner) = enc.encode_body()?;
+            let mut enc = Enc::new(vcx, task_key.0, def_id, caller_def_id, kind, &body, deps);
+            let expr_inner = enc.encode_body()?;
+            let inputs = std::mem::take(&mut enc.versions_used).into_iter()
+                .filter(|(l, v)| *l != mir::RETURN_PLACE && *v == 0)
+                .map(|(l, _v)| l)
+                .unique()
+                .sorted()
+                .collect::<Vec<_>>();
 
             // We wrap the expression with an additional lazy that will perform
             // some sanity checks. These requirements cannot be expressed using
@@ -152,30 +155,25 @@ impl TaskEncoder for MirPureEnc {
                 vir::vir_format!(vcx, "pure body {def_id:?}"),
                 deps.require_ref::<TyUsePureEnc>(ret)?.snapshot,
                 Box::new(move |vcx, lctx: ExprInput<'_>| {
-                    // check: are we actually providing arguments for the
+                    // check: are we actually providing inputs for the
                     //   correct `DefId`?
                     assert_eq!(lctx.0, def_id);
 
-                    // check: are we providing the expected number of arguments?
-                    assert_eq!(lctx.1.len(), body.arg_count);
+                    // check: are we providing the expected number of inputs?
+                    // TODO: check that the expected inputs are present; this
+                    //   check is not precise
+                    assert!(lctx.1.len() >= inputs.len());
 
                     use vir::Reify;
                     expr_inner.kind.reify(vcx, lctx)
                 }),
             );
             add_debug_note!(expr.debug_info, "Inner expr: {}", expr_inner.debug_info);
-            Ok((versions_used, expr))
+            Ok(expr)
         })?;
         tracing::debug!("finished {def_id:?}");
 
-        let inputs = versions_used.into_iter()
-            .filter(|(_l, v)| *v == 0)
-            .map(|(l, _v)| l)
-            .unique()
-            .sorted()
-            .collect::<Vec<_>>();
         Ok(((), MirPureEncOutput {
-            inputs,
             expr
         }))
     }
@@ -495,7 +493,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             .unwrap_or_else(|| tuple_ref.mk_unreachable(self.vcx))
     }
 
-    fn encode_body(mut self) -> Result<(FxHashSet<(mir::Local, usize)>, ExprRet<'vir>), EncodeFullError<'vir, MirPureEnc>> {
+    fn encode_body(&mut self) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
         let mut init = Update::new();
         let v0 = Version::default();
         // TODO: what about locals which never have StorageLive (i.e. always_live)?
@@ -504,7 +502,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             let local_ex = self.vcx.mk_lazy_expr(
                 vir::vir_format!(self.vcx, "pure in _{local}"),
                 self.get_ty_for_local(local.into()),
-                Box::new(move |_vcx, lctx: ExprInput<'vir>| lctx.1[local - 1].kind),
+                Box::new(move |_vcx, lctx: ExprInput<'vir>| lctx.1[&local.into()].kind),
             );
             // check that `local` and `expr` type correspond
             self.bump_version(&mut init, local.into(), local_ex, v0.location);
@@ -519,9 +517,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         let ret_version = res.versions.get(&mir::RETURN_PLACE).copied().unwrap_or(v0);
         self.versions_used.insert((mir::RETURN_PLACE, ret_version.index));
 
-        let versions_used = self.versions_used.clone();
         let ex = self.mk_local_ex(mir::RETURN_PLACE, ret_version);
-        Ok((versions_used, self.reify_binds(res, ex)))
+        Ok(self.reify_binds(res, ex))
     }
 
     fn encode_cfg(
@@ -1040,11 +1037,10 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         };
 
         let expr = if should_wrap {
-            let local_as_usize = place.local.as_usize();
             self.vcx.mk_lazy_expr(
-                vir::vir_format!(self.vcx, "wrapped in _{}", local_as_usize),
+                vir::vir_format!(self.vcx, "wrapped in {:?}", place.local),
                 self.get_ty_for_local(place.local),
-                Box::new(move |_vcx, lctx: ExprInput<'vir>| lctx.1[local_as_usize - 1].kind),
+                Box::new(move |_vcx, lctx: ExprInput<'vir>| lctx.1[&place.local].kind),
             )
         } else {
             self.mk_local_ex(place.local, curr_ver[&place.local])
@@ -1295,7 +1291,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         .collect::<Vec<_>>(),
                 );
 
-                let mut reify_args = vec![];
+                let mut reify_args = FxHashMap::default();
                 // TODO: big hack!
                 //   the problem is that we expect this to
                 //   be a simple Expr, but `encode_operand`
@@ -1313,8 +1309,10 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 // an `Fn` only.
                 assert_eq!(cl_kind, ty::ClosureKind::Fn);
 
-                reify_args.push(closure_ref);
-                reify_args.extend(qvars.iter().map(|qvar| self.vcx.mk_local_ex(qvar)));
+                reify_args.insert(1usize.into(), closure_ref);
+                reify_args.extend(qvars.iter()
+                    .enumerate()
+                    .map(|(idx, qvar)| ((idx + 2).into(), self.vcx.mk_local_ex(qvar))));
 
                 // TODO: recursively invoke MirPure encoder to encode
                 // the body of the closure; pass the closure as the
@@ -1336,7 +1334,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     // arguments to the closure are
                     // - the closure itself
                     // - the qvars
-                    .reify(self.vcx, (cl_def_id, self.vcx.alloc_slice(&reify_args)))
+                    .reify(self.vcx, (cl_def_id, self.vcx.alloc(reify_args)))
                     .lift();
 
                 let body =
