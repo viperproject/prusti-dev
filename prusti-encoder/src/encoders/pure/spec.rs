@@ -9,6 +9,7 @@ use prusti_rustc_interface::{
     span::{Span, def_id::DefId},
 };
 
+use rustc_hash::FxHashMap;
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, HasType, Reify};
 
@@ -29,16 +30,16 @@ pub struct PledgeExpr<'vir> {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct PledgeArgs<'vir>(&'vir [vir::ExprSnap<'vir>]);
+pub struct PledgeArgs<'vir>(&'vir FxHashMap<mir::Local, vir::ExprSnap<'vir>>, mir::Local);
 
 impl<'vir> std::ops::Index<mir::Local> for PledgeArgs<'vir> {
     type Output = vir::ExprSnap<'vir>;
 
     fn index(&self, index: mir::Local) -> &Self::Output {
         if index == mir::RETURN_PLACE {
-            self.0.last().unwrap()
+            &self.0[&self.1]
         } else {
-            &self.0[index.as_usize() - 1]
+            &self.0[&index]
         }
     }
 }
@@ -55,12 +56,14 @@ impl<'vir> PledgeExpr<'vir> {
         result: vir::ExprSnap<'vir>,
         args: impl IntoIterator<Item = T>,
     ) -> PledgeArgs<'vir> {
-        let all_args = args
+        let mut all_args: FxHashMap<mir::Local, _> = args
             .into_iter()
-            .map(|a| *a.borrow())
-            .chain([result])
-            .collect::<Vec<_>>();
-        vir::with_vcx(|vcx| PledgeArgs(vcx.alloc_slice(&all_args)))
+            .enumerate()
+            .map(|(idx, a)| ((idx + 1).into(), *a.borrow()))
+            .collect();
+        let result_local = (all_args.len() + 1).into();
+        all_args.insert(result_local, result);
+        vir::with_vcx(|vcx| PledgeArgs(vcx.alloc(all_args), result_local))
     }
 
     pub fn expr(&self, args: PledgeArgs<'vir>) -> vir::ExprBool<'vir> {
@@ -88,9 +91,9 @@ pub struct MirSpecEncOutput<'vir> {
     pub pres: Vec<vir::ExprBool<'vir>>,
     pub posts: Vec<vir::ExprBool<'vir>>,
     pub pledges: Vec<EncodedPledge<'vir>>,
-    pub pre_args: &'vir [vir::ExprSnap<'vir>],
+    pub pre_args: &'vir FxHashMap<mir::Local, vir::ExprSnap<'vir>>,
     #[allow(dead_code)]
-    pub post_args: &'vir [vir::ExprSnap<'vir>],
+    pub post_args: &'vir FxHashMap<mir::Local, vir::ExprSnap<'vir>>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -159,29 +162,24 @@ impl TaskEncoder for MirSpecEnc {
                 .require_dep::<crate::encoders::SpecEnc>(crate::encoders::SpecEncTask { def_id })?;
 
             let local_iter = (1..=local_defs.arg_count).map(mir::Local::from);
-            let all_args: Vec<vir::ExprSnap<'vir>> = match enc_mode {
+            let all_args: FxHashMap<mir::Local, _> = match enc_mode {
                 MirSpecEncMode::Impure => local_iter
-                    .map(|local| local_defs[local].impure_snap)
+                    .map(|local| (local, local_defs[local].impure_snap))
                     .collect(),
                 MirSpecEncMode::PureWithResult => {
                     let result_ty = local_defs[mir::RETURN_PLACE].local_snap.ty();
                     local_iter
-                        .map(|local| vcx.mk_local_ex(local_defs[local].local_snap))
-                        .chain([vcx.mk_result(result_ty)])
+                        .map(|local| (local, vcx.mk_local_ex(local_defs[local].local_snap)))
+                        .chain([((local_defs.arg_count + 1).into(), vcx.mk_result(result_ty))])
                         .collect()
                 }
                 MirSpecEncMode::PureWithoutResult => local_iter
-                    .map(|local| vcx.mk_local_ex(local_defs[local].local_snap))
-                    .chain([vcx.mk_local_ex(local_defs[mir::RETURN_PLACE].local_snap)])
+                    .map(|local| (local, vcx.mk_local_ex(local_defs[local].local_snap)))
+                    .chain([((local_defs.arg_count + 1).into(), vcx.mk_local_ex(local_defs[mir::RETURN_PLACE].local_snap))])
                     .collect(),
             };
-            let all_args = vcx.alloc_slice(&all_args);
-            let pre_args = match enc_mode {
-                MirSpecEncMode::Impure => all_args,
-                MirSpecEncMode::PureWithResult | MirSpecEncMode::PureWithoutResult => {
-                    &all_args[..all_args.len() - 1]
-                }
-            };
+            let all_args = vcx.alloc(all_args);
+            let pre_args = all_args; // it should be ok to provide more keys than required
 
             let to_bool = deps
                 .require_dep::<TyUsePureEnc>(RustTyDecomposition::from_prim_ty(
@@ -217,12 +215,12 @@ impl TaskEncoder for MirSpecEnc {
 
             let post_args = match enc_mode {
                 MirSpecEncMode::Impure => {
-                    let post_args: Vec<vir::ExprSnap<'vir>> = pre_args
+                    let post_args: FxHashMap<mir::Local, vir::ExprSnap<'vir>> = pre_args
                         .iter()
-                        .map(|arg| vcx.mk_old_expr(arg))
-                        .chain([local_defs[mir::RETURN_PLACE].impure_snap])
+                        .map(|(local, arg)| (*local, vcx.mk_old_expr(arg)))
+                        .chain([((local_defs.arg_count + 1).into(), local_defs[mir::RETURN_PLACE].impure_snap)])
                         .collect();
-                    vcx.alloc_slice(&post_args)
+                    vcx.alloc(post_args)
                 }
                 MirSpecEncMode::PureWithResult | MirSpecEncMode::PureWithoutResult => all_args,
             };
