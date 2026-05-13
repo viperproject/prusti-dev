@@ -28,6 +28,7 @@ use prusti_interface::{PrustiError, specs::specifications::SpecQuery};
 use prusti_rustc_interface::{
     abi,
     data_structures::fx::FxHashMap,
+    index::Idx,
     middle::{
         mir,
         ty::{self, TyKind},
@@ -635,22 +636,37 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 // during the unsize operation we call a method to transter
                 // permissions from one to the other, when the slice expires,
                 // we need to undo the unsize operation.
-                let PlaceOrConst::Place(src) = borrow_flow.long().base() else {
+                let long = borrow_flow.long();
+                let short = borrow_flow.short();
+                let PlaceOrConst::Place(src) = long.base() else {
                     unreachable!();
                 };
                 let src = src.as_local_place().unwrap();
-                let dst = borrow_flow.short().base();
+                let dst = short.base();
 
                 let ctxt = CompilerCtxt::new(self.body, self.vcx.tcx(), ());
                 let src_ty = src.ty(ctxt).ty;
                 let dst_ty = dst.ty(ctxt).ty;
-                if let ty::TyKind::Ref(_, _, ty::Mutability::Not) = dst_ty.kind() {
-                    // We don't want to undo the unsize operation for shared
-                    // references; the slice cannot have modified the array it
-                    // unsized.
+                // An undo is only needed when processing coercions `&mut T -> &mut U` when T: Unsize<U>:
+                // The mutable borrow ends and we need to return the permission to the original
+                // `&mut T`. For every other CoerceUnsized destination (`&T`, raw pointers,
+                // `Box<T>`, `Rc<T>`, `Arc<T>`, ...), there is no mutable borrow expiring and
+                // nothing to undo.
+                if !matches!(dst_ty.kind(), ty::TyKind::Ref(_, _, ty::Mutability::Mut)) {
                     return Ok(());
                 }
-
+                // Since we only undo unsize coercions for &mut T -> &mut U when T: Unsize<U>,
+                // we only consider the edge with idx=0 on both src and dst. This
+                // corresponds to the lifetime projections of the mutable references.
+                // The single `mir_undo_unsize` accounts for the entire unsize coercion.
+                // All other BorrowFlow(Unsize) edges in the PCG are bookkeeping, for example:
+                //   - same-index (e.g. `&mut [&mut T; N] -> &mut [&mut T]`
+                //     emits a redundant idx=1 -> idx=1 edge
+                //   - cross-index (e.g. `&mut T -> &mut dyn Trait + 'b`
+                //     emits an idx=0 -> idx=1 edge).
+                if long.region_idx().index() != 0 || short.region_idx().index() != 0 {
+                    return Ok(());
+                }
                 let src_place = src.place();
                 let src_label = if let MaybeLabelledPlace::Labelled(snap) = src {
                     Some(self.get_location_label(snap.at()))
