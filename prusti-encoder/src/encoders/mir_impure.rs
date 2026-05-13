@@ -27,7 +27,6 @@ use pcg::{
 use prusti_interface::{PrustiError, specs::specifications::SpecQuery};
 use prusti_rustc_interface::{
     abi,
-    data_structures::fx::FxHashMap,
     index::Idx,
     middle::{
         mir,
@@ -35,20 +34,18 @@ use prusti_rustc_interface::{
     },
     span::{Span, def_id::DefId},
 };
+use rustc_hash::FxHashMap;
 use prusti_utils::config;
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, CompType, LocalDeclData};
 
 use crate::encoders::{
-    self, FunctionCallEnc, MirBuiltinEnc, MirBuiltinEncTask, TyUseImpureEnc, WandEnc, WandEncTask,
-    mir_fn::{CallTaskDescription, RustSignature},
-    mir_shared::PureRvalueEnc,
-    ty::{
+    self, FunctionCallEnc, MirBuiltinEnc, MirBuiltinEncTask, MirPureEnc, MirPureEncTask, PureKind, TyUseImpureEnc, WandEnc, WandEncTask, mir_fn::{CallTaskDescription, RustSignature, SpecBlockKind, SpecBlocks}, mir_shared::PureRvalueEnc, ty::{
         RustTyDecomposition,
         generics::{GParams, GenericParamsEnc},
         use_impure::TyUseImpure,
         use_pure::{TyUsePure, TyUsePureEnc},
-    },
+    }
 };
 
 use super::WandEncOutput;
@@ -156,6 +153,7 @@ where
     pub local_decls: &'enc mir::LocalDecls<'vir>,
     pub fpcs_analysis: PcgOutput<'enc, 'vir>,
     pub local_defs: crate::encoders::MirLocalDefEncOutput<'vir>,
+    pub spec_blocks: SpecBlocks,
     pub body: &'enc mir::Body<'vir>,
 
     pub wands: WandEncOutput<'vir>,
@@ -1296,6 +1294,50 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             self.stmt(phi_stmt);
         }
         */
+
+        if let Some(specs) = self.spec_blocks.specs_for.get(&block).cloned() {
+            for spec in specs {
+                let enc_output = self.deps.require_dep::<MirPureEnc>(MirPureEncTask {
+                    encoding_depth: 0,
+                    parent_def_id: self.def_id,
+                    param_env: self.vcx.tcx().param_env(self.def_id),
+                    substs: ty::List::identity_for_item(self.vcx.tcx(), self.def_id),
+                    kind: PureKind::SpecBlock(spec.block),
+                    caller_def_id: Some(self.def_id),
+                }).unwrap();
+                use vir::Reify;
+                let locals: FxHashMap<mir::Local, _> = enc_output.inputs.iter()
+                    .map(|local| (*local, self.local_defs.locals[*local].impure_snap))
+                    .collect();
+                let expr = enc_output.expr.reify(self.vcx, (self.def_id, self.vcx.alloc(locals))).downcast_ty();
+                let to_bool = self.deps
+                    .require_dep::<TyUsePureEnc>(RustTyDecomposition::from_prim_ty(
+                        self.vcx.tcx().types.bool,
+                    ))
+                    .unwrap()
+                    .expect_native()
+                    .snap_to_prim;
+                let span = spec.span;
+                match spec.kind {
+                    SpecBlockKind::Assert => {
+                        self.vcx.with_span(span, |vcx| {
+                            let error_msg = "assertion might not hold";
+                            vcx.handle_error("exhale.failed:assertion.false", move |_| {
+                                Some(vec![PrustiError::verification(error_msg, span.into())])
+                            });
+                            self.stmt(self.vcx.mk_exhale_stmt(to_bool(expr).downcast_ty()));
+                        });
+                    }
+                    SpecBlockKind::Assume => {
+                        self.stmt(self.vcx.mk_inhale_stmt(to_bool(expr).downcast_ty()));
+                    }
+                    SpecBlockKind::Refute => {
+                        self.stmt(self.vcx.mk_refute_stmt(to_bool(expr).downcast_ty()));
+                    }
+                    _ => unreachable!(),
+                }
+            }
+        }
 
         assert!(self.current_terminator.is_none());
         for (index, statement) in data.statements.iter().enumerate() {

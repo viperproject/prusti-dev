@@ -285,12 +285,14 @@ impl AstRewriter {
         let spec_id_str = spec_id.to_string();
         Ok(quote_spanned! {expr.span()=>
             {
-                #[prusti::spec_only]
-                #[prusti::#kind]
-                #[prusti::spec_id = #spec_id_str]
-                || -> bool {
-                    #expr
-                };
+                ::prusti_contracts::spec_block(&(
+                    #[prusti::spec_only]
+                    #[prusti::#kind]
+                    #[prusti::spec_id = #spec_id_str]
+                    || -> bool {
+                        #expr
+                    }
+                ));
             }
         })
     }

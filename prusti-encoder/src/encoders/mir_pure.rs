@@ -18,7 +18,7 @@ use prusti_interface::{
 };
 use prusti_rustc_interface::{
     abi,
-    data_structures::graph,
+    data_structures::graph::{self, Successors},
     index::IndexVec,
     middle::{
         mir,
@@ -54,6 +54,7 @@ type ExprRetAny<'vir, T> = vir::ExprGen<'vir, ExprInput<'vir>, vir::ExprKind<'vi
 
 #[derive(Clone, Debug)]
 pub struct MirPureEncOutput<'vir> {
+    pub inputs: Vec<mir::Local>,
     pub expr: ExprRet<'vir>,
 }
 
@@ -63,6 +64,7 @@ pub enum PureKind {
     Spec(Option<ExternSpecKind>),
     Pure,
     Constant(mir::Promoted),
+    SpecBlock(mir::BasicBlock),
 }
 
 impl PureKind {
@@ -124,7 +126,7 @@ impl TaskEncoder for MirPureEnc {
         let (_, kind, def_id, substs, caller_def_id) = *task_key;
 
         tracing::debug!("encoding {def_id:?}");
-        let expr = vir::with_vcx(move |vcx| {
+        let (inputs, expr) = vir::with_vcx(move |vcx| {
             let body = match kind {
                 PureKind::Closure => vcx
                     .body_mut()
@@ -136,21 +138,33 @@ impl TaskEncoder for MirPureEnc {
                 PureKind::Constant(promoted) => {
                     vcx.body_mut().get_promoted_constant_body(def_id, promoted)
                 }
+                PureKind::SpecBlock(_) => vcx
+                    .body_mut()
+                    .get_impure_fn_body_identity(def_id.expect_local()),
             };
 
             let mut enc = Enc::new(vcx, task_key.0, def_id, caller_def_id, kind, &body, deps);
-            let expr_inner = enc.encode_body()?;
+            let expr_inner = if let PureKind::SpecBlock(block) = kind {
+                enc.encode_spec_block(block)?
+            } else {
+                enc.encode_body()?
+            };
             let inputs = std::mem::take(&mut enc.versions_used).into_iter()
                 .filter(|(l, v)| *l != mir::RETURN_PLACE && *v == 0)
                 .map(|(l, _v)| l)
                 .unique()
                 .sorted()
                 .collect::<Vec<_>>();
+            let inputs_expected = inputs.len();
 
             // We wrap the expression with an additional lazy that will perform
             // some sanity checks. These requirements cannot be expressed using
             // only the type system.
-            let ret = RustTyDecomposition::from_ty(body.return_ty(), def_id);
+            let ret = if let PureKind::SpecBlock(..) = kind {
+                RustTyDecomposition::from_prim_ty(vcx.tcx().types.bool)
+            } else {
+                RustTyDecomposition::from_ty(body.return_ty(), def_id)
+            };
             let expr = vcx.mk_lazy_expr(
                 vir::vir_format!(vcx, "pure body {def_id:?}"),
                 deps.require_ref::<TyUsePureEnc>(ret)?.snapshot,
@@ -162,19 +176,20 @@ impl TaskEncoder for MirPureEnc {
                     // check: are we providing the expected number of inputs?
                     // TODO: check that the expected inputs are present; this
                     //   check is not precise
-                    assert!(lctx.1.len() >= inputs.len());
+                    assert!(lctx.1.len() >= inputs_expected);
 
                     use vir::Reify;
                     expr_inner.kind.reify(vcx, lctx)
                 }),
             );
             add_debug_note!(expr.debug_info, "Inner expr: {}", expr_inner.debug_info);
-            Ok(expr)
+            Ok((inputs, expr))
         })?;
         tracing::debug!("finished {def_id:?}");
 
         Ok(((), MirPureEncOutput {
-            expr
+            inputs,
+            expr,
         }))
     }
 }
@@ -493,7 +508,12 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             .unwrap_or_else(|| tuple_ref.mk_unreachable(self.vcx))
     }
 
-    fn encode_body(&mut self) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
+    fn encode_common(
+        &mut self,
+        start: mir::BasicBlock,
+        end: mir::BasicBlock,
+        result_local: mir::Local,
+    ) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
         let mut init = Update::new();
         let v0 = Version::default();
         // TODO: what about locals which never have StorageLive (i.e. always_live)?
@@ -508,17 +528,29 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             self.bump_version(&mut init, local.into(), local_ex, v0.location);
         }
 
-        let update = self.encode_cfg(&init.versions, mir::START_BLOCK, self.rev_doms.end)?;
+        let update = self.encode_cfg(&init.versions, start, end)?;
 
         // do we ever panic here? if yes, return the `unreachable_to_snap` expr.
         let res = init
             .merge(update)
             .expect("function unconditionally terminates with unreachable");
-        let ret_version = res.versions.get(&mir::RETURN_PLACE).copied().unwrap_or(v0);
-        self.versions_used.insert((mir::RETURN_PLACE, ret_version.index));
+        let ret_version = res.versions.get(&result_local).copied().unwrap_or(v0);
+        self.versions_used.insert((result_local, ret_version.index));
 
-        let ex = self.mk_local_ex(mir::RETURN_PLACE, ret_version);
+        let ex = self.mk_local_ex(result_local, ret_version);
         Ok(self.reify_binds(res, ex))
+    }
+
+    fn encode_body(&mut self) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
+        self.encode_common(mir::START_BLOCK, self.rev_doms.end, mir::RETURN_PLACE)
+    }
+
+    fn encode_spec_block(&mut self, block: mir::BasicBlock) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
+        let Some(mir::TerminatorKind::Call { destination, .. }) = self.body.basic_blocks[block].terminator.as_ref().map(|t| &t.kind) else {
+            unreachable!("malformed spec-only block: should end in a call terminator");
+        };
+        assert!(destination.projection.is_empty());
+        self.encode_common(block, self.body.basic_blocks.successors(block).next().unwrap(), destination.local)
     }
 
     fn encode_cfg(
@@ -1150,6 +1182,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         enum PrustiBuiltin {
             Forall,
             Exists,
+            SpecBlock,
             SnapshotEquality,
             SliceLen,
             ModeStart(Mode),
@@ -1182,6 +1215,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         ) {
             (None, "forall") => PrustiBuiltin::Forall,
             (None, "exists") => PrustiBuiltin::Exists,
+            (None, "spec_block") => PrustiBuiltin::SpecBlock,
             (None, "snapshot_equality") => PrustiBuiltin::SnapshotEquality,
             (None, "old_start") => PrustiBuiltin::ModeStart(Mode::Old),
             (None, "old_end") => PrustiBuiltin::ModeEnd(Mode::Old),
@@ -1346,6 +1380,86 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     self.vcx.mk_exists_expr(qvars, &[], body)
                 };
                 mk_bool(res)
+            }
+            PrustiBuiltin::SpecBlock => {
+                // TODO: reduce duplication with Forall/Exists above
+                assert_eq!(arg_tys.len(), 2);
+
+                let encoded_args = args
+                    .iter()
+                    .map(|oper| self.encode_operand_snap(&oper.node, curr_ver))
+                    .collect::<Result<Vec<_>, _>>()?;
+                assert_eq!(encoded_args.len(), 1);
+
+                let closure_ty = arg_tys[1].expect_ty();
+
+                let (/*qvar_tys, _upvar_tys, */cl_kind, cl_def_id) = match closure_ty.kind() {
+                    TyKind::Closure(cl_def_id, cl_args) => (
+                        /*match cl_args.as_closure().sig().skip_binder().inputs()[0].kind() {
+                            TyKind::Tuple(list) => list,
+                            _ => unreachable!(),
+                        },
+                        cl_args.as_closure().upvar_tys().iter().collect::<Vec<_>>(),*/
+                        cl_args.as_closure().kind(),
+                        *cl_def_id,
+                    ),
+                    other => panic!(
+                        "illegal prusti::{}: expected closure, got {other:?}",
+                        if builtin == PrustiBuiltin::Forall {
+                            "forall"
+                        } else {
+                            "exists"
+                        }
+                    ),
+                };
+
+                let mut reify_args = FxHashMap::default();
+
+                // TODO: big hack!
+                //   the problem is that we expect this to
+                //   be a simple Expr, but `encode_operand`
+                //   returns an ExprRet; do we need ExprRet
+                //   to be piped throughout this encoder?
+                //   alternatively, can we have an "unlift"
+                //   operation, which will work like reify
+                //   but panicking on a Lazy(..)?
+                let closure_ref = unsafe {
+                    std::mem::transmute::<ExprRet<'_>, vir::ExprGen<'_, (), !, vir::Snap>>(
+                        encoded_args[0],
+                    )
+                };
+                // The signature of `forall` should enforce that the argument is
+                // an `Fn` only.
+                assert_eq!(cl_kind, ty::ClosureKind::Fn);
+
+                reify_args.insert(1usize.into(), closure_ref);
+                //reify_args.extend(qvars.iter().map(|qvar| self.vcx.mk_local_ex(qvar)));
+
+                // TODO: recursively invoke MirPure encoder to encode
+                // the body of the closure; pass the closure as the
+                // variable to use, then closure access = tuple access
+                // (then hope to optimise this away later ...?)
+                use vir::Reify;
+                let body = self
+                    .deps
+                    .require_dep::<MirPureEnc>(MirPureEncTask {
+                        encoding_depth: self.encoding_depth + 1,
+                        kind: PureKind::Closure,
+                        parent_def_id: cl_def_id,
+                        param_env: self.vcx.tcx().param_env(cl_def_id),
+                        substs: ty::List::identity_for_item(self.vcx.tcx(), cl_def_id),
+                        caller_def_id: Some(self.def_id),
+                    })
+                    .unwrap()
+                    .expr
+                    // arguments to the closure are
+                    // - the closure itself
+                    .reify(self.vcx, (cl_def_id, self.vcx.alloc(reify_args)))
+                    .lift();
+
+                let body =
+                    bool.expect_native().snap_to_prim.call()(body.downcast_ty()).downcast_ty();
+                mk_bool(body)
             }
             PrustiBuiltin::SliceLen => {
                 assert_eq!(args.len(), 1);
