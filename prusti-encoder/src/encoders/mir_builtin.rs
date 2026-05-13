@@ -275,6 +275,10 @@ impl MirBuiltinEnc {
         }
 
         match dst_ty_inner.kind() {
+            ty::TyKind::Dynamic(_, _, _) => {
+                // dyn is opaque; predicate transfer in pres/posts is sufficient
+                // no content postconditions can be stated
+            }
             ty::TyKind::Slice(elem_ty) => {
                 let src_value = match &src_ref_pure.specifics {
                     TySpecifics::ImmRef(data) => data.value_access(snap_src.downcast_ty()),
