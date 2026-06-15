@@ -9,6 +9,7 @@ use prusti_rustc_interface::{
 
 use crate::{
     environment::{EnvDiagnostic, EnvName, EnvQuery, Environment},
+    specs::TypeSpecRefs,
     PrustiError,
 };
 use prusti_rustc_interface::{data_structures::fx::FxHashMap, middle::ty::GenericArgsRef};
@@ -99,6 +100,8 @@ pub struct ExternSpecResolver<'tcx> {
 
     /// Maps real functions to Prusti-generated fake functions with specifications.
     pub extern_fn_map: FxHashMap<ExternSpecDeclaration, DefId>,
+    // TODO: currently only holds interior mutability specs
+    pub(super) extern_ty_map: FxHashMap<DefId, TypeSpecRefs>,
 
     /// Duplicate specifications detected, keyed by the `DefId` of the function
     /// to be specified.
@@ -114,6 +117,7 @@ impl<'tcx> ExternSpecResolver<'tcx> {
             env_name: env.name,
             env_query: env.query,
             extern_fn_map: FxHashMap::default(),
+            extern_ty_map: FxHashMap::default(),
             spec_duplicates: FxHashMap::default(),
             errors: vec![],
         }
@@ -134,7 +138,7 @@ impl<'tcx> ExternSpecResolver<'tcx> {
         span: Span,
         local_id: LocalDefId,
         extern_spec_kind: ExternSpecKind,
-    ) {
+    ) -> Option<DefId> {
         let mut visitor = ExternSpecVisitor {
             env_query: self.env_query,
             spec_found: None,
@@ -208,6 +212,9 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                 self.extern_fn_map
                     .insert(extern_spec_decl.clone(), current_def_id);
             }
+            Some(target_def_id)
+        } else {
+            None
         }
     }
 

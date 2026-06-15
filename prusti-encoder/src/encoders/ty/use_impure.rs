@@ -4,6 +4,7 @@ use vir::{CastType, PredicateIdn};
 
 use crate::encoders::{
     Impure,
+    interior_mut::TyInteriorMutUseEnc,
     ty::{
         LazyRustTy, RustTyDatas,
         generics::{GArgs, GArgsCastEnc, GArgsTyEnc, GParams},
@@ -134,6 +135,7 @@ impl TaskEncoder for TyUseImpureEnc {
         task_key: &Self::TaskKey<'vir>,
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
+        deps.require_dep::<TyInteriorMutUseEnc>(*task_key).unwrap();
         deps.emit_output_ref(*task_key, ())?;
 
         let ty_impure = deps.require_dep::<TyImpureEnc>(task_key.ty)?;

@@ -95,6 +95,17 @@ fn extract_prusti_attributes(
                         assert!(attr.tokens.is_empty(), "Unexpected shape of an attribute.");
                         attr.tokens
                     }
+                    SpecAttributeKind::InteriorMut => {
+                        let mut iter = attr.tokens.into_iter();
+                        let tt = iter.next().map(|tt| {
+                            let TokenTree::Group(group) = tt else {
+                                unreachable!()
+                            };
+                            group.stream()
+                        });
+                        assert!(iter.next().is_none(), "Unexpected shape of an attribute.");
+                        tt.unwrap_or_default()
+                    }
                     SpecAttributeKind::Invariant => unreachable!("type invariant on function"),
                     SpecAttributeKind::Model => unreachable!("model on function"),
                     SpecAttributeKind::PrintCounterexample => {
@@ -175,6 +186,7 @@ fn generate_spec_and_assertions(
                 generate_for_assert_on_expiry(attr_tokens, attr_span, item)
             }
             SpecAttributeKind::Pure => generate_for_pure(attr_tokens, attr_span, item),
+            SpecAttributeKind::InteriorMut => generate_for_interior_mut(attr_tokens, item),
             SpecAttributeKind::Verified => generate_for_verified(attr_tokens, attr_span, item),
             SpecAttributeKind::Terminates => generate_for_terminates(attr_tokens, attr_span, item),
             SpecAttributeKind::Trusted => generate_for_trusted(attr_tokens, attr_span, item),
@@ -322,6 +334,22 @@ fn generate_for_pure(attr: TokenStream, span: Span, _item: &untyped::AnyFnItem) 
         vec![],
         vec![parse_quote_spanned! {span=>
             #[prusti::pure]
+        }],
+    ))
+}
+
+fn generate_for_interior_mut(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+    if !attr.is_empty() {
+        return Err(syn::Error::new(
+            attr.span(),
+            "the `#[interior_mut(...)]` attribute with parameters is not yet supported",
+        ));
+    }
+
+    Ok((
+        vec![],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::interior_mut]
         }],
     ))
 }
@@ -902,6 +930,7 @@ fn extract_prusti_attributes_for_types(
                     SpecAttributeKind::AssertOnExpiry => unreachable!("assert_on_expiry on type"),
                     SpecAttributeKind::RefineSpec => unreachable!("refine_spec on type"),
                     SpecAttributeKind::Pure => unreachable!("pure on type"),
+                    SpecAttributeKind::InteriorMut => unreachable!("interior_mut on type"),
                     SpecAttributeKind::Verified => unreachable!("verified on type"),
                     SpecAttributeKind::Invariant => unreachable!("invariant on type"),
                     SpecAttributeKind::Predicate => unreachable!("predicate on type"),
@@ -948,6 +977,7 @@ fn generate_spec_and_assertions_for_types(
             SpecAttributeKind::AfterExpiry => unreachable!(),
             SpecAttributeKind::AssertOnExpiry => unreachable!(),
             SpecAttributeKind::Pure => unreachable!(),
+            SpecAttributeKind::InteriorMut => unreachable!(),
             SpecAttributeKind::Verified => unreachable!(),
             SpecAttributeKind::Predicate => unreachable!(),
             SpecAttributeKind::Invariant => unreachable!(),

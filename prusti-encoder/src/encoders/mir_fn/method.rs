@@ -10,9 +10,13 @@ use crate::{
     encoders::{
         Impure, ImpureEncVisitor, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc, WandEnc,
         WandEncTask,
+        interior_mut::TyInteriorMutUseEnc,
         mir_fn::{CallTaskDescription, RustSignature, SpecBlocks},
         pure::spec::MirSpecEncMode,
-        ty::generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
+        ty::{
+            generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
+            indirect::interior_mut_quant_perm,
+        },
     },
     trait_support::is_function_with_body,
 };
@@ -227,6 +231,34 @@ impl TaskEncoder for MethodEnc {
             pres.extend(wands.indirect_pres(vcx, &arg_defs, deps));
             posts.extend(wands.indirect_posts(vcx, &arg_defs, deps));
             posts.extend(wands.wand_posts(vcx, &arg_defs, deps));
+
+            // Write permission to all interior-mutable objects reachable from
+            // the arguments (collected by the `_IM` functions of their types).
+            // We emit a single quantified permission over the union of all
+            // these sets, since arguments may alias (e.g. two shared
+            // references to the same `Cell`), in which case the shared
+            // interior-mutable objects must be counted only once.
+            //
+            // The precondition requires the full set of each argument (owned
+            // interior-mutable objects as well as those behind references).
+            // The postcondition returns only the objects reachable through
+            // references in the arguments (in the `old` state; the owned ones
+            // are consumed by the function) plus the full set of the result.
+            // The union again ensures that objects returned to the caller
+            // through both a reference argument and the result (e.g. when a
+            // function returns one of its arguments) are not counted twice.
+            let mut pre_sets = Vec::with_capacity(arg_count - 1);
+            for arg_idx in (1..arg_count).map(mir::Local::from) {
+                let arg = &arg_defs[arg_idx];
+                let im = deps.require_dep::<TyInteriorMutUseEnc>(arg.ty)?;
+                pre_sets.push(im.get_all(arg.local_ex, arg.impure_snap));
+            }
+            pres.push(interior_mut_quant_perm(vcx, deps, pre_sets)?);
+            let ret = &arg_defs[mir::RETURN_PLACE];
+            let ret_im = deps.require_dep::<TyInteriorMutUseEnc>(ret.ty)?;
+            let mut post_sets = vec![ret_im.get_all(ret.local_ex, ret.impure_snap)];
+            post_sets.extend(wands.interior_mut_post_sets(vcx, &arg_defs, deps));
+            posts.push(interior_mut_quant_perm(vcx, deps, post_sets)?);
 
             // Do not encode the method body if it is external, trusted, just
             // a call stub, or a trait function without a default implementation

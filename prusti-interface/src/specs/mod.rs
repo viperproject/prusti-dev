@@ -33,7 +33,7 @@ use typed::SpecIdRef;
 
 use crate::specs::{
     external::ExternSpecResolver,
-    typed::{ProcedureSpecification, ProcedureSpecificationKind, SpecGraph, SpecificationItem},
+    typed::{ProcedureSpecification, ProcedureSpecificationKind, SpecGraph},
 };
 use prusti_specs::specifications::common::SpecificationId;
 
@@ -63,6 +63,7 @@ struct TypeSpecRefs {
     trusted: bool,
     model: Option<(String, LocalDefId)>,
     countexample_print: Vec<(Option<String>, LocalDefId)>,
+    interior_mut: Vec<DefId>,
 }
 
 /// Specification collector, applied as a visitor over the crate HIR.
@@ -114,9 +115,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     pub fn build_def_specs(&mut self) -> typed::DefSpecificationMap {
         let mut def_spec = typed::DefSpecificationMap::new();
         self.determine_procedure_specs(&mut def_spec);
-        self.determine_extern_specs(&mut def_spec);
         self.determine_loop_specs(&mut def_spec);
         self.determine_type_specs(&mut def_spec);
+        self.determine_extern_specs(&mut def_spec);
         self.determine_prusti_assertions(&mut def_spec);
         self.determine_prusti_assumptions(&mut def_spec);
         self.determine_prusti_refutations(&mut def_spec);
@@ -258,6 +259,21 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             spec.set_extern_spec(extern_spec_decl.into());
             def_spec.proc_specs.insert(target_def_id, spec);
         }
+        for (extern_ty, specs) in self.extern_resolver.extern_ty_map.iter() {
+            if def_spec.type_specs.contains_key(extern_ty) {
+                PrustiError::incorrect(
+                    format!(
+                        "external specification provided for {}, which already has a specification",
+                        self.env.name.get_item_name(*extern_ty)
+                    ),
+                    MultiSpan::from_span(todo!()),
+                )
+                .emit(&self.env.diagnostic);
+            }
+
+            let spec = typed::TypeSpecification::from_ref(*extern_ty, specs);
+            def_spec.type_specs.insert(*extern_ty, spec);
+        }
     }
 
     fn determine_loop_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
@@ -288,19 +304,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
             def_spec.type_specs.insert(
                 type_id.to_def_id(),
-                typed::TypeSpecification {
-                    source: type_id.to_def_id(),
-                    invariant: SpecificationItem::Inherent(
-                        refs.invariants
-                            .clone()
-                            .into_iter()
-                            .map(LocalDefId::to_def_id)
-                            .collect(),
-                    ),
-                    trusted: SpecificationItem::Inherent(refs.trusted),
-                    model: refs.model.clone(),
-                    counterexample_print: refs.countexample_print.clone(),
-                },
+                typed::TypeSpecification::from_ref(type_id.to_def_id(), refs),
             );
         }
     }
@@ -570,13 +574,33 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             }
         } else {
             // Don't collect specs "for" spec items
+            let mut fn_id = def_id;
 
             // Collect external function specifications
             if has_extern_spec_attr(attrs) {
                 let attr = read_prusti_attr("extern_spec", attrs).unwrap_or_default();
                 let kind = prusti_specs::ExternSpecKind::try_from(attr).unwrap();
+                if let Some(source) = self
+                    .extern_resolver
+                    .add_extern_fn(fn_kind, fn_decl, body_id, span, local_id, kind)
+                {
+                    fn_id = source;
+                }
+            }
+
+            if has_prusti_attr(attrs, "interior_mut") {
+                let impl_ = self.env.query.tcx().parent(fn_id);
+                let self_ty = self.env.query.tcx().type_of(impl_).skip_binder();
+                let ty = self_ty
+                    .ty_adt_def()
+                    .expect("interior_mut can only be applied to ADTs")
+                    .did();
                 self.extern_resolver
-                    .add_extern_fn(fn_kind, fn_decl, body_id, span, local_id, kind);
+                    .extern_ty_map
+                    .entry(ty)
+                    .or_default()
+                    .interior_mut
+                    .push(fn_id);
             }
 
             // Collect procedure specifications

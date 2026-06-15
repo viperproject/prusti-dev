@@ -1,7 +1,11 @@
 use std::ops::Deref;
 
 use prusti_interface::environment::EnvQuery;
-use prusti_rustc_interface::{abi, hir, index, middle::ty, span::symbol};
+use prusti_rustc_interface::{
+    abi, hir, index,
+    middle::ty,
+    span::{def_id::DefId, symbol},
+};
 
 use super::{
     data::*,
@@ -83,6 +87,8 @@ impl<'tcx> RustTyDecomposition<'tcx> {
         let data = RustTyData {
             name: symbol::Symbol::intern("Param"),
             params: GParams::empty_env(gty),
+            interior_mut: &[],
+            unsafe_cell: false,
         };
         let specifics = TySpecifics::Param(RustParamData::Generic);
         TyData::<RustTyDatas>::new(data, specifics).alloc()
@@ -254,6 +260,8 @@ pub type RustBuiltin<'tcx> = <RustTyDatas as TyDatas<'tcx>>::BuiltinData;
 pub struct RustTyData<'tcx> {
     pub name: symbol::Symbol,
     pub params: GParams<'tcx>,
+    pub interior_mut: &'tcx [DefId],
+    pub unsafe_cell: bool,
 }
 
 impl<'tcx> RustTyData<'tcx> {
@@ -358,9 +366,13 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             let groundish = !layout_ty.has_infer() && !layout_ty.has_param();
             !groundish || !layout_ty.is_privately_uninhabited(tcx, context.typing_env())
         });
+        let unsafe_cell = ty.ty_adt_def().is_some_and(|adt| adt.is_unsafe_cell());
+        let interior_mut = crate::encoders::get_type_interior_mut(ty);
         let data = RustTyData {
             name: symbol::Symbol::intern(&name),
             params,
+            interior_mut: vir::with_vcx(|vcx| vcx.alloc_slice(&interior_mut)),
+            unsafe_cell,
         };
         RustTyDecomposition::new(
             Self::new(data, specifics).alloc(),
@@ -376,6 +388,8 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         let data = RustTyData {
             name: symbol::Symbol::intern(&name),
             params,
+            interior_mut: &[],
+            unsafe_cell: false,
         };
         let specifics = TySpecifics::from_prim_ty(ty);
         RustTyDecomposition::new(Self::new(data, specifics).alloc(), args, Some(true))
@@ -560,6 +574,9 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
         }
 
         match ty.kind() {
+            ty::TyKind::Adt(adt, _) if adt.is_unsafe_cell() => {
+                TySpecifics::mk_structlike((), Vec::new())
+            }
             ty::TyKind::Adt(adt, _) => Self::from_adt(*adt),
             ty::TyKind::Tuple(args) => {
                 let fields = args

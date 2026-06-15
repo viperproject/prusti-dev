@@ -140,6 +140,24 @@ pub fn is_type_trusted(ty: ty::Ty) -> bool {
     }
 }
 
+pub fn get_type_interior_mut(ty: ty::Ty) -> Vec<DefId> {
+    match ty.kind() {
+        prusti_rustc_interface::middle::ty::TyKind::Adt(adt_def, _) => with_type_spec(|def_spec| {
+            def_spec
+                .get_type_spec(&adt_def.did())
+                .map(|type_spec| {
+                    type_spec
+                        .interior_mut
+                        .expect_empty_or_inherent()
+                        .cloned()
+                        .unwrap_or_default()
+                })
+                .unwrap_or_default()
+        }),
+        _ => Vec::new(),
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct SpecEncTask {
     pub def_id: DefId, // ID of the function

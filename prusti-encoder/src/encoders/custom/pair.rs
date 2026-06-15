@@ -52,6 +52,10 @@ impl TaskEncoder for PairUseEnc {
             ))
         })
     }
+
+    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
+        PairEnc::emit_outputs(program);
+    }
 }
 
 #[derive(Debug, Clone)]

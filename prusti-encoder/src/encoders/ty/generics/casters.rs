@@ -96,6 +96,8 @@ impl TaskEncoder for CastersEnc<Pure> {
                     make_concrete: make_concrete_ident,
                 },
             )?;
+            let _: () =
+                deps.require_dep::<super::interior_mut::InteriorMutGenericsEnc>(*task_key)?;
             let make_generic_arg = vcx.mk_local_decl("self", self_ty);
             let make_generic_expr = vcx.mk_local_ex(make_generic_arg);
 

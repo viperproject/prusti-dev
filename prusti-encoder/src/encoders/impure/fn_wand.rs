@@ -186,6 +186,55 @@ impl<'vir> WandEncOutput<'vir> {
         )
     }
 
+    /// The sets of interior-mutable objects reachable through references in a
+    /// single function shape node (collected by the `_IM` functions of the
+    /// types behind those references). Mirrors
+    /// [`Self::encode_predicates_for_function_shape_node`], but returns the
+    /// `_IM` sets instead of the predicate applications.
+    fn interior_mut_sets_for_function_shape_node(
+        &self,
+        vcx: &'vir vir::VirCtxt<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, impl TaskEncoder>,
+        g: impl Into<FunctionShapeNode<Generalized>>,
+        call_ctx: WandCallContext<'vir>,
+        snap: vir::ExprSnap<'vir>,
+    ) -> Vec<vir::ExprSet<'vir>> {
+        use vir::Reify;
+        let g = g.into();
+        let fn_sig = self.fn_sig(vcx, call_ctx);
+        let arg_ty = g.ty(fn_sig);
+        let decomp = RustTyDecomposition::from_ty(arg_ty, self.g_params(vcx, call_ctx));
+        let Some(region_proj) =
+            projection_for_generalized_idx(arg_ty, g.region_idx(), decomp, vcx.tcx())
+        else {
+            return Vec::new();
+        };
+        let sets = deps
+            .require_dep::<IndirectPredicatesEnc>(region_proj)
+            .unwrap()
+            .interior_mut_sets;
+        sets.iter().map(|s| s.reify(vcx, snap)).collect()
+    }
+
+    /// The sets of interior-mutable objects reachable through references in
+    /// the function's arguments, in the `old` state (i.e. for use in the
+    /// postcondition). Note that this does not include the interior-mutable
+    /// objects owned by the arguments directly: those are consumed by the
+    /// function and are not returned to the caller.
+    pub fn interior_mut_post_sets<E: TaskEncoder>(
+        &self,
+        vcx: &'vir vir::VirCtxt<'vir>,
+        local_defs: &MirLocalDefEncOutput<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, E>,
+    ) -> Vec<vir::ExprSet<'vir>> {
+        self.inputs()
+            .flat_map(|g| {
+                let snap = vcx.mk_old_expr(local_defs[g.mir_local()].impure_snap);
+                self.interior_mut_sets_for_function_shape_node(vcx, deps, g, None, snap)
+            })
+            .collect()
+    }
+
     pub fn indirect_pres<'a, E: TaskEncoder>(
         &'a self,
         vcx: &'vir vir::VirCtxt<'vir>,

@@ -49,6 +49,9 @@ pub use prusti_contracts_proc_macros::assert_on_expiry;
 /// A macro for marking a function as pure.
 pub use prusti_contracts_proc_macros::pure;
 
+///TODO
+pub use prusti_contracts_proc_macros::interior_mut;
+
 /// A macro for marking a function as trusted.
 pub use prusti_contracts_proc_macros::trusted;
 
