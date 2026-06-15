@@ -52,6 +52,12 @@ pub use prusti_contracts_proc_macros::pure;
 ///TODO
 pub use prusti_contracts_proc_macros::interior_mut;
 
+/// A macro for marking a function as pure but with an unstable result that
+/// additionally depends on the QP-snapshot(s) of its arguments. `#[pure_unstable]`
+/// passes both the inner-IM-QP and object-IM-QP snapshots; `#[pure_unstable(true)]`
+/// passes only the inner-IM-QP snapshot (for functions used to define object-IM sets).
+pub use prusti_contracts_proc_macros::pure_unstable;
+
 /// A macro for marking a function as trusted.
 pub use prusti_contracts_proc_macros::trusted;
 
@@ -153,6 +159,15 @@ mod private_shared {
     /// private unit inside.
     #[derive(Clone, Copy)]
     pub struct Real(());
+
+    impl Real {
+        /// Full (write) permission amount, i.e. Viper `write` (`1/1`).
+        pub const FULL: Real = Real(());
+        /// Read (shared) permission amount, i.e. Viper `wildcard`.
+        pub const READ: Real = Real(());
+        /// No permission, i.e. Viper `none` (`0/1`).
+        pub const NONE: Real = Real(());
+    }
 
     __dummy_from_impls__!(Real: f16, f32, f64, f128);
     __dummy_trait_impls__!(Real: Add add, Sub sub, Mul mul, Div div);

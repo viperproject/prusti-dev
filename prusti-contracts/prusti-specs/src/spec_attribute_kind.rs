@@ -19,6 +19,7 @@ pub enum SpecAttributeKind {
     PrintCounterexample = 11,
     Verified = 12,
     InteriorMut = 13,
+    PureUnstable = 14,
 }
 
 impl TryFrom<String> for SpecAttributeKind {
@@ -39,6 +40,7 @@ impl TryFrom<String> for SpecAttributeKind {
             "print_counterexample" => Ok(SpecAttributeKind::PrintCounterexample),
             "verified" => Ok(SpecAttributeKind::Verified),
             "interior_mut" => Ok(SpecAttributeKind::InteriorMut),
+            "pure_unstable" => Ok(SpecAttributeKind::PureUnstable),
             _ => Err(name),
         }
     }

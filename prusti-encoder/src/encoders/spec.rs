@@ -158,6 +158,37 @@ pub fn get_type_interior_mut(ty: ty::Ty) -> Vec<DefId> {
     }
 }
 
+/// For an `#[interior_mut(EXPR)]`-annotated function (an `as_ptr`-style
+/// function in a type's interior-mut list), returns the `DefId` of the
+/// `Real`-returning permission-amount function, or `None` for a plain
+/// `#[interior_mut]` (always full permission, e.g. `Cell`).
+pub fn get_interior_mut_perm(def_id: DefId) -> Option<DefId> {
+    let substs = ty::GenericArgs::identity_for_item(vir::with_vcx(|vcx| vcx.tcx()), def_id);
+    with_proc_spec(SpecQuery::GetProcKind(def_id, substs), |proc_spec| {
+        proc_spec
+            .interior_mut_perm
+            .expect_empty_or_inherent()
+            .copied()
+            .flatten()
+    })
+    .flatten()
+}
+
+/// `Some(inner_only)` if `def_id` is a `#[pure_unstable]` function: `inner_only`
+/// is `true` for `#[pure_unstable(true)]` (only the inner-IM-QP snapshot is
+/// passed) and `false` otherwise (both QP snapshots are passed).
+pub fn get_pure_unstable(def_id: DefId) -> Option<bool> {
+    let substs = ty::GenericArgs::identity_for_item(vir::with_vcx(|vcx| vcx.tcx()), def_id);
+    with_proc_spec(SpecQuery::GetProcKind(def_id, substs), |proc_spec| {
+        proc_spec
+            .pure_unstable
+            .expect_empty_or_inherent()
+            .copied()
+            .flatten()
+    })
+    .flatten()
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct SpecEncTask {
     pub def_id: DefId, // ID of the function

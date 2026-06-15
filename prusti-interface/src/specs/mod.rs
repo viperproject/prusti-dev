@@ -41,6 +41,8 @@ use prusti_specs::specifications::common::SpecificationId;
 struct ProcedureSpecRefs {
     spec_id_refs: Vec<SpecIdRef>,
     pure: bool,
+    /// `Some(inner_only)` if the function is `#[pure_unstable]`.
+    pure_unstable: Option<bool>,
     abstract_predicate: bool,
     trusted: bool,
 }
@@ -216,7 +218,16 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                     SpecIdRef::Terminates(spec_id) => {
                         spec.set_terminates(*self.spec_functions.get(spec_id).unwrap());
                     }
+                    SpecIdRef::InteriorMutPerm(spec_id) => {
+                        spec.set_interior_mut_perm(
+                            self.spec_functions.get(spec_id).unwrap().to_def_id(),
+                        );
+                    }
                 }
+            }
+
+            if let Some(inner_only) = refs.pure_unstable {
+                spec.set_pure_unstable(inner_only);
             }
 
             spec.set_trusted(refs.trusted);
@@ -452,6 +463,10 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[hir::Attribute]) -> Option<Pro
         read_prusti_attr("pred_spec_id_ref", attrs)
             .map(|raw_spec_id| SpecIdRef::Predicate(parse_spec_id(raw_spec_id, def_id))),
     );
+    spec_id_refs.extend(
+        read_prusti_attr("interior_mut_perm_spec_id_ref", attrs)
+            .map(|raw_spec_id| SpecIdRef::InteriorMutPerm(parse_spec_id(raw_spec_id, def_id))),
+    );
     let is_predicate = matches!(spec_id_refs.last(), Some(SpecIdRef::Predicate(..)));
     debug!(
         "Function {:?} has specification ids {:?}",
@@ -459,6 +474,7 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[hir::Attribute]) -> Option<Pro
     );
 
     let pure = has_prusti_attr(attrs, "pure");
+    let pure_unstable = read_prusti_attr("pure_unstable", attrs).map(|v| v.trim() == "true");
     let trusted = has_prusti_attr(attrs, "trusted")
         || (!is_predicate && config::opt_in_verification() && !has_prusti_attr(attrs, "verified"));
     let abstract_predicate = has_abstract_predicate_attr(attrs);
@@ -467,6 +483,7 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[hir::Attribute]) -> Option<Pro
         Some(ProcedureSpecRefs {
             spec_id_refs,
             pure,
+            pure_unstable,
             abstract_predicate,
             trusted,
         })

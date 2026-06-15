@@ -30,8 +30,9 @@ pub use mir_pure::{MirPureEnc, MirPureEncTask, PureKind};
 pub use pure::spec::MirSpecEnc;
 pub(super) use spec::with_proc_spec;
 pub use spec::{
-    SpecEnc, SpecEncTask, get_type_interior_mut, is_function_pure, is_function_trusted,
-    is_type_trusted, kind_is_pure, report_kind_refinement_error,
+    SpecEnc, SpecEncTask, get_interior_mut_perm, get_pure_unstable, get_type_interior_mut,
+    is_function_pure, is_function_trusted, is_type_trusted, kind_is_pure,
+    report_kind_refinement_error,
 };
 pub use ty::{
     use_impure::TyUseImpureEnc,

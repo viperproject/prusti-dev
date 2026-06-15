@@ -22,6 +22,9 @@ pub enum SpecItemType {
     Pledge,
     Predicate(TokenStream),
     Termination,
+    /// The permission-amount expression of an `#[interior_mut(EXPR)]`
+    /// annotation. The spec item returns a `Real`.
+    InteriorMutPerm,
 }
 
 impl std::fmt::Display for SpecItemType {
@@ -32,6 +35,7 @@ impl std::fmt::Display for SpecItemType {
             SpecItemType::Pledge => write!(f, "pledge"),
             SpecItemType::Predicate(_) => write!(f, "pred"),
             SpecItemType::Termination => write!(f, "term"),
+            SpecItemType::InteriorMutPerm => write!(f, "interior_mut_perm"),
         }
     }
 }
@@ -119,6 +123,9 @@ impl AstRewriter {
                 quote_spanned! {item_span => Int::from(0) + },
             ),
             SpecItemType::Predicate(return_type) => (return_type.clone(), TokenStream::new()),
+            SpecItemType::InteriorMutPerm => {
+                (quote_spanned! {item_span => Real}, TokenStream::new())
+            }
             _ => (
                 quote_spanned! {item_span => bool},
                 quote_spanned! {item_span => !!},
