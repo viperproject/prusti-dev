@@ -256,20 +256,35 @@ pub struct DomainFunctionData<'vir> {
 }
 
 #[derive(PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Hash)]
-pub enum CfgBlockLabelData {
+#[serde(bound(deserialize = "'de: 'vir"))]
+pub enum CfgBlockLabelData<'vir> {
     Start,
     End,
     BasicBlock(usize),
     BasicBlockTerminator(usize),
+    PreLoopBasicBlock(usize, #[serde(with = "crate::serde::serde_slice")] &'vir [&'vir usize]),
+    PreLoopBasicBlockTerminator(usize, #[serde(with = "crate::serde::serde_slice")] &'vir [&'vir usize]),
 }
 
-impl CfgBlockLabelData {
+impl<'vir> CfgBlockLabelData<'vir> {
     pub fn name(&self) -> String {
         match self {
             Self::Start => "start".to_string(),
             Self::End => "end".to_string(),
             Self::BasicBlock(idx) => format!("bb_{idx}"),
             Self::BasicBlockTerminator(idx) => format!("bb_term_{idx}"),
+            Self::PreLoopBasicBlock(idx, pres) => {
+                let pres = pres.iter()
+                    .map(|l| format!("_pre{l}"))
+                    .collect::<String>();
+                format!("bb_{idx}{pres}")
+            }
+            Self::PreLoopBasicBlockTerminator(idx, pres) => {
+                let pres = pres.iter()
+                    .map(|l| format!("_pre{l}"))
+                    .collect::<String>();
+                format!("bb_term_{idx}{pres}")
+            }
         }
     }
 }
@@ -278,7 +293,7 @@ impl CfgBlockLabelData {
 pub enum OldLabel<'vir> {
     None,
     Lhs,
-    Block(CfgBlockLabelData),
+    Block(CfgBlockLabelData<'vir>),
     Label(#[serde(with = "crate::serde::serde_str")] &'vir str),
 }
 

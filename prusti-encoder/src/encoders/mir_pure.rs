@@ -344,10 +344,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         body: &'enc mir::Body<'vir>,
         deps: &'enc mut TaskEncoderDependencies<'vir, MirPureEnc>,
     ) -> Self {
-        assert!(
-            !graph::is_cyclic(&body.basic_blocks),
-            "MIR pure encoding does not support loops"
-        );
+
         let rev_doms = rev_doms::ReverseDominators::new(&body.basic_blocks);
         let local_def_enc_task = if kind.extern_spec().is_some() {
             MirLocalDefEncTask::ExternSpec(def_id)
@@ -512,13 +509,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         &mut self,
         start: mir::BasicBlock,
         end: mir::BasicBlock,
+        local_count: usize,
         result_local: mir::Local,
     ) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
         let mut init = Update::new();
         let v0 = Version::default();
         // TODO: what about locals which never have StorageLive (i.e. always_live)?
         init.versions.insert(mir::RETURN_PLACE, v0);
-        for local in 1..=self.body.arg_count {
+        for local in 1..local_count {
             let local_ex = self.vcx.mk_lazy_expr(
                 vir::vir_format!(self.vcx, "pure in _{local}"),
                 self.get_ty_for_local(local.into()),
@@ -542,7 +540,11 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     }
 
     fn encode_body(&mut self) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
-        self.encode_common(mir::START_BLOCK, self.rev_doms.end, mir::RETURN_PLACE)
+        assert!(
+            !graph::is_cyclic(&self.body.basic_blocks),
+            "MIR pure encoding does not support loops"
+        );
+        self.encode_common(mir::START_BLOCK, self.rev_doms.end, self.body.arg_count + 1, mir::RETURN_PLACE)
     }
 
     fn encode_spec_block(&mut self, block: mir::BasicBlock) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
@@ -550,7 +552,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             unreachable!("malformed spec-only block: should end in a call terminator");
         };
         assert!(destination.projection.is_empty());
-        self.encode_common(block, self.body.basic_blocks.successors(block).next().unwrap(), destination.local)
+        self.encode_common(block, self.body.basic_blocks.successors(block).next().unwrap(), self.body.local_decls.len(), destination.local)
     }
 
     fn encode_cfg(
