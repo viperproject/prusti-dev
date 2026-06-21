@@ -287,6 +287,9 @@ impl TaskEncoder for MethodEnc {
                     call_labels: Default::default(),
                     from_to_vars: Default::default(),
 
+                    current_block: None,
+                    current_block_pres: None,
+                    current_block_succs: None,
                     current_block_label: None,
                     current_fpcs: None,
 

@@ -323,7 +323,7 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_labelled_old_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
         expr: ExprGen<'vir, Curr, Next, T>,
-        label: Option<CfgBlockLabelData>,
+        label: Option<CfgBlockLabelData<'vir>>,
     ) -> ExprGen<'vir, Curr, Next, T> {
         self.mk_old(expr, label.map(OldLabel::Block).unwrap_or(OldLabel::None))
     }
@@ -903,6 +903,36 @@ impl<'tcx> VirCtxt<'tcx> {
         self.alloc(StmtGenData::new(
             self.alloc(StmtKindGenData::If(cond, then_stmts, else_stmts)),
         ))
+    }
+
+    pub fn mk_block_label<'vir>(
+        &'vir self,
+        block: usize,
+        pres: impl IntoIterator<Item = usize>,
+    ) -> CfgBlockLabel<'vir> {
+        let pres = self.alloc(pres.into_iter()
+            .map(|l| self.alloc(l))
+            .collect::<Vec<_>>());
+        if pres.is_empty() {
+            self.alloc(CfgBlockLabelData::BasicBlock(block))
+        } else {
+            self.alloc(CfgBlockLabelData::PreLoopBasicBlock(block, pres))
+        }
+    }
+
+    pub fn mk_terminator_label<'vir>(
+        &'vir self,
+        block: usize,
+        pres: impl IntoIterator<Item = usize>,
+    ) -> CfgBlockLabel<'vir> {
+        let pres = self.alloc(pres.into_iter()
+            .map(|l| self.alloc(l))
+            .collect::<Vec<_>>());
+        if pres.is_empty() {
+            self.alloc(CfgBlockLabelData::BasicBlockTerminator(block))
+        } else {
+            self.alloc(CfgBlockLabelData::PreLoopBasicBlockTerminator(block, pres))
+        }
     }
 
     pub fn mk_label_stmt<'vir, Curr, Next>(

@@ -24,7 +24,7 @@ pub struct LoopSpec {
     pub loop_id: LoopId,
     pub original_head_block: BasicBlock,
     pub head_block: BasicBlock,
-    pub invariants: Vec<BasicBlock>,
+    pub invariants: Vec<(BasicBlock, Span)>,
 }
 
 #[derive(Clone, Debug)]
@@ -40,6 +40,7 @@ pub struct SpecBlocks {
     pub specs_for: FxHashMap<BasicBlock, Vec<SpecBlock>>,
     pub spec_blocks: FxHashSet<BasicBlock>,
     pub loop_specs: FxHashMap<BasicBlock, LoopSpec>,
+    pub loop_head_at: FxHashMap<LoopId, BasicBlock>,
 }
 
 impl SpecBlocks {
@@ -100,10 +101,13 @@ impl SpecBlocks {
                 // It's not the invariant block itself since that block is
                 // spec-only and guarded in `if false`.
                 loop_spec.head_block = spec_block.attached_to;
-                loop_spec.invariants.push(spec_block.block);
+                loop_spec.invariants.push((spec_block.block, spec_block.span));
             }
         }
 
+        let loop_head_at = loop_specs.iter()
+            .map(|(loop_id, spec)| (*loop_id, spec.head_block))
+            .collect();
         let loop_specs = loop_specs.into_iter()
             .map(|(_loop_id, spec)| (spec.head_block, spec))
             .collect();
@@ -111,6 +115,7 @@ impl SpecBlocks {
             specs_for: visitor.specs_for,
             spec_blocks: visitor.spec_blocks,
             loop_specs,
+            loop_head_at,
         }
     }
 }
