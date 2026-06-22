@@ -16,7 +16,7 @@ impl TaskEncoder for InteriorMutGenericsEnc {
     task_encoder::encoder_cache!(InteriorMutGenericsEnc);
     const ENCODER_NAME: &'static str = "interior mutability generics encoder";
     type TaskDescription<'vir> = (RustTy<'vir>, RustTy<'vir>);
-    type OutputFullLocal<'vir> = vir::DomainAxiom<'vir>;
+    type OutputFullLocal<'vir> = Vec<vir::DomainAxiom<'vir>>;
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task
@@ -34,49 +34,112 @@ impl TaskEncoder for InteriorMutGenericsEnc {
         let im_param = deps.require_ref::<TyInteriorMutEnc>(param)?;
         let im_concrete = deps.require_ref::<TyInteriorMutEnc>(concrete)?;
 
-        // forall r: Ref, s: s_Param, tys: ManyTyVal, cs: ManyCSnap :: { s_Param_IM(r, s, MyType_cons(tys, cs), []) } s_Param_IM(r, s, MyType_cons(tys, cs), []) == s_MyType_IM(r, make_concrete(s, tys, cs), tys, cs)
+        // For each of the inner-IM and object-IM set functions:
+        // forall r: Ref, s: s_Param, tys: ManyTyVal, cs: ManyCSnap ::
+        //   { s_Param_IM_K(r, s, MyType_cons(tys, cs), []) }
+        //   s_Param_IM_K(r, s, MyType_cons(tys, cs), []) ==
+        //   s_MyType_IM_K(r, make_concrete(s, tys, cs), tys, cs)
 
         let params = deps.require_dep::<GenericParamsEnc>(concrete.params)?;
         let ty_expr = params.ty_expr(deps, RustTyDecomposition::identity(concrete))?;
 
-        let axiom = vir::with_vcx(|vcx| {
-            let r = vcx.mk_local_decl("r", vir::TYPE_REF);
-            let s = vcx.mk_local_decl("s", vir::TYPE_PSNAP);
-            let tys = params.ty_decls();
-            let cs = params.const_decls();
+        // `Map[Pair2[Ref, Type], s_Param]` — the inner-IM QP snapshot type that
+        // the object-IM functions take as an extra argument.
+        let pair = deps
+            .require_dep::<crate::encoders::custom::PairUseEnc>(vec![
+                vir::TYPE_REF.as_dyn(),
+                vir::TYPE_TYVAL.as_dyn(),
+            ])
+            .unwrap();
 
-            let r_exp = vcx.mk_local_ex(r);
-            let s_exp = vcx.mk_local_ex(s);
-
-            let lhs = im_param.0.call()(r_exp, s_exp.upcast_ty(), &[ty_expr], &[]);
-            let rhs = im_concrete.0.call()(
-                r_exp,
+        let axioms = vir::with_vcx(|vcx| {
+            let map_ty = vcx.mk_ty_map(pair.ty, vir::TYPE_PSNAP);
+            let common_qvars = |extra: &[vir::LocalDeclDyn<'vir>]| {
+                let tys = params.ty_decls().iter().copied().map(vir::LocalDeclData::as_dyn);
+                let cs = params.const_decls().iter().copied().map(vir::LocalDeclData::as_dyn);
+                extra
+                    .iter()
+                    .copied()
+                    .chain(tys)
+                    .chain(cs)
+                    .collect::<Vec<_>>()
+            };
+            let make_concrete = |s_exp: vir::ExprPSnap<'vir>| {
                 casters.make_concrete.call()(s_exp, params.ty_exprs(), params.const_exprs())
-                    .upcast_ty(),
-                params.ty_exprs(),
-                params.const_exprs(),
-            );
-            let body = vcx.mk_eq_expr(lhs, rhs);
+                    .upcast_ty()
+            };
 
-            let tys = tys.iter().copied().map(vir::LocalDeclData::as_dyn);
-            let cs = cs.iter().copied().map(vir::LocalDeclData::as_dyn);
-            let qvars = [r.as_dyn(), s.as_dyn()]
-                .into_iter()
-                .chain(tys)
-                .chain(cs)
-                .collect::<Vec<_>>();
-            let qvars = vcx.alloc_slice(&qvars);
-            let triggers = vcx.alloc_slice(&[vcx.mk_trigger(&[lhs])]);
-            let forall = vcx.mk_forall_expr(qvars, triggers, body);
-            let name =
-                vir::ViperIdent::new(vir::vir_format!(vcx, "ax_{}_Param_IM", concrete.name()));
-            vcx.mk_domain_axiom(name, forall)
+            // Inner-IM: s_Param_IM_inner(r, s, MyType) == s_Ty_IM_inner(r, make_concrete(s), ..)
+            let inner_axiom = {
+                let r = vcx.mk_local_decl("r", vir::TYPE_REF);
+                let s = vcx.mk_local_decl("s", vir::TYPE_PSNAP);
+                let r_exp = vcx.mk_local_ex(r);
+                let s_exp = vcx.mk_local_ex(s);
+                let lhs = im_param.inner.call()(r_exp, s_exp.upcast_ty(), &[ty_expr], &[]);
+                let rhs = im_concrete.inner.call()(
+                    r_exp,
+                    make_concrete(s_exp),
+                    params.ty_exprs(),
+                    params.const_exprs(),
+                );
+                let body = vcx.mk_eq_expr(lhs, rhs);
+                let qvars = common_qvars(&[r.as_dyn(), s.as_dyn()]);
+                let forall = vcx.mk_forall_expr(
+                    vcx.alloc_slice(&qvars),
+                    vcx.alloc_slice(&[vcx.mk_trigger(&[lhs])]),
+                    body,
+                );
+                let name = vir::ViperIdent::new(vir::vir_format!(
+                    vcx,
+                    "ax_{}_Param_IM_inner",
+                    concrete.name()
+                ));
+                vcx.mk_domain_axiom(name, forall)
+            };
+
+            // Object-IM: takes the extra inner-IM `Map` snapshot argument `m`.
+            // s_Param_IM_object(r, s, m, MyType) == s_Ty_IM_object(r, make_concrete(s), m, ..)
+            let object_axiom = {
+                let r = vcx.mk_local_decl("r", vir::TYPE_REF);
+                let s = vcx.mk_local_decl("s", vir::TYPE_PSNAP);
+                let m = vcx.mk_local_decl("m", map_ty);
+                let r_exp = vcx.mk_local_ex(r);
+                let s_exp = vcx.mk_local_ex(s);
+                let m_exp = vcx.mk_local_ex(m);
+                let lhs =
+                    im_param.object.call()(r_exp, s_exp.upcast_ty(), m_exp, &[ty_expr], &[]);
+                let rhs = im_concrete.object.call()(
+                    r_exp,
+                    make_concrete(s_exp),
+                    m_exp,
+                    params.ty_exprs(),
+                    params.const_exprs(),
+                );
+                let body = vcx.mk_eq_expr(lhs, rhs);
+                let qvars = common_qvars(&[r.as_dyn(), s.as_dyn(), m.as_dyn()]);
+                let forall = vcx.mk_forall_expr(
+                    vcx.alloc_slice(&qvars),
+                    vcx.alloc_slice(&[vcx.mk_trigger(&[lhs])]),
+                    body,
+                );
+                let name = vir::ViperIdent::new(vir::vir_format!(
+                    vcx,
+                    "ax_{}_Param_IM_object",
+                    concrete.name()
+                ));
+                vcx.mk_domain_axiom(name, forall)
+            };
+
+            vec![inner_axiom, object_axiom]
         });
-        Ok((axiom, ()))
+        Ok((axioms, ()))
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let axioms = Self::all_outputs_local_no_errors(program);
+        let axioms = Self::all_outputs_local_no_errors(program)
+            .into_iter()
+            .flatten()
+            .collect::<Vec<_>>();
         let domain = vir::with_vcx(|vcx| {
             let name = vir::ViperIdent::new("def_Param_IM");
             let axioms = vcx.alloc_slice(&axioms);

@@ -531,6 +531,17 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             let spec_id: SpecificationId = parse_spec_id(raw_spec_id, def_id);
             self.spec_functions.insert(spec_id, local_id);
 
+            // A spec function may itself be `#[pure_unstable]` (e.g. an
+            // `#[interior_mut(EXPR)]` permission closure). Such functions are
+            // encoded as ordinary pure functions and therefore also need a
+            // procedure specification, so the encoder can see the
+            // `pure_unstable` flag (and thread the inner-IM `Map`).
+            if read_prusti_attr("pure_unstable", attrs).is_some() {
+                if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
+                    self.procedure_specs.insert(local_id, procedure_spec_ref);
+                }
+            }
+
             // Collect loop specifications
             if has_prusti_attr(attrs, "loop_body_invariant_spec") {
                 self.loop_specs.push(local_id);

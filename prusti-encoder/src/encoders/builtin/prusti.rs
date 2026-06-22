@@ -510,8 +510,20 @@ impl TaskEncoder for PrustiBuiltinEnc {
                 }
                 PrustiBuiltin::Int(op) => ctxt.encode_num::<vir::Int>(op, false)?,
                 PrustiBuiltin::Real(NumOp::From) => {
-                    let fp_to_real = ctxt.e_input(0)?.expect_float().fp_to_real;
-                    fp_to_real.call()(ctxt.operands[0].downcast_ty()).upcast_ty()
+                    if ctxt.sig.inputs()[0].is_integral() {
+                        // `Real::from(n)` for an integer `n`: encode as the
+                        // fractional permission `n / 1` (Viper `Int -> Perm`),
+                        // avoiding any intermediate float cast.
+                        let prim = *ctxt.e_input(0)?.expect_primitive();
+                        let n = prim.snap_to_prim(ctxt.operands[0].downcast_ty());
+                        let one = vcx.mk_const_expr(vir::ConstData::Int(1));
+                        vcx.mk_bin_op_expr(vir::BinOpKind::FracPerm, n, one)
+                            .downcast_ty::<vir::Perm>()
+                            .upcast_ty()
+                    } else {
+                        let fp_to_real = ctxt.e_input(0)?.expect_float().fp_to_real;
+                        fp_to_real.call()(ctxt.operands[0].downcast_ty()).upcast_ty()
+                    }
                 }
                 PrustiBuiltin::Real(op) => ctxt.encode_num::<vir::Perm>(op, true)?,
                 PrustiBuiltin::Float(op, fl) => {

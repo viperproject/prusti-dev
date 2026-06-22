@@ -169,7 +169,7 @@ mod private_shared {
         pub const NONE: Real = Real(());
     }
 
-    __dummy_from_impls__!(Real: f16, f32, f64, f128);
+    __dummy_from_impls__!(Real: isize, f16, f32, f64, f128);
     __dummy_trait_impls__!(Real: Add add, Sub sub, Mul mul, Div div);
 
     impl Neg for Real {

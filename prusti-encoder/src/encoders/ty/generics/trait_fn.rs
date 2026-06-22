@@ -24,10 +24,12 @@ pub struct TraitFnEncOutputRef<'vir> {
     pub post_func:
         FunctionIdn<'vir, (vir::Snap, vir::ManySnap, vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
     pub call_stub_impure: Option<MethodIdn<'vir, (vir::ManyRef, vir::ManyTyVal, vir::ManyCSnap)>>,
-    pub call_stub_pure_caller:
-        Option<FunctionIdn<'vir, (vir::ManySnap, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>>,
-    pub call_stub_pure_function:
-        Option<FunctionIdn<'vir, (vir::ManySnap, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>>,
+    pub call_stub_pure_caller: Option<
+        FunctionIdn<'vir, (vir::ManySnap, vir::ManyMap, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
+    >,
+    pub call_stub_pure_function: Option<
+        FunctionIdn<'vir, (vir::ManySnap, vir::ManyMap, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
+    >,
 }
 
 impl<'vir> OutputRefAny for TraitFnEncOutputRef<'vir> {}
@@ -144,11 +146,15 @@ impl TaskEncoder for TraitFnEnc {
                     ),
                 )
             });
+            // Empty `ManyMap` slot (trait-call stubs do not carry the inner-IM
+            // `Map`), matching `FunctionEnc`'s signature shape.
+            let no_map: &[vir::TypeMap<'vir>] = &[];
             let call_stub_pure_caller = is_pure.then(|| {
                 FunctionIdn::new(
                     vir_format_identifier!(vcx, "{trait_name}_cfn_stub_{item_name}"),
                     (
                         arg_types,
+                        no_map,
                         item_generics.ty_args(),
                         item_generics.const_args(),
                     ),
@@ -160,6 +166,7 @@ impl TaskEncoder for TraitFnEnc {
                     vir_format_identifier!(vcx, "{trait_name}_fn_stub_{item_name}"),
                     (
                         arg_types,
+                        no_map,
                         item_generics.ty_args(),
                         item_generics.const_args(),
                     ),
@@ -267,8 +274,11 @@ impl TaskEncoder for TraitFnEnc {
                     item_generics.ty_exprs(),
                     item_generics.const_exprs(),
                 ));
+                let no_map_exprs: &[vir::ExprMap<'vir>] = &[];
+                let no_map_decls: &[vir::LocalDeclMap<'vir>] = &[];
                 let wrapped_call = call_stub_pure_function.unwrap().call()(
                     func_arg_exprs,
+                    no_map_exprs,
                     item_generics.ty_exprs(),
                     item_generics.const_exprs(),
                 );
@@ -276,6 +286,7 @@ impl TaskEncoder for TraitFnEnc {
                     call_stub_pure_caller.unwrap(),
                     (
                         &func_args,
+                        no_map_decls,
                         item_generics.ty_decls(),
                         item_generics.const_decls(),
                     ),
@@ -288,6 +299,7 @@ impl TaskEncoder for TraitFnEnc {
                     call_stub_pure_function.unwrap(),
                     (
                         &func_args,
+                        no_map_decls,
                         item_generics.ty_decls(),
                         item_generics.const_decls(),
                     ),

@@ -6,7 +6,7 @@ use core::cell::RefCell;
 impl<T> RefCell<T> {
     #[interior_mut(match refcell_count(self) {
         0 => Real::FULL,
-        n if n > 0 => Real::FULL / Real::from(n as f64),
+        n if n > 0 => Real::FULL / Real::from(n),
         _ => Real::NONE,
     })]
     pub fn as_ptr(&self) -> *mut T;

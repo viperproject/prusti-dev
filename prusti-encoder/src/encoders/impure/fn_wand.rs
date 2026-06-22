@@ -198,7 +198,7 @@ impl<'vir> WandEncOutput<'vir> {
         g: impl Into<FunctionShapeNode<Generalized>>,
         call_ctx: WandCallContext<'vir>,
         snap: vir::ExprSnap<'vir>,
-    ) -> Vec<vir::ExprSet<'vir>> {
+    ) -> (Vec<vir::ExprSet<'vir>>, Vec<vir::ExprSet<'vir>>) {
         use vir::Reify;
         let g = g.into();
         let fn_sig = self.fn_sig(vcx, call_ctx);
@@ -207,32 +207,44 @@ impl<'vir> WandEncOutput<'vir> {
         let Some(region_proj) =
             projection_for_generalized_idx(arg_ty, g.region_idx(), decomp, vcx.tcx())
         else {
-            return Vec::new();
+            return (Vec::new(), Vec::new());
         };
-        let sets = deps
+        let out = deps
             .require_dep::<IndirectPredicatesEnc>(region_proj)
-            .unwrap()
-            .interior_mut_sets;
-        sets.iter().map(|s| s.reify(vcx, snap)).collect()
+            .unwrap();
+        let inner = out
+            .interior_mut_inner_sets
+            .iter()
+            .map(|s| s.reify(vcx, snap))
+            .collect();
+        let object = out
+            .interior_mut_object_sets
+            .iter()
+            .map(|s| s.reify(vcx, snap))
+            .collect();
+        (inner, object)
     }
 
     /// The sets of interior-mutable objects reachable through references in
     /// the function's arguments, in the `old` state (i.e. for use in the
-    /// postcondition). Note that this does not include the interior-mutable
-    /// objects owned by the arguments directly: those are consumed by the
-    /// function and are not returned to the caller.
+    /// postcondition), as `(inner_IM, object_IM)`. Note that this does not
+    /// include the interior-mutable objects owned by the arguments directly:
+    /// those are consumed by the function and are not returned to the caller.
     pub fn interior_mut_post_sets<E: TaskEncoder>(
         &self,
         vcx: &'vir vir::VirCtxt<'vir>,
         local_defs: &MirLocalDefEncOutput<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, E>,
-    ) -> Vec<vir::ExprSet<'vir>> {
-        self.inputs()
-            .flat_map(|g| {
-                let snap = vcx.mk_old_expr(local_defs[g.mir_local()].impure_snap);
-                self.interior_mut_sets_for_function_shape_node(vcx, deps, g, None, snap)
-            })
-            .collect()
+    ) -> (Vec<vir::ExprSet<'vir>>, Vec<vir::ExprSet<'vir>>) {
+        let mut inner = Vec::new();
+        let mut object = Vec::new();
+        for g in self.inputs() {
+            let snap = vcx.mk_old_expr(local_defs[g.mir_local()].impure_snap);
+            let (i, o) = self.interior_mut_sets_for_function_shape_node(vcx, deps, g, None, snap);
+            inner.extend(i);
+            object.extend(o);
+        }
+        (inner, object)
     }
 
     pub fn indirect_pres<'a, E: TaskEncoder>(

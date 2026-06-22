@@ -64,6 +64,9 @@ pub enum BinOpKind {
     PermSub,
     PermMul,
     PermPermDiv,
+    /// Fractional permission `left/right` (Viper `fractional_perm`): `Int`,
+    /// `Int` -> `Perm`. Used to convert an integer to a permission amount.
+    FracPerm,
     Mod,
 }
 impl From<mir::BinOp> for BinOpKind {

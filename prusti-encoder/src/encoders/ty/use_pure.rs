@@ -399,6 +399,16 @@ impl<'vir> TyUsePureImmRef<'vir> {
         let value = self.pure.value_access.call()(snap);
         self.referent_caster.cast_to_caller_ctx(value.upcast_ty())
     }
+
+    /// The raw, generic (`s_Param`) value behind the reference, *without*
+    /// casting to the caller (concrete) context. Used to compute the
+    /// interior-mutability sets of the referent generically (as a `Param`).
+    pub fn value_access_generic<Curr, Next>(
+        &self,
+        snap: vir::ExprGenCSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenPSnap<'vir, Curr, Next> {
+        self.pure.value_access.call()(snap)
+    }
 }
 
 impl<'vir> TyUsePureRaw<'vir> {

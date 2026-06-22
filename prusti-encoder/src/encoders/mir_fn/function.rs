@@ -26,12 +26,28 @@ pub struct FunctionCallEncOutput<'vir> {
 }
 
 impl<'vir> FunctionCallEncOutput<'vir> {
+    /// `true` if the callee is `#[pure_unstable]` and therefore expects the
+    /// inner-IM-QP `Map` argument (callers must use [`Self::call_pure_unstable`]).
+    pub fn is_pure_unstable(&self) -> bool {
+        self.function.pure_unstable.is_some()
+    }
+
     /// Calls the definitional function `f_`, used in pure/spec contexts.
     pub fn call_pure<Curr, Next>(
         &self,
         args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
-        self.call_casted(self.function.function_ref, args)
+        self.call_casted(self.function.function_ref, args, &[])
+    }
+
+    /// Call a `#[pure_unstable]` callee, passing the inner-IM-QP `Map` snapshot
+    /// as the extra Viper argument.
+    pub fn call_pure_unstable<Curr, Next>(
+        &self,
+        args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
+        inner_map: vir::ExprGenMap<'vir, Curr, Next>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        self.call_casted(self.function.function_ref, args, &[inner_map])
     }
 
     /// Calls the caller wrapper `cf_`, used when encoding impure assignments.
@@ -39,19 +55,20 @@ impl<'vir> FunctionCallEncOutput<'vir> {
         &self,
         args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
-        self.call_casted(self.function.caller_ref, args)
+        self.call_casted(self.function.caller_ref, args, &[])
     }
 
     fn call_casted<Curr, Next>(
         &self,
-        function: FunctionIdn<'vir, (vir::ManySnap, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
+        function: FnSig<'vir>,
         mut args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
+        maps: &[vir::ExprGenMap<'vir, Curr, Next>],
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
         assert_eq!(self.inputs.len(), args.len());
         for (arg, caster) in args.iter_mut().zip(self.inputs.iter()) {
             *arg = caster.cast_to_callee_ctx(*arg);
         }
-        let call = function.call()(&args, self.ty_args.get_ty(), self.ty_args.get_const());
+        let call = function.call()(&args, maps, self.ty_args.get_ty(), self.ty_args.get_const());
         self.output.cast_to_caller_ctx(call)
     }
 }
@@ -76,6 +93,8 @@ impl TaskEncoder for FunctionCallEnc {
             FunctionEncOutputRef {
                 caller_ref: assoc_enc.call_stub_pure_caller.unwrap(),
                 function_ref: assoc_enc.call_stub_pure_function.unwrap(),
+                // Trait-call stubs do not (yet) carry the inner-IM `Map`.
+                pure_unstable: None,
             }
         } else {
             deps.require_ref::<FunctionEnc>(task_key.callee)?
@@ -114,10 +133,21 @@ impl TaskEncoder for FunctionCallEnc {
 
 struct FunctionEnc;
 
+/// The function signature carries a `ManyMap` slot (between the snapshot args
+/// and the type/const generics) for the inner-IM-QP `Map` of `#[pure_unstable]`
+/// functions. It is empty (length 0) for all other functions, so their emitted
+/// Viper signature is unchanged.
+type FnSig<'vir> =
+    FunctionIdn<'vir, (vir::ManySnap, vir::ManyMap, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>;
+
 #[derive(Debug, Clone)]
 struct FunctionEncOutputRef<'vir> {
-    caller_ref: FunctionIdn<'vir, (vir::ManySnap, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
-    function_ref: FunctionIdn<'vir, (vir::ManySnap, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
+    caller_ref: FnSig<'vir>,
+    function_ref: FnSig<'vir>,
+    /// `Some` if this is a `#[pure_unstable]` function (so its signature has a
+    /// non-empty `ManyMap` slot that callers must fill); the `bool` is the
+    /// `inner_only` flag.
+    pure_unstable: Option<bool>,
 }
 
 impl<'vir> OutputRefAny for FunctionEncOutputRef<'vir> {}
@@ -167,14 +197,28 @@ impl TaskEncoder for FunctionEnc {
             let return_type = local_defs.snap_ty_return();
             let params = GParams::from(def_id);
             let generics = deps.require_dep::<GenericParamsEnc>(params)?;
+            // `#[pure_unstable]` functions take the inner-IM-QP `Map` snapshot as
+            // an extra argument (so e.g. a borrow-count function can read the
+            // current interior-mutable state). Non-pure-unstable functions have
+            // an empty `ManyMap` slot, leaving their Viper signature unchanged.
+            let pure_unstable = crate::encoders::get_pure_unstable(def_id);
+            let map_decls: &[vir::LocalDeclMap<'vir>] = if pure_unstable.is_some() {
+                vcx.alloc_slice(&[crate::encoders::ty::interior_mut::pure_unstable_inner_map_decl(
+                    deps,
+                )?])
+            } else {
+                &[]
+            };
+            let map_types =
+                vcx.alloc_slice(&map_decls.iter().map(|d| d.ty).collect::<Vec<_>>());
             let caller_ref = FunctionIdn::new(
                 caller_ident,
-                (arg_types, generics.ty_args(), generics.const_args()),
+                (arg_types, map_types, generics.ty_args(), generics.const_args()),
                 return_type,
             );
             let function_ref = FunctionIdn::new(
                 function_ident,
-                (arg_types, generics.ty_args(), generics.const_args()),
+                (arg_types, map_types, generics.ty_args(), generics.const_args()),
                 return_type,
             );
             deps.emit_output_ref(
@@ -182,6 +226,7 @@ impl TaskEncoder for FunctionEnc {
                 FunctionEncOutputRef {
                     caller_ref,
                     function_ref,
+                    pure_unstable,
                 },
             )?;
 
@@ -247,14 +292,19 @@ impl TaskEncoder for FunctionEnc {
                 .iter()
                 .map(|arg| vcx.mk_local_ex(arg))
                 .collect::<Vec<_>>();
+            let map_exprs = map_decls
+                .iter()
+                .map(|arg| vcx.mk_local_ex(arg))
+                .collect::<Vec<_>>();
             let wrapped_call = function_ref.call()(
                 &wrapped_call_args,
+                &map_exprs,
                 generics.ty_exprs(),
                 generics.const_exprs(),
             );
             let caller = vcx.mk_function(
                 caller_ref,
-                (&func_args, generics.ty_decls(), generics.const_decls()),
+                (&func_args, map_decls, generics.ty_decls(), generics.const_decls()),
                 vcx.alloc_slice(&spec.pre_exprs().collect::<Vec<_>>()),
                 posts,
                 None,
@@ -262,7 +312,7 @@ impl TaskEncoder for FunctionEnc {
             );
             let function = vcx.mk_function(
                 function_ref,
-                (&func_args, generics.ty_decls(), generics.const_decls()),
+                (&func_args, map_decls, generics.ty_decls(), generics.const_decls()),
                 &[],
                 posts,
                 expr.is_none().then_some(&vir::DecreasesGenData::Star),

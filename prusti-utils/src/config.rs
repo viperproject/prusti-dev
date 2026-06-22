@@ -107,6 +107,7 @@ lazy_static::lazy_static! {
         settings.set_default::<Option<u64>>("smt_qi_profile_freq", None).unwrap();
         settings.set_default("report_viper_messages", false).unwrap();
         settings.set_default("use_more_complete_exhale", true).unwrap();
+        settings.set_default("assume_injectivity_on_inhale", true).unwrap();
         settings.set_default("skip_unsupported_features", false).unwrap();
         settings.set_default("internal_errors_as_warnings", false).unwrap();
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
@@ -544,6 +545,17 @@ pub fn check_timeout() -> Option<u32> {
 /// `--enableMoreCompleteExhale`.
 pub fn use_more_complete_exhale() -> bool {
     read_setting("use_more_complete_exhale")
+}
+
+/// When enabled, the verifier assumes (rather than checks) that the receivers
+/// of inhaled quantified permissions are injective. Prusti generates injective
+/// QPs by construction; the interior-mutability object-IM QP in particular has
+/// a `(ref, type)` receiver carrying a per-element permission amount, which is
+/// injective semantically (each object has a unique address) but not provable
+/// by Viper's syntactic check. Equivalent to the verifier command-line argument
+/// `--assumeInjectivityOnInhale`.
+pub fn assume_injectivity_on_inhale() -> bool {
+    read_setting("assume_injectivity_on_inhale")
 }
 
 /// When enabled, prints the items collected for verification.

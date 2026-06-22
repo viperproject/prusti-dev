@@ -267,6 +267,11 @@ struct Enc<'vir: 'enc, 'enc> {
     rel1_mode: bool,
     before_expiry_mode: bool,
     impure_context: bool,
+    /// If the function being encoded is `#[pure_unstable]`, a reference to its
+    /// inner-IM-QP `Map` parameter, forwarded to nested `#[pure_unstable]`
+    /// callees (e.g. the `#[interior_mut(EXPR)]` perm closure forwarding it to
+    /// `refcell_count`). `None` for ordinary functions.
+    inner_map: Option<vir::ExprGenMap<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>>,
 }
 
 struct EncodedPlace<'vir> {
@@ -349,6 +354,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         deps: &'enc mut TaskEncoderDependencies<'vir, MirPureEnc>,
     ) -> Self {
         let rev_doms = rev_doms::ReverseDominators::new(&body.basic_blocks);
+        // A `#[pure_unstable]` function takes the inner-IM-QP `Map` as an extra
+        // Viper parameter (added by `FunctionEnc`); reference it here so the body
+        // can forward it to `#[pure_unstable]` callees.
+        let inner_map = crate::encoders::get_pure_unstable(def_id).map(|_| {
+            let decl =
+                crate::encoders::ty::interior_mut::pure_unstable_inner_map_decl(deps).unwrap();
+            vcx.mk_local_ex(decl)
+        });
         Self {
             vcx,
             encoding_depth,
@@ -367,6 +380,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             rel1_mode: false,
             before_expiry_mode: false,
             impure_context: matches!(kind, PureKind::Spec(_)),
+            inner_map,
         }
     }
 
@@ -895,7 +909,22 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             .iter()
                             .map(|arg| self.encode_operand_snap(&arg.node, &new_curr_ver))
                             .collect::<Result<Vec<_>, _>>()?;
-                        Ok(pure_func.call_pure(snap_args))
+                        if pure_func.is_pure_unstable() {
+                            // The callee expects the inner-IM-QP `Map`. Forward
+                            // the one this (`#[pure_unstable]`) function received.
+                            let caller = self.def_id;
+                            let pu = crate::encoders::get_pure_unstable(caller);
+                            let inner_map = self.inner_map.unwrap_or_else(|| {
+                                panic!(
+                                    "call to #[pure_unstable] {def_id:?} from {caller:?} \
+                                     (pure_unstable={pu:?}) that does not have an inner-IM map \
+                                     in scope"
+                                )
+                            });
+                            Ok(pure_func.call_pure_unstable(snap_args, inner_map))
+                        } else {
+                            Ok(pure_func.call_pure(snap_args))
+                        }
                     } else {
                         panic!("call to unknown non-pure function in pure code ({def_id:?})");
                     }

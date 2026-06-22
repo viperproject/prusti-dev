@@ -4,18 +4,18 @@ use prusti_rustc_interface::{middle::mir, span::def_id::DefId};
 use task_encoder::{
     EncodeFullError, EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies,
 };
-use vir::MethodIdn;
+use vir::{CastType, MethodIdn};
 
 use crate::{
     encoders::{
         Impure, ImpureEncVisitor, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc, WandEnc,
         WandEncTask,
-        interior_mut::TyInteriorMutUseEnc,
+        interior_mut::{TyInteriorMutUseEnc, interior_mut_inner_map},
         mir_fn::{CallTaskDescription, RustSignature, SpecBlocks},
         pure::spec::MirSpecEncMode,
         ty::{
             generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
-            indirect::interior_mut_quant_perm,
+            indirect::{full_perm, interior_mut_quant_perm, object_perm},
         },
     },
     trait_support::is_function_with_body,
@@ -247,18 +247,111 @@ impl TaskEncoder for MethodEnc {
             // The union again ensures that objects returned to the caller
             // through both a reference argument and the result (e.g. when a
             // function returns one of its arguments) are not counted twice.
-            let mut pre_sets = Vec::with_capacity(arg_count - 1);
+            // TODO(interior-mut, STEP B): currently only the inner-IM (full
+            // permission) objects are granted, via a single QP in the pre- and
+            // postcondition. The object-IM (permission-expression) objects need
+            // a separate treatment that does NOT emit a second QP over the same
+            // `p_Param` predicate (Silicon's QP framing cannot disentangle two
+            // QPs over one predicate); the planned approach materializes the
+            // inner-IM QP into a Viper `Map` (`qp_to_map`) and expresses the
+            // object-IM permission against that Map.
+            // Collect each argument's IM encoding + address/snapshot.
+            let mut arg_ims = Vec::with_capacity(arg_count - 1);
             for arg_idx in (1..arg_count).map(mir::Local::from) {
                 let arg = &arg_defs[arg_idx];
                 let im = deps.require_dep::<TyInteriorMutUseEnc>(arg.ty)?;
-                pre_sets.push(im.get_all(arg.local_ex, arg.impure_snap));
+                arg_ims.push((im, arg.local_ex, arg.impure_snap));
             }
-            pres.push(interior_mut_quant_perm(vcx, deps, pre_sets)?);
-            let ret = &arg_defs[mir::RETURN_PLACE];
-            let ret_im = deps.require_dep::<TyInteriorMutUseEnc>(ret.ty)?;
-            let mut post_sets = vec![ret_im.get_all(ret.local_ex, ret.impure_snap)];
-            post_sets.extend(wands.interior_mut_post_sets(vcx, &arg_defs, deps));
-            posts.push(interior_mut_quant_perm(vcx, deps, post_sets)?);
+
+            // Emits an inner-IM QP and an object-IM QP over the arguments,
+            // evaluating each argument's snapshot via `snap_of`. The object-IM
+            // set function takes the inner-IM QP `Map` snapshot, materialized
+            // once from the union of the arguments' inner-IM sets (this matches
+            // the single inner-IM QP exactly, so `qp_to_map`'s precondition is
+            // discharged). The two QPs are returned as `(inner, object)` so the
+            // caller can order them appropriately (the object-IM QP must be
+            // processed while the inner-IM permission is held).
+            //
+            // TODO(interior-mut): the object-IM QP still grants full permission
+            // (placeholder); and the result's own IM objects are not yet
+            // returned in the postcondition.
+            let mut mk_qps = |deps: &mut TaskEncoderDependencies<'vir, _>,
+                              snap_of: &dyn Fn(vir::ExprSnap<'vir>) -> vir::ExprSnap<'vir>|
+             -> Result<_, EncodeFullError<'vir, MethodEnc>> {
+                let mut inner = Vec::with_capacity(arg_ims.len());
+                for (im, addr, snap) in &arg_ims {
+                    inner.push(im.get_all_inner(*addr, snap_of(*snap)));
+                }
+                let union_inner = inner.iter().copied().reduce(|a, b| {
+                    vcx.mk_anyset_op_expr(vir::CollectionBinOpKind::Union, a, b)
+                        .downcast_ty()
+                });
+                let mut object = Vec::with_capacity(arg_ims.len());
+                if let Some(union_inner) = union_inner {
+                    let map = interior_mut_inner_map(deps, union_inner)?;
+                    for (im, addr, snap) in &arg_ims {
+                        object.push(im.get_all_object(*addr, snap_of(*snap), map));
+                    }
+                }
+                let inner_qp = interior_mut_quant_perm(
+                    vcx,
+                    deps,
+                    vec![vir::TYPE_REF.as_dyn(), vir::TYPE_TYVAL.as_dyn()],
+                    inner,
+                    full_perm,
+                )?;
+                let object_qp = interior_mut_quant_perm(
+                    vcx,
+                    deps,
+                    vec![
+                        vir::TYPE_REF.as_dyn(),
+                        vir::TYPE_TYVAL.as_dyn(),
+                        vir::TYPE_PERM.as_dyn(),
+                    ],
+                    object,
+                    object_perm,
+                )?;
+                Ok((inner_qp, object_qp))
+            };
+
+            let (pre_inner_qp, pre_object_qp) = mk_qps(deps, &|s| s)?;
+            pres.push(pre_inner_qp);
+            pres.push(pre_object_qp);
+
+            // In the postcondition we return only the interior-mutable objects
+            // reachable *behind a reference* (computed by the indirect encoder,
+            // i.e. the data behind the `&` as a `Param`), in the `old` state —
+            // NOT the arguments' own `s_Ref_immutable_IM_*` sets. The owned IM
+            // objects of the arguments are consumed by the function.
+            //
+            // The inner-IM QP is pushed BEFORE the object-IM QP (this ordering
+            // is what makes the `Cell`/multi-arg cases verify). NOTE: once the
+            // object-IM perm genuinely depends on `qp_to_map(inner_set)` (i.e.
+            // a `RefCell` whose `#[pure_unstable]` perm closure reads the map),
+            // the object QP's `qp_to_map` precondition / permission amounts can
+            // no longer be matched at exhale here — that is the open QP-matching
+            // problem (the perm verified before only because the map was dead).
+            let (post_inner, post_object) = wands.interior_mut_post_sets(vcx, &arg_defs, deps);
+            let post_inner_qp = interior_mut_quant_perm(
+                vcx,
+                deps,
+                vec![vir::TYPE_REF.as_dyn(), vir::TYPE_TYVAL.as_dyn()],
+                post_inner,
+                full_perm,
+            )?;
+            let post_object_qp = interior_mut_quant_perm(
+                vcx,
+                deps,
+                vec![
+                    vir::TYPE_REF.as_dyn(),
+                    vir::TYPE_TYVAL.as_dyn(),
+                    vir::TYPE_PERM.as_dyn(),
+                ],
+                post_object,
+                object_perm,
+            )?;
+            posts.push(post_inner_qp);
+            posts.push(post_object_qp);
 
             // Do not encode the method body if it is external, trusted, just
             // a call stub, or a trait function without a default implementation

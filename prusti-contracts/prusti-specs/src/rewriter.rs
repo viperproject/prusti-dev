@@ -157,6 +157,21 @@ impl AstRewriter {
                 let fn_arg = self.generate_result_arg(item);
                 spec_item.sig.inputs.push(fn_arg);
             }
+            // An `#[interior_mut(EXPR)]` permission closure defines an object-IM
+            // permission and may read interior-mutable state (e.g. a borrow
+            // count via a `#[pure_unstable(true)]` function), so it is itself
+            // `#[pure_unstable(true)]`: its Viper encoding takes the inner-IM-QP
+            // `Map` snapshot, which it forwards to such callees. `#[pure]` (as
+            // for any `#[pure_unstable]` function) also ensures the spec closure
+            // gets a procedure specification collected.
+            SpecItemType::InteriorMutPerm => {
+                spec_item.attrs.push(parse_quote_spanned! {item_span=>
+                    #[prusti::pure]
+                });
+                spec_item.attrs.push(parse_quote_spanned! {item_span=>
+                    #[prusti::pure_unstable = "true"]
+                });
+            }
             _ => (),
         }
         Ok(syn::Item::Fn(spec_item))
