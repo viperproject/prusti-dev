@@ -267,7 +267,7 @@ impl TaskEncoder for MethodEnc {
                     vcx.mk_goto_stmt(&vir::CfgBlockLabelData::BasicBlock(0)),
                 ));
 
-                let spec_blocks = SpecBlocks::new(&body, fpcs_analysis.analysis().loop_analysis());
+                let spec_blocks = SpecBlocks::new(def_id, &body, fpcs_analysis.analysis().loop_analysis());
 
                 deps.check_cycle()?;
                 let mut visitor = ImpureEncVisitor {

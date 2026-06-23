@@ -3,7 +3,7 @@ use prusti_interface::{environment::EnvQuery, utils::{has_prusti_attr,}};
 use prusti_rustc_interface::{
     data_structures::fx::{FxHashMap, FxHashSet},
     middle::mir::{self, BasicBlock},
-    span::Span,
+    span::{Span, def_id::DefId},
 };
 
 use crate::encoders::mir_fn::RustSignature;
@@ -49,11 +49,13 @@ impl SpecBlocks {
     /// marked with the Prusti spec-only attribute. For each spec-only block we
     /// determine which non-spec block it is attached to.
     pub fn new<'enc, 'vir: 'enc>(
+        def_id: DefId,
         body: &'enc mir::Body<'vir>,
         loop_analysis: &'enc LoopAnalysis,
     ) -> Self {
         use mir::visit::Visitor;
         let mut visitor = SpecVisitor {
+            def_id,
             body,
             specs_for: Default::default(),
             spec_blocks: Default::default(),
@@ -121,6 +123,7 @@ impl SpecBlocks {
 }
 
 struct SpecVisitor<'enc, 'vir: 'enc> {
+    def_id: DefId,
     body: &'enc mir::Body<'vir>,
     specs_for: FxHashMap<BasicBlock, Vec<SpecBlock>>,
     spec_blocks: FxHashSet<BasicBlock>,
@@ -135,7 +138,7 @@ impl<'enc, 'vir: 'enc> mir::visit::Visitor<'vir> for SpecVisitor<'enc, 'vir> {
                 mir::TerminatorKind::Call { func, .. } => {
                     let func_ty = func.ty(self.body, vcx.tcx());
                     let (def_id, arg_tys) = RustSignature::get_def_id_and_caller_substs(func_ty);
-                    if !env_query.is_function_in_crate(def_id, arg_tys, "prusti_contracts") {
+                    if !env_query.is_function_in_crate(self.def_id, def_id, arg_tys, "prusti_contracts") {
                         return;
                     }
 

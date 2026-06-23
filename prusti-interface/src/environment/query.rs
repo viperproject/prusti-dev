@@ -341,21 +341,20 @@ impl<'tcx> EnvQuery<'tcx> {
         }
     }
 
-    /// Given a definition id of a function (def_id) and some substs applied for a call (arg_tys), this method returns if the function call calls a function in the crate specified (crate_name)
+    /// Given the `called_def_id` of a function, called from `caller_def_id`,
+    /// and some substitutions `call_substs` applied for that call, returns
+    /// `true` if the call is to a function in the specified crate `crate_name`.
+    /// This resolves trait implementations.
     pub fn is_function_in_crate(
         self,
-        def_id: DefId,
-        arg_tys: GenericArgsRef<'tcx>,
+        caller_def_id: impl IntoParam<ProcedureDefId>, // where are we calling from?
+        called_def_id: impl IntoParam<ProcedureDefId>, // what are we calling?
+        call_substs: GenericArgsRef<'tcx>,
         crate_name: &'tcx str,
     ) -> bool {
-        let actual_impl = self.find_impl_of_trait_method_call(def_id, arg_tys);
-        actual_impl.map_or_else(
-            || {
-                let did_crate_name = self.tcx.crate_name(def_id.krate);
-                did_crate_name.as_str() == crate_name
-            },
-            |x| self.tcx.crate_name(x.krate).as_str() == crate_name,
-        )
+        let (resolved_def_id, _) = self.resolve_method_call(caller_def_id, called_def_id, call_substs);
+        let resolved_crate_name = self.tcx.crate_name(resolved_def_id.krate);
+        resolved_crate_name.as_str() == crate_name
     }
 
     /// Given an adt definition (adt), this method returns if the adt is defined in the crate specified (crate_name)
