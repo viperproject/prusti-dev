@@ -430,6 +430,22 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         expr: ExprRet<'vir>,
         location: mir::Location,
     ) {
+        if self.version_ctr[local] == 0 {
+            // Version 0 signifies "inputs into the expression", as checked in
+            // `do_encode_full` to figure out which locals should be encoded
+            // and provided by the caller/user of the encoded expression. In
+            // most cases, version 0 is not assigned to for non-input locals,
+            // because a preceding `StorageLive` bumps the version before the
+            // assignment takes place, and so any later reads of that local use
+            // at least version 1. However, there are some operations, such as
+            // checked binary operations, that do not cause the compiler to
+            // emit a `StorageLive` for their target place. This workaround
+            // checks for such a case and bumps the version twice.
+            //
+            // see: https://github.com/rust-lang/rust/issues/67400
+            self.bump_version_no_assign(local, location);
+        }
+
         let new_version = self.bump_version_no_assign(local, location);
         // check that `local` and `expr` type correspond
         update.assign(self.vcx, self.encoding_depth, local, new_version, expr);
