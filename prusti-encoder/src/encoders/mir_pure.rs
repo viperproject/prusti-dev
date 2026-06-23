@@ -451,6 +451,18 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         update.assign(self.vcx, self.encoding_depth, local, new_version, expr);
     }
 
+    fn bump_version_init(
+        &mut self,
+        update: &mut Update<'vir>,
+        local: mir::Local,
+        expr: ExprRet<'vir>,
+        location: mir::Location,
+    ) {
+        let new_version = self.bump_version_no_assign(local, location);
+        // check that `local` and `expr` type correspond
+        update.assign(self.vcx, self.encoding_depth, local, new_version, expr);
+    }
+
     fn bump_version_no_assign(
         &mut self,
         local: mir::Local,
@@ -539,7 +551,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 Box::new(move |_vcx, lctx: ExprInput<'vir>| lctx.1[&local.into()].kind),
             );
             // check that `local` and `expr` type correspond
-            self.bump_version(&mut init, local.into(), local_ex, v0.location);
+            self.bump_version_init(&mut init, local.into(), local_ex, v0.location);
         }
 
         let update = self.encode_cfg(&init.versions, start, end)?;
