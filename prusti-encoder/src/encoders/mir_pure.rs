@@ -810,7 +810,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .unwrap_or_default();
 
                     let env_query = EnvQuery::new(self.vcx.tcx());
-                    if env_query.is_function_in_crate(def_id, arg_tys, "prusti_contracts") {
+                    if env_query.is_function_in_crate(self.def_id, def_id, arg_tys, "prusti_contracts") {
                         let sig = self.vcx.tcx().fn_sig(def_id);
                         let sig = sig.instantiate_identity();
                         let actual_impl = env_query.find_impl_of_trait_method_call(def_id, arg_tys);
