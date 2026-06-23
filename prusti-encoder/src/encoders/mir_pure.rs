@@ -731,6 +731,17 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .map(|l| self.body.local_decls[*l].ty)
                     .collect();
 
+                // for each branch, mark the updated versions as "used"
+                // TODO: this is an over-estimation: the variable after the
+                //   join point may not actually be used
+                if let Some(update) = &ok_update {
+                    for local in &mod_locals {
+                        if let Some(version) = update.versions.get(&local) {
+                            self.versions_used.insert((*local, version.index));
+                        }
+                    }
+                }
+
                 // create a Viper tuple of the updated locals
                 let tuple_ref = self
                     .deps
