@@ -1,10 +1,12 @@
 mod method;
 mod function;
 mod signature;
+mod spec_blocks;
 
 pub use function::*;
 pub use method::*;
 pub use signature::*;
+pub use spec_blocks::*;
 
 use crate::encoders::ty::generics::{
     GArgs, GParams,
