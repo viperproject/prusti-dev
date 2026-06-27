@@ -78,7 +78,7 @@ impl<'vir, Curr, Next> Debug for BinOpGenData<'vir, Curr, Next> {
     }
 }
 
-impl Debug for CfgBlockLabelData {
+impl<'vir> Debug for CfgBlockLabelData<'vir> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}", self.name())
     }
@@ -337,7 +337,7 @@ impl<'vir, Curr, Next> Debug for MethodGenData<'vir, Curr, Next> {
 impl<'vir, Curr, Next> Debug for OldGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "old")?;
-        match self.label {
+        match &self.label {
             OldLabel::None => (),
             OldLabel::Lhs => write!(f, "[lhs]")?,
             OldLabel::Block(block) => block.fmt(f)?,
@@ -400,6 +400,7 @@ impl<'vir, Curr, Next> Debug for StmtKindGenData<'vir, Curr, Next> {
             Self::PureAssign(data) => write!(f, "{:indent$?} := {:indent$?}", data.lhs, data.rhs),
             Self::Inhale(data) => write!(f, "inhale {data:indent$?}"),
             Self::Exhale(data) => write!(f, "exhale {data:indent$?}"),
+            Self::Refute(data) => write!(f, "refute {data:indent$?}"),
             Self::Unfold(data) => write!(f, "unfold {data:indent$?}"),
             Self::Fold(data) => write!(f, "fold {data:indent$?}"),
             Self::Package(wand, stmts) => {
@@ -491,7 +492,11 @@ impl<'vir, Curr, Next> Debug for TerminatorStmtGenData<'vir, Curr, Next> {
                 }
             }
             Self::Exit => write!(f, "// return"),
-            Self::Dummy(info) => write!(f, "assert false // {info}"),
+            Self::Dummy(info) => {
+                writeln!(f, "assert false // {info}")?;
+                f.pad("")?;
+                write!(f, "{:?}", Self::Goto(&CfgBlockLabelData::End))
+            }
         }
     }
 }
