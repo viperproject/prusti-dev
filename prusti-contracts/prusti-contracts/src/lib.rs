@@ -492,6 +492,14 @@ pub fn exists<T, A: core::marker::Tuple, F: Fn<A>>(_trigger_set: T, _closure: &F
     true
 }
 
+/// Specification block.
+///
+/// This is a Prusti-internal representation of `prusti_assert!` and others.
+#[cfg(feature = "prusti")]
+pub fn spec_block<A: core::marker::Tuple, F: Fn<A>>(_closure: &F) -> bool {
+    true
+}
+
 /// Creates an owned copy of a reference. This should only be used from within
 /// ghost code, as it circumvents the borrow checker.
 pub fn snap<T>(_x: &T) -> T {

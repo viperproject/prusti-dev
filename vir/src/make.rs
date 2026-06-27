@@ -47,7 +47,8 @@ cfg_if! {
                     check_expr_bindings(m, p.rhs);
                 }
                 StmtKindGenData::Inhale(e) |
-                StmtKindGenData::Exhale(e) => {
+                StmtKindGenData::Exhale(e) |
+                StmtKindGenData::Refute(e) => {
                     check_expr_bindings(m, e.as_dyn());
                 }
                 StmtKindGenData::Unfold(app) | StmtKindGenData::Fold(app) => {
@@ -322,7 +323,7 @@ impl<'tcx> VirCtxt<'tcx> {
     pub fn mk_labelled_old_expr<'vir, Curr, Next, T: CompType>(
         &'vir self,
         expr: ExprGen<'vir, Curr, Next, T>,
-        label: Option<CfgBlockLabelData>,
+        label: Option<CfgBlockLabelData<'vir>>,
     ) -> ExprGen<'vir, Curr, Next, T> {
         self.mk_old(expr, label.map(OldLabel::Block).unwrap_or(OldLabel::None))
     }
@@ -904,6 +905,32 @@ impl<'tcx> VirCtxt<'tcx> {
         ))
     }
 
+    pub fn mk_block_label<'vir>(
+        &'vir self,
+        block: usize,
+        pres: impl IntoIterator<Item = usize>,
+    ) -> CfgBlockLabel<'vir> {
+        let pres = self.alloc(pres.into_iter().map(|l| self.alloc(l)).collect::<Vec<_>>());
+        if pres.is_empty() {
+            self.alloc(CfgBlockLabelData::BasicBlock(block))
+        } else {
+            self.alloc(CfgBlockLabelData::PreLoopBasicBlock(block, pres))
+        }
+    }
+
+    pub fn mk_terminator_label<'vir>(
+        &'vir self,
+        block: usize,
+        pres: impl IntoIterator<Item = usize>,
+    ) -> CfgBlockLabel<'vir> {
+        let pres = self.alloc(pres.into_iter().map(|l| self.alloc(l)).collect::<Vec<_>>());
+        if pres.is_empty() {
+            self.alloc(CfgBlockLabelData::BasicBlockTerminator(block))
+        } else {
+            self.alloc(CfgBlockLabelData::PreLoopBasicBlockTerminator(block, pres))
+        }
+    }
+
     pub fn mk_label_stmt<'vir, Curr, Next>(
         &'vir self,
         label: &'vir str,
@@ -916,6 +943,13 @@ impl<'tcx> VirCtxt<'tcx> {
         expr: ExprGenBool<'vir, Curr, Next>,
     ) -> StmtGen<'vir, Curr, Next> {
         self.alloc(StmtGenData::new(self.alloc(StmtKindGenData::Inhale(expr))))
+    }
+
+    pub fn mk_refute_stmt<'vir, Curr, Next>(
+        &'vir self,
+        expr: ExprGenBool<'vir, Curr, Next>,
+    ) -> StmtGen<'vir, Curr, Next> {
+        self.alloc(StmtGenData::new(self.alloc(StmtKindGenData::Refute(expr))))
     }
 
     pub fn mk_assume_false_stmt<'vir, Curr, Next>(
