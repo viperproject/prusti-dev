@@ -936,6 +936,9 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Stmt<'vir> {
                 .ast
                 .apply(wand.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
             vir::StmtKindGenData::PureAssign(v) => v.to_viper_with_span(ctx, self.span),
+            vir::StmtKindGenData::Refute(v) => ctx
+                .ast
+                .refute(v.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
             vir::StmtKindGenData::If(e, thn, els) => {
                 let thn = ctx.ast.seqn(
                     &thn.iter()
@@ -986,13 +989,17 @@ impl<'vir, 'v> ToViperVec<'vir, 'v> for vir::TerminatorStmt<'vir> {
             vir::TerminatorStmtGenData::Goto(label) => vec.push(ctx.ast.goto(&label.name())),
             vir::TerminatorStmtGenData::GotoIf(v) => v.to_viper_extend_no_pos(vec, ctx),
             vir::TerminatorStmtGenData::Exit => vec.push(ctx.ast.comment("return")),
-            vir::TerminatorStmtGenData::Dummy(v) => vec.push(ctx.ast.seqn(
-                &[
-                    ctx.ast.comment(v),
-                    ctx.ast.assert(ctx.ast.false_lit_with_pos(pos), pos),
-                ],
-                &[],
-            )),
+            vir::TerminatorStmtGenData::Dummy(v) => {
+                vec.push(ctx.ast.seqn(
+                    &[
+                        ctx.ast.comment(v),
+                        ctx.ast.assert(ctx.ast.false_lit_with_pos(pos), pos),
+                    ],
+                    &[],
+                ));
+                let goto_end = &vir::TerminatorStmtGenData::Goto(&vir::CfgBlockLabelData::End);
+                goto_end.to_viper_extend(vec, ctx, pos);
+            }
         }
     }
 }
