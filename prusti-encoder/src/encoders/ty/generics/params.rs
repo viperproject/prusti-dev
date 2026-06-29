@@ -1,6 +1,6 @@
 use prusti_interface::specs::typed::ExternSpecKind;
 use prusti_rustc_interface::{
-    middle::ty,
+    middle::ty::{self, TypeFoldable},
     span::{def_id::DefId, symbol},
 };
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
@@ -15,6 +15,23 @@ use crate::encoders::{
         lifted::TyConstructorEnc,
     },
 };
+
+/// Replaces region inference variables (ReVar) with erased regions.
+/// Used before type normalization with a fresh `InferCtxt` that doesn't
+/// know about ReVars from the original type-checking context.
+struct EraseReVars<'tcx>(ty::TyCtxt<'tcx>);
+impl<'tcx> ty::TypeFolder<ty::TyCtxt<'tcx>> for EraseReVars<'tcx> {
+    fn cx(&self) -> ty::TyCtxt<'tcx> {
+        self.0
+    }
+    fn fold_region(&mut self, r: ty::Region<'tcx>) -> ty::Region<'tcx> {
+        if r.is_var() {
+            self.0.lifetimes.re_erased
+        } else {
+            r
+        }
+    }
+}
 
 /// The list of defined parameters in a given context. E.g. the type parameters
 /// `T` and `U` in the body of the function `fn foo<T, U>(t: T) -> U { ... }`
@@ -103,6 +120,8 @@ impl<'tcx> GParams<'tcx> {
             },
         };
         vir::with_vcx(|vcx| {
+            // Erase ReVars before normalizing with a fresh InferCtxt.
+            let ty = ty.fold_with(&mut EraseReVars(vcx.tcx()));
             // Normalize associated types
             let ifctxt: InferCtxt = vcx.tcx().infer_ctxt().build(ty::TypingMode::PostAnalysis);
             let mut fulfill_cx = <dyn TraitEngine<ScrubbedTraitError> as TraitEngineExt<
