@@ -50,6 +50,11 @@ pub enum ConstEncTask<'vir> {
 /// https://rustc-dev-guide.rust-lang.org/mir/index.html#representing-constants
 pub struct ConstEnc;
 
+thread_local! {
+    /// Counter ensuring every emitted constant gets a unique Viper name.
+    static CONST_CTR: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
 struct Enc<'enc, 'vir: 'enc> {
     deps: &'enc mut TaskEncoderDependencies<'vir, ConstEnc>,
     ecx: &'enc InterpCx<'vir, CompileTimeMachine<'vir>>,
@@ -130,14 +135,24 @@ impl<'enc, 'vir: 'enc> Enc<'enc, 'vir> {
                             ),
                         );
                     }
-                    // TODO: this might run into collisions
-                    let span_pos = vcx.tcx().sess.source_map().lookup_char_pos(self.span.lo());
+                    let id = CONST_CTR.with(|c| {
+                        let v = c.get();
+                        c.set(v + 1);
+                        v
+                    });
+                    // `source_callsite()` walks out of any macro expansion to the user's call site.
+                    let span_pos = vcx
+                        .tcx()
+                        .sess
+                        .source_map()
+                        .lookup_char_pos(self.span.source_callsite().lo());
                     let gen_snap_func_idn: FunctionIdn<'_, (), vir::CSnap> = FunctionIdn::new(
                         vir::vir_format_identifier!(
                             vcx,
-                            "const_{}_{}",
+                            "const_{}_{}_{}",
                             span_pos.line,
-                            span_pos.col_display
+                            span_pos.col_display,
+                            id,
                         ),
                         (),
                         kind.snapshot.downcast_ty(),
@@ -320,6 +335,11 @@ impl TaskEncoder for ConstEnc {
                 program.add_function(fun);
             }
         }
+        // reset the counter across compilations
+        CONST_CTR.with(|c| {
+            let v = c.get();
+            c.set(v + 1);
+        });
     }
 
     fn do_encode_full<'vir>(
