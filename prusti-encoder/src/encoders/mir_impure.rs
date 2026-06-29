@@ -56,7 +56,7 @@ use crate::encoders::{
     },
 };
 
-use super::WandEncOutput;
+use super::{WandCallContext, WandEncOutput};
 
 #[derive(Clone, Copy)]
 struct FromToVar<'vir> {
@@ -777,7 +777,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 let terminator = bb.terminator.as_ref().unwrap();
                 match &terminator.kind {
                     mir::TerminatorKind::Call {
-                        args, destination, ..
+                        func,
+                        args,
+                        destination,
+                        ..
                     } => {
                         let (_, dest_snap, _, _) =
                             self.encode_place_with_snap((*destination).into());
@@ -788,7 +791,14 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                                 }))
                                 .collect::<Result<Vec<_>, EncodeFullError<'vir, E>>>()?;
                         let (label_pre, label_post) = self.call_labels[&call.location().block];
-                        wands.apply_wands(&wand_args, label_pre, label_post, self);
+                        let func_ty = func.ty(self.body, self.vcx.tcx());
+                        let (_, caller_substs) =
+                            RustSignature::get_def_id_and_caller_substs(func_ty);
+                        let call_ctx = WandCallContext {
+                            caller_substs,
+                            caller_g_params: GParams::from(self.def_id),
+                        };
+                        wands.apply_wands(&wand_args, label_pre, label_post, call_ctx, self);
                     }
                     _ => unreachable!(),
                 }
