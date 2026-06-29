@@ -15,7 +15,7 @@ pub mod custom;
 pub mod addr;
 
 pub use r#const::ConstEnc;
-pub use impure::fn_wand::{WandEnc, WandEncOutput, WandEncTask};
+pub use impure::fn_wand::{WandCallContext, WandEnc, WandEncOutput, WandEncTask};
 pub use local_def::*;
 pub use mir_builtin::{MirBuiltinEnc, MirBuiltinEncTask};
 pub use mir_fn::{FunctionCallEnc, MethodCallEnc, encode_all_in_crate};
