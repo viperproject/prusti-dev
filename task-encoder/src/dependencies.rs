@@ -56,26 +56,36 @@ impl<'vir, E: TaskEncoder + 'vir + ?Sized> TaskEncoderDependencies<'vir, E> {
             });
         }
         res.map_err(|err| {
-            EncodeFullError::DependencyError(vec![
-                (
+            let mut chain = vec![(
+                EOther::ENCODER_NAME,
+                EOther::describe_task(task),
+                span.into_iter().collect(),
+            )];
+            match err {
+                TaskEncoderError::EnqueueingError(_) => chain.push((
                     EOther::ENCODER_NAME,
-                    EOther::describe_task(task),
-                    span.into_iter().collect(),
-                ),
-                (
-                    EOther::ENCODER_NAME,
-                    match err {
-                        TaskEncoderError::EnqueueingError(_) => "? EnqueueingError".to_string(),
-                        TaskEncoderError::EncodingError(err) => EOther::describe_error(err),
-                        TaskEncoderError::DependencyError(_items) => {
-                            "? DependencyError".to_string()
-                        }
-                        TaskEncoderError::CyclicError => "? CyclicError".to_string(),
-                        TaskEncoderError::PanicError(_) => "? PanicError".to_string(),
-                    },
+                    "? EnqueueingError".to_string(),
                     Vec::new(),
-                ),
-            ])
+                )),
+                TaskEncoderError::EncodingError(err) => chain.push((
+                    EOther::ENCODER_NAME,
+                    EOther::describe_error(err),
+                    Vec::new(),
+                )),
+                // Flatten the nested chain so the underlying root cause (e.g. an
+                // unsupported-feature message) is preserved instead of being
+                // collapsed to an opaque "? DependencyError".
+                TaskEncoderError::DependencyError(items) => chain.extend(items),
+                TaskEncoderError::CyclicError => chain.push((
+                    EOther::ENCODER_NAME,
+                    "? CyclicError".to_string(),
+                    Vec::new(),
+                )),
+                TaskEncoderError::PanicError(_) => {
+                    chain.push((EOther::ENCODER_NAME, "? PanicError".to_string(), Vec::new()))
+                }
+            }
+            EncodeFullError::DependencyError(chain)
         })
         .and_then(|result| {
             self.check_cycle()?;

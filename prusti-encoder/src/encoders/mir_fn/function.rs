@@ -1,3 +1,4 @@
+use prusti_interface::PrustiError;
 use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies};
 use vir::{FunctionIdn, Reify};
@@ -193,25 +194,40 @@ impl TaskEncoder for FunctionEnc {
             let expr = if trusted || !is_function_with_body(vcx.tcx(), def_id) {
                 None
             } else {
-                // Encode the body of the function
-                let expr = deps
-                    .require_dep::<MirPureEnc>(MirPureEncTask {
-                        encoding_depth: 0,
-                        kind: PureKind::Pure,
-                        parent_def_id: def_id,
-                        param_env: vcx.tcx().param_env(def_id),
-                        substs,
-                        caller_def_id: None,
-                    })?
-                    .expr;
-                let expr = expr.reify(vcx, (def_id, spec.pre_args));
-                assert!(
-                    expr.ty() == return_type,
-                    "expected {:?}, got {:?}",
-                    return_type,
-                    expr.ty()
-                );
-                Some(expr)
+                // Encode the body of the function. If it cannot be encoded (e.g. it
+                // uses an unsupported feature), report it and emit the function
+                // abstractly (keeping its contract) rather than failing entirely
+                // (which would leave a dangling reference for callers).
+                match deps.require_dep::<MirPureEnc>(MirPureEncTask {
+                    encoding_depth: 0,
+                    kind: PureKind::Pure,
+                    parent_def_id: def_id,
+                    param_env: vcx.tcx().param_env(def_id),
+                    substs,
+                    caller_def_id: None,
+                }) {
+                    Ok(out) => {
+                        let expr = out.expr.reify(vcx, (def_id, spec.pre_args));
+                        assert!(
+                            expr.ty() == return_type,
+                            "expected {:?}, got {:?}",
+                            return_type,
+                            expr.ty()
+                        );
+                        Some(expr)
+                    }
+                    Err(err) => {
+                        vcx.emit_early_error(PrustiError::unsupported(
+                            format!(
+                                "cannot encode function body `{}`: {}",
+                                vcx.tcx().def_path_str(def_id),
+                                super::dep_error_message(&err),
+                            ),
+                            vcx.tcx().def_span(def_id).into(),
+                        ));
+                        None
+                    }
+                }
             };
 
             tracing::debug!("finished {def_id:?}");

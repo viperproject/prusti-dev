@@ -2,6 +2,7 @@ use crate::*;
 
 pub mod eq;
 pub mod float;
+pub mod slice;
 
 pub use eq::PureEq;
 
@@ -33,10 +34,3 @@ pub fn assert_failed<T, U>(
 where
     T: core::fmt::Debug + ?Sized,
     U: core::fmt::Debug + ?Sized;
-
-#[extern_spec]
-impl<T> [T] {
-    #[pure]
-    #[ensures(result == slice_len(self))]
-    fn len(&self) -> usize;
-}

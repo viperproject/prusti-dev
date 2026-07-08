@@ -100,6 +100,8 @@ fn should_encode_locals<'vir>(vcx: &vir::VirCtxt<'vir>, def_id: DefId) -> bool {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum MirLocalDefEncTask<'vir> {
+    // TODO: is this case needed?
+    #[allow(dead_code)]
     ExternSpec(DefId),
     Local {
         def_id: DefId,

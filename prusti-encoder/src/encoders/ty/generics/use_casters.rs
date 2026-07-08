@@ -75,19 +75,13 @@ impl<'vir> GArgCaster<'vir, Pure> {
 impl<'vir> GArgCaster<'vir, Impure> {
     pub fn cast_to_callee_ctx(&self, e: vir::ExprRef<'vir>) -> Option<vir::Stmt<'vir>> {
         self.get()
-            .map(|c| (c.cast.make_generic)(e, c.ty_args.get_ty(), c.ty_args.get_const()))
-            .map(alloc_stmt)
+            .map(|c| (c.cast.make_generic)(e, c.ty_args.get_ty(), c.ty_args.get_const()).alloc())
     }
 
     pub fn cast_to_caller_ctx(&self, e: vir::ExprRef<'vir>) -> Option<vir::Stmt<'vir>> {
         self.get()
-            .map(|c| (c.cast.make_concrete)(e, c.ty_args.get_ty(), c.ty_args.get_const()))
-            .map(alloc_stmt)
+            .map(|c| (c.cast.make_concrete)(e, c.ty_args.get_ty(), c.ty_args.get_const()).alloc())
     }
-}
-
-fn alloc_stmt<'vir>(stmt: vir::StmtKindData<'vir>) -> vir::Stmt<'vir> {
-    vir::with_vcx(|vcx| vcx.alloc(vir::StmtGenData::new(vcx.alloc(stmt))))
 }
 
 impl TaskEncoder for GArgsCastEnc<Pure> {
@@ -110,8 +104,8 @@ impl TaskEncoder for GArgsCastEnc<Pure> {
             return Ok(((), GArgCaster::NoCast));
         };
 
-        let cast = deps.require_ref::<CastersEnc<Pure>>((ty.param, ty.concrete))?;
-        let ty_args = deps.require_dep::<GArgsTyEnc>(ty.args)?;
+        let cast = deps.require_ref::<CastersEnc<Pure>>((ty.param, ty.concrete.ty))?;
+        let ty_args = deps.require_dep::<GArgsTyEnc>(ty.concrete.args)?;
         Ok(((), GArgCaster::Casters(Casters { cast, ty_args })))
     }
 
@@ -139,8 +133,8 @@ impl TaskEncoder for GArgsCastEnc<Impure> {
         let Some(ty) = task_key else {
             return Ok(((), GArgCaster::NoCast));
         };
-        let cast = deps.require_ref::<CastersEnc<Impure>>((ty.param, ty.concrete))?;
-        let ty_args = deps.require_dep::<GArgsTyEnc>(ty.args)?;
+        let cast = deps.require_ref::<CastersEnc<Impure>>((ty.param, ty.concrete.ty))?;
+        let ty_args = deps.require_dep::<GArgsTyEnc>(ty.concrete.args)?;
         Ok(((), GArgCaster::Casters(Casters { cast, ty_args })))
     }
 

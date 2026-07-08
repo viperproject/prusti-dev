@@ -42,9 +42,10 @@ impl TaskEncoder for RefDataEnc {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        let outputs = RefDataEnc::all_outputs_local_no_errors(program);
-        for output in outputs {
-            program.add_function(output.addr_to_ref_fn);
+        match Self::all_outputs_local_no_errors(program).as_slice() {
+            [] => (),
+            [output] => program.add_function(output.addr_to_ref_fn),
+            _ => unreachable!(),
         }
     }
 }

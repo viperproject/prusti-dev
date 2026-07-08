@@ -1,6 +1,7 @@
 #![no_std]
 #![allow(internal_features)]
 #![cfg_attr(feature = "prusti", feature(unboxed_closures, tuple_trait))]
+#![feature(core_intrinsics)]
 #![feature(auto_traits)]
 #![feature(negative_impls)]
 #![feature(try_trait_v2)]
@@ -564,10 +565,6 @@ pub fn f64_abs(fl: f64) -> f64 {
 
 pub fn f128_abs(fl: f128) -> f128 {
     fl
-}
-
-pub fn slice_len<T>(_: &[T]) -> usize {
-    0
 }
 
 pub use private::*;

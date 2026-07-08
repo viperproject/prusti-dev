@@ -17,18 +17,30 @@ pub enum GParamVariant<'tcx> {
 
 impl<'tcx> GArgs<'tcx> {
     pub fn new(context: impl Into<GParams<'tcx>>, args: &'tcx [ty::GenericArg<'tcx>]) -> Self {
-        GArgs {
-            context: context.into(),
-            args,
+        let context: GParams<'tcx> = context.into();
+        // Sanity check that all generic values in args are bound (i.e. defined
+        // in context).
+        for arg in args.iter().flat_map(|arg| arg.walk()) {
+            let valid = context.check_arg(arg);
+            assert!(valid, "context: {context:#?}, args: {args:#?}");
         }
+        GArgs { context, args }
     }
 
-    pub(in crate::encoders::ty) fn context(self) -> GParams<'tcx> {
+    pub fn context(self) -> GParams<'tcx> {
         self.context
     }
 
     pub fn args(self) -> &'tcx [ty::GenericArg<'tcx>] {
         self.args
+    }
+
+    /// Drops the generic context, keeping the (ground) `args`. Use when the
+    /// context is irrelevant to the encoding (e.g. a builtin's concrete result
+    /// type) so that clients in different contexts (different where-clauses)
+    /// share one task key. Panics (via `new`) if the `args` are not ground.
+    pub fn with_empty_context(self) -> Self {
+        Self::new(GParams::empty(), self.args)
     }
 
     /// Substitutes type arguments and try to normalize associated types

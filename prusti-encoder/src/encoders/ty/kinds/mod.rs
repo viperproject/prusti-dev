@@ -7,5 +7,6 @@ pub mod mutref;
 pub mod opaque;
 pub mod param;
 pub mod primitive;
+pub mod raw;
 pub mod structlike;
 pub mod builtin;
