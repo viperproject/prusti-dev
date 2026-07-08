@@ -23,6 +23,23 @@ use prusti_rustc_interface::{
 };
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 
+/// Extracts a human-readable message from an encoding error, used when a
+/// function/method body or contract cannot be encoded (e.g. an unsupported
+/// feature) and we fall back to an abstract stub. For a dependency error we
+/// surface the root cause (the last link of the chain), which is the actual
+/// unsupported-feature message.
+pub(crate) fn dep_error_message<'vir, E: TaskEncoder + ?Sized>(
+    err: &EncodeFullError<'vir, E>,
+) -> String {
+    match err {
+        EncodeFullError::DependencyError(chain) => chain
+            .last()
+            .map(|(_, msg, _)| msg.clone())
+            .unwrap_or_else(|| "encoding dependency error".to_string()),
+        other => format!("{other:?}"),
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CallTaskDescription<'tcx> {
     gargs: GArgs<'tcx>,

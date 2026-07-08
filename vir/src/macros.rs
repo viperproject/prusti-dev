@@ -158,6 +158,9 @@ macro_rules! vir_type {
     ($vcx:expr; Type) => {
         $crate::TYPE_TYVAL
     };
+    ($vcx:expr; PSnap) => {
+        $crate::TYPE_PSNAP
+    };
     ($vcx:expr; [ $ty:expr ]) => {
         $ty
     };
