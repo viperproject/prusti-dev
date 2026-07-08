@@ -21,18 +21,11 @@ pub(crate) fn ty_pure<'vir>(
         (builder.self_type(), vir::TYPE_INT),
         vir::TYPE_PSNAP,
     );
-    let len = builder.function("len", builder.self_type(), vir::TYPE_INT);
-    let args = (
-        vir::TYPE_REF,
-        vir::TYPE_INT,
-        builder.params.ty_args(),
-        builder.params.const_args(),
-    );
+    let args = (vir::TYPE_REF, vir::TYPE_INT, builder.params.ty_args());
     let ref_to_index_ref = builder.function("index_ref", args, vir::TYPE_REF);
     Ok(ArrayData::new(
         TyPureArrayData {
             index_access,
-            len,
             ref_to_index_ref,
         },
         data.slice,
@@ -70,12 +63,7 @@ pub(crate) fn ty_impure<'vir>(
         );
 
     let ref_to_index_ref = data.1.ref_to_index_ref;
-    let index_ref = ref_to_index_ref(
-        ref_self,
-        index,
-        builder.params.ty_exprs(),
-        builder.params.const_exprs(),
-    );
+    let index_ref = ref_to_index_ref(ref_self, index, builder.params.ty_exprs());
 
     let index_frame = builder.inner.function(
         "index_frame",
@@ -128,10 +116,6 @@ pub(crate) fn ty_impure<'vir>(
             ],
             &[
                 vir::expr! { [builder.ref_to_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]) },
-                vir::expr! {
-                    ([data.1.len](array_snap))
-                    == ([data.1.len](old([index_frame](ref_self, index, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]))))
-                },
                 vir::expr! {
                     forall idx: Int :: {[data.1.index_access](array_snap, idx)}
                         ([data.1.index_access](array_snap, idx)) == (

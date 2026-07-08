@@ -39,8 +39,8 @@ impl<'vir> MethodCallEncOutput<'vir> {
             .collect();
 
         args.insert(0, ret);
-        let call = (self.method.method_ref)(&args, self.ty_args.get_ty(), self.ty_args.get_const());
-        let call = vir::with_vcx(|vcx| vcx.alloc(vir::StmtGenData::new(vcx.alloc(call))));
+        let call = (self.method.method_ref)(&args, self.ty_args.get_ty(), self.ty_args.get_const())
+            .alloc();
         stmts.push(call);
 
         let result = self.output.cast_to_caller_ctx(ret);

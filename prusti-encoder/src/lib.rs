@@ -86,7 +86,15 @@ pub fn test_entrypoint<'tcx>(
     crate::encoders::MethodCallEnc::emit_outputs(&mut program);
 
     program.header("MIR builtins");
-    crate::encoders::MirBuiltinEnc::emit_outputs(&mut program);
+    crate::encoders::MirBuiltinUnOpEnc::emit_outputs(&mut program);
+    crate::encoders::MirBuiltinBinOpEnc::emit_outputs(&mut program);
+    crate::encoders::MirBuiltinUseCastEnc::emit_outputs(&mut program);
+    // Unsize casts call `metadata_cast`; the `&mut` methods call
+    // `value_cast`. Both domains must be emitted too.
+    crate::encoders::MetadataCastEnc::emit_outputs(&mut program);
+    crate::encoders::ValueCastEnc::emit_outputs(&mut program);
+    crate::encoders::MetadataCastAxiomEnc::emit_outputs(&mut program);
+    crate::encoders::ValueCastAxiomEnc::emit_outputs(&mut program);
 
     program.header("pure generic casts");
     GArgsCastEnc::<Pure>::emit_outputs(&mut program);
@@ -123,6 +131,13 @@ pub fn test_entrypoint<'tcx>(
 
     for (error_msg, span) in program.encoder_errors().drain(..) {
         PrustiError::internal(error_msg, span.into()).emit(env_diagnostic);
+    }
+
+    // Errors raised during encoding (e.g. an unsupported feature that was
+    // replaced by an abstract stub) so that they surface rather than silently
+    // degrading.
+    for error in early_errors() {
+        error.emit(env_diagnostic);
     }
 
     let program = program.mk_program();

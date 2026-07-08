@@ -20,6 +20,7 @@ impl<'vir> TyDatas<'vir> for ImpureTyDatas {
     type ArrayData = TyImpureArrayData<'vir>;
     type ImmRefData = TyImpureImmRefData;
     type MutRefData = TyImpureMutRefData<'vir>;
+    type RawData = TyImpureRawData;
     type FieldData = TyImpureFieldData<'vir>;
     type StructData = ();
     type VariantData = TyImpureVariantData<'vir>;
@@ -33,23 +34,26 @@ pub type TyImpureOpaque<'vir> = <ImpureTyDatas as TyDatas<'vir>>::OpaqueData;
 pub type TyImpurePrimitive<'vir> = <ImpureTyDatas as TyDatas<'vir>>::PrimitiveData;
 pub type TyImpureImmRef<'vir> = <ImpureTyDatas as TyDatas<'vir>>::ImmRefData;
 pub type TyImpureMutRef<'vir> = <ImpureTyDatas as TyDatas<'vir>>::MutRefData;
+pub type TyImpureRaw<'vir> = <ImpureTyDatas as TyDatas<'vir>>::RawData;
 pub type TyImpureBuiltin<'vir> = <ImpureTyDatas as TyDatas<'vir>>::BuiltinData;
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyImpureImmRefData {}
 
 #[derive(Debug, Clone, Copy)]
+pub struct TyImpureRawData {}
+
+#[derive(Debug, Clone, Copy)]
 pub struct TyImpureMutRefData<'vir> {
     pub pure: <PureTyDatas as TyDatas<'vir>>::MutRefData,
-    /// For use in constructing a snapshot from just a `Ref`.
-    pub arbitrary_value: vir::FunctionIdn<'vir, vir::Ref, vir::CSnap>,
+    /// For use in constructing a snapshot from just a `Ref` and metadata `PSnap`.
+    pub arbitrary_value: vir::FunctionIdn<'vir, (vir::Ref, vir::PSnap), vir::CSnap>,
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyImpureArrayData<'vir> {
     /// Function to access the ref at the given index.
-    pub ref_to_index_ref:
-        vir::FunctionIdn<'vir, (vir::Ref, vir::Int, vir::ManyTyVal, vir::ManyCSnap), vir::Ref>,
+    pub ref_to_index_ref: vir::FunctionIdn<'vir, (vir::Ref, vir::Int, vir::ManyTyVal), vir::Ref>,
     #[allow(dead_code)]
     pub index_frame:
         vir::FunctionIdn<'vir, (vir::Ref, vir::Int, vir::ManyTyVal, vir::ManyCSnap), vir::CSnap>,
@@ -176,11 +180,14 @@ impl TaskEncoder for TyImpureEnc {
                     super::kinds::primitive::ty_impure(prim, deps, &mut builder)?,
                 ),
                 TySpecifics::ImmRef(immref) => TySpecifics::ImmRef(
-                    super::kinds::immref::ty_impure(immref, deps, &mut builder)?,
+                    super::kinds::immref::ty_impure(&ty, immref, deps, &mut builder)?,
                 ),
                 TySpecifics::MutRef(mutref) => TySpecifics::MutRef(
-                    super::kinds::mutref::ty_impure(mutref, deps, &mut builder)?,
+                    super::kinds::mutref::ty_impure(&ty, mutref, deps, &mut builder)?,
                 ),
+                TySpecifics::Raw(raw) => {
+                    TySpecifics::Raw(super::kinds::raw::ty_impure(&ty, raw, deps, &mut builder)?)
+                }
                 TySpecifics::StructLike(structlike) => TySpecifics::StructLike(
                     super::kinds::structlike::ty_impure(&ty, structlike, deps, &mut builder)?,
                 ),

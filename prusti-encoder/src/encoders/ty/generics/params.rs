@@ -98,12 +98,47 @@ impl<'tcx> GParams<'tcx> {
         (p, p.find_const_ty_from_env(self.env))
     }
 
+    /// Checks that these `args` can be applied to these `params`.
     pub fn check(self, args: &'tcx [ty::GenericArg<'tcx>]) {
         assert_eq!(
             self.params.len(),
             args.len(),
             "generic args length mismatch, context {self:?}, args {args:?}"
         );
+        for (param, arg) in self.rust_params().iter().zip(args) {
+            let valid = match param.kind() {
+                ty::GenericArgKind::Lifetime(_) => arg.as_region().is_some(),
+                ty::GenericArgKind::Type(_) => arg.as_type().is_some(),
+                ty::GenericArgKind::Const(_) => arg.as_const().is_some(),
+            };
+            assert!(valid, "mismatched generic arg kinds ({self:?} vs {args:?})");
+        }
+    }
+
+    /// Checks that this `arg` is valid in the context of these `params`.
+    pub fn check_arg(self, arg: ty::GenericArg<'tcx>) -> bool {
+        let params = self.rust_params();
+        match arg.kind() {
+            ty::GenericArgKind::Type(ty) => {
+                if let ty::TyKind::Param(p) = ty.kind() {
+                    return (p.index as usize) < params.len()
+                        && params[p.index as usize].as_type().is_some();
+                }
+            }
+            ty::GenericArgKind::Lifetime(r) => {
+                if let ty::RegionKind::ReEarlyParam(r) = r.kind() {
+                    return (r.index as usize) < params.len()
+                        && params[r.index as usize].as_region().is_some();
+                }
+            }
+            ty::GenericArgKind::Const(c) => {
+                if let ty::ConstKind::Param(p) = c.kind() {
+                    return (p.index as usize) < params.len()
+                        && params[p.index as usize].as_const().is_some();
+                }
+            }
+        }
+        true
     }
 
     /// Tries to normalize associated types of the corresponding type. Returns
