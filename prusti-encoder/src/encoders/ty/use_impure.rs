@@ -27,6 +27,7 @@ impl<'vir> TyDatas<'vir> for UseImpureTyDatas {
     type ArrayData = TyUseImpureArrayData<'vir>;
     type ImmRefData = TyUseImpureImmRef<'vir>;
     type MutRefData = TyUseImpureMutRef<'vir>;
+    type RawData = TyUseImpureRaw<'vir>;
     type FieldData = TyUseImpureField<'vir>;
     type StructData = TyUseImpureStructData<'vir>;
     type VariantData = ();
@@ -49,7 +50,9 @@ pub struct TyUseImpureData<'vir> {
 #[derive(Debug, Clone, Copy)]
 pub struct TyUseImpureImmRef<'vir> {
     #[allow(dead_code)]
-    caster: FieldCaster<'vir>,
+    referent_caster: FieldCaster<'vir>,
+    #[allow(dead_code)]
+    metadata_caster: GArgCaster<'vir, crate::encoders::Pure>,
     #[allow(dead_code)]
     args: GArgsTy<'vir>,
     #[allow(dead_code)]
@@ -59,10 +62,22 @@ pub struct TyUseImpureImmRef<'vir> {
 #[derive(Debug, Clone, Copy)]
 pub struct TyUseImpureMutRef<'vir> {
     #[allow(dead_code)]
-    caster: FieldCaster<'vir>,
+    referent_caster: FieldCaster<'vir>,
+    #[allow(dead_code)]
+    metadata_caster: GArgCaster<'vir, crate::encoders::Pure>,
     args: GArgsTy<'vir>,
     impure: <ImpureTyDatas as TyDatas<'vir>>::MutRefData,
     ref_to_snap: vir::FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct TyUseImpureRaw<'vir> {
+    #[allow(dead_code)]
+    metadata_caster: GArgCaster<'vir, crate::encoders::Pure>,
+    #[allow(dead_code)]
+    args: GArgsTy<'vir>,
+    #[allow(dead_code)]
+    impure: <ImpureTyDatas as TyDatas<'vir>>::RawData,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -121,7 +136,13 @@ impl TaskEncoder for TyUseImpureEnc {
 
         let ty_impure = deps.require_dep::<TyImpureEnc>(task_key.ty)?;
         let mut walker = TyUseImpureWalker::new(deps, task_key.args);
-        let ty_use_impure = walker.encode_ty(task_key.ty.zip(ty_impure), task_key.maybe_inhabited);
+        // Impure encoding needs to know whether the type may be inhabited (to emit
+        // the right predicate). It is `None` only from `RustTyDecomposition::identity`.
+        let maybe_inhabited = task_key.maybe_inhabited.expect(
+            "impure type encoding requires a decomposition with known inhabitedness \
+             (from `from_ty`), not one built by `RustTyDecomposition::identity`",
+        );
+        let ty_use_impure = walker.encode_ty(task_key.ty.zip(ty_impure), maybe_inhabited);
         Ok(((), ty_use_impure.alloc()))
     }
 
@@ -152,20 +173,32 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
             TySpecifics::Opaque(..) => TySpecifics::mk_opaque(()),
             TySpecifics::Primitive(..) => TySpecifics::mk_primitive(()),
             TySpecifics::ImmRef(data) => {
-                let caster = self.encode_normalized(*data.0, ty.0.params);
+                let referent_caster = self.encode_normalized(data.0.referent, ty.0.params);
+                let metadata_caster = self.encode_normalized_pure(data.0.metadata, ty.0.params);
                 TySpecifics::mk_immref(TyUseImpureImmRef {
-                    caster,
+                    referent_caster,
+                    metadata_caster,
                     args: self.args_t,
                     impure: *data.1,
                 })
             }
             TySpecifics::MutRef(data) => {
-                let caster = self.encode_normalized(*data.0, ty.0.params);
+                let referent_caster = self.encode_normalized(data.0.referent, ty.0.params);
+                let metadata_caster = self.encode_normalized_pure(data.0.metadata, ty.0.params);
                 TySpecifics::mk_mutref(TyUseImpureMutRef {
-                    caster,
+                    referent_caster,
+                    metadata_caster,
                     args: self.args_t,
                     impure: *data.1,
                     ref_to_snap: ty.1.ref_to_snap,
+                })
+            }
+            TySpecifics::Raw(data) => {
+                let metadata_caster = self.encode_normalized_pure(data.0.metadata, ty.0.params);
+                TySpecifics::mk_raw(TyUseImpureRaw {
+                    metadata_caster,
+                    args: self.args_t,
+                    impure: *data.1,
                 })
             }
             TySpecifics::ArrayLike(data) => {
@@ -195,6 +228,17 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
         let normalized = inner.decompose_compare_normalize(params, self.args);
         self.deps
             .require_dep::<GArgsCastEnc<Impure>>(normalized)
+            .unwrap()
+    }
+
+    fn encode_normalized_pure(
+        &mut self,
+        inner: LazyRustTy<'vir>,
+        params: GParams<'vir>,
+    ) -> GArgCaster<'vir, crate::encoders::Pure> {
+        let normalized = inner.decompose_compare_normalize(params, self.args);
+        self.deps
+            .require_dep::<GArgsCastEnc<crate::encoders::Pure>>(normalized)
             .unwrap()
     }
 
@@ -355,7 +399,7 @@ impl<'vir> TyData<'vir, UseImpureTyDatas> {
                     })])
                     .collect()
             }
-            TySpecifics::ImmRef(..) => Vec::new(),
+            TySpecifics::ImmRef(..) | TySpecifics::Raw(..) => Vec::new(),
             TySpecifics::MutRef(data) => data.fold(self_ref, label).into_iter().collect(),
             TySpecifics::StructLike(data) => data.fold(self_ref, perm).collect(),
             TySpecifics::EnumLike(..) => {
@@ -406,7 +450,7 @@ impl<'vir> TyData<'vir, UseImpureTyDatas> {
                 )
                 .collect()
             }
-            TySpecifics::ImmRef(..) => Vec::new(),
+            TySpecifics::ImmRef(..) | TySpecifics::Raw(..) => Vec::new(),
             TySpecifics::MutRef(data) => data.unfold(self_ref, old).into_iter().collect(),
             TySpecifics::StructLike(data) => data.unfold(self_ref, perm).collect(),
             TySpecifics::EnumLike(..) => {
@@ -425,12 +469,7 @@ impl<'vir> TyUseImpureArray<'vir> {
         self_ref: vir::ExprGenRef<'vir, Curr, Next>,
         index: vir::ExprGenInt<'vir, Curr, Next>,
     ) -> vir::ExprGenRef<'vir, Curr, Next> {
-        self.data.impure.ref_to_index_ref.call()(
-            self_ref,
-            index,
-            self.args.get_ty(),
-            self.args.get_const(),
-        )
+        self.data.impure.ref_to_index_ref.call()(self_ref, index, self.args.get_ty())
     }
 }
 
@@ -529,8 +568,13 @@ impl<'vir> TyUseImpureMutRef<'vir> {
         vir::with_vcx(|vcx| vcx.maybe_apply_label(deref, label))
     }
 
-    pub fn prim_to_snap_assign(&self, self_ref: vir::ExprRef<'vir>) -> vir::ExprCSnap<'vir> {
-        (self.impure.arbitrary_value)(self_ref)
+    pub fn prim_to_snap_assign(
+        &self,
+        self_ref: vir::ExprRef<'vir>,
+        metadata: vir::ExprSnap<'vir>,
+    ) -> vir::ExprCSnap<'vir> {
+        let metadata = self.metadata_caster.cast_to_callee_ctx(metadata);
+        (self.impure.arbitrary_value)(self_ref, metadata.downcast_ty())
     }
 
     fn fold(
@@ -538,7 +582,8 @@ impl<'vir> TyUseImpureMutRef<'vir> {
         self_ref: vir::ExprRef<'vir>,
         label: Option<vir::OldLabel<'vir>>,
     ) -> Option<vir::Stmt<'vir>> {
-        self.caster.cast_to_callee_ctx(self.deref(self_ref, label))
+        self.referent_caster
+            .cast_to_callee_ctx(self.deref(self_ref, label))
     }
 
     fn unfold(
@@ -546,6 +591,7 @@ impl<'vir> TyUseImpureMutRef<'vir> {
         self_ref: vir::ExprRef<'vir>,
         label: Option<vir::OldLabel<'vir>>,
     ) -> Option<vir::Stmt<'vir>> {
-        self.caster.cast_to_caller_ctx(self.deref(self_ref, label))
+        self.referent_caster
+            .cast_to_caller_ctx(self.deref(self_ref, label))
     }
 }

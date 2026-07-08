@@ -1,4 +1,4 @@
-mod mir_builtin;
+mod builtin;
 mod mir_pure;
 mod mir_impure;
 mod mir_shared;
@@ -14,10 +14,14 @@ pub mod mir_fn;
 pub mod custom;
 pub mod addr;
 
+pub use builtin::{
+    MetadataCastAxiomEnc, MetadataCastEnc, MirBuiltinBinOpEnc, MirBuiltinBinOpTask,
+    MirBuiltinUnOpEnc, MirBuiltinUnOpTask, MirBuiltinUseCastEnc, MirBuiltinUseCastTask,
+    ValueCastAxiomEnc, ValueCastEnc,
+};
 pub use r#const::ConstEnc;
 pub use impure::fn_wand::{WandCallContext, WandEnc, WandEncOutput, WandEncTask};
 pub use local_def::*;
-pub use mir_builtin::{MirBuiltinEnc, MirBuiltinEncTask};
 pub use mir_fn::{FunctionCallEnc, MethodCallEnc, encode_all_in_crate};
 pub use mir_impure::ImpureEncVisitor;
 pub use mir_pure::{MirPureEnc, MirPureEncTask, PureKind};

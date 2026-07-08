@@ -506,6 +506,19 @@ pub enum StmtKindGenData<'vir, Curr, Next> {
     Dummy(&'vir str),
 }
 
+impl<'vir, Curr, Next> StmtKindGenData<'vir, Curr, Next> {
+    pub fn alloc(self) -> StmtGen<'vir, Curr, Next> {
+        with_vcx(|vcx| self.alloc_vcx(vcx))
+    }
+
+    pub(super) fn alloc_vcx<'tcx>(
+        self,
+        vcx: &'vir crate::VirCtxt<'tcx>,
+    ) -> StmtGen<'vir, Curr, Next> {
+        vcx.alloc(StmtGenData::new(vcx.alloc(self)))
+    }
+}
+
 #[derive(VirHash, VirReify, VirSerde)]
 pub struct GotoIfGenData<'vir, Curr, Next> {
     pub value: ExprGenDyn<'vir, Curr, Next>,
