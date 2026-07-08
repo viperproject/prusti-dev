@@ -123,13 +123,9 @@ impl<'enc, 'vir: 'enc> Enc<'enc, 'vir> {
         vir::with_vcx(|vcx| {
             Ok(match &ty_enc.specifics {
                 super::ty::TySpecifics::ArrayLike(array_data) => {
-                    assert!(!array_data.slice);
                     let ty_array = ty.ty.expect_array();
                     let elem_ty = ty_array.data.decompose_normalize(ty.args);
-                    let elem_len = ty.args.args()[0]
-                        .expect_const()
-                        .try_to_target_usize(vcx.tcx())
-                        .unwrap();
+                    let elem_len = val.len(self.ecx).unwrap();
                     let mut posts = Vec::new();
                     let result = vcx.mk_result(ty_enc.snapshot.downcast_ty());
                     for idx in 0..elem_len {
