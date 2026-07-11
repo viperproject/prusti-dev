@@ -1,4 +1,4 @@
-use task_encoder::{EncodeFullResult, TaskEncoder};
+use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder};
 use vir::CastType;
 
 use crate::encoders::{
@@ -91,6 +91,8 @@ pub struct TyUsePureStructData<'vir> {
 /// This wrapper handles all the generic casts required.
 pub type TyUsePureEnc = TyUseEnc<Pure>;
 
+type EncResult<'vir, T> = Result<T, EncodeFullError<'vir, TyUsePureEnc>>;
+
 #[derive(Debug, Clone, Copy)]
 pub struct TyUsePureRef<'vir> {
     pub snapshot: vir::TypeSnap<'vir>,
@@ -134,8 +136,8 @@ impl TaskEncoder for TyUsePureEnc {
 
         let ty_pure = deps.require_dep::<TyPureEnc>(task_key.ty)?;
         let ty = task_key.ty.zip(ty_pure);
-        let mut walker = TyUsePureWalker::new(deps, task_key.args);
-        let specifics = walker.encode_ty(ty);
+        let mut walker = TyUsePureWalker::new(deps, task_key.args)?;
+        let specifics = walker.encode_ty(ty)?;
         let ty_use_pure = TyData::new(inner, specifics);
         Ok(((), ty_use_pure.alloc()))
     }
@@ -155,23 +157,23 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
     fn new(
         deps: &'a mut task_encoder::TaskEncoderDependencies<'vir, TyUsePureEnc>,
         args: GArgs<'vir>,
-    ) -> Self {
-        let args_t = deps.require_dep::<GArgsTyEnc>(args).unwrap();
-        TyUsePureWalker { deps, args_t, args }
+    ) -> EncResult<'vir, Self> {
+        let args_t = deps.require_dep::<GArgsTyEnc>(args)?;
+        Ok(TyUsePureWalker { deps, args_t, args })
     }
 
     fn encode_ty(
         &mut self,
         ty: TyData<'vir, (RustTyDatas, PureTyDatas)>,
-    ) -> TySpecifics<'vir, UsePureTyDatas> {
-        match &ty.specifics {
+    ) -> EncResult<'vir, TySpecifics<'vir, UsePureTyDatas>> {
+        let specifics = match &ty.specifics {
             TySpecifics::Param(data) => {
                 let _: () = *data.1;
                 TySpecifics::mk_param(())
             }
             TySpecifics::Opaque(data) => TySpecifics::mk_opaque(*data.1),
             TySpecifics::Raw((data, raw_domain)) => {
-                let metadata_caster = self.encode_normalized(data.metadata, ty.0.params);
+                let metadata_caster = self.encode_normalized(data.metadata, ty.0.params)?;
                 TySpecifics::mk_raw(TyUsePureRaw {
                     metadata_caster,
                     pure: **raw_domain,
@@ -179,8 +181,8 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
             }
             TySpecifics::Primitive(data) => TySpecifics::mk_primitive(*data.1),
             TySpecifics::ImmRef((data, ref_domain)) => {
-                let referent_caster = self.encode_normalized(data.referent, ty.0.params);
-                let metadata_caster = self.encode_normalized(data.metadata, ty.0.params);
+                let referent_caster = self.encode_normalized(data.referent, ty.0.params)?;
+                let metadata_caster = self.encode_normalized(data.metadata, ty.0.params)?;
                 TySpecifics::mk_immref(TyUsePureImmRef {
                     referent_caster,
                     metadata_caster,
@@ -188,8 +190,8 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
                 })
             }
             TySpecifics::MutRef((data, ref_domain)) => {
-                let referent_caster = self.encode_normalized(data.referent, ty.0.params);
-                let metadata_caster = self.encode_normalized(data.metadata, ty.0.params);
+                let referent_caster = self.encode_normalized(data.referent, ty.0.params)?;
+                let metadata_caster = self.encode_normalized(data.metadata, ty.0.params)?;
                 TySpecifics::mk_mutref(TyUsePureMutRef {
                     referent_caster,
                     metadata_caster,
@@ -197,82 +199,81 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
                 })
             }
             TySpecifics::ArrayLike(data) => {
-                TySpecifics::ArrayLike(self.encode_array(data, ty.0.params))
+                TySpecifics::ArrayLike(self.encode_array(data, ty.0.params)?)
             }
             TySpecifics::StructLike(data) => {
-                TySpecifics::StructLike(self.encode_structlike(data, ty.0.params))
+                TySpecifics::StructLike(self.encode_structlike(data, ty.0.params)?)
             }
             TySpecifics::EnumLike(data) => {
-                TySpecifics::EnumLike(self.encode_enumlike(data, ty.0.params))
+                TySpecifics::EnumLike(self.encode_enumlike(data, ty.0.params)?)
             }
             TySpecifics::Builtin(data) => TySpecifics::mk_builtin(*data.1),
-        }
+        };
+        Ok(specifics)
     }
 
     fn encode_normalized(
         &mut self,
         inner: LazyRustTy<'vir>,
         params: GParams<'vir>,
-    ) -> FieldCaster<'vir> {
+    ) -> EncResult<'vir, FieldCaster<'vir>> {
         let normalized = inner.decompose_compare_normalize(params, self.args);
-        self.deps
-            .require_dep::<GArgsCastEnc<Pure>>(normalized)
-            .unwrap()
+        self.deps.require_dep::<GArgsCastEnc<Pure>>(normalized)
     }
 
     fn encode_array(
         &mut self,
         data: &ArrayData<'vir, (RustTyDatas, PureTyDatas)>,
         params: GParams<'vir>,
-    ) -> ArrayData<'vir, UsePureTyDatas> {
-        let caster = self.encode_normalized(*data.0, params);
+    ) -> EncResult<'vir, ArrayData<'vir, UsePureTyDatas>> {
+        let caster = self.encode_normalized(*data.0, params)?;
         let slice = data.slice;
         let data = TyUsePureArrayData {
             caster,
             args: self.args_t,
             pure: *data.data.1,
         };
-        ArrayData::new(data, slice)
+        Ok(ArrayData::new(data, slice))
     }
 
     fn encode_structlike(
         &mut self,
         data: &StructData<'vir, (RustTyDatas, PureTyDatas)>,
         params: GParams<'vir>,
-    ) -> StructData<'vir, UsePureTyDatas> {
+    ) -> EncResult<'vir, StructData<'vir, UsePureTyDatas>> {
         let fields = data
             .fields
             .iter()
             .map(|field| {
-                let caster = self.encode_normalized(field.0.ty(), params);
-                TyUsePureField {
+                let caster = self.encode_normalized(field.0.ty(), params)?;
+                Ok(TyUsePureField {
                     caster,
                     args: self.args_t,
                     pure: *field.1,
-                }
+                })
             })
-            .collect::<Vec<_>>();
+            .collect::<EncResult<'vir, Vec<_>>>()?;
         let data = TyUsePureStructData {
             args: self.args_t,
             pure: *data.1,
         };
-        StructData::new(data, fields)
+        Ok(StructData::new(data, fields))
     }
 
     fn encode_enumlike(
         &mut self,
         data: &EnumData<'vir, (RustTyDatas, PureTyDatas)>,
         params: GParams<'vir>,
-    ) -> EnumData<'vir, UsePureTyDatas> {
+    ) -> EncResult<'vir, EnumData<'vir, UsePureTyDatas>> {
         let variants = data
             .variants
             .iter()
             .map(|variant| {
-                let structlike = self.encode_structlike(&variant.inner, params);
-                VariantData::new(*variant.1, structlike)
+                let structlike = self.encode_structlike(&variant.inner, params)?;
+                Ok(VariantData::new(*variant.1, structlike))
             })
-            .collect::<Vec<_>>();
-        EnumData::new(*data.1, variants)
+            .collect::<EncResult<'vir, Vec<_>>>()?;
+        Ok(EnumData::new(*data.1, variants))
     }
 }
 
