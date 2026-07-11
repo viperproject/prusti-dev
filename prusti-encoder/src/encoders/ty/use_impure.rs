@@ -1,5 +1,5 @@
 use prusti_rustc_interface::abi;
-use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, PredicateIdn};
 
 use crate::encoders::{
@@ -116,6 +116,8 @@ pub struct TyUseImpureEnumData<'vir> {
 /// This wrapper handles all the generic casts required (e.g. when fold/unfolding).
 pub type TyUseImpureEnc = TyUseEnc<Impure>;
 
+type EncResult<'vir, T> = Result<T, EncodeFullError<'vir, TyUseImpureEnc>>;
+
 impl TaskEncoder for TyUseImpureEnc {
     task_encoder::encoder_cache!(TyUseImpureEnc);
     const ENCODER_NAME: &'static str = "impure type use encoder";
@@ -135,14 +137,14 @@ impl TaskEncoder for TyUseImpureEnc {
         deps.emit_output_ref(*task_key, ())?;
 
         let ty_impure = deps.require_dep::<TyImpureEnc>(task_key.ty)?;
-        let mut walker = TyUseImpureWalker::new(deps, task_key.args);
+        let mut walker = TyUseImpureWalker::new(deps, task_key.args)?;
         // Impure encoding needs to know whether the type may be inhabited (to emit
         // the right predicate). It is `None` only from `RustTyDecomposition::identity`.
         let maybe_inhabited = task_key.maybe_inhabited.expect(
             "impure type encoding requires a decomposition with known inhabitedness \
              (from `from_ty`), not one built by `RustTyDecomposition::identity`",
         );
-        let ty_use_impure = walker.encode_ty(task_key.ty.zip(ty_impure), maybe_inhabited);
+        let ty_use_impure = walker.encode_ty(task_key.ty.zip(ty_impure), maybe_inhabited)?;
         Ok(((), ty_use_impure.alloc()))
     }
 
@@ -158,23 +160,26 @@ struct TyUseImpureWalker<'a, 'vir> {
 }
 
 impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
-    fn new(deps: &'a mut TaskEncoderDependencies<'vir, TyUseImpureEnc>, args: GArgs<'vir>) -> Self {
-        let args_t = deps.require_dep::<GArgsTyEnc>(args).unwrap();
-        Self { deps, args_t, args }
+    fn new(
+        deps: &'a mut TaskEncoderDependencies<'vir, TyUseImpureEnc>,
+        args: GArgs<'vir>,
+    ) -> EncResult<'vir, Self> {
+        let args_t = deps.require_dep::<GArgsTyEnc>(args)?;
+        Ok(Self { deps, args_t, args })
     }
 
     fn encode_ty(
         &mut self,
         ty: TyData<'vir, (RustTyDatas, ImpureTyDatas)>,
         maybe_inhabited: bool,
-    ) -> TyData<'vir, UseImpureTyDatas> {
+    ) -> EncResult<'vir, TyData<'vir, UseImpureTyDatas>> {
         let specifics = match &ty.specifics {
             TySpecifics::Param(..) => TySpecifics::mk_param(()),
             TySpecifics::Opaque(..) => TySpecifics::mk_opaque(()),
             TySpecifics::Primitive(..) => TySpecifics::mk_primitive(()),
             TySpecifics::ImmRef(data) => {
-                let referent_caster = self.encode_normalized(data.0.referent, ty.0.params);
-                let metadata_caster = self.encode_normalized_pure(data.0.metadata, ty.0.params);
+                let referent_caster = self.encode_normalized(data.0.referent, ty.0.params)?;
+                let metadata_caster = self.encode_normalized_pure(data.0.metadata, ty.0.params)?;
                 TySpecifics::mk_immref(TyUseImpureImmRef {
                     referent_caster,
                     metadata_caster,
@@ -183,8 +188,8 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
                 })
             }
             TySpecifics::MutRef(data) => {
-                let referent_caster = self.encode_normalized(data.0.referent, ty.0.params);
-                let metadata_caster = self.encode_normalized_pure(data.0.metadata, ty.0.params);
+                let referent_caster = self.encode_normalized(data.0.referent, ty.0.params)?;
+                let metadata_caster = self.encode_normalized_pure(data.0.metadata, ty.0.params)?;
                 TySpecifics::mk_mutref(TyUseImpureMutRef {
                     referent_caster,
                     metadata_caster,
@@ -194,7 +199,7 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
                 })
             }
             TySpecifics::Raw(data) => {
-                let metadata_caster = self.encode_normalized_pure(data.0.metadata, ty.0.params);
+                let metadata_caster = self.encode_normalized_pure(data.0.metadata, ty.0.params)?;
                 TySpecifics::mk_raw(TyUseImpureRaw {
                     metadata_caster,
                     args: self.args_t,
@@ -202,13 +207,15 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
                 })
             }
             TySpecifics::ArrayLike(data) => {
-                TySpecifics::ArrayLike(self.encode_array(data, ty.1.ref_to_pred, ty.0.params))
+                TySpecifics::ArrayLike(self.encode_array(data, ty.1.ref_to_pred, ty.0.params)?)
             }
-            TySpecifics::StructLike(data) => {
-                TySpecifics::StructLike(self.encode_structlike(data, ty.1.ref_to_pred, ty.0.params))
-            }
+            TySpecifics::StructLike(data) => TySpecifics::StructLike(self.encode_structlike(
+                data,
+                ty.1.ref_to_pred,
+                ty.0.params,
+            )?),
             TySpecifics::EnumLike(data) => {
-                TySpecifics::EnumLike(self.encode_enumlike(data, ty.0.params))
+                TySpecifics::EnumLike(self.encode_enumlike(data, ty.0.params)?)
             }
             TySpecifics::Builtin(..) => TySpecifics::mk_builtin(()),
         };
@@ -217,29 +224,26 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
             impure: *ty.1,
             maybe_inhabited,
         };
-        TyData::new(data, specifics)
+        Ok(TyData::new(data, specifics))
     }
 
     fn encode_normalized(
         &mut self,
         inner: LazyRustTy<'vir>,
         params: GParams<'vir>,
-    ) -> FieldCaster<'vir> {
+    ) -> EncResult<'vir, FieldCaster<'vir>> {
         let normalized = inner.decompose_compare_normalize(params, self.args);
-        self.deps
-            .require_dep::<GArgsCastEnc<Impure>>(normalized)
-            .unwrap()
+        self.deps.require_dep::<GArgsCastEnc<Impure>>(normalized)
     }
 
     fn encode_normalized_pure(
         &mut self,
         inner: LazyRustTy<'vir>,
         params: GParams<'vir>,
-    ) -> GArgCaster<'vir, crate::encoders::Pure> {
+    ) -> EncResult<'vir, GArgCaster<'vir, crate::encoders::Pure>> {
         let normalized = inner.decompose_compare_normalize(params, self.args);
         self.deps
             .require_dep::<GArgsCastEnc<crate::encoders::Pure>>(normalized)
-            .unwrap()
     }
 
     fn encode_array(
@@ -247,15 +251,15 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
         data: &ArrayData<'vir, (RustTyDatas, ImpureTyDatas)>,
         _ref_to_pred: PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>,
         params: GParams<'vir>,
-    ) -> ArrayData<'vir, UseImpureTyDatas> {
-        let caster = self.encode_normalized(*data.0, params);
+    ) -> EncResult<'vir, ArrayData<'vir, UseImpureTyDatas>> {
+        let caster = self.encode_normalized(*data.0, params)?;
         let slice = data.slice;
         let data = TyUseImpureArrayData {
             args: self.args_t,
             impure: *data.data.1,
             element_caster: caster,
         };
-        ArrayData::new(data, slice)
+        Ok(ArrayData::new(data, slice))
     }
 
     fn encode_structlike(
@@ -263,46 +267,46 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
         data: &StructData<'vir, (RustTyDatas, ImpureTyDatas)>,
         ref_to_pred: PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>,
         params: GParams<'vir>,
-    ) -> StructData<'vir, UseImpureTyDatas> {
+    ) -> EncResult<'vir, StructData<'vir, UseImpureTyDatas>> {
         let fields = data
             .fields
             .iter()
             .map(|field| {
-                let caster = self.encode_normalized(field.0.ty(), params);
-                TyUseImpureField {
+                let caster = self.encode_normalized(field.0.ty(), params)?;
+                Ok(TyUseImpureField {
                     caster,
                     args: self.args_t,
                     impure: *field.1,
-                }
+                })
             })
-            .collect::<Vec<_>>();
+            .collect::<EncResult<'vir, Vec<_>>>()?;
         let data = TyUseImpureStructData {
             args: self.args_t,
             ref_to_pred,
             impure: *data.1,
         };
-        StructData::new(data, fields)
+        Ok(StructData::new(data, fields))
     }
 
     fn encode_enumlike(
         &mut self,
         data: &EnumData<'vir, (RustTyDatas, ImpureTyDatas)>,
         params: GParams<'vir>,
-    ) -> EnumData<'vir, UseImpureTyDatas> {
+    ) -> EncResult<'vir, EnumData<'vir, UseImpureTyDatas>> {
         let variants = data
             .variants
             .iter()
             .map(|variant| {
                 let structlike =
-                    self.encode_structlike(&variant.inner, variant.1.predicate, params);
-                VariantData::new((), structlike)
+                    self.encode_structlike(&variant.inner, variant.1.predicate, params)?;
+                Ok(VariantData::new((), structlike))
             })
-            .collect::<Vec<_>>();
+            .collect::<EncResult<'vir, Vec<_>>>()?;
         let data = TyUseImpureEnumData {
             args: self.args_t,
             impure: *data.1,
         };
-        EnumData::new(data, variants)
+        Ok(EnumData::new(data, variants))
     }
 }
 
