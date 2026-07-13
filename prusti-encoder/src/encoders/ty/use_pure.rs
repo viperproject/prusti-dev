@@ -126,7 +126,7 @@ impl TaskEncoder for TyUsePureEnc {
     ) -> EncodeFullResult<'vir, Self> {
         let ty_pure_ref = deps.require_ref::<TyPureEnc>(task_key.ty)?;
         let args = deps.require_dep::<GArgsTyEnc>(task_key.args)?;
-        let snapshot = (ty_pure_ref.domain)();
+        let snapshot = ty_pure_ref.snapshot;
         let inner = TyUsePureRef {
             args,
             snapshot,

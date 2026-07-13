@@ -227,8 +227,10 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::BinOp<'vir> {
             vir::BinOpKind::Sub => ctx.ast.sub_with_pos(lhs, rhs, pos),
             vir::BinOpKind::Mul => ctx.ast.mul_with_pos(lhs, rhs, pos),
             vir::BinOpKind::Div => ctx.ast.div_with_pos(lhs, rhs, pos),
-            vir::BinOpKind::DivRational => ctx.ast.perm_div(lhs, rhs), // TODO: position
-            vir::BinOpKind::DivRationalRational => ctx.ast.perm_perm_div(lhs, rhs),
+            vir::BinOpKind::PermAdd => ctx.ast.perm_add_with_pos(lhs, rhs, pos),
+            vir::BinOpKind::PermSub => ctx.ast.perm_sub_with_pos(lhs, rhs, pos),
+            vir::BinOpKind::PermMul => ctx.ast.perm_mul_with_pos(lhs, rhs, pos),
+            vir::BinOpKind::PermPermDiv => ctx.ast.perm_perm_div_with_pos(lhs, rhs, pos),
             vir::BinOpKind::Mod => ctx.ast.mod_with_pos(lhs, rhs, pos),
             vir::BinOpKind::Implies => ctx.ast.implies_with_pos(lhs, rhs, pos),
             vir::BinOpKind::SetUnion => ctx.ast.any_set_union(lhs, rhs),
@@ -1094,6 +1096,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::UnOp<'vir> {
         let expr = self.expr.to_viper_no_pos(ctx);
         match self.kind {
             vir::UnOpKind::Neg => ctx.ast.minus_with_pos(expr, pos),
+            vir::UnOpKind::PermNeg => ctx.ast.perm_minus_with_pos(expr, pos),
             vir::UnOpKind::Not => ctx.ast.not_with_pos(expr, pos),
         }
     }

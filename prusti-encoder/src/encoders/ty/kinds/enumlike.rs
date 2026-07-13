@@ -22,7 +22,7 @@ pub(crate) fn ty_pure<'vir>(
     let discr_ty =
         deps.require_dep::<TyPureEnc>(RustTyDecomposition::from_prim_ty(data.discr).ty)?;
     let discr_prim = discr_ty.expect_primitive();
-    let discr_ty = (discr_ty.domain)();
+    let discr_ty = discr_ty.snapshot;
 
     let variants = data
         .variants
@@ -30,7 +30,7 @@ pub(crate) fn ty_pure<'vir>(
         .map(|variant| {
             let var_idx_num = variant.vid.as_u32();
             let discr =
-                (discr_prim.prim_to_snap)(discr_prim.expr_from_bits(data.discr, variant.discr_val));
+                discr_prim.prim_to_snap(discr_prim.expr_from_bits(data.discr, variant.discr_val));
 
             let specifics = super::structlike::ty_pure_variant(
                 &format!("{var_idx_num}_"),

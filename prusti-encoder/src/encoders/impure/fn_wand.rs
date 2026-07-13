@@ -3,7 +3,7 @@ use crate::encoders::{
     pure::spec::{EncodedPledge, MirSpecEncMode, PledgeArgs, PledgeExpr},
     ty::{
         RustTyDecomposition,
-        generics::GParams,
+        generics::{GArgs, GParams},
         indirect::{IndirectPredicatesEnc, projection_for_generalized_idx},
     },
 };
@@ -119,20 +119,19 @@ pub struct WandEncOutput<'vir> {
 /// wand is re-encoded with the call-site substitutions and the caller's
 /// generic parameters, so that placeholders like `Self` or other callee
 /// generics are replaced by concrete types from the caller's perspective.
-#[derive(Clone, Copy)]
-pub struct WandCallContext<'vir> {
-    pub caller_substs: ty::GenericArgsRef<'vir>,
-    pub caller_g_params: GParams<'vir>,
-}
+pub type WandCallContext<'vir> = Option<GArgs<'vir>>;
 
 impl<'vir> WandEncOutput<'vir> {
     pub(crate) fn fn_sig(
         &self,
         vcx: &'vir vir::VirCtxt<'vir>,
-        call_ctx: Option<WandCallContext<'vir>>,
+        call_ctx: WandCallContext<'vir>,
     ) -> ty::FnSig<'vir> {
         match call_ctx {
-            Some(ctx) => self.function_data.fn_sig(vcx.tcx(), ctx.caller_substs),
+            // TODO: change pcg's `fn_sig` to take `&[GenericArg]` instead of `GenericArgsRef`
+            Some(ctx) => self
+                .function_data
+                .fn_sig(vcx.tcx(), vcx.tcx().mk_args(ctx.args())),
             None => self.function_data.identity_fn_sig(vcx.tcx()),
         }
     }
@@ -140,10 +139,10 @@ impl<'vir> WandEncOutput<'vir> {
     pub(crate) fn g_params(
         &self,
         vcx: &'vir vir::VirCtxt<'vir>,
-        call_ctx: Option<WandCallContext<'vir>>,
+        call_ctx: WandCallContext<'vir>,
     ) -> GParams<'vir> {
         match call_ctx {
-            Some(ctx) => ctx.caller_g_params,
+            Some(ctx) => ctx.context(),
             None => GParams::new(
                 self.function_data.identity_substs(vcx.tcx()),
                 self.function_data.param_env(vcx.tcx()),
@@ -157,7 +156,7 @@ impl<'vir> WandEncOutput<'vir> {
         vcx: &'vir vir::VirCtxt<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, impl TaskEncoder>,
         g: impl Into<FunctionShapeNode<Generalized>>,
-        call_ctx: Option<WandCallContext<'vir>>,
+        call_ctx: WandCallContext<'vir>,
         mut snap: impl FnMut(mir::Local) -> vir::ExprSnap<'vir>,
     ) -> Option<vir::ExprBool<'vir>> {
         use vir::Reify;
@@ -260,7 +259,7 @@ impl<'vir> WandEncOutput<'vir> {
         arguments: &[vir::ExprSnap<'vir>],
         label_pre: &'vir str,
         label_post: &'vir str,
-        call_ctx: WandCallContext<'vir>,
+        call_ctx: GArgs<'vir>,
         visitor: &mut ImpureEncVisitor<'vir, '_, E>,
     ) {
         let result = visitor
@@ -286,7 +285,7 @@ impl<'vir> WandEncOutput<'vir> {
         &'a self,
         wand_data: &WandData<'vir>,
         pledge_args: PledgeArgs<'vir>,
-        call_ctx: Option<WandCallContext<'vir>>,
+        call_ctx: WandCallContext<'vir>,
         vcx: &'vir vir::VirCtxt<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, E>,
     ) -> Option<vir::Wand<'vir>> {

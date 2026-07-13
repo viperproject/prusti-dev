@@ -27,14 +27,14 @@ fn commutativity(k1: u32, v1: u32, k2: u32, v2: u32) {
 }
 
 fn map_len(m1: Map, k: u32, v: u32) {
-    prusti_assert!(Map::empty().len() == Int::new(0));
-    prusti_assert!(map![0 => 0].len() == Int::new(1));
+    prusti_assert!(Map::empty().len() == Int::from(0));
+    prusti_assert!(map![0 => 0].len() == Int::from(1));
 
     prusti_assert!(
-        m1.insert(k, v).len() == m1.len() || m1.insert(k, v).len() == m1.len() + Int::new(1)
+        m1.insert(k, v).len() == m1.len() || m1.insert(k, v).len() == m1.len() + Int::from(1)
     );
 
-    prusti_assert!(Map::empty().insert(0, 0).len() == Int::new(2)); //~ ERROR: the asserted expression might not hold
+    prusti_assert!(Map::empty().insert(0, 0).len() == Int::from(2)); //~ ERROR: the asserted expression might not hold
 }
 
 fn map_lookup(m: Map, k: u32, v1: u32, v2: u32) {
