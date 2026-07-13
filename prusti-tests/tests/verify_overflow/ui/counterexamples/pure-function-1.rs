@@ -5,13 +5,13 @@
 use prusti_contracts::*;
 
 #[pure]
-#[terminates(Int::new(1))]
+#[terminates(Int::from(1))]
 fn foo(x: i32) -> i32{
     x + 5
 }
 
 #[pure]
-#[terminates(Int::new(1))]
+#[terminates(Int::from(1))]
 fn bar(x: i32) -> bool{
     x == 3
 }

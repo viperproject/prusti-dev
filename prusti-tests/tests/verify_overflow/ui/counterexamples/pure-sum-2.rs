@@ -3,7 +3,7 @@
 use prusti_contracts::*;
 
 #[pure]
-#[terminates(Int::new(x) + Int::new(1))]
+#[terminates(Int::from(x) + Int::from(1))]
 fn sum(x:i64) -> i64 {
     if x <= 0 {
         0

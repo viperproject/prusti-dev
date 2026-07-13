@@ -4,9 +4,14 @@ use vir::CastType;
 
 use crate::encoders::{
     ConstEnc, MirBuiltinBinOpEnc, MirBuiltinBinOpTask, MirBuiltinUnOpEnc, MirBuiltinUnOpTask,
-    MirBuiltinUseCastEnc, MirBuiltinUseCastTask,
+    MirBuiltinUseCastEnc, MirBuiltinUseCastTask, PrustiBuiltin, PrustiBuiltinEnc,
+    PrustiBuiltinTask,
     r#const::ConstEncTask,
-    ty::{RustTyDecomposition, generics::GArgsTyEnc, use_pure::TyUsePure},
+    ty::{
+        RustTyDecomposition,
+        generics::{GArgs, GArgsTyEnc},
+        use_pure::TyUsePure,
+    },
 };
 use prusti_rustc_interface::{
     abi,
@@ -169,6 +174,47 @@ pub(crate) trait PureRvalueEnc<'vir> {
             .deps()
             .require_dep::<MirBuiltinUnOpEnc>(MirBuiltinUnOpTask::new(rvalue_ty, op, operand_ty))?;
         Ok(un_op_function.call()(encoded_operand.downcast_ty()))
+    }
+
+    /// The generic arguments of a call from this encoder's body: `args`
+    /// paired with the body's generic context.
+    fn gargs(&self, args: ty::GenericArgsRef<'vir>) -> GArgs<'vir> {
+        GArgs::new(self.def_id(), args)
+    }
+
+    /// Encodes a call to a `prusti_contracts` builtin. Returns `None` for the
+    /// pure-only builtins (`forall`/`exists`/`spec_block`/mode markers), which
+    /// the pure encoder handles itself.
+    fn encode_prusti_builtin(
+        &mut self,
+        builtin: PrustiBuiltin,
+        def_id: DefId,
+        gargs: GArgs<'vir>,
+        args: &[Spanned<mir::Operand<'vir>>],
+        ctxt: &Self::EncodePlaceCtxt,
+    ) -> Result<Option<ExprOutput<'vir, Self>>, EncodeFullError<'vir, Self::Encoder>> {
+        if matches!(
+            builtin,
+            PrustiBuiltin::Forall
+                | PrustiBuiltin::Exists
+                | PrustiBuiltin::SpecBlock
+                | PrustiBuiltin::ModeStart(_)
+                | PrustiBuiltin::ModeEnd(_)
+        ) {
+            return Ok(None);
+        }
+        let expr = self
+            .deps()
+            .require_dep::<PrustiBuiltinEnc>(PrustiBuiltinTask {
+                builtin,
+                def_id,
+                args: gargs,
+            })?;
+        let operands = args
+            .iter()
+            .map(|arg| self.encode_operand_snap(&arg.node, ctxt))
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(Some(expr.apply(self.vcx(), &operands)))
     }
 
     fn encode_aggregate_snap(

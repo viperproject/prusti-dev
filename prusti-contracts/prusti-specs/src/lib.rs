@@ -256,7 +256,7 @@ fn generate_for_assert_on_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -
 /// Generate spec items and attributes to typecheck and later retrieve "terminates" annotations.
 fn generate_for_terminates(mut attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     if attr.is_empty() {
-        attr = quote! { Int::new(1) };
+        attr = quote! { Int::from(1) };
     } else {
         let mut attr_iter = attr.clone().into_iter();
         let first = attr_iter.next();

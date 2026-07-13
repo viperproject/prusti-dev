@@ -66,8 +66,10 @@ impl<'vir, Curr, Next> Debug for BinOpGenData<'vir, Curr, Next> {
                 BinOpKind::Sub => "-",
                 BinOpKind::Mul => "*",
                 BinOpKind::Div => "\\",
-                BinOpKind::DivRational => "/",
-                BinOpKind::DivRationalRational => "/",
+                BinOpKind::PermAdd => "+",
+                BinOpKind::PermSub => "-",
+                BinOpKind::PermMul => "*",
+                BinOpKind::PermPermDiv => "/",
                 BinOpKind::Mod => "%",
                 BinOpKind::SetUnion => "union",
                 BinOpKind::SetIn => "in",
@@ -570,6 +572,7 @@ impl<'vir, Curr, Next> Debug for UnOpGenData<'vir, Curr, Next> {
             "{}({:?})",
             match self.kind {
                 UnOpKind::Neg => "-",
+                UnOpKind::PermNeg => "-",
                 UnOpKind::Not => "!",
             },
             self.expr

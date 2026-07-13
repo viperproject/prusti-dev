@@ -1,20 +1,16 @@
 use crate::encoders::{
-    FunctionCallEnc, ViperTupleEnc,
+    FunctionCallEnc, Mode, PrustiBuiltin, ViperTupleEnc,
     mir_fn::{CallTaskDescription, RustSignature},
     mir_shared::{PureRvalueEnc, RustcIntrinsic},
     ty::{
         RustTyDecomposition,
         generics::GParams,
-        interpretation::real::TyRealLocal,
         use_pure::{TyUsePure, TyUsePureEnc},
     },
 };
 use itertools::Itertools;
 use pcg::utils::Place;
-use prusti_interface::{
-    environment::EnvQuery,
-    specs::{specifications::SpecQuery, typed::ExternSpecKind},
-};
+use prusti_interface::specs::{specifications::SpecQuery, typed::ExternSpecKind};
 use prusti_rustc_interface::{
     abi,
     data_structures::graph::{self, Successors},
@@ -36,13 +32,6 @@ pub struct MirPureEnc;
 pub enum MirPureEncError {
     // UnsupportedStatement,
     // UnsupportedTerminator,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Mode {
-    Old,
-    Rel(usize),
-    BeforeExpiry,
 }
 
 pub type ExprInput<'vir> = (DefId, &'vir FxHashMap<mir::Local, vir::ExprSnap<'vir>>);
@@ -159,14 +148,15 @@ impl TaskEncoder for MirPureEnc {
             // We wrap the expression with an additional lazy that will perform
             // some sanity checks. These requirements cannot be expressed using
             // only the type system.
-            let ret = if let PureKind::SpecBlock(..) = kind {
-                RustTyDecomposition::from_prim_ty(vcx.tcx().types.bool)
+            let snapshot = if let PureKind::SpecBlock(..) = kind {
+                vir::TYPE_BOOL.upcast_ty()
             } else {
-                RustTyDecomposition::from_ty(body.return_ty(), def_id)
+                let ret = RustTyDecomposition::from_ty(body.return_ty(), def_id);
+                deps.require_ref::<TyUsePureEnc>(ret)?.snapshot
             };
             let expr = vcx.mk_lazy_expr(
                 vir::vir_format!(vcx, "pure body {def_id:?}"),
-                deps.require_ref::<TyUsePureEnc>(ret)?.snapshot,
+                snapshot,
                 Box::new(move |vcx, lctx: ExprInput<'_>| {
                     // check: are we actually providing inputs for the
                     //   correct `DefId`?
@@ -372,15 +362,6 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     fn ty_use(&mut self, ty: ty::Ty<'vir>) -> TyUsePure<'vir> {
         let ty_task = RustTyDecomposition::from_ty(ty, self.context);
         self.deps.require_dep::<TyUsePureEnc>(ty_task).unwrap()
-    }
-
-    fn ty_use_real(&mut self) -> &'vir TyRealLocal<'vir> {
-        let ty_task = RustTyDecomposition::from_real();
-        self.deps
-            .require_dep::<TyUsePureEnc>(ty_task)
-            .unwrap()
-            .expect_builtin()
-            .expect_real()
     }
 
     fn get_ty_for_local(&mut self, local: mir::Local) -> vir::TypeSnap<'vir> {
@@ -692,7 +673,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     |expr, ((cond_val, _target), branch_update)| {
                         self.vcx.mk_ternary_expr(
                             self.vcx.mk_eq_expr(
-                                discr_ty_out.expect_native().snap_to_prim.call()(discr_expr),
+                                discr_ty_out.snap_to_prim(discr_expr),
                                 discr_ty_out.expr_from_bits(discr_ty, cond_val).lift(),
                             ),
                             self.reify_branch(
@@ -745,8 +726,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 // encode the condition operand
                 let cond_ty = cond.ty(self.body, self.vcx.tcx());
                 assert_eq!(*cond_ty.kind(), TyKind::Bool);
-                let cond_expr = self.encode_operand_snap(cond, &new_curr_ver)?.downcast_ty();
-                let cond_ty_out = self.ty_use(cond_ty).expect_primitive();
+                let cond_expr = self
+                    .encode_operand_snap(cond, &new_curr_ver)?
+                    .downcast_ty::<vir::Bool>();
 
                 // if cond == expected: walk the rest of the CFG
                 let ok_update = self.encode_cfg(&new_curr_ver, *target, join_point)?;
@@ -787,10 +769,10 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .unwrap();
                 let phi_expr = self.vcx.mk_ternary_expr(
                     self.vcx.mk_eq_expr(
-                        cond_ty_out.expect_native().snap_to_prim.call()(cond_expr),
-                        cond_ty_out
-                            .expr_from_bits(cond_ty, if *expected { 1 } else { 0 })
-                            .lift(),
+                        cond_expr,
+                        self.vcx
+                            .mk_const_expr(vir::ConstData::Bool(*expected))
+                            .downcast_ty(),
                     ),
                     self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, ok_update),
                     self.reify_branch(&tuple_ref, &mod_locals, &new_curr_ver, None),
@@ -864,13 +846,21 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     let intrinsic = intrinsic.and_then(RustcIntrinsic::from_intrinsic);
                     if let Some(intrinsic) = intrinsic {
                         self.encode_intrinsic(intrinsic, arg_tys, args, &new_curr_ver)
-                    } else if EnvQuery::new(self.vcx.tcx()).is_function_in_crate(
-                        self.def_id,
-                        def_id,
-                        arg_tys,
-                        "prusti_contracts",
-                    ) {
-                        self.encode_prusti_builtin(def_id, arg_tys, args, &new_curr_ver)
+                    } else if let Some(builtin) = PrustiBuiltin::new(def_id, self.gargs(arg_tys)) {
+                        match self.encode_prusti_builtin(
+                            builtin,
+                            def_id,
+                            self.gargs(arg_tys),
+                            args,
+                            &new_curr_ver,
+                        )? {
+                            Some(expr) => Ok(expr),
+                            // The pure-only builtins (quantifiers, spec blocks,
+                            // mode markers).
+                            None => {
+                                self.encode_pure_only_builtin(builtin, arg_tys, args, &new_curr_ver)
+                            }
+                        }
                     } else if is_pure {
                         let pure_func = self
                             .deps
@@ -1007,7 +997,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         let e_rvalue_ty = self.ty_use(rvalue_ty).expect_primitive();
                         // mir::Rvalue::Discriminant documents "Returns zero for types without discriminant"
                         let zero = self.vcx.mk_uint::<0>();
-                        e_rvalue_ty.prim_to_snap.call()(zero.upcast_ty()).lift()
+                        e_rvalue_ty.prim_to_snap(zero.upcast_ty()).lift()
                     }
                 };
                 Ok(discr.upcast_ty())
@@ -1138,10 +1128,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 let usize_ty = self.ty_use(self.vcx.tcx().types.usize);
                 let idx = usize_ty
                     .expect_primitive()
-                    .expect_native()
-                    .snap_to_prim
-                    .call()(idx.downcast_ty())
-                .downcast_ty();
+                    .snap_to_prim(idx.downcast_ty())
+                    .downcast_ty();
                 let proj_app = proj.index(encoded_place.snap.downcast_ty(), idx);
                 let place_ref = encoded_place
                     .place_ref
@@ -1210,182 +1198,19 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         encoded_place
     }
 
-    fn encode_real_op(
+    /// Encodes the pure-only `prusti_contracts` builtins (quantifiers, spec
+    /// blocks, and the old/rel/before-expiry mode markers), which need this
+    /// encoder's own state. The operand-based builtins are handled by the
+    /// shared [`PureRvalueEnc::encode_prusti_builtin`].
+    fn encode_pure_only_builtin(
         &mut self,
-        bin_op: vir::BinOpKind,
-        args: &[Spanned<mir::Operand<'vir>>],
-        curr_ver: &FxHashMap<mir::Local, Version<'vir>>,
-    ) -> Result<
-        vir::ExprGenCSnap<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>,
-        EncodeFullError<'vir, MirPureEnc>,
-    > {
-        let real = self.ty_use_real();
-        let real1 = real.snap_to_perm.call()(
-            self.encode_operand_snap(&args[0].node, curr_ver)?
-                .downcast_ty(),
-        );
-        let real2 = real.snap_to_perm.call()(
-            self.encode_operand_snap(&args[1].node, curr_ver)?
-                .downcast_ty(),
-        );
-        Ok(real.perm_to_snap.call()(
-            self.vcx.mk_bin_op_expr(bin_op, real1, real2).downcast_ty(),
-        ))
-    }
-
-    fn encode_real_cmp(
-        &mut self,
-        bin_op: vir::BinOpKind,
-        args: &[Spanned<mir::Operand<'vir>>],
-        curr_ver: &FxHashMap<mir::Local, Version<'vir>>,
-    ) -> Result<
-        vir::ExprGenCSnap<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>,
-        EncodeFullError<'vir, MirPureEnc>,
-    > {
-        let real = self.ty_use_real();
-        let bool = self.ty_use(self.vcx.tcx().types.bool);
-        let bool = bool.expect_primitive();
-        let a0_ty = args[0].node.ty(self.body, self.vcx.tcx());
-        let real1 = self
-            .encode_operand_snap(&args[0].node, curr_ver)?
-            .downcast_ty();
-        let real1_deref = real.snap_to_perm.call()(
-            self.ty_use(a0_ty)
-                .expect_immref()
-                .value_access(real1)
-                .downcast_ty(),
-        );
-
-        let a1_ty = args[1].node.ty(self.body, self.vcx.tcx());
-        let real2 = self
-            .encode_operand_snap(&args[1].node, curr_ver)?
-            .downcast_ty();
-        let real2_deref = real.snap_to_perm.call()(
-            self.ty_use(a1_ty)
-                .expect_immref()
-                .value_access(real2)
-                .downcast_ty(),
-        );
-        Ok(bool.prim_to_snap.call()(
-            self.vcx
-                .mk_bin_op_expr_inner(bin_op, real1_deref.as_dyn(), real2_deref.as_dyn())
-                .downcast_ty(),
-        ))
-    }
-
-    fn encode_prusti_builtin(
-        &mut self,
-        def_id: DefId,
+        builtin: PrustiBuiltin,
         arg_tys: ty::GenericArgsRef<'vir>,
         args: &[Spanned<mir::Operand<'vir>>],
         curr_ver: &FxHashMap<mir::Local, Version<'vir>>,
     ) -> Result<ExprRet<'vir>, EncodeFullError<'vir, MirPureEnc>> {
-        #[derive(Debug, PartialEq, Eq)]
-        enum PrustiBuiltin {
-            Forall,
-            Exists,
-            SpecBlock,
-            SnapshotEquality,
-            ModeStart(Mode),
-            ModeEnd(Mode),
-            IsNaN(ty::FloatTy),
-            IsInfinite(ty::FloatTy),
-            FlAbs(ty::FloatTy),
-            FlToReal,
-            RealMul,
-            RealEq,
-            RealSub,
-            RealAdd,
-            RealDiv,
-            RealNeg,
-            RealLt,
-            RealLe,
-            RealGt,
-            RealGe,
-        }
-
-        let item_name = self.vcx.tcx().item_name(def_id);
-        let env_query = EnvQuery::new(self.vcx.tcx());
-        let actual_impl = env_query.find_impl_of_trait_method_call(def_id, arg_tys);
-
-        let impl_type_name = env_query.find_impl_type_name(actual_impl.unwrap_or(def_id));
-        // TODO: this probably isn't necessary
-        let builtin = match (impl_type_name.as_deref(), item_name.as_str()) {
-            (None, "forall") => PrustiBuiltin::Forall,
-            (None, "exists") => PrustiBuiltin::Exists,
-            (None, "spec_block") => PrustiBuiltin::SpecBlock,
-            (None, "snapshot_equality") => PrustiBuiltin::SnapshotEquality,
-            (None, "old_start") => PrustiBuiltin::ModeStart(Mode::Old),
-            (None, "old_end") => PrustiBuiltin::ModeEnd(Mode::Old),
-            (None, "rel_start") => PrustiBuiltin::ModeStart(Mode::Rel(
-                arg_tys[0]
-                    .expect_const()
-                    .to_value()
-                    .valtree
-                    .try_to_scalar_int()
-                    .unwrap()
-                    .to_bits_unchecked() as usize,
-            )),
-            (None, "rel_end") => PrustiBuiltin::ModeEnd(Mode::Rel(
-                arg_tys[0]
-                    .expect_const()
-                    .to_value()
-                    .valtree
-                    .try_to_scalar_int()
-                    .unwrap()
-                    .to_bits_unchecked() as usize,
-            )),
-            (None, "before_expiry_start") => PrustiBuiltin::ModeStart(Mode::BeforeExpiry),
-            (None, "before_expiry_end") => PrustiBuiltin::ModeEnd(Mode::BeforeExpiry),
-            (None, "f16_is_nan") => PrustiBuiltin::IsNaN(ty::FloatTy::F16),
-            (None, "f32_is_nan") => PrustiBuiltin::IsNaN(ty::FloatTy::F32),
-            (None, "f64_is_nan") => PrustiBuiltin::IsNaN(ty::FloatTy::F64),
-            (None, "f128_is_nan") => PrustiBuiltin::IsNaN(ty::FloatTy::F128),
-            (None, "f16_is_infinite") => PrustiBuiltin::IsInfinite(ty::FloatTy::F16),
-            (None, "f32_is_infinite") => PrustiBuiltin::IsInfinite(ty::FloatTy::F32),
-            (None, "f64_is_infinite") => PrustiBuiltin::IsInfinite(ty::FloatTy::F64),
-            (None, "f128_is_infinite") => PrustiBuiltin::IsInfinite(ty::FloatTy::F128),
-            (None, "f16_abs") => PrustiBuiltin::FlAbs(ty::FloatTy::F16),
-            (None, "f32_abs") => PrustiBuiltin::FlAbs(ty::FloatTy::F32),
-            (None, "f64_abs") => PrustiBuiltin::FlAbs(ty::FloatTy::F64),
-            (None, "f128_abs") => PrustiBuiltin::FlAbs(ty::FloatTy::F128),
-            (Some("prusti_contracts::Real"), "from") => PrustiBuiltin::FlToReal,
-            (Some("prusti_contracts::Real"), "mul") => PrustiBuiltin::RealMul,
-            (Some("prusti_contracts::Real"), "eq") => PrustiBuiltin::RealEq,
-            (Some("prusti_contracts::Real"), "sub") => PrustiBuiltin::RealSub,
-            (Some("prusti_contracts::Real"), "add") => PrustiBuiltin::RealAdd,
-            (Some("prusti_contracts::Real"), "div") => PrustiBuiltin::RealDiv,
-            (Some("prusti_contracts::Real"), "neg") => PrustiBuiltin::RealNeg,
-            (Some("prusti_contracts::Real"), "lt") => PrustiBuiltin::RealLt,
-            (Some("prusti_contracts::Real"), "le") => PrustiBuiltin::RealLe,
-            (Some("prusti_contracts::Real"), "gt") => PrustiBuiltin::RealGt,
-            (Some("prusti_contracts::Real"), "ge") => PrustiBuiltin::RealGe,
-            (_, other) => panic!("illegal prusti::builtin ({other})"),
-        };
-
-        let bool = self.ty_use(self.vcx.tcx().types.bool);
-        let bool = bool.expect_primitive();
-        let mk_bool =
-            |prim: vir::ExprGenBool<'vir, _, _>| bool.prim_to_snap.call()(prim.upcast_ty());
+        let mk_bool = |prim: vir::ExprGenBool<'vir, _, _>| prim.upcast_ty::<vir::CSnap>();
         Ok(match builtin {
-            PrustiBuiltin::SnapshotEquality => {
-                assert_eq!(args.len(), 2);
-                let lhs = self.encode_operand_snap(&args[0].node, curr_ver)?;
-                let rhs = self.encode_operand_snap(&args[1].node, curr_ver)?;
-                // The `x === y` is turned into `snap_eq(&x, &y)`, we do not
-                // want to compare the values of `x` and `y` only (without
-                // addresses, though note that if `x`/`y` are `&a`/`&b` then the
-                // addresses will be compared).
-                let lhs_ty = self
-                    .ty_use(args[0].node.ty(self.body, self.vcx.tcx()))
-                    .expect_immref();
-                let rhs_ty = self
-                    .ty_use(args[1].node.ty(self.body, self.vcx.tcx()))
-                    .expect_immref();
-                let lhs = lhs_ty.value_access(lhs.downcast_ty());
-                let rhs = rhs_ty.value_access(rhs.downcast_ty());
-                mk_bool(self.vcx.mk_eq_expr(lhs, rhs))
-            }
             PrustiBuiltin::Forall | PrustiBuiltin::Exists => {
                 assert_eq!(arg_tys.len(), 3);
 
@@ -1482,8 +1307,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .reify(self.vcx, (cl_def_id, self.vcx.alloc(reify_args)))
                     .lift();
 
-                let body =
-                    bool.expect_native().snap_to_prim.call()(body.downcast_ty()).downcast_ty();
+                let body = body.downcast_ty::<vir::Bool>();
                 // TODO: triggers
                 let res = if builtin == PrustiBuiltin::Forall {
                     self.vcx.mk_forall_expr(qvars, &[], body)
@@ -1568,8 +1392,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .reify(self.vcx, (cl_def_id, self.vcx.alloc(reify_args)))
                     .lift();
 
-                let body =
-                    bool.expect_native().snap_to_prim.call()(body.downcast_ty()).downcast_ty();
+                let body = body.downcast_ty::<vir::Bool>();
                 mk_bool(body)
             }
             PrustiBuiltin::ModeStart(mode) => {
@@ -1618,103 +1441,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 }
                 mk_bool(self.vcx.mk_bool::<true>().lift()) // TODO: what value do we return?
             }
-            PrustiBuiltin::IsNaN(fl) => {
-                let is_nan_fun = match fl {
-                    ty::FloatTy::F16 => {
-                        self.ty_use(self.vcx.tcx().types.f16)
-                            .expect_float()
-                            .fp_is_nan
-                    }
-                    ty::FloatTy::F32 => {
-                        self.ty_use(self.vcx.tcx().types.f32)
-                            .expect_float()
-                            .fp_is_nan
-                    }
-                    ty::FloatTy::F64 => {
-                        self.ty_use(self.vcx.tcx().types.f64)
-                            .expect_float()
-                            .fp_is_nan
-                    }
-                    ty::FloatTy::F128 => {
-                        self.ty_use(self.vcx.tcx().types.f128)
-                            .expect_float()
-                            .fp_is_nan
-                    }
-                };
-                let fl = self.encode_operand_snap(&args[0].node, curr_ver)?;
-                mk_bool(is_nan_fun.call()(fl.downcast_ty()))
-            }
-            PrustiBuiltin::IsInfinite(fl) => {
-                let is_infinite_fun = match fl {
-                    ty::FloatTy::F16 => {
-                        self.ty_use(self.vcx.tcx().types.f16)
-                            .expect_float()
-                            .fp_is_infinite
-                    }
-                    ty::FloatTy::F32 => {
-                        self.ty_use(self.vcx.tcx().types.f32)
-                            .expect_float()
-                            .fp_is_infinite
-                    }
-                    ty::FloatTy::F64 => {
-                        self.ty_use(self.vcx.tcx().types.f64)
-                            .expect_float()
-                            .fp_is_infinite
-                    }
-                    ty::FloatTy::F128 => {
-                        self.ty_use(self.vcx.tcx().types.f128)
-                            .expect_float()
-                            .fp_is_infinite
-                    }
-                };
-                let fl = self.encode_operand_snap(&args[0].node, curr_ver)?;
-                mk_bool(is_infinite_fun.call()(fl.downcast_ty()))
-            }
-            PrustiBuiltin::FlAbs(fl) => {
-                let fl_ty = match fl {
-                    ty::FloatTy::F16 => self.ty_use(self.vcx.tcx().types.f16),
-                    ty::FloatTy::F32 => self.ty_use(self.vcx.tcx().types.f32),
-                    ty::FloatTy::F64 => self.ty_use(self.vcx.tcx().types.f64),
-                    ty::FloatTy::F128 => self.ty_use(self.vcx.tcx().types.f128),
-                }
-                .expect_float();
-                let fl1 = self
-                    .encode_operand_snap(&args[0].node, curr_ver)?
-                    .downcast_ty();
-                fl_ty.fp_abs.call()(fl1)
-            }
-            PrustiBuiltin::FlToReal => {
-                let a_ty = args[0].node.ty(self.body, self.vcx.tcx());
-                let fl_ty = self.ty_use(a_ty).expect_float();
-                let fl = self
-                    .encode_operand_snap(&args[0].node, curr_ver)?
-                    .downcast_ty();
-                let res = fl_ty.fp_to_real.call()(fl);
-                self.ty_use_real().perm_to_snap.call()(res)
-            }
-            PrustiBuiltin::RealMul => self.encode_real_op(vir::BinOpKind::Mul, args, curr_ver)?,
-            PrustiBuiltin::RealSub => self.encode_real_op(vir::BinOpKind::Sub, args, curr_ver)?,
-            PrustiBuiltin::RealAdd => self.encode_real_op(vir::BinOpKind::Add, args, curr_ver)?,
-            PrustiBuiltin::RealDiv => {
-                self.encode_real_op(vir::BinOpKind::DivRationalRational, args, curr_ver)?
-            }
-            PrustiBuiltin::RealEq => self.encode_real_cmp(vir::BinOpKind::CmpEq, args, curr_ver)?,
-            PrustiBuiltin::RealLt => self.encode_real_cmp(vir::BinOpKind::CmpLt, args, curr_ver)?,
-            PrustiBuiltin::RealLe => self.encode_real_cmp(vir::BinOpKind::CmpLe, args, curr_ver)?,
-            PrustiBuiltin::RealGt => self.encode_real_cmp(vir::BinOpKind::CmpGt, args, curr_ver)?,
-            PrustiBuiltin::RealGe => self.encode_real_cmp(vir::BinOpKind::CmpGe, args, curr_ver)?,
-            PrustiBuiltin::RealNeg => {
-                let real = self.ty_use_real();
-                let real_val = real.snap_to_perm.call()(
-                    self.encode_operand_snap(&args[0].node, curr_ver)?
-                        .downcast_ty(),
-                );
-                real.perm_to_snap.call()(
-                    self.vcx
-                        .mk_unary_op_expr(vir::UnOpKind::Neg, real_val.upcast_ty())
-                        .downcast_ty(),
-                )
-            }
+            // Operand-based builtins are handled by the shared
+            // `PureRvalueEnc::encode_prusti_builtin` before this is reached.
+            _ => unreachable!("operand-based builtin in the pure-only handler: {builtin:?}"),
         }
         .upcast_ty())
     }

@@ -31,11 +31,11 @@ fn basic_test() {
         seq![1, 2, 3];
         Map::empty();
         map![0 => 1, 3 => 5];
-        Int::new(0) + Int::new(1);
-        Int::new(0) - Int::new(1);
-        Int::new(0) * Int::new(1);
-        Int::new(0) / Int::new(1);
-        Int::new(0) % Int::new(1);
+        Int::from(0) + Int::from(1);
+        Int::from(0) - Int::from(1);
+        Int::from(0) * Int::from(1);
+        Int::from(0) / Int::from(1);
+        Int::from(0) % Int::from(1);
         map![1 => 1, 0 => 2].lookup(1);
         seq![1, 2, 3].lookup(1);
         //seq![1, 2, 3][0]; // references don't yet work

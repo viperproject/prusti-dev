@@ -2,32 +2,29 @@ use task_encoder::EncodeFullError;
 
 use crate::encoders::ty::{
     RustBuiltin, RustBuiltinData, impure,
-    interpretation::real,
-    pure::{AdtBuilder, TyPureBuiltin, TyPureEnc},
+    pure::{TyPureBuilder, TyPureBuiltin, TyPureBuiltinData, TyPureEnc},
 };
 
 pub(crate) fn ty_pure<'vir>(
     data: &RustBuiltin<'vir>,
-    builder: &mut AdtBuilder<'vir>,
+    _builder: &mut TyPureBuilder<'vir>,
 ) -> Result<TyPureBuiltin<'vir>, EncodeFullError<'vir, TyPureEnc>> {
     match data {
-        RustBuiltinData::BuiltinReal => real::ty_pure(builder),
-        RustBuiltinData::BuiltinGhost => {
-            builder.constructor::<()>("", (), None);
-            Ok(TyPureBuiltin::TyPureBuiltinGhost)
-        }
+        // Represented directly by the native Viper `Int`/`Perm` types (see
+        // `TyPureBuilder::new`); there is nothing to emit.
+        RustBuiltinData::Int => Ok(TyPureBuiltinData::Int),
+        RustBuiltinData::Real => Ok(TyPureBuiltinData::Real),
     }
 }
 
 pub(crate) fn ty_impure<'vir>(
     data: &(&RustBuiltin<'vir>, &TyPureBuiltin<'vir>),
-    deps: &mut task_encoder::TaskEncoderDependencies<'vir, impure::TyImpureEnc>,
+    _deps: &mut task_encoder::TaskEncoderDependencies<'vir, impure::TyImpureEnc>,
     builder: &mut impure::PredicateBuilder<'vir>,
 ) -> Result<impure::TyImpureBuiltin<'vir>, EncodeFullError<'vir, impure::TyImpureEnc>> {
     match data.0 {
-        RustBuiltinData::BuiltinReal => real::ty_impure((), deps, builder),
-        RustBuiltinData::BuiltinGhost => {
-            super::opaque::set_opaque(builder);
+        RustBuiltinData::Int | RustBuiltinData::Real => {
+            super::primitive::set_primitive(builder);
             Ok(())
         }
     }

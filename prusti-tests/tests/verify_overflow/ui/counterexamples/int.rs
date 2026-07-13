@@ -9,7 +9,7 @@ fn test1(x: i32) -> i32 {
 }
 
 #[pure]
-#[terminates(Int::new(1))]
+#[terminates(Int::from(1))]
 #[ensures(result != 42)]
 fn test2(x: i32) -> i32 {
     x + 21

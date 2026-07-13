@@ -10,7 +10,7 @@ fn test1(seq: Seq<i32>, idx: usize) {
     prusti_assert!(seq[idx] == seq[idx]);
 }
 
-#[requires(idx >= Int::new(0))]
+#[requires(idx >= Int::from(0))]
 #[requires(idx < seq1.len())]
 #[requires(seq1.len() == seq2.len())]
 fn test2(seq1: Seq<i32>, seq2: Seq<i32>, idx: Int) {
@@ -22,7 +22,7 @@ fn test3() {
     prusti_assert!(seq[2] == 4);
 }
 
-#[requires(seq.len() == Int::new(2))]
+#[requires(seq.len() == Int::from(2))]
 #[requires(a == 2 && a == b)] // force specific counterexample
 fn test4(a: i32, b: i32, seq: Seq<i32>) {
     //the counterexample only contains values for a and b but not for the elements of seq

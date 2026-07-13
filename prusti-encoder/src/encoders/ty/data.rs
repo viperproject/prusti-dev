@@ -237,17 +237,6 @@ impl<'vir, D: TyDatas<'vir>> TyData<'vir, D> {
         }
     }
 
-    #[track_caller]
-    pub fn expect_builtin(&self) -> &D::BuiltinData
-    where
-        Self: Debug,
-    {
-        match &self.specifics {
-            TySpecifics::Builtin(data) => data,
-            _ => panic!("expected primitive (was {self:?})"),
-        }
-    }
-
     pub fn get_variant_any(&self, vid: abi::VariantIdx) -> &StructData<'vir, D>
     where
         Self: Debug,

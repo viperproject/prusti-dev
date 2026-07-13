@@ -56,15 +56,18 @@ pub enum ExternSpecDeclaration {
 }
 
 impl ExternSpecDeclaration {
-    /// Constructs [ExternSpecDeclaration] from a method call with the given substitutions.
+    /// Constructs [ExternSpecDeclaration] from a method call (within the
+    /// extern-spec function `caller_def_id`) with the given substitutions.
     fn from_method_call<'tcx>(
+        caller_def_id: DefId,
         def_id: DefId,
         substs: GenericArgsRef<'tcx>,
         env_query: EnvQuery<'tcx>,
     ) -> Self {
         let is_impl_method = env_query.is_trait_method_impl(def_id);
         let is_trait_method = env_query.get_trait_of_assoc(def_id).is_some();
-        let maybe_impl_def_id = env_query.find_impl_of_trait_method_call(def_id, substs);
+        let maybe_impl_def_id =
+            env_query.find_impl_of_trait_method_call(caller_def_id, def_id, substs);
 
         if is_trait_method && maybe_impl_def_id.is_none() {
             Self::Trait(def_id)
@@ -139,8 +142,12 @@ impl<'tcx> ExternSpecResolver<'tcx> {
         visitor.visit_fn(fn_kind, fn_decl, body_id, span, local_id);
         let current_def_id = local_id.to_def_id();
         if let Some((target_def_id, substs, span)) = visitor.spec_found {
-            let extern_spec_decl =
-                ExternSpecDeclaration::from_method_call(target_def_id, substs, self.env_query);
+            let extern_spec_decl = ExternSpecDeclaration::from_method_call(
+                current_def_id,
+                target_def_id,
+                substs,
+                self.env_query,
+            );
 
             if matches!(extern_spec_kind, ExternSpecKind::Trait)
                 && !matches!(extern_spec_decl, ExternSpecDeclaration::Trait(_))

@@ -25,6 +25,8 @@ pub struct LocalDeclData<'vir, T: CompType> {
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize, Hash)]
 pub enum UnOpKind {
     Neg,
+    /// Negation of a `Perm` (real) value.
+    PermNeg,
     Not,
 }
 impl From<mir::UnOp> for UnOpKind {
@@ -57,8 +59,11 @@ pub enum BinOpKind {
     Sub,
     Mul,
     Div,
-    DivRational,
-    DivRationalRational,
+    // Arithmetic on `Perm` (real) values.
+    PermAdd,
+    PermSub,
+    PermMul,
+    PermPermDiv,
     Mod,
     // Set ops
     SetUnion,

@@ -7,7 +7,7 @@ pub struct Account {
     balance: i32,
 }
 
-#[terminates(Int::new(1))]
+#[terminates(Int::from(1))]
 #[pure]
 fn get_balance(acc: Account) -> i32 {
     acc.balance

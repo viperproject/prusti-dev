@@ -39,7 +39,7 @@ impl TaskEncoder for TypeOfEnc {
         vir::with_vcx(|vcx| {
             let base_name = task_key.name();
             let domain = deps.require_ref::<TyPureEnc>(*task_key)?;
-            let snap = (domain.domain)();
+            let snap = domain.snapshot;
             let typeof_function = FunctionIdn::new(
                 vir::vir_format_identifier!(vcx, "s_{base_name}_typeof"),
                 snap,

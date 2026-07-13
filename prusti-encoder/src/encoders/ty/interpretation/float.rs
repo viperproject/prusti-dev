@@ -11,6 +11,8 @@ pub type FloatDomain<'vir> = &'vir FloatDomainData<'vir>;
 
 #[derive(Debug, Clone, Copy)]
 pub struct FloatDomainData<'vir> {
+    /// Viper primitive value (the raw bits) as argument. Returns domain.
+    pub prim_to_snap: FunctionIdn<'vir, vir::Prim, vir::CSnap>,
     #[allow(unused)]
     pub from_bv: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
     pub fp_eq: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::Bool>,
@@ -202,6 +204,7 @@ pub(crate) fn ty_pure_float<'vir>(
     });
 
     Ok(FloatDomainData {
+        prim_to_snap,
         from_bv,
         fp_eq,
         fp_add,

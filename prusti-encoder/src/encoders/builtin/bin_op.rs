@@ -1,11 +1,9 @@
 use prusti_rustc_interface::middle::{mir, ty};
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CallableIdn, CastType, FunctionIdn};
+use vir::{CastType, FunctionIdn};
 
 use crate::encoders::ty::{
-    RustTy, RustTyDecomposition,
-    interpretation::float::FloatDomain,
-    pure::{TyPurePrimData, TyPurePrimDataKind},
+    RustTy, RustTyDecomposition, interpretation::float::FloatDomain, pure::TyPurePrimDataKind,
     use_pure::TyUsePureEnc,
 };
 
@@ -89,9 +87,9 @@ impl TaskEncoder for MirBuiltinBinOpEnc {
             let lhs = vcx.mk_local_ex(lhs_decl);
             let rhs = vcx.mk_local_ex(rhs_decl);
             let (pres, body) = match l_ty_prim.kind {
-                TyPurePrimDataKind::Native(l_ty_prim) => {
-                    let lhs = (l_ty_prim.snap_to_prim)(lhs);
-                    let rhs = (r_ty_prim.expect_native().snap_to_prim)(rhs);
+                TyPurePrimDataKind::Bool | TyPurePrimDataKind::Int(_) => {
+                    let lhs = l_ty_prim.snap_to_prim(lhs);
+                    let rhs = r_ty_prim.snap_to_prim(rhs);
                     // `l_ty` is the type the operation is performed in. The operands
                     // do not always share a type (e.g. a shift's amount may be a
                     // different integer type than the shifted value), so we do not
@@ -106,13 +104,12 @@ impl TaskEncoder for MirBuiltinBinOpEnc {
                         let res_ty = *result_ty.ty.expect_primitive();
                         let (pres, val) =
                             Self::handle_bin_op_native(vcx, lhs, rhs, res_ty, op, l_ty);
-                        (pres, (res.expect_primitive().prim_to_snap)(val))
+                        (pres, res.expect_primitive().prim_to_snap(val))
                     }
                 }
                 TyPurePrimDataKind::Float(float) => {
                     assert!(matches!(r_ty_prim.kind, TyPurePrimDataKind::Float(_)));
-                    let res_ty_prim = res.expect_primitive();
-                    let body = Self::handle_bin_op_float(vcx, lhs, rhs, op, float, *res_ty_prim);
+                    let body = Self::handle_bin_op_float(vcx, lhs, rhs, op, float);
                     (Vec::new(), body)
                 }
             };
@@ -290,7 +287,6 @@ impl MirBuiltinBinOpEnc {
         rhs: vir::ExprCSnap<'vir>,
         op: mir::BinOp,
         float: FloatDomain<'vir>,
-        prim_res_ty: TyPurePrimData<'vir>,
     ) -> vir::ExprCSnap<'vir> {
         use mir::BinOp::*;
         match op {
@@ -313,28 +309,28 @@ impl MirBuiltinBinOpEnc {
             BitXor | BitAnd | BitOr | Shl | ShlUnchecked | Shr | ShrUnchecked => unreachable!(),
             Eq => {
                 let prim_res = (float.fp_eq)(lhs, rhs);
-                (prim_res_ty.prim_to_snap)(prim_res.upcast_ty())
+                prim_res.upcast_ty()
             }
             Lt => {
                 let prim_res = (float.fp_lt)(lhs, rhs);
-                (prim_res_ty.prim_to_snap)(prim_res.upcast_ty())
+                prim_res.upcast_ty()
             }
             Le => {
                 let prim_res = (float.fp_leq)(lhs, rhs);
-                (prim_res_ty.prim_to_snap)(prim_res.upcast_ty())
+                prim_res.upcast_ty()
             }
             Ne => {
                 let prim_res = (float.fp_eq)(lhs, rhs);
                 let neq = vcx.mk_unary_op_expr(vir::UnOpKind::Not, prim_res.upcast_ty());
-                (prim_res_ty.prim_to_snap)(neq)
+                neq.downcast_ty::<vir::Bool>().upcast_ty()
             }
             Ge => {
                 let prim_res = (float.fp_geq)(lhs, rhs);
-                (prim_res_ty.prim_to_snap)(prim_res.upcast_ty())
+                prim_res.upcast_ty()
             }
             Gt => {
                 let prim_res = (float.fp_gt)(lhs, rhs);
-                (prim_res_ty.prim_to_snap)(prim_res.upcast_ty())
+                prim_res.upcast_ty()
             }
             Cmp => todo!(), // maybe don't implement here but as a stdlib specification
             Offset => unreachable!(),
@@ -368,14 +364,8 @@ impl MirBuiltinBinOpEnc {
 
         let ty = RustTyDecomposition::from_prim_ty(res_ty_int);
         let e_res_ty_int = deps.require_dep::<TyUsePureEnc>(ty)?.expect_primitive();
-        assert_eq!(vir::TYPE_INT.upcast_ty(), e_res_ty_int.prim_type);
-        let prim_type = e_res_ty_int.prim_type.downcast_ty::<vir::Int>();
-        let bool_ty_task = RustTyDecomposition::from_prim_ty(bool_ty);
-        let e_bool = deps.require_dep::<TyUsePureEnc>(bool_ty_task)?;
-        let bool_cons = e_bool
-            .expect_primitive()
-            .prim_to_snap
-            .cast_args::<vir::Bool>(vir::TYPE_BOOL);
+        assert_eq!(vir::TYPE_INT.upcast_ty(), e_res_ty_int.prim_type());
+        let prim_type = e_res_ty_int.prim_type().downcast_ty::<vir::Int>();
 
         // Unbounded value
         let val_exp = vcx
@@ -387,17 +377,15 @@ impl MirBuiltinBinOpEnc {
         let wrapped_val_decl = vcx.mk_local_decl("wrapped_val", prim_type);
         let wrapped_val_exp = vcx.get_wrapped_val(val, res_ty_int.kind());
         let wrapped_val = vcx.mk_local_ex(wrapped_val_decl);
-        let wrapped_val_snap = (e_res_ty_int.prim_to_snap)(wrapped_val.upcast_ty());
+        let wrapped_val_snap = e_res_ty_int.prim_to_snap(wrapped_val.upcast_ty());
         // Overflowed?
         let overflowed = vcx
             .mk_bin_op_expr(vir::BinOpKind::CmpNe, wrapped_val, val)
-            .downcast_ty();
-        let overflowed_snap = bool_cons(overflowed);
+            .downcast_ty::<vir::Bool>();
         // `tuple(prim_to_snap(wrapped_val), wrapped_val != val)`
-        let tuple = e_res_ty.expect_structlike().field_snaps_to_snap(vec![
-            wrapped_val_snap.upcast_ty(),
-            overflowed_snap.upcast_ty(),
-        ]);
+        let tuple = e_res_ty
+            .expect_structlike()
+            .field_snaps_to_snap(vec![wrapped_val_snap.upcast_ty(), overflowed.upcast_ty()]);
         // `let wrapped_val == (val ..) in $tuple`
         let inner_let = vcx.mk_let_expr(wrapped_val_decl, wrapped_val_exp, tuple);
         Ok(vcx.mk_let_expr(val_decl, val_exp, inner_let))

@@ -36,7 +36,7 @@ fn test4(a: usize) {}
 #[pure]
 #[requires(n >= 0)]
 #[ensures(result <= n)]
-#[terminates(Int::new_usize(n))]
+#[terminates(Int::from(n))]
 fn count(n: usize) -> usize {
     if n == 0 { 0 }
     else { count(n-1) + 1 }

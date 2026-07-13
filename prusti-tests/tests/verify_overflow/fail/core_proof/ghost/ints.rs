@@ -4,43 +4,43 @@
 
 use prusti_contracts::*;
 
-#[requires(a == Int::new(5))]
+#[requires(a == Int::from(5))]
 fn precond_test(a: Int) {}
 
-#[ensures(a == Int::new(5))] //~ ERROR: postcondition might not hold.
+#[ensures(a == Int::from(5))] //~ ERROR: postcondition might not hold.
 fn postcond_test(a: Int) {}
 
 fn int_equality(a: i64) {
-    prusti_assert!(Int::new(a) == Int::new(a));
-    prusti_assert!(Int::new(1) == Int::new(2)); //~ ERROR: the asserted expression might not hold
+    prusti_assert!(Int::from(a) == Int::from(a));
+    prusti_assert!(Int::from(1) == Int::from(2)); //~ ERROR: the asserted expression might not hold
 
     let x = 5;
-    let x_int = Int::new(x);
-    prusti_assert!(Int::new(5) == x_int);
+    let x_int = Int::from(x);
+    prusti_assert!(Int::from(5) == x_int);
 }
 
 #[requires(x > -10000 && x < 10000 && y > -10000 && y < 10000 && y != 0)]
 fn operations_equivalent(x: i64, y: i64) {
-    prusti_assert!(Int::new(-x) == -Int::new(x));
-    prusti_assert!(Int::new(x + y) == Int::new(x) + Int::new(y));
-    prusti_assert!(Int::new(x - y) == Int::new(x) - Int::new(y));
+    prusti_assert!(Int::from(-x) == -Int::from(x));
+    prusti_assert!(Int::from(x + y) == Int::from(x) + Int::from(y));
+    prusti_assert!(Int::from(x - y) == Int::from(x) - Int::from(y));
 }
 
 // We need to assume y == 5 to avoid non-linear arithmetic when doing
 // the bounds checks that choke Z3.
 #[requires(x > -10000 && x < 10000 && y == 5)]
 fn operations_equivalent2(x: i64, y: i64) {
-    prusti_assert!(Int::new(-x) == -Int::new(x));
-    prusti_assert!(Int::new(x + y) == Int::new(x) + Int::new(y));
-    prusti_assert!(Int::new(x - y) == Int::new(x) - Int::new(y));
-    prusti_assert!(Int::new(x * y) == Int::new(x) * Int::new(y));
-    prusti_assert!(Int::new(x / y) == Int::new(x) / Int::new(y));
-    prusti_assert!(Int::new(x % y) == Int::new(x) % Int::new(y));
+    prusti_assert!(Int::from(-x) == -Int::from(x));
+    prusti_assert!(Int::from(x + y) == Int::from(x) + Int::from(y));
+    prusti_assert!(Int::from(x - y) == Int::from(x) - Int::from(y));
+    prusti_assert!(Int::from(x * y) == Int::from(x) * Int::from(y));
+    prusti_assert!(Int::from(x / y) == Int::from(x) / Int::from(y));
+    prusti_assert!(Int::from(x % y) == Int::from(x) % Int::from(y));
 }
 
 fn neutral_elements(a: Int) {
-    let i0 = Int::new(0);
-    let i1 = Int::new(1);
+    let i0 = Int::from(0);
+    let i1 = Int::from(1);
 
     prusti_assert!(i0 + a == a);
     prusti_assert!(i1 * a == a);
@@ -64,25 +64,25 @@ fn distributivity(a: Int, b: Int, c: Int) {
 
 fn negations(a: Int, b: Int) {
     prusti_assert!(a + (-b) == a - b);
-    prusti_assert!(a - a == Int::new(0));
+    prusti_assert!(a - a == Int::from(0));
     prusti_assert!(-(-a) == a);
     prusti_assert!((-a) * b == -(a * b));
-    prusti_assert!(-a == Int::new(0) - a);
+    prusti_assert!(-a == Int::from(0) - a);
     prusti_assert!(-(a + b) == (-a) + (-b));
 }
 
-#[requires(a > Int::new(0) && b > Int::new(0))]
+#[requires(a > Int::from(0) && b > Int::from(0))]
 fn remainder1(a: Int, b: Int) {
-    prusti_assert!(a % b >= Int::new(0));
+    prusti_assert!(a % b >= Int::from(0));
 }
 
-#[requires(a > Int::new(0) && b > Int::new(0))]
+#[requires(a > Int::from(0) && b > Int::from(0))]
 fn remainder2(a: Int, b: Int) {
     let r = a % b;
-    prusti_assert!(r >= Int::new(0));
+    prusti_assert!(r >= Int::from(0));
 }
 
-#[requires(a > Int::new(0) && b > Int::new(0))]
+#[requires(a > Int::from(0) && b > Int::from(0))]
 fn divisions(a: Int, b: Int) {
     let c = a / b;
 }
@@ -133,5 +133,5 @@ fn mixed_test(a: Int, b: Int, c: Int, x: Int, y: Int, z: Int) {
 }
 
 fn main() {
-    eq(Int::new(0), Int::new(1), Int::new(2));
+    eq(Int::from(0), Int::from(1), Int::from(2));
 }

@@ -71,7 +71,7 @@ impl TaskEncoder for CastersEnc<Pure> {
             let domain_ref = deps.require_ref::<TyPureEnc>(concrete)?;
             let generic_snap = vir::TYPE_PSNAP;
             let generic_typeof = deps.require_ref::<TypeOfEnc>(param)?.typeof_function;
-            let self_ty = (domain_ref.domain)().downcast_ty();
+            let self_ty = domain_ref.snapshot.downcast_ty();
             let base_name = concrete.name();
             let ty_constructor = deps.require_ref::<TyConstructorEnc>(concrete)?;
             let generics = deps.require_dep::<GenericParamsEnc>(concrete.params)?;

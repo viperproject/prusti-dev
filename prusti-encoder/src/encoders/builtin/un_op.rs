@@ -105,9 +105,9 @@ impl TaskEncoder for MirBuiltinUnOpEnc {
                     assert_eq!(result_ty, operand_ty);
                     let prim_res_ty = e_ty.expect_primitive();
                     match prim_res_ty.kind {
-                        TyPurePrimDataKind::Native(native) => {
-                            let prim_arg = (native.snap_to_prim)(snap_arg);
-                            let mut val = (prim_res_ty.prim_to_snap)(
+                        TyPurePrimDataKind::Bool | TyPurePrimDataKind::Int(_) => {
+                            let prim_arg = prim_res_ty.snap_to_prim(snap_arg);
+                            let mut val = prim_res_ty.prim_to_snap(
                                 vcx.mk_unary_op_expr(vir::UnOpKind::from(op), prim_arg),
                             );
                             // Can overflow when doing `- iN::MIN -> iN::MIN`. There is no

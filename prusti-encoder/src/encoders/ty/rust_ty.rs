@@ -62,19 +62,6 @@ impl<'tcx> RustTyDecomposition<'tcx> {
         TyData::<'tcx, RustTyDatas>::from_ty(ty, context.into())
     }
 
-    pub fn from_real() -> Self {
-        let data = RustTyData {
-            name: symbol::Symbol::intern("Real"),
-            params: GParams::empty(),
-        };
-        let specifics = TySpecifics::Builtin(RustBuiltinData::BuiltinReal);
-        Self::new(
-            TyData::<'tcx, RustTyDatas>::new(data, specifics).alloc(),
-            GArgs::new(GParams::empty(), &[]),
-            Some(true),
-        )
-    }
-
     /// Same as `from_ty` to get a `RustTyDecomposition` for use in encoding,
     /// but requires fewer arguments when the type is known to be primitive.
     pub fn from_prim_ty(ty: ty::Ty<'tcx>) -> Self {
@@ -243,8 +230,8 @@ impl<'tcx> TyDatas<'tcx> for RustTyDatas {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RustBuiltinData {
-    BuiltinReal,
-    BuiltinGhost,
+    Int,
+    Real,
 }
 
 /// An internal representation of a `ty::Ty`. Contains all that we care about
@@ -679,9 +666,20 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
             EnvQuery::new(vcx.tcx()).is_adt_in_crate(adt, "prusti_contracts")
         }) {
             match adt.non_enum_variant().name.to_string().as_str() {
-                "Real" => Self::Builtin(RustBuiltinData::BuiltinReal),
-                "Ghost" => Self::Builtin(RustBuiltinData::BuiltinGhost),
-                s => panic!("Found unrecognized builtin {s}"),
+                "Int" => Self::Builtin(RustBuiltinData::Int),
+                "Real" => Self::Builtin(RustBuiltinData::Real),
+                // `Ghost<T>` is encoded as if it were `struct Ghost<T>(T)`
+                // (like `Box` above): the snapshot wraps the value of `T`.
+                "Ghost" => {
+                    let fields = vec![RustFieldData {
+                        name: symbol::Symbol::intern("val"),
+                        fid: abi::FieldIdx::from_usize(0),
+                        ty: LazyRustTy(Self::new_param_ty(0)),
+                    }];
+                    TySpecifics::mk_structlike((), fields)
+                }
+                // TODO: support other builtins (e.g. `Seq`, `Map`, `Set`, etc.)
+                s => todo!("Unimplemented builtin {s}"),
             }
         } else {
             match adt.adt_kind() {

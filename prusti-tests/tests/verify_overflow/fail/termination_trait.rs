@@ -7,7 +7,7 @@ use prusti_contracts::*;
 fn main() {}
 
 trait Trait {
-    #[terminates(Int::new(x))]
+    #[terminates(Int::from(x))]
     fn fun(&self, x: i64) {}
 }
 
@@ -20,14 +20,14 @@ impl Trait for Struct {
     }
 }
 
-#[terminates(Int::new(x))]
+#[terminates(Int::from(x))]
 fn foo<T: Trait>(t: &T, x: i64) {
     if x > 1 {
         t.fun(x - 1);
     }
 }
 
-#[terminates(Int::new(x))]
+#[terminates(Int::from(x))]
 fn foo2<T: Trait>(t: &T, x: i64) {
     if x > -5 {
         t.fun(x - 1); //~ ERROR: the termination measure of this call might become negative

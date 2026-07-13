@@ -857,23 +857,14 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn perm_div(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
-            self,
-            Expr,
-            ast::PermDiv,
-            left.to_jobject(),
-            right.to_jobject()
-        )
-    }
-
-    pub fn perm_perm_div(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn perm_perm_div_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::PermPermDiv,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 
@@ -881,37 +872,46 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Expr, ast::CurrentPerm, loc.to_jobject())
     }
 
-    pub fn perm_minus(&self, expr: Expr) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::PermMinus, expr.to_jobject())
+    pub fn perm_minus_with_pos(&self, expr: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::PermMinus,
+            expr.to_jobject(),
+            pos.to_jobject()
+        )
     }
 
-    pub fn perm_add(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn perm_add_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::PermAdd,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn perm_sub(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn perm_sub_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::PermSub,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn perm_mul(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn perm_mul_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::PermMul,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 

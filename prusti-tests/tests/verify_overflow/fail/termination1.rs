@@ -8,7 +8,7 @@ use prusti_contracts::*;
 fn main() {
     while false {
         body_invariant!(false);
-        body_variant!(Int::new(0));
+        body_variant!(Int::from(0));
     }
 }
 
@@ -16,7 +16,7 @@ fn ghost_terminates() {
     ghost! {
         while false {
             body_invariant!(false);
-            body_variant!(Int::new(0));
+            body_variant!(Int::from(0));
         }
     };
 }

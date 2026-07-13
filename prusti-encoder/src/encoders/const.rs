@@ -153,7 +153,7 @@ impl<'enc, 'vir: 'enc> Enc<'enc, 'vir> {
                         .expect("scalar should be an integer");
                     let val = int.to_bits(int.size());
                     let val = prim.expr_from_bits(*ty.ty.expect_primitive(), val);
-                    (prim.prim_to_snap)(val)
+                    prim.prim_to_snap(val)
                 }
                 super::ty::TySpecifics::ImmRef(immref) => {
                     let (addr, metadata, snap) = self.encode_ref_addr_snap(val, ty)?;
@@ -178,6 +178,7 @@ impl<'enc, 'vir: 'enc> Enc<'enc, 'vir> {
                 }
                 super::ty::TySpecifics::EnumLike(enum_data) => {
                     let variant_idx = self.ecx.read_discriminant(&val).unwrap();
+                    let variant = self.ecx.project_downcast(&val, variant_idx).unwrap();
                     let mut snaps = Vec::new();
                     for (idx, field) in ty.ty.expect_enumlike().variants[variant_idx.as_usize()]
                         .inner
@@ -187,7 +188,7 @@ impl<'enc, 'vir: 'enc> Enc<'enc, 'vir> {
                     {
                         snaps.push(
                             self.encode_const_val_tree(
-                                self.ecx.project_field(&val, idx.into()).unwrap(),
+                                self.ecx.project_field(&variant, idx.into()).unwrap(),
                                 field.decompose_normalize(ty.args),
                             )?
                             .upcast_ty(),
@@ -297,7 +298,7 @@ impl ConstEnc {
                 // first, we create the metadata and string snapshots
                 let meta =
                     metadata.expr_from_bits(*metadata_ty.ty.expect_primitive(), meta as u128);
-                let meta = (metadata.prim_to_snap)(meta).upcast_ty();
+                let meta = metadata.prim_to_snap(meta).upcast_ty();
                 // TODO: this should use `fresh_function` instead to get a different value for different constants!
                 let inner = (inner.arbitrary)().upcast_ty();
                 // wrap it in a ref
@@ -318,7 +319,7 @@ impl ConstEnc {
                 let prim = ty_enc.expect_primitive();
                 let val = int.to_bits(int.size());
                 let val = prim.expr_from_bits(*ty.ty.expect_primitive(), val);
-                (prim.prim_to_snap)(val)
+                prim.prim_to_snap(val)
             }
             Scalar::Ptr(ptr, _) => {
                 match vir::with_vcx(|vcx| vcx.tcx().global_alloc(ptr.provenance.alloc_id())) {

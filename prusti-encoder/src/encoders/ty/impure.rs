@@ -134,7 +134,7 @@ impl TaskEncoder for TyImpureEnc {
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
         let snap = deps.require_dep::<TyPureEnc>(*task_key)?;
-        let snapshot = (snap.domain)();
+        let snapshot = snap.snapshot;
 
         let ty = task_key.zip(snap);
 

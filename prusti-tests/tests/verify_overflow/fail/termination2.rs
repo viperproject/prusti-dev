@@ -8,7 +8,7 @@ fn main() {}
 
 #[requires(x < 100_000)]
 #[requires(x >= 0)]
-#[terminates(Int::new(x))]
+#[terminates(Int::from(x))]
 fn y1(x: i64) {
     if x > 0 {
         y2(x - 1)
@@ -17,7 +17,7 @@ fn y1(x: i64) {
 
 #[requires(x < 100_000)]
 #[requires(x >= 0)]
-#[terminates(Int::new(x))]
+#[terminates(Int::from(x))]
 fn y2(x: i64) {
     if x > 0 {
         y1(x - 1)
@@ -25,7 +25,7 @@ fn y2(x: i64) {
     z(x * 100)
 }
 
-#[terminates(Int::new(x))]
+#[terminates(Int::from(x))]
 fn z(x: i64) {
     if x > 0 {
         z(x - 1)

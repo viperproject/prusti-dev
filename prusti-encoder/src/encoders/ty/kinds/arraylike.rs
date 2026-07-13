@@ -73,7 +73,7 @@ pub(crate) fn ty_impure<'vir>(
             builder.params.ty_args(),
             builder.params.const_args(),
         ),
-        (task_key.1.domain)().downcast_ty(),
+        task_key.1.snapshot.downcast_ty(),
         (
             ref_self_decl,
             index_decl,
