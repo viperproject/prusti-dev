@@ -116,7 +116,7 @@ impl AstRewriter {
         let (return_type, _return_modifier) = match &spec_type {
             SpecItemType::Termination => (
                 quote_spanned! {item_span => Int},
-                quote_spanned! {item_span => Int::new(0) + },
+                quote_spanned! {item_span => Int::from(0) + },
             ),
             SpecItemType::Predicate(return_type) => (return_type.clone(), TokenStream::new()),
             _ => (

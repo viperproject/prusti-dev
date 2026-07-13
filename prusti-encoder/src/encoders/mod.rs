@@ -16,11 +16,11 @@ pub mod addr;
 
 pub use builtin::{
     MetadataCastAxiomEnc, MetadataCastEnc, MirBuiltinBinOpEnc, MirBuiltinBinOpTask,
-    MirBuiltinUnOpEnc, MirBuiltinUnOpTask, MirBuiltinUseCastEnc, MirBuiltinUseCastTask,
-    ValueCastAxiomEnc, ValueCastEnc,
+    MirBuiltinUnOpEnc, MirBuiltinUnOpTask, MirBuiltinUseCastEnc, MirBuiltinUseCastTask, Mode,
+    PrustiBuiltin, PrustiBuiltinEnc, PrustiBuiltinTask, ValueCastAxiomEnc, ValueCastEnc,
 };
 pub use r#const::ConstEnc;
-pub use impure::fn_wand::{WandCallContext, WandEnc, WandEncOutput, WandEncTask};
+pub use impure::fn_wand::{WandEnc, WandEncOutput, WandEncTask};
 pub use local_def::*;
 pub use mir_fn::{FunctionCallEnc, MethodCallEnc, encode_all_in_crate};
 pub use mir_impure::ImpureEncVisitor;

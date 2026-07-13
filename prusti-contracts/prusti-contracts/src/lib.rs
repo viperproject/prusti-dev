@@ -167,36 +167,8 @@ mod private {
 
     #[pure]
     pub fn prusti_terminates_trusted() -> Int {
-        Int::new(1)
+        Int::from(1)
     }
-
-    /// a mathematical (unbounded) integer type
-    /// it should not be constructed from running rust code, hence the private unit inside
-    #[derive(Copy, Clone, PartialEq, Eq)]
-    pub struct Int(());
-
-    impl Int {
-        pub fn new(_: i64) -> Self {
-            panic!()
-        }
-
-        pub fn new_usize(_: usize) -> Self {
-            panic!()
-        }
-    }
-
-    macro_rules! __int_dummy_trait_impls__ {
-        ($($trait:ident $fun:ident),*) => {$(
-            impl core::ops::$trait for Int {
-                type Output = Self;
-                fn $fun(self, _other: Self) -> Self {
-                    panic!()
-                }
-            }
-        )*}
-    }
-
-    __int_dummy_trait_impls__!(Add add, Sub sub, Mul mul, Div div, Rem rem);
 
     #[macro_export]
     macro_rules! prusti_assert_eq {
@@ -212,6 +184,35 @@ mod private {
         };
     }
 
+    macro_rules! __dummy_from_impls__ {
+        ($ty:ident: $($src:ty),*) => {$(
+            impl From<$src> for $ty {
+                fn from(_: $src) -> Self {
+                    panic!()
+                }
+            }
+        )*}
+    }
+
+    macro_rules! __dummy_trait_impls__ {
+        ($ty:ident: $($trait:ident $fun:ident),*) => {$(
+            impl core::ops::$trait for $ty {
+                type Output = Self;
+                fn $fun(self, _other: Self) -> Self {
+                    panic!()
+                }
+            }
+        )*}
+    }
+
+    /// a mathematical (unbounded) integer type
+    /// it should not be constructed from running rust code, hence the private unit inside
+    #[derive(Copy, Clone)]
+    pub struct Int(());
+
+    __dummy_from_impls__!(Int: i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize);
+    __dummy_trait_impls__!(Int: Add add, Sub sub, Mul mul, Div div, Rem rem);
+
     impl Neg for Int {
         type Output = Self;
         fn neg(self) -> Self {
@@ -219,13 +220,53 @@ mod private {
         }
     }
 
+    impl PartialEq for Int {
+        fn eq(&self, _: &Self) -> bool {
+            panic!()
+        }
+    }
+    impl Eq for Int {}
+
     impl PartialOrd for Int {
-        fn partial_cmp(&self, _other: &Self) -> Option<core::cmp::Ordering> {
+        fn partial_cmp(&self, _: &Self) -> Option<Ordering> {
             panic!()
         }
     }
     impl Ord for Int {
-        fn cmp(&self, _other: &Self) -> core::cmp::Ordering {
+        fn cmp(&self, _: &Self) -> Ordering {
+            panic!()
+        }
+    }
+
+    /// a mathematical real type
+    /// it should not be constructed from running rust code, hence the private unit inside
+    #[derive(Copy, Clone)]
+    pub struct Real(());
+
+    __dummy_from_impls__!(Real: f16, f32, f64, f128);
+    __dummy_trait_impls__!(Real: Add add, Sub sub, Mul mul, Div div);
+
+    impl Neg for Real {
+        type Output = Real;
+        fn neg(self) -> Self {
+            panic!()
+        }
+    }
+
+    impl PartialEq for Real {
+        fn eq(&self, _: &Self) -> bool {
+            panic!()
+        }
+    }
+    impl Eq for Real {}
+
+    impl PartialOrd for Real {
+        fn partial_cmp(&self, _: &Self) -> Option<Ordering> {
+            panic!()
+        }
+    }
+    impl Ord for Real {
+        fn cmp(&self, _: &Self) -> Ordering {
             panic!()
         }
     }
@@ -352,103 +393,6 @@ mod private {
 
     impl<T> DerefMut for Ghost<T> {
         fn deref_mut(&mut self) -> &mut T {
-            panic!()
-        }
-    }
-
-    /// a mathematical real type
-    /// it should not be constructed from running rust code, hence the private unit inside
-    #[derive(Eq, Copy, Clone)]
-    pub struct Real(());
-
-    impl From<f16> for Real {
-        fn from(_: f16) -> Self {
-            panic!();
-        }
-    }
-
-    impl From<f32> for Real {
-        fn from(_: f32) -> Self {
-            panic!();
-        }
-    }
-
-    impl From<f64> for Real {
-        fn from(_: f64) -> Self {
-            panic!();
-        }
-    }
-
-    impl From<f128> for Real {
-        fn from(_: f128) -> Self {
-            panic!();
-        }
-    }
-
-    impl Sub for Real {
-        type Output = Real;
-
-        fn sub(self, _: Self) -> Self {
-            panic!()
-        }
-    }
-
-    impl PartialEq for Real {
-        fn eq(&self, _: &Self) -> bool {
-            panic!()
-        }
-    }
-
-    impl Mul for Real {
-        type Output = Real;
-
-        fn mul(self, _: Self) -> Self {
-            panic!()
-        }
-    }
-
-    impl Add for Real {
-        type Output = Real;
-
-        fn add(self, _: Self) -> Self {
-            panic!()
-        }
-    }
-
-    impl Div for Real {
-        type Output = Real;
-
-        fn div(self, _: Self) -> Self {
-            panic!()
-        }
-    }
-
-    impl Neg for Real {
-        type Output = Real;
-
-        fn neg(self) -> Self {
-            panic!()
-        }
-    }
-
-    impl PartialOrd for Real {
-        fn partial_cmp(&self, _: &Self) -> Option<Ordering> {
-            panic!()
-        }
-
-        fn lt(&self, _: &Self) -> bool {
-            panic!()
-        }
-
-        fn le(&self, _: &Self) -> bool {
-            panic!()
-        }
-
-        fn gt(&self, _: &Self) -> bool {
-            panic!()
-        }
-
-        fn ge(&self, _: &Self) -> bool {
             panic!()
         }
     }

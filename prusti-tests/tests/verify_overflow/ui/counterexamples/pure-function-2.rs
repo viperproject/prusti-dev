@@ -9,7 +9,7 @@ struct X {
 
 impl X {
     #[pure]
-    #[terminates(Int::new(1))]
+    #[terminates(Int::from(1))]
     fn get_a(&self) -> i32{
         self.a
     }
@@ -17,7 +17,7 @@ impl X {
 
 
 #[pure]
-#[terminates(Int::new(1))]
+#[terminates(Int::from(1))]
 fn baz(x: X) -> X {
     X {a: x.a + 1}
 }
