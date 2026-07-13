@@ -19,7 +19,7 @@ use vir::{CastType, HasType, Reify};
 use crate::encoders::{
     MirLocalDefEncTask, MirPureEnc,
     mir_pure::{ExprInput, MirPureEncOutput, PureKind},
-    ty::{RustTyDecomposition, generics::GParams, use_pure::TyUsePureEnc},
+    ty::generics::GParams,
 };
 pub struct MirSpecEnc;
 
@@ -187,13 +187,6 @@ impl TaskEncoder for MirSpecEnc {
             let all_args = vcx.alloc(all_args);
             let pre_args = all_args; // it should be ok to provide more keys than required
 
-            let to_bool = deps
-                .require_dep::<TyUsePureEnc>(RustTyDecomposition::from_prim_ty(
-                    vcx.tcx().types.bool,
-                ))?
-                .expect_native()
-                .snap_to_prim;
-
             // Encode each functional precondition; if one cannot be encoded (e.g.
             // it uses an unsupported feature), report the error at *that spec's*
             // span and skip only it, keeping the permission contract and the other
@@ -211,10 +204,10 @@ impl TaskEncoder for MirSpecEnc {
                         substs,
                         "precondition",
                     )?;
-                    let expr = spec.expr.downcast_ty();
+                    let expr = spec.expr.downcast_ty::<vir::Bool>();
                     let expr = expr.reify(vcx, (*spec_def_id, pre_args));
                     let span = vcx.tcx().def_span(*spec_def_id);
-                    Some(vcx.with_span(span, |_| to_bool(expr).downcast_ty()))
+                    Some(vcx.with_span(span, |_| expr))
                 })
                 .collect::<Vec<vir::ExprBool<'_>>>();
 
@@ -253,9 +246,9 @@ impl TaskEncoder for MirSpecEnc {
                                 span.into(),
                             )])
                         });
-                        let expr = spec.expr.downcast_ty();
+                        let expr = spec.expr.downcast_ty::<vir::Bool>();
                         let expr = expr.reify(vcx, (*spec_def_id, post_args));
-                        Some(to_bool(expr).downcast_ty())
+                        Some(expr)
                     })
                 })
                 .collect::<Vec<vir::ExprBool<'_>>>();
@@ -281,11 +274,8 @@ impl TaskEncoder for MirSpecEnc {
                                     substs,
                                     "pledge lhs",
                                 )?;
-                                let lhs = spec.expr.downcast_ty::<vir::CSnap>();
-                                Some(PledgeExpr::new(
-                                    lhs_def_id,
-                                    to_bool.call()(lhs).downcast_ty(),
-                                ))
+                                let lhs = spec.expr.downcast_ty::<vir::Bool>();
+                                Some(PledgeExpr::new(lhs_def_id, lhs))
                             }
                             None => None,
                         };
@@ -298,7 +288,7 @@ impl TaskEncoder for MirSpecEnc {
                             substs,
                             "pledge rhs",
                         )?;
-                        let rhs = spec.expr.downcast_ty();
+                        let rhs = spec.expr.downcast_ty::<vir::Bool>();
                         let rhs_span = vcx.tcx().def_span(rhs_def_id);
                         let rhs_expr = vcx.with_span(rhs_span, move |vcx| {
                             vcx.handle_error("exhale.failed:assertion.false", move |_| {
@@ -307,7 +297,7 @@ impl TaskEncoder for MirSpecEnc {
                                     rhs_span.into(),
                                 )])
                             });
-                            to_bool.call()(rhs).downcast_ty()
+                            rhs
                         });
                         let rhs_expr = PledgeExpr::new(*rhs_def_id, rhs_expr);
                         Some(EncodedPledge {

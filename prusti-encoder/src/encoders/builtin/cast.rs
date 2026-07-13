@@ -115,10 +115,6 @@ impl TaskEncoder for MirBuiltinCastEnc {
                     let e_res_ty = res_ty.expect_primitive();
                     let result_kind = result_ty.expect_primitive().kind();
                     let operand_kind = operand_ty.expect_primitive().kind();
-                    let (to_bits, to_signed) = vir::VirCtxt::get_int_data(result_kind);
-                    let (from_bits, from_signed) = vir::VirCtxt::get_int_data(operand_kind);
-
-                    let arg_prim = (e_op_ty.expect_native().snap_to_prim)(arg_ex);
 
                     // An integer `as` cast never panics: when every value of the
                     // source type is representable in the target the value is
@@ -126,21 +122,36 @@ impl TaskEncoder for MirBuiltinCastEnc {
                     // width and reinterpreted with the target's signedness. Either
                     // way any input is valid, so the cast function needs NO
                     // precondition.
-                    let lossless = match (from_signed, to_signed) {
-                        (false, false) | (true, true) => from_bits <= to_bits,
-                        (false, true) => from_bits < to_bits, // one bit reserved for the sign
-                        (true, false) => false,               // a negative source never fits
-                    };
-                    let wrapped = if lossless {
-                        arg_prim
+                    let wrapped = if matches!(operand_kind, ty::TyKind::Bool) {
+                        // `bool as <int>` is `b ? 1 : 0`; always lossless.
+                        vcx.mk_ternary_expr(
+                            arg_ex.downcast_ty(),
+                            vcx.mk_int::<1>(),
+                            vcx.mk_int::<0>(),
+                        )
+                        .upcast_ty()
                     } else {
-                        // Truncate to the target width and reinterpret with its
-                        // signedness (two's complement); the shared helper wraps
-                        // `((x [+ 2^(N-1)]) mod 2^N) [- 2^(N-1)]`.
-                        vcx.get_wrapped_val(arg_prim.downcast_ty(), result_kind)
-                            .upcast_ty()
+                        let (to_bits, to_signed) = vir::VirCtxt::get_int_data(result_kind);
+                        let (from_bits, from_signed) = vir::VirCtxt::get_int_data(operand_kind);
+
+                        let arg_prim = e_op_ty.snap_to_prim(arg_ex);
+
+                        let lossless = match (from_signed, to_signed) {
+                            (false, false) | (true, true) => from_bits <= to_bits,
+                            (false, true) => from_bits < to_bits, // one bit reserved for the sign
+                            (true, false) => false,               // a negative source never fits
+                        };
+                        if lossless {
+                            arg_prim
+                        } else {
+                            // Truncate to the target width and reinterpret with its
+                            // signedness (two's complement); the shared helper wraps
+                            // `((x [+ 2^(N-1)]) mod 2^N) [- 2^(N-1)]`.
+                            vcx.get_wrapped_val(arg_prim.downcast_ty(), result_kind)
+                                .upcast_ty()
+                        }
                     };
-                    let expr = (e_res_ty.prim_to_snap)(wrapped);
+                    let expr = e_res_ty.prim_to_snap(wrapped);
 
                     // A value-level (thin) cast: no generic parameters, no precondition.
                     let fn_idn = FunctionIdn::new(name, op_ty_snap, res_ty_snap);

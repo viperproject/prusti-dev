@@ -38,10 +38,12 @@ impl<'vir, Curr, Next> BinOpGenData<'vir, Curr, Next> {
             | BinOpKind::SetIn => crate::TYPE_BOOL.upcast_ty(),
             BinOpKind::And | BinOpKind::Or | BinOpKind::Implies => crate::TYPE_BOOL.upcast_ty(),
             BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Div | BinOpKind::Mod => {
-                self.lhs.ty().downcast_ty()
+                crate::TYPE_INT.upcast_ty()
             }
-            BinOpKind::DivRational => crate::TYPE_PERM.upcast_ty(),
-            BinOpKind::DivRationalRational => crate::TYPE_PERM.upcast_ty(),
+            BinOpKind::PermAdd
+            | BinOpKind::PermSub
+            | BinOpKind::PermMul
+            | BinOpKind::PermPermDiv => crate::TYPE_PERM.upcast_ty(),
 
             BinOpKind::SetUnion => return self.lhs.ty(),
         };

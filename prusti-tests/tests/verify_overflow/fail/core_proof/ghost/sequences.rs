@@ -7,11 +7,11 @@ use prusti_contracts::{self as pc, *};
 type Seq = prusti_contracts::Seq<u32>;
 
 fn empty_seq_zero_len() {
-    prusti_assert!(Seq::empty().len() == Int::new(0));
+    prusti_assert!(Seq::empty().len() == Int::from(0));
 }
 
 fn empty_seq_not_one_len() {
-    prusti_assert!(Seq::empty().len() == Int::new(1)); //~ ERROR: asserted expression might not hold
+    prusti_assert!(Seq::empty().len() == Int::from(1)); //~ ERROR: asserted expression might not hold
 }
 
 fn seq_eq1() {
@@ -34,12 +34,12 @@ fn random_indexing_fails_usize(seq: Seq, idx: usize) {
     prusti_assert!(seq[idx] == seq[idx]); //~ ERROR: the sequence index may be out of bounds
 }
 
-#[requires(0 <= idx && Int::new_usize(idx) < seq.len())]
+#[requires(0 <= idx && Int::from(idx) < seq.len())]
 fn random_indexing_suceeds(seq: Seq, idx: usize) {
     prusti_assert!(seq[idx] == seq[idx]);
 }
 
-#[requires(idx >= Int::new(0))]
+#[requires(idx >= Int::from(0))]
 fn random_indexing_fails_int(seq: Seq, idx: Int) {
     prusti_assert!(seq[idx] == seq[idx]); //~ ERROR: the sequence index may be out of bounds
 }
