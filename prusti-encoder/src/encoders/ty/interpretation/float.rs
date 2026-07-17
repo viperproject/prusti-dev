@@ -1,6 +1,6 @@
 use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullError, TaskEncoderDependencies};
-use vir::{BackendInterpretationPair, CallableIdn, FunctionIdn, VirCtxt};
+use vir::{BackendInterpretationPair, CallableIdn, FunctionIdn, VirCtxt, vir_format};
 
 use crate::encoders::ty::{
     interpretation::bitvec::{BitVecEnc, BitVecSize},
@@ -193,19 +193,19 @@ pub(crate) fn ty_pure_float<'vir>(
         ty::FloatTy::F128 => BitVecSize::BitVec128,
     })?;
 
-    let i = match float {
+    let from_bv_name = match float {
         ty::FloatTy::F16 => "(_ to_fp 5 11)",
         ty::FloatTy::F32 => "(_ to_fp 8 24)",
         ty::FloatTy::F64 => "(_ to_fp 11 53)",
         ty::FloatTy::F128 => "(_ to_fp 15 113)",
     };
-    let from_bv = builder.backend_func("from_bv", (bit_vec.domain)(), builder.self_type(), Some(i));
-    let from_real_name: &str = match float {
-        ty::FloatTy::F16 => "(_ to_fp 5 11) RNE",
-        ty::FloatTy::F32 => "(_ to_fp 8 24) RNE",
-        ty::FloatTy::F64 => "(_ to_fp 11 53) RNE",
-        ty::FloatTy::F128 => "(_ to_fp 15 113) RNE",
-    };
+    let from_bv = builder.backend_func(
+        "from_bv",
+        (bit_vec.domain)(),
+        builder.self_type(),
+        Some(from_bv_name),
+    );
+    let from_real_name = vir_format!(vcx, "{} RNE", from_bv_name);
     let from_real = builder.backend_func(
         "from_real",
         vir::TYPE_PERM,
