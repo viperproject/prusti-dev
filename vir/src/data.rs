@@ -64,7 +64,6 @@ pub enum BinOpKind {
     PermSub,
     PermMul,
     PermPermDiv,
-    FractionalPerm,
     Mod,
 }
 impl From<mir::BinOp> for BinOpKind {

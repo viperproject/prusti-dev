@@ -70,7 +70,6 @@ impl<'vir, Curr, Next> Debug for BinOpGenData<'vir, Curr, Next> {
                 BinOpKind::PermSub => "-",
                 BinOpKind::PermMul => "*",
                 BinOpKind::PermPermDiv => "/",
-                BinOpKind::FractionalPerm => "/",
                 BinOpKind::Mod => "%",
             }
         )?;

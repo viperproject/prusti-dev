@@ -16,4 +16,8 @@ fn main() {
     let x = -5;
     let y = x as f32;
     assert!(y == -5.0);
+
+    let x = 9007199254740993i64;
+    assert!(x == 9007199254740993);
+    assert!(x as f32 == 9007199254740992.0);
 }

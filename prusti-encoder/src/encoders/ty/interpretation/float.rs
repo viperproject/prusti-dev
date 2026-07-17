@@ -24,6 +24,7 @@ pub struct FloatDomainData<'vir> {
     pub fp_trunc: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
     pub fp_is_nan: FunctionIdn<'vir, vir::CSnap, vir::Bool>,
     pub fp_is_infinite: FunctionIdn<'vir, vir::CSnap, vir::Bool>,
+    pub fp_is_positive: FunctionIdn<'vir, vir::CSnap, vir::Bool>,
     pub fp_lt: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::Bool>,
     pub fp_leq: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::Bool>,
     pub fp_gt: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::Bool>,
@@ -40,7 +41,7 @@ pub(crate) fn ty_pure_float<'vir>(
     float: ty::FloatTy,
     prim_to_snap: FunctionIdn<'vir, vir::Prim, vir::CSnap>,
 ) -> Result<FloatDomainData<'vir>, EncodeFullError<'vir, TyPureEnc>> {
-    let i = match float {
+    let backend_type = match float {
         ty::FloatTy::F16 => vcx.alloc_slice(&[
             vcx.alloc(BackendInterpretationPair {
                 key: "SMTLIB",
@@ -82,7 +83,7 @@ pub(crate) fn ty_pure_float<'vir>(
             }),
         ]),
     };
-    builder.set_interpretation(i);
+    builder.set_interpretation(backend_type);
 
     let fp_eq = builder.backend_func(
         "eq",
@@ -138,6 +139,13 @@ pub(crate) fn ty_pure_float<'vir>(
         builder.self_type(),
         vir::TYPE_BOOL,
         Some("fp.isInfinite"),
+    );
+
+    let fp_is_positive = builder.backend_func(
+        "is_positive",
+        builder.self_type(),
+        vir::TYPE_BOOL,
+        Some("fp.isPositive"),
     );
 
     let fp_lt = builder.backend_func(
@@ -228,6 +236,7 @@ pub(crate) fn ty_pure_float<'vir>(
         fp_trunc,
         fp_is_nan,
         fp_is_infinite,
+        fp_is_positive,
         fp_lt,
         fp_leq,
         fp_gt,

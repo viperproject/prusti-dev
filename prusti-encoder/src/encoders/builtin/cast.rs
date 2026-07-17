@@ -11,6 +11,7 @@ use crate::encoders::{
     ty::{
         LazyRustTy, RustTy, RustTyDecomposition, RustTySpecial, TySpecifics,
         generics::{GParams, GenericParamsEnc},
+        interpretation::real::RealEnc,
         use_pure::TyUsePureEnc,
     },
 };
@@ -102,6 +103,7 @@ impl TaskEncoder for MirBuiltinCastEnc {
             mir::CastKind::IntToInt => "i2i",
             mir::CastKind::PtrToPtr => "p2p",
             mir::CastKind::IntToFloat => "i2f",
+            mir::CastKind::FloatToInt => "f2i",
             other => todo!("cast kind {other:?}"),
         };
         // The unsize cast/methods don't depend on the pointee type (the methods
@@ -196,12 +198,53 @@ impl TaskEncoder for MirBuiltinCastEnc {
                     let e_op_ty = op_ty.expect_primitive();
                     let e_res_ty = res_ty.expect_float();
 
-                    let real_op = vcx.mk_bin_op_expr(
-                        vir::BinOpKind::FractionalPerm,
-                        e_op_ty.snap_to_prim(arg_ex),
-                        vcx.mk_const_expr(vir::ConstData::Int(1)),
-                    );
+                    let real_domain = deps.require_dep::<RealEnc>(())?;
+                    let real_op = (real_domain.from_int)(e_op_ty.snap_to_prim(arg_ex));
+
                     let expr = (e_res_ty.from_real)(real_op.downcast_ty());
+
+                    // A value-level (thin) cast: no generic parameters, no precondition.
+                    let fn_idn = FunctionIdn::new(name, op_ty_snap, res_ty_snap);
+                    let function = vcx.mk_function(fn_idn, (arg_decl,), &[], &[], None, Some(expr));
+                    (
+                        MirBuiltinCastLocal {
+                            cast: function,
+                            unsize: None,
+                            undo: None,
+                        },
+                        MirBuiltinCastOutput::Simple(fn_idn),
+                    )
+                }
+                mir::CastKind::FloatToInt => {
+                    let e_op_ty = op_ty.expect_float();
+                    let e_res_ty = res_ty.expect_primitive();
+                    let result_kind = result_ty.expect_primitive().kind();
+
+                    // real to int will always round down (also for negative numbers) - truncate first
+                    let arg_ex_trunc = (e_op_ty.fp_trunc)(arg_ex);
+
+                    let real_op = (e_op_ty.fp_to_real)(arg_ex_trunc);
+                    let real_domain = deps.require_dep::<RealEnc>(())?;
+                    let expr = (real_domain.to_int)(real_op.upcast_ty());
+
+                    let expr = vcx.get_val_or_ty_bound(expr.downcast_ty(), result_kind);
+
+                    // Handle infinity and NaN cases
+                    let expr = vcx.mk_ternary_expr(
+                        (e_op_ty.fp_is_infinite)(arg_ex),
+                        vcx.mk_ternary_expr(
+                            (e_op_ty.fp_is_positive)(arg_ex),
+                            vcx.get_max_int(result_kind).upcast_ty(),
+                            vcx.get_min_int(result_kind).upcast_ty(),
+                        ),
+                        vcx.mk_ternary_expr(
+                            (e_op_ty.fp_is_nan)(arg_ex),
+                            vcx.mk_const_expr(vir::ConstData::Int(0)),
+                            expr.upcast_ty(),
+                        ),
+                    );
+
+                    let expr = e_res_ty.prim_to_snap(expr);
 
                     // A value-level (thin) cast: no generic parameters, no precondition.
                     let fn_idn = FunctionIdn::new(name, op_ty_snap, res_ty_snap);

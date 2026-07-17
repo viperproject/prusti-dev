@@ -857,17 +857,6 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn fractional_perm_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
-        build_ast_node_with_pos!(
-            self,
-            Expr,
-            ast::FractionalPerm,
-            left.to_jobject(),
-            right.to_jobject(),
-            pos.to_jobject()
-        )
-    }
-
     pub fn perm_perm_div_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,
