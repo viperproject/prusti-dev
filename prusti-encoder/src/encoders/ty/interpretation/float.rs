@@ -15,6 +15,7 @@ pub struct FloatDomainData<'vir> {
     pub prim_to_snap: FunctionIdn<'vir, vir::Prim, vir::CSnap>,
     #[allow(unused)]
     pub from_bv: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
+    pub from_real: FunctionIdn<'vir, vir::Perm, vir::CSnap>,
     pub fp_eq: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::Bool>,
     pub fp_add: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::CSnap>,
     pub fp_sub: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::CSnap>,
@@ -191,6 +192,18 @@ pub(crate) fn ty_pure_float<'vir>(
         ty::FloatTy::F128 => "(_ to_fp 15 113)",
     };
     let from_bv = builder.backend_func("from_bv", (bit_vec.domain)(), builder.self_type(), Some(i));
+    let from_real_name: &str = match float {
+        ty::FloatTy::F16 => "(_ to_fp 5 11) RNE",
+        ty::FloatTy::F32 => "(_ to_fp 8 24) RNE",
+        ty::FloatTy::F64 => "(_ to_fp 11 53) RNE",
+        ty::FloatTy::F128 => "(_ to_fp 15 113) RNE",
+    };
+    let from_real = builder.backend_func(
+        "from_real",
+        vir::TYPE_PERM,
+        builder.self_type(),
+        Some(from_real_name),
+    );
 
     let fp_to_real = builder.backend_func(
         "to_real",
@@ -206,6 +219,7 @@ pub(crate) fn ty_pure_float<'vir>(
     Ok(FloatDomainData {
         prim_to_snap,
         from_bv,
+        from_real,
         fp_eq,
         fp_add,
         fp_sub,

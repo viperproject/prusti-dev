@@ -101,6 +101,7 @@ impl TaskEncoder for MirBuiltinCastEnc {
             mir::CastKind::PointerCoercion(ty::adjustment::PointerCoercion::Unsize, ..) => "unsize",
             mir::CastKind::IntToInt => "i2i",
             mir::CastKind::PtrToPtr => "p2p",
+            mir::CastKind::IntToFloat => "i2f",
             other => todo!("cast kind {other:?}"),
         };
         // The unsize cast/methods don't depend on the pointee type (the methods
@@ -180,6 +181,29 @@ impl TaskEncoder for MirBuiltinCastEnc {
                         e_op_ty.metadata_access(arg_ex),
                     );
 
+                    let fn_idn = FunctionIdn::new(name, op_ty_snap, res_ty_snap);
+                    let function = vcx.mk_function(fn_idn, (arg_decl,), &[], &[], None, Some(expr));
+                    (
+                        MirBuiltinCastLocal {
+                            cast: function,
+                            unsize: None,
+                            undo: None,
+                        },
+                        MirBuiltinCastOutput::Simple(fn_idn),
+                    )
+                }
+                mir::CastKind::IntToFloat => {
+                    let e_op_ty = op_ty.expect_primitive();
+                    let e_res_ty = res_ty.expect_float();
+
+                    let real_op = vcx.mk_bin_op_expr(
+                        vir::BinOpKind::FractionalPerm,
+                        e_op_ty.snap_to_prim(arg_ex),
+                        vcx.mk_const_expr(vir::ConstData::Int(1)),
+                    );
+                    let expr = (e_res_ty.from_real)(real_op.downcast_ty());
+
+                    // A value-level (thin) cast: no generic parameters, no precondition.
                     let fn_idn = FunctionIdn::new(name, op_ty_snap, res_ty_snap);
                     let function = vcx.mk_function(fn_idn, (arg_decl,), &[], &[], None, Some(expr));
                     (
