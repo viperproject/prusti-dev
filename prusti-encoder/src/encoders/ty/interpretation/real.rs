@@ -39,7 +39,7 @@ impl TaskEncoder for RealEnc {
             let domain_name = "s_Real";
 
             let domain_ident = DomainIdnCSnap::new(vir::ViperIdent::new(domain_name), 0);
-            let from_int_name = vir::vir_format!(vcx, "{}_from_int", domain_name);
+            let from_int_name = vir::vir_format!(vcx, "{domain_name}_from_int");
 
             let from_int = FunctionIdn::new(
                 ViperIdent::new(from_int_name),
@@ -49,7 +49,7 @@ impl TaskEncoder for RealEnc {
 
             let from_int_data = vcx.mk_domain_function(from_int, false, Some("to_real"));
 
-            let to_int_name = vir::vir_format!(vcx, "{}_to_int", domain_name);
+            let to_int_name = vir::vir_format!(vcx, "{domain_name}_to_int");
 
             let to_int = FunctionIdn::new(
                 ViperIdent::new(to_int_name),
@@ -59,13 +59,11 @@ impl TaskEncoder for RealEnc {
 
             let to_int_data = vcx.mk_domain_function(to_int, false, Some("to_int"));
 
-            let functions = &[from_int_data, to_int_data];
-
             let domain_data = vcx.mk_domain::<(), !>(
                 domain_ident.name(),
                 &[],
                 &[],
-                vcx.alloc_slice(functions),
+                vcx.alloc_slice(&[from_int_data, to_int_data]),
                 None,
             );
 

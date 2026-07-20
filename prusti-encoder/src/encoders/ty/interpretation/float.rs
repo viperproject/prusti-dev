@@ -205,7 +205,7 @@ pub(crate) fn ty_pure_float<'vir>(
         builder.self_type(),
         Some(from_bv_name),
     );
-    let from_real_name = vir_format!(vcx, "{} RNE", from_bv_name);
+    let from_real_name = vir_format!(vcx, "{from_bv_name} RNE");
     let from_real = builder.backend_func(
         "from_real",
         vir::TYPE_PERM,

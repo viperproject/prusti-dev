@@ -1613,7 +1613,7 @@ impl<'tcx> VirCtxt<'tcx> {
         exp
     }
 
-    pub fn get_val_or_ty_bound<'vir>(
+    pub fn get_clamped_val<'vir>(
         &'vir self,
         mut exp: ExprInt<'vir>,
         rust_ty: &ty::TyKind,
