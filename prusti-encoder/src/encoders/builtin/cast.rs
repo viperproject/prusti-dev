@@ -11,7 +11,7 @@ use crate::encoders::{
     ty::{
         LazyRustTy, RustTy, RustTyDecomposition, RustTySpecial, TySpecifics,
         generics::{GParams, GenericParamsEnc},
-        interpretation::real::RealEnc,
+        interpretation::int_real_cast::IntRealCastEnc,
         use_pure::TyUsePureEnc,
     },
 };
@@ -179,10 +179,11 @@ impl TaskEncoder for MirBuiltinCastEnc {
                     let e_op_ty = op_ty.expect_primitive();
                     let e_res_ty = res_ty.expect_float();
 
-                    let real_domain = deps.require_dep::<RealEnc>(())?;
-                    let real_op = (real_domain.from_int)(e_op_ty.snap_to_prim(arg_ex));
+                    let int_real_cast_domain = deps.require_dep::<IntRealCastEnc>(())?;
+                    let real_op =
+                        (int_real_cast_domain.from_int)(e_op_ty.snap_to_prim(arg_ex).downcast_ty());
 
-                    let expr = (e_res_ty.from_real)(real_op.downcast_ty());
+                    let expr = (e_res_ty.from_real)(real_op);
 
                     let fn_idn = FunctionIdn::new(name, op_ty_snap, res_ty_snap);
                     let function = vcx.mk_function(fn_idn, (arg_decl,), &[], &[], None, Some(expr));
@@ -204,10 +205,10 @@ impl TaskEncoder for MirBuiltinCastEnc {
                     let arg_ex_trunc = (e_op_ty.fp_trunc)(arg_ex);
 
                     let real_op = (e_op_ty.fp_to_real)(arg_ex_trunc);
-                    let real_domain = deps.require_dep::<RealEnc>(())?;
-                    let expr = (real_domain.to_int)(real_op.upcast_ty());
+                    let int_real_cast_domain = deps.require_dep::<IntRealCastEnc>(())?;
+                    let expr = (int_real_cast_domain.to_int)(real_op);
 
-                    let expr = vcx.get_clamped_val(expr.downcast_ty(), result_kind);
+                    let expr = vcx.get_clamped_val(expr, result_kind);
 
                     // Handle infinity and NaN cases
                     let expr = vcx.mk_ternary_expr(

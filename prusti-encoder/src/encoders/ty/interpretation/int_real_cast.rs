@@ -1,23 +1,23 @@
 use task_encoder::TaskEncoder;
-use vir::{CastType, DomainGenData, DomainIdnCSnap, FunctionIdn, ViperIdent};
+use vir::{DomainGenData, FunctionIdn, ViperIdent};
 
 #[derive(Debug, Clone, Copy)]
-pub struct RealDomain<'vir> {
-    pub from_int: FunctionIdn<'vir, vir::Prim, vir::Prim>,
-    pub to_int: FunctionIdn<'vir, vir::Prim, vir::Prim>,
+pub struct IntRealCastDomain<'vir> {
+    pub from_int: FunctionIdn<'vir, vir::Int, vir::Perm>,
+    pub to_int: FunctionIdn<'vir, vir::Perm, vir::Int>,
 }
 
-pub struct RealEnc;
+pub struct IntRealCastEnc;
 
-impl TaskEncoder for RealEnc {
-    task_encoder::encoder_cache!(RealEnc);
-    const ENCODER_NAME: &'static str = "real encoder";
+impl TaskEncoder for IntRealCastEnc {
+    task_encoder::encoder_cache!(IntRealCastEnc);
+    const ENCODER_NAME: &'static str = "int_real_cast encoder";
 
     type TaskDescription<'vir> = ();
 
     type OutputFullLocal<'vir> = &'vir DomainGenData<'vir, (), !>;
 
-    type OutputFullDependency<'vir> = RealDomain<'vir>;
+    type OutputFullDependency<'vir> = IntRealCastDomain<'vir>;
 
     type EncodingError = ();
 
@@ -25,50 +25,48 @@ impl TaskEncoder for RealEnc {
         *task
     }
 
-    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for output in Self::all_outputs_local_no_errors(program) {
-            program.add_domain(output);
-        }
-    }
-
     fn do_encode_full<'vir>(
         task_key: &Self::TaskKey<'vir>,
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
     ) -> task_encoder::EncodeFullResult<'vir, Self> {
         vir::with_vcx(|vcx| {
-            let domain_name = "s_Real";
+            deps.emit_output_ref(*task_key, ())?;
 
-            let domain_ident = DomainIdnCSnap::new(vir::ViperIdent::new(domain_name), 0);
+            let domain_name = "s_IntRealCast";
+
+            let domain_ident = vir::ViperIdent::new(domain_name);
             let from_int_name = vir::vir_format!(vcx, "{domain_name}_from_int");
 
             let from_int = FunctionIdn::new(
                 ViperIdent::new(from_int_name),
-                vir::TYPE_INT.upcast_ty(),
-                vir::TYPE_PERM.upcast_ty(),
+                vir::TYPE_INT,
+                vir::TYPE_PERM,
             );
 
             let from_int_data = vcx.mk_domain_function(from_int, false, Some("to_real"));
 
             let to_int_name = vir::vir_format!(vcx, "{domain_name}_to_int");
 
-            let to_int = FunctionIdn::new(
-                ViperIdent::new(to_int_name),
-                vir::TYPE_PERM.upcast_ty(),
-                vir::TYPE_INT.upcast_ty(),
-            );
+            let to_int =
+                FunctionIdn::new(ViperIdent::new(to_int_name), vir::TYPE_PERM, vir::TYPE_INT);
 
             let to_int_data = vcx.mk_domain_function(to_int, false, Some("to_int"));
 
             let domain_data = vcx.mk_domain::<(), !>(
-                domain_ident.name(),
+                domain_ident,
                 &[],
                 &[],
                 vcx.alloc_slice(&[from_int_data, to_int_data]),
                 None,
             );
 
-            deps.emit_output_ref(*task_key, ())?;
-            Ok((domain_data, RealDomain { from_int, to_int }))
+            Ok((domain_data, IntRealCastDomain { from_int, to_int }))
         })
+    }
+
+    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
+        for output in Self::all_outputs_local_no_errors(program) {
+            program.add_domain(output);
+        }
     }
 }
