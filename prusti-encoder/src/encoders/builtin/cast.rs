@@ -3,7 +3,7 @@ use prusti_rustc_interface::{
     span::symbol,
 };
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CastType, FunctionIdn, MethodIdn};
+use vir::{BinOpKind, CastType, FunctionIdn, MethodIdn};
 
 use crate::encoders::{
     TyUseImpureEnc,
@@ -208,7 +208,21 @@ impl TaskEncoder for MirBuiltinCastEnc {
                     let int_real_cast_domain = deps.require_dep::<IntRealCastEnc>(())?;
                     let expr = (int_real_cast_domain.to_int)(real_op);
 
-                    let expr = vcx.get_clamped_val(expr, result_kind);
+                    // clamp result
+                    let min = vcx.get_min_int(result_kind);
+                    let max = vcx.get_max_int(result_kind);
+                    let expr = vcx.mk_ternary_expr(
+                        vcx.mk_bin_op_expr(BinOpKind::CmpLt, expr, min)
+                            .downcast_ty(),
+                        min,
+                        expr,
+                    );
+                    let expr = vcx.mk_ternary_expr(
+                        vcx.mk_bin_op_expr(BinOpKind::CmpGt, expr, max)
+                            .downcast_ty(),
+                        max,
+                        expr,
+                    );
 
                     // Handle infinity and NaN cases
                     let expr = vcx.mk_ternary_expr(

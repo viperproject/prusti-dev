@@ -1612,26 +1612,4 @@ impl<'tcx> VirCtxt<'tcx> {
         }
         exp
     }
-
-    pub fn get_clamped_val<'vir>(
-        &'vir self,
-        mut exp: ExprInt<'vir>,
-        rust_ty: &ty::TyKind,
-    ) -> ExprInt<'vir> {
-        let min = self.get_min_int(rust_ty);
-        let max = self.get_max_int(rust_ty);
-        exp = self.mk_ternary_expr(
-            self.mk_bin_op_expr(BinOpKind::CmpLt, exp, min)
-                .downcast_ty(),
-            min,
-            exp,
-        );
-        exp = self.mk_ternary_expr(
-            self.mk_bin_op_expr(BinOpKind::CmpGt, exp, max)
-                .downcast_ty(),
-            max,
-            exp,
-        );
-        exp
-    }
 }
