@@ -1357,8 +1357,14 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn empty_seq(&self, elem_type: Type) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::EmptySeq, elem_type.to_jobject())
+    pub fn empty_seq_with_pos(&self, elem_type: Type, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::EmptySeq,
+            elem_type.to_jobject(),
+            pos.to_jobject()
+        )
     }
 
     pub fn explicit_seq(&self, elems: &[Expr]) -> Expr<'a> {
@@ -1370,87 +1376,110 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn empty_map(&self, key_ty: Type, val_ty: Type) -> Expr<'a> {
-        build_ast_node!(
+    pub fn explicit_seq_with_pos(&self, elems: &[Expr], pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::ExplicitSeq,
+            self.jni.new_seq(&map_to_jobjects!(elems)),
+            pos.to_jobject()
+        )
+    }
+
+    pub fn empty_map_with_pos(&self, key_ty: Type, val_ty: Type, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::EmptyMap,
             key_ty.to_jobject(),
-            val_ty.to_jobject()
+            val_ty.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn explicit_map(&self, keys_values: &[Expr]) -> Expr<'a> {
-        build_ast_node!(
-            self,
-            Expr,
-            ast::ExplicitMap,
-            self.jni.new_seq(&map_to_jobjects!(keys_values))
-        )
-    }
-
-    pub fn update_map(&self, map: Expr, key: Expr, val: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn update_map_with_pos(&self, map: Expr, key: Expr, val: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::MapUpdate,
             map.to_jobject(),
             key.to_jobject(),
-            val.to_jobject()
+            val.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn lookup_map(&self, map: Expr, key: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn lookup_map_with_pos(&self, map: Expr, key: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::MapLookup,
             map.to_jobject(),
-            key.to_jobject()
+            key.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn map_contains(&self, map: Expr, key: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn map_contains_with_pos(&self, map: Expr, key: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::MapContains,
             key.to_jobject(),
-            map.to_jobject()
+            map.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn map_len(&self, map: Expr) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::MapCardinality, map.to_jobject())
-    }
-
-    pub fn range_seq(&self, low: Expr, high: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn map_len_with_pos(&self, map: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
-            ast::RangeSeq,
-            low.to_jobject(),
-            high.to_jobject()
+            ast::MapCardinality,
+            map.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn seq_append(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn map_domain_with_pos(&self, map: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::MapDomain,
+            map.to_jobject(),
+            pos.to_jobject()
+        )
+    }
+
+    pub fn map_range_with_pos(&self, map: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::MapRange,
+            map.to_jobject(),
+            pos.to_jobject()
+        )
+    }
+
+    pub fn seq_append_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::SeqAppend,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn seq_index(&self, seq: Expr, index: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn seq_index_with_pos(&self, seq: Expr, index: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::SeqIndex,
             seq.to_jobject(),
-            index.to_jobject()
+            index.to_jobject(),
+            pos.to_jobject()
         )
     }
 
@@ -1458,37 +1487,75 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Expr, ast::SeqTake, seq.to_jobject(), num.to_jobject())
     }
 
-    pub fn seq_drop(&self, seq: Expr, num: Expr) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::SeqDrop, seq.to_jobject(), num.to_jobject())
+    pub fn seq_take_with_pos(&self, seq: Expr, num: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::SeqTake,
+            seq.to_jobject(),
+            num.to_jobject(),
+            pos.to_jobject()
+        )
     }
 
-    pub fn seq_contains(&self, elem: Expr, seq: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn seq_drop_with_pos(&self, seq: Expr, num: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::SeqDrop,
+            seq.to_jobject(),
+            num.to_jobject(),
+            pos.to_jobject()
+        )
+    }
+
+    pub fn seq_contains_with_pos(&self, elem: Expr, seq: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::SeqContains,
             elem.to_jobject(),
-            seq.to_jobject()
+            seq.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn seq_update(&self, seq: Expr, index: Expr, elem: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn seq_update_with_pos(
+        &self,
+        seq: Expr,
+        index: Expr,
+        elem: Expr,
+        pos: Position,
+    ) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::SeqUpdate,
             seq.to_jobject(),
             index.to_jobject(),
-            elem.to_jobject()
+            elem.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn seq_length(&self, seq: Expr) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::SeqLength, seq.to_jobject())
+    pub fn seq_length_with_pos(&self, seq: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::SeqLength,
+            seq.to_jobject(),
+            pos.to_jobject()
+        )
     }
 
-    pub fn empty_set(&self, elem_type: Type) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::EmptySet, elem_type.to_jobject())
+    pub fn empty_set_with_pos(&self, elem_type: Type, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::EmptySet,
+            elem_type.to_jobject(),
+            pos.to_jobject()
+        )
     }
 
     pub fn explicit_set(&self, elems: &[Expr]) -> Expr<'a> {
@@ -1500,71 +1567,108 @@ impl<'a> AstFactory<'a> {
         )
     }
 
+    pub fn explicit_set_with_pos(&self, elems: &[Expr], pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::ExplicitSet,
+            self.jni.new_seq(&map_to_jobjects!(elems)),
+            pos.to_jobject()
+        )
+    }
+
     pub fn empty_multiset(&self, elem_type: Type) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::EmptyMultiset, elem_type.to_jobject())
     }
 
-    pub fn explicit_multiset(&self, elems: &[Expr]) -> Expr<'a> {
-        build_ast_node!(
+    pub fn empty_multiset_with_pos(&self, elem_type: Type, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
-            ast::ExplicitMultiset,
-            self.jni.new_seq(&map_to_jobjects!(elems))
+            ast::EmptyMultiset,
+            elem_type.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn any_set_union(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn explicit_multiset_with_pos(&self, elems: &[Expr], pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::ExplicitMultiset,
+            self.jni.new_seq(&map_to_jobjects!(elems)),
+            pos.to_jobject()
+        )
+    }
+
+    pub fn any_set_union_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::AnySetUnion,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn any_set_intersection(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn any_set_intersection_with_pos(
+        &self,
+        left: Expr,
+        right: Expr,
+        pos: Position,
+    ) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::AnySetIntersection,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn any_set_subset(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn any_set_subset_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::AnySetSubset,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn any_set_minus(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn any_set_minus_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::AnySetMinus,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn any_set_contains(&self, elem: Expr, set: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn any_set_contains_with_pos(&self, elem: Expr, set: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::AnySetContains,
             elem.to_jobject(),
-            set.to_jobject()
+            set.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn any_set_cardinality(&self, set: Expr) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::AnySetCardinality, set.to_jobject())
+    pub fn any_set_cardinality_with_pos(&self, set: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::AnySetCardinality,
+            set.to_jobject(),
+            pos.to_jobject()
+        )
     }
 
     pub fn simplified_expression(&self, expr: Expr) -> Expr<'a> {

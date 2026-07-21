@@ -40,8 +40,23 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
             }
             ExprKindGenData::UnOp(v) => vcx.alloc(ExprKindGenData::UnOp(v.reify(vcx, lctx))),
             ExprKindGenData::BinOp(v) => vcx.alloc(ExprKindGenData::BinOp(v.reify(vcx, lctx))),
-            ExprKindGenData::SetLiteral(v) => {
-                vcx.alloc(ExprKindGenData::SetLiteral(v.reify(vcx, lctx)))
+            ExprKindGenData::CollectionBinOp(v) => {
+                vcx.alloc(ExprKindGenData::CollectionBinOp(v.reify(vcx, lctx)))
+            }
+            ExprKindGenData::CollectionLiteral(v) => {
+                vcx.alloc(ExprKindGenData::CollectionLiteral(v.reify(vcx, lctx)))
+            }
+            ExprKindGenData::CollectionUpdate(v) => {
+                vcx.alloc(ExprKindGenData::CollectionUpdate(v.reify(vcx, lctx)))
+            }
+            ExprKindGenData::CollectionLen(v) => {
+                vcx.alloc(ExprKindGenData::CollectionLen(v.reify(vcx, lctx)))
+            }
+            ExprKindGenData::MapDomain(v) => {
+                vcx.alloc(ExprKindGenData::MapDomain(v.reify(vcx, lctx)))
+            }
+            ExprKindGenData::MapRange(v) => {
+                vcx.alloc(ExprKindGenData::MapRange(v.reify(vcx, lctx)))
             }
             ExprKindGenData::Ternary(v) => vcx.alloc(ExprKindGenData::Ternary(v.reify(vcx, lctx))),
             ExprKindGenData::Forall(v) => vcx.alloc(ExprKindGenData::Forall(v.reify(vcx, lctx))),

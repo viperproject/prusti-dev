@@ -158,6 +158,17 @@ impl<'vir, D: TyDatas<'vir>> TyData<'vir, D> {
     }
 
     #[track_caller]
+    pub fn expect_builtin(&self) -> &D::BuiltinData
+    where
+        Self: Debug,
+    {
+        match &self.specifics {
+            TySpecifics::Builtin(data) => data,
+            _ => panic!("expected builtin (was {self:?})"),
+        }
+    }
+
+    #[track_caller]
     pub fn expect_array(&self) -> &ArrayData<'vir, D>
     where
         Self: Debug,

@@ -1046,11 +1046,11 @@ impl PrustiBinaryOp {
             Self::And => quote_spanned! { span => #lhs && #rhs },
             Self::SnapEq => {
                 let joined_span = join_spans(lhs.span(), rhs.span());
-                quote_spanned! { joined_span => snapshot_equality(&#lhs, &#rhs) }
+                quote_spanned! { joined_span => (::prusti_contracts::Ghost::new_ref(&#lhs) == ::prusti_contracts::Ghost::new_ref(&#rhs)) }
             }
             Self::SnapNe => {
                 let joined_span = join_spans(lhs.span(), rhs.span());
-                quote_spanned! { joined_span => !snapshot_equality(&#lhs, &#rhs) }
+                quote_spanned! { joined_span => (::prusti_contracts::Ghost::new_ref(&#lhs) != ::prusti_contracts::Ghost::new_ref(&#rhs)) }
             }
         }
     }
@@ -1144,13 +1144,13 @@ mod tests {
             parse_prusti("a === b + c".parse().unwrap())
                 .unwrap()
                 .to_string(),
-            "snapshot_equality (& (a) , & (b + c))",
+            "(:: prusti_contracts :: Ghost :: new_ref (& (a)) == :: prusti_contracts :: Ghost :: new_ref (& (b + c)))",
         );
         assert_eq!(
             parse_prusti("a !== b + c".parse().unwrap())
                 .unwrap()
                 .to_string(),
-            "! snapshot_equality (& (a) , & (b + c))",
+            "(:: prusti_contracts :: Ghost :: new_ref (& (a)) != :: prusti_contracts :: Ghost :: new_ref (& (b + c)))",
         );
         assert_eq!(
             parse_prusti("a ==> b ==> c".parse().unwrap())
@@ -1172,7 +1172,7 @@ mod tests {
         );
         assert_eq!(
             parse_prusti("exists(|x: i32| a === b)".parse().unwrap()).unwrap().to_string(),
-            ":: prusti_contracts :: exists (() , & (# [prusti :: spec_only] | x : i32 | -> bool { snapshot_equality (& (a) , & (b)) }) ,)",
+            ":: prusti_contracts :: exists (() , & (# [prusti :: spec_only] | x : i32 | -> bool { (:: prusti_contracts :: Ghost :: new_ref (& (a)) == :: prusti_contracts :: Ghost :: new_ref (& (b))) }) ,)",
         );
         assert_eq!(
             parse_prusti("forall(|x: i32| a ==> b, triggers = [(c,), (d, e)])".parse().unwrap()).unwrap().to_string(),
@@ -1182,7 +1182,7 @@ mod tests {
             parse_prusti("assert!(a === b ==> b)".parse().unwrap())
                 .unwrap()
                 .to_string(),
-            "assert ! (! (snapshot_equality (& (a) , & (b))) || (b))",
+            "assert ! (! ((:: prusti_contracts :: Ghost :: new_ref (& (a)) == :: prusti_contracts :: Ghost :: new_ref (& (b)))) || (b))",
         );
     }
 
