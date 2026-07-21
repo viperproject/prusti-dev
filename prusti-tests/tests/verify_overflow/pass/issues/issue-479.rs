@@ -14,7 +14,7 @@ where
     K: Eq + Hash,
     S: BuildHasher,
 {
-    #[ensures(snapshot_equality(result, None) ==> self.len() == old(self.len()) + 1)]
+    #[ensures(result === None ==> self.len() == old(self.len()) + 1)]
     fn insert(&mut self, key: K, value: V) -> Option<V>;
 }
 

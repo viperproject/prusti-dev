@@ -53,6 +53,11 @@ pub(crate) trait PureRvalueEnc<'vir> {
     type EncodePlaceCtxt;
     type ExprCurr;
     type ExprNext;
+    /// Whether this is the pure encoder: builtins in pure code use the
+    /// *total* versions of the partial collection operations, since the
+    /// (precondition-free) `f_` functions could never discharge their
+    /// well-definedness obligations.
+    const PURE: bool;
     fn def_id(&self) -> DefId;
     fn deps(&mut self) -> &mut TaskEncoderDependencies<'vir, Self::Encoder>;
     fn vcx(&self) -> &'vir vir::VirCtxt<'vir>;
@@ -191,24 +196,21 @@ pub(crate) trait PureRvalueEnc<'vir> {
         def_id: DefId,
         gargs: GArgs<'vir>,
         args: &[Spanned<mir::Operand<'vir>>],
+        span: Span,
         ctxt: &Self::EncodePlaceCtxt,
     ) -> Result<Option<ExprOutput<'vir, Self>>, EncodeFullError<'vir, Self::Encoder>> {
-        if matches!(
-            builtin,
-            PrustiBuiltin::Forall
-                | PrustiBuiltin::Exists
-                | PrustiBuiltin::SpecBlock
-                | PrustiBuiltin::ModeStart(_)
-                | PrustiBuiltin::ModeEnd(_)
-        ) {
+        if matches!(builtin, PrustiBuiltin::Spec(_)) {
             return Ok(None);
         }
+        let is_pure = Self::PURE;
         let expr = self
             .deps()
             .require_dep::<PrustiBuiltinEnc>(PrustiBuiltinTask {
                 builtin,
                 def_id,
                 args: gargs,
+                is_pure,
+                span: Some(span).filter(|_| !is_pure),
             })?;
         let operands = args
             .iter()

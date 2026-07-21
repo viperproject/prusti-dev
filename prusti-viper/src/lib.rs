@@ -233,8 +233,41 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::BinOp<'vir> {
             vir::BinOpKind::PermPermDiv => ctx.ast.perm_perm_div_with_pos(lhs, rhs, pos),
             vir::BinOpKind::Mod => ctx.ast.mod_with_pos(lhs, rhs, pos),
             vir::BinOpKind::Implies => ctx.ast.implies_with_pos(lhs, rhs, pos),
-            vir::BinOpKind::SetUnion => ctx.ast.any_set_union(lhs, rhs),
-            vir::BinOpKind::SetIn => ctx.ast.any_set_contains(lhs, rhs),
+        }
+    }
+}
+
+impl<'vir, 'v> ToViper<'vir, 'v> for vir::CollectionBinOp<'vir> {
+    type Output = viper::Expr<'v>;
+    // `pos` coming from the parent `Expr` is used
+    fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, pos: Position) -> Self::Output {
+        let lhs = self.lhs.to_viper_no_pos(ctx);
+        let rhs = self.rhs.to_viper_no_pos(ctx);
+        match self.kind {
+            // The membership/indexing factory method depends on the
+            // collection operand's type.
+            vir::CollectionBinOpKind::Contains => match self.rhs.ty().kind() {
+                vir::TypeKind::Set(_) | vir::TypeKind::Multiset(_) => {
+                    ctx.ast.any_set_contains_with_pos(lhs, rhs, pos)
+                }
+                vir::TypeKind::Seq(_) => ctx.ast.seq_contains_with_pos(lhs, rhs, pos),
+                vir::TypeKind::Map(..) => ctx.ast.map_contains_with_pos(rhs, lhs, pos),
+                kind => unreachable!("`in` on non-collection type {kind:?}"),
+            },
+            vir::CollectionBinOpKind::Index => match self.lhs.ty().kind() {
+                vir::TypeKind::Seq(_) => ctx.ast.seq_index_with_pos(lhs, rhs, pos),
+                vir::TypeKind::Map(..) => ctx.ast.lookup_map_with_pos(lhs, rhs, pos),
+                kind => unreachable!("indexing of non-`Seq`/`Map` type {kind:?}"),
+            },
+            vir::CollectionBinOpKind::Union => ctx.ast.any_set_union_with_pos(lhs, rhs, pos),
+            vir::CollectionBinOpKind::Intersection => {
+                ctx.ast.any_set_intersection_with_pos(lhs, rhs, pos)
+            }
+            vir::CollectionBinOpKind::Difference => ctx.ast.any_set_minus_with_pos(lhs, rhs, pos),
+            vir::CollectionBinOpKind::Subset => ctx.ast.any_set_subset_with_pos(lhs, rhs, pos),
+            vir::CollectionBinOpKind::Concat => ctx.ast.seq_append_with_pos(lhs, rhs, pos),
+            vir::CollectionBinOpKind::Take => ctx.ast.seq_take_with_pos(lhs, rhs, pos),
+            vir::CollectionBinOpKind::Drop => ctx.ast.seq_drop_with_pos(lhs, rhs, pos),
         }
     }
 }
@@ -417,6 +450,7 @@ impl<'vir, 'v, T: vir::CompType> ToViper<'vir, 'v> for vir::Expr<'vir, T> {
         match self.kind {
             vir::ExprKindData::AccField(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::BinOp(v) => v.to_viper_with_span(ctx, self.span),
+            vir::ExprKindData::CollectionBinOp(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Const(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Exists(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Field(recv, field) => ctx.ast.field_access_with_pos(
@@ -434,7 +468,37 @@ impl<'vir, 'v, T: vir::CompType> ToViper<'vir, 'v> for vir::Expr<'vir, T> {
             vir::ExprKindData::Result(ty) => ctx
                 .ast
                 .result_with_pos(ty.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
-            vir::ExprKindData::SetLiteral(v) => v.to_viper_with_span(ctx, self.span),
+            vir::ExprKindData::CollectionLiteral(v) => v.to_viper_with_span(ctx, self.span),
+            vir::ExprKindData::CollectionUpdate(v) => {
+                let target = v.target.to_viper_no_pos(ctx);
+                let key = v.key.to_viper_no_pos(ctx);
+                let val = v.val.to_viper_no_pos(ctx);
+                let pos = ctx.span_to_pos(self.span);
+                match v.target.ty().kind() {
+                    vir::TypeKind::Map(..) => ctx.ast.update_map_with_pos(target, key, val, pos),
+                    vir::TypeKind::Seq(_) => ctx.ast.seq_update_with_pos(target, key, val, pos),
+                    kind => unreachable!("update of non-map/seq type {kind:?}"),
+                }
+            }
+            vir::ExprKindData::CollectionLen(v) => {
+                let pos = ctx.span_to_pos(self.span);
+                match v.ty().kind() {
+                    vir::TypeKind::Set(_) | vir::TypeKind::Multiset(_) => ctx
+                        .ast
+                        .any_set_cardinality_with_pos(v.to_viper_no_pos(ctx), pos),
+                    vir::TypeKind::Seq(_) => {
+                        ctx.ast.seq_length_with_pos(v.to_viper_no_pos(ctx), pos)
+                    }
+                    vir::TypeKind::Map(..) => ctx.ast.map_len_with_pos(v.to_viper_no_pos(ctx), pos),
+                    kind => unreachable!("length of non-collection type {kind:?}"),
+                }
+            }
+            vir::ExprKindData::MapDomain(v) => ctx
+                .ast
+                .map_domain_with_pos(v.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
+            vir::ExprKindData::MapRange(v) => ctx
+                .ast
+                .map_range_with_pos(v.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
             vir::ExprKindData::Ternary(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::Unfolding(v) => v.to_viper_with_span(ctx, self.span),
             vir::ExprKindData::UnOp(v) => v.to_viper_with_span(ctx, self.span),
@@ -876,22 +940,40 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::PureAssign<'vir> {
     }
 }
 
-impl<'vir, 'v> ToViper<'vir, 'v> for vir::SetLiteral<'vir> {
+impl<'vir, 'v> ToViper<'vir, 'v> for vir::CollectionLiteral<'vir> {
     type Output = viper::Expr<'v>;
-    fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, _pos: Position) -> Self::Output {
+    // `pos` coming from the parent `Expr` is used
+    fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, pos: Position) -> Self::Output {
         if self.values.is_empty() {
-            let vir::TypeKind::Set(inner) = self.ty.kind() else {
-                unreachable!()
-            };
-            ctx.ast.empty_set(inner.to_viper_no_pos(ctx))
+            match self.ty.kind() {
+                vir::TypeKind::Set(inner) => {
+                    ctx.ast.empty_set_with_pos(inner.to_viper_no_pos(ctx), pos)
+                }
+                vir::TypeKind::Multiset(inner) => ctx
+                    .ast
+                    .empty_multiset_with_pos(inner.to_viper_no_pos(ctx), pos),
+                vir::TypeKind::Seq(inner) => {
+                    ctx.ast.empty_seq_with_pos(inner.to_viper_no_pos(ctx), pos)
+                }
+                vir::TypeKind::Map(key, val) => ctx.ast.empty_map_with_pos(
+                    key.to_viper_no_pos(ctx),
+                    val.to_viper_no_pos(ctx),
+                    pos,
+                ),
+                kind => unreachable!("collection literal of non-collection type {kind:?}"),
+            }
         } else {
-            ctx.ast.explicit_set(
-                &self
-                    .values
-                    .iter()
-                    .map(|v| v.to_viper_no_pos(ctx))
-                    .collect::<Vec<_>>(),
-            )
+            let values = self
+                .values
+                .iter()
+                .map(|v| v.to_viper_no_pos(ctx))
+                .collect::<Vec<_>>();
+            match self.ty.kind() {
+                vir::TypeKind::Set(_) => ctx.ast.explicit_set_with_pos(&values, pos),
+                vir::TypeKind::Multiset(_) => ctx.ast.explicit_multiset_with_pos(&values, pos),
+                vir::TypeKind::Seq(_) => ctx.ast.explicit_seq_with_pos(&values, pos),
+                kind => unreachable!("non-empty collection literal of type {kind:?}"),
+            }
         }
     }
 }
@@ -1082,6 +1164,11 @@ impl<'vir, 'v, T: CompType> ToViper<'vir, 'v> for vir::Type<'vir, T> {
             vir::TypeKind::Ref => ctx.ast.ref_type(),
             vir::TypeKind::Perm => ctx.ast.perm_type(),
             vir::TypeKind::Set(elem) => ctx.ast.set_type(elem.to_viper_no_pos(ctx)),
+            vir::TypeKind::Multiset(elem) => ctx.ast.multiset_type(elem.to_viper_no_pos(ctx)),
+            vir::TypeKind::Seq(elem) => ctx.ast.seq_type(elem.to_viper_no_pos(ctx)),
+            vir::TypeKind::Map(key, val) => ctx
+                .ast
+                .map_type(key.to_viper_no_pos(ctx), val.to_viper_no_pos(ctx)),
             //vir::TypeData::Predicate, // The type of a predicate application
             //vir::TypeData::Unsupported(UnsupportedType<'vir>)
             other => unimplemented!("{:?}", other),

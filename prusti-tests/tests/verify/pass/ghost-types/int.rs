@@ -36,6 +36,17 @@ fn comparisons() {
     prusti_assert!(!(Int::from(2) > Int::from(2)));
 }
 
+// The `Ord` convenience methods and `Clone`.
+fn ord_methods() {
+    prusti_assert!(Int::from(2).max(Int::from(3)) == Int::from(3));
+    prusti_assert!(Int::from(2).min(Int::from(3)) == Int::from(2));
+    prusti_assert!(Int::from(5).clamp(Int::from(0), Int::from(3)) == Int::from(3));
+    prusti_assert!(Int::from(-5).clamp(Int::from(0), Int::from(3)) == Int::from(0));
+    prusti_assert!(Int::from(2).clamp(Int::from(0), Int::from(3)) == Int::from(2));
+    let x = Int::from(7);
+    prusti_assert!(x.clone() == x);
+}
+
 // `Int` is unbounded: sums that would overflow a fixed-width integer are exact.
 fn unbounded() {
     prusti_assert!(Int::from(i64::MAX) + Int::from(1) > Int::from(i64::MAX));

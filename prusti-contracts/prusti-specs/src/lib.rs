@@ -1017,22 +1017,11 @@ pub fn ghost(tokens: TokenStream) -> TokenStream {
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
 
-    let make_closure = |kind| {
-        quote! {
-            #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
-            if false {
-                #[prusti::spec_only]
-                #[prusti::#kind]
-                #[prusti::spec_id = #spec_id_str]
-                || -> () {};
-            }
-        }
-    };
-
     struct Visitor {
         loops: Vec<(Option<syn::Ident>, Span)>,
         breaks: Vec<(Option<syn::Ident>, Span)>,
         returns: Option<Span>,
+        tries: Vec<Span>,
     }
 
     impl<'ast> Visit<'ast> for Visitor {
@@ -1073,12 +1062,23 @@ pub fn ghost(tokens: TokenStream) -> TokenStream {
             let e = e.clone();
             self.returns = Some(e.span());
         }
+        // `?` exits the enclosing function like `return` does.
+        fn visit_expr_try(&mut self, ex: &'ast syn::ExprTry) {
+            self.tries.push(ex.span());
+            syn::visit::visit_expr_try(self, ex);
+        }
+        // Do not descend into nested closures or items: `return`/`?` (and
+        // loops) inside them are local to the closure/item and do not leave
+        // the ghost block.
+        fn visit_expr_closure(&mut self, _: &'ast syn::ExprClosure) {}
+        fn visit_item(&mut self, _: &'ast syn::Item) {}
     }
 
     let mut visitor = Visitor {
         loops: vec![],
         breaks: vec![],
         returns: None,
+        tries: vec![],
     };
 
     let tokens = quote! {
@@ -1090,6 +1090,7 @@ pub fn ghost(tokens: TokenStream) -> TokenStream {
     visitor.visit_block(&input);
 
     let mut exit_errors = visitor.returns.into_iter().collect::<Vec<_>>();
+    exit_errors.extend(visitor.tries);
 
     'breaks: for (break_label, break_span) in visitor.breaks.iter() {
         for (loop_label, loop_span) in visitor.loops.iter() {
@@ -1103,17 +1104,28 @@ pub fn ghost(tokens: TokenStream) -> TokenStream {
         exit_errors.push(*break_span);
     }
 
-    let begin = make_closure(quote! {ghost_begin});
-    let end = make_closure(quote! {ghost_end});
-
+    // The ghost body lives in dead code, so it is pruned before codegen; the
+    // live path merely constructs the `Ghost` ZST. The body appears twice:
+    // inline (encoded for verification) and duplicated into a never-called
+    // closure so that the compiler checks it complies with `Fn` capture rules
+    // (no mutation or consumption of outer variables); `ghost_call`'s
+    // signature unifies the types of the two copies. The `if`/`else` unifies
+    // the types of the two arms, giving `ghost_erased()` the body's type.
     if exit_errors.is_empty() {
         quote_spanned! {callsite_span=>
-            {
-                #begin
-                #[prusti::specs_version = #SPECS_VERSION]
-                let ghost_result = Ghost::new(#tokens);
-                #end
-                ghost_result
+            #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
+            if false {
+                ::prusti_contracts::ghost_call(
+                    &(
+                        #[prusti::spec_only]
+                        #[prusti::spec_id = #spec_id_str]
+                        #[prusti::specs_version = #SPECS_VERSION]
+                        || {#tokens}
+                    ),
+                    {#tokens},
+                )
+            } else {
+                ::prusti_contracts::ghost_erased()
             }
         }
     } else {

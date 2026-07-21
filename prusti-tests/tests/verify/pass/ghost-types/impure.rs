@@ -37,6 +37,23 @@ fn client() {
     let p = int_pipeline();
     prusti_assert!(p === Int::from(6));
 
-    // `snapshot_equality` (`===`) relating two ghost locals directly.
+    // Snapshot equality (`===`) relating two ghost locals directly.
     prusti_assert!(s + Int::from(1) === p);
+}
+
+// Ghost code uses the *checked* native collection operations: in-bounds
+// indexing, updates and lookups verify.
+fn ghost_collections() {
+    ghost! {
+        let s = seq![1, 2, 3];
+        let _x = s[Int::from(1)];
+        let _s2 = s.update(Int::from(0), 4);
+        let _s3 = s[Int::from(1)..Int::from(3)];
+        let _s4 = s[..Int::from(2)];
+        let m = map![1 => 10];
+        let _v = m[1];
+        let _m2 = m.setminus(set![1]);
+        // `Clone` is a shared (non-spec-only) operation.
+        let _s5 = s.clone();
+    };
 }

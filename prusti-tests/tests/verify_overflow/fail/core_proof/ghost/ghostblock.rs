@@ -62,4 +62,24 @@ fn cannot_break_outer_labeled_loop() {
     }
 }
 
+fn try_disallowed() -> Option<u32> {
+    ghost! {
+        let x = Some(5u32)?; //~ ERROR: Can't leave the ghost block early
+    };
+    None
+}
+
+// `return`/`?` inside a closure or item nested in the ghost body exit the
+// closure/item, not the ghost block.
+fn closure_and_item_exits_allowed() {
+    ghost! {
+        let _f = |x: u32| -> Option<u32> { Some(Some(x)?) };
+        let _g = |x: i32| -> i32 { return x + 1; };
+        fn helper() -> Option<u32> {
+            let x = Some(5u32)?;
+            return Some(x);
+        }
+    };
+}
+
 fn main() {}
