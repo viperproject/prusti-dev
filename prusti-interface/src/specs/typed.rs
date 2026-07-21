@@ -21,8 +21,6 @@ pub struct DefSpecificationMap {
     pub prusti_assertions: FxHashMap<DefId, PrustiAssertion>,
     pub prusti_assumptions: FxHashMap<DefId, PrustiAssumption>,
     pub prusti_refutations: FxHashMap<DefId, PrustiRefutation>,
-    pub ghost_begin: FxHashMap<DefId, GhostBegin>,
-    pub ghost_end: FxHashMap<DefId, GhostEnd>,
 }
 
 impl DefSpecificationMap {
@@ -52,14 +50,6 @@ impl DefSpecificationMap {
 
     pub fn get_refutation(&self, def_id: &DefId) -> Option<&PrustiRefutation> {
         self.prusti_refutations.get(def_id)
-    }
-
-    pub fn get_ghost_begin(&self, def_id: &DefId) -> Option<&GhostBegin> {
-        self.ghost_begin.get(def_id)
-    }
-
-    pub fn get_ghost_end(&self, def_id: &DefId) -> Option<&GhostEnd> {
-        self.ghost_end.get(def_id)
     }
 
     pub(crate) fn defid_for_export(
@@ -311,16 +301,6 @@ pub struct PrustiAssumption {
 #[derive(Debug, Clone)]
 pub struct PrustiRefutation {
     pub refutation: LocalDefId,
-}
-
-#[derive(Debug, Clone)]
-pub struct GhostBegin {
-    pub marker: LocalDefId,
-}
-
-#[derive(Debug, Clone)]
-pub struct GhostEnd {
-    pub marker: LocalDefId,
 }
 
 /// The base container to store a contract of a procedure.

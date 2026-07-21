@@ -10,7 +10,7 @@ fn test0(map: Map) {
 }
 
 fn test1(x: u32) {
-    prusti_assert!(Map::empty().contains(x)); //~ ERROR: the asserted expression might not hold
+    prusti_assert!(Map::new().contains(x)); //~ ERROR: the asserted expression might not hold
 }
 
 fn test2(map: Map) {
@@ -25,20 +25,20 @@ fn test3(map: Map) {
 
 #[requires(map.contains(2))]
 unsafe fn test4(map: Map) {
-    let x = map.lookup(2);
+    let x = map[2];
 }
 
 #[requires(map.contains(2))]
 fn test5(map: Map) {
     if map.contains(2) {
-        let x = map.lookup(2);
+        let x = map[2];
     } else {
         unreachable!();
     }
 }
 
 fn test6(map: Map) {
-    let x = map.lookup(2); //~ ERROR: the key might not be in the map
+    let x = map[2]; //~ ERROR: the map may not contain this key
 }
 
 fn main() {}

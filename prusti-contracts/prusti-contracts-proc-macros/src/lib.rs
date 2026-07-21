@@ -107,12 +107,6 @@ pub fn refine_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
 }
 
 #[cfg(not(feature = "prusti"))]
-#[proc_macro]
-pub fn ghost(_tokens: TokenStream) -> TokenStream {
-    TokenStream::new()
-}
-
-#[cfg(not(feature = "prusti"))]
 #[proc_macro_attribute]
 pub fn print_counterexample(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     tokens

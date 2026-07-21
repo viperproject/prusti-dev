@@ -10,10 +10,14 @@ pub(crate) fn ty_pure<'vir>(
     _builder: &mut TyPureBuilder<'vir>,
 ) -> Result<TyPureBuiltin<'vir>, EncodeFullError<'vir, TyPureEnc>> {
     match data {
-        // Represented directly by the native Viper `Int`/`Perm` types (see
-        // `TyPureBuilder::new`); there is nothing to emit.
+        // Represented directly by the native Viper `Int`/`Perm`/collection
+        // types (see `TyPureBuilder::new`); there is nothing to emit.
         RustBuiltinData::Int => Ok(TyPureBuiltinData::Int),
         RustBuiltinData::Real => Ok(TyPureBuiltinData::Real),
+        RustBuiltinData::Set(_) => Ok(TyPureBuiltinData::Set),
+        RustBuiltinData::Multiset(_) => Ok(TyPureBuiltinData::Multiset),
+        RustBuiltinData::Seq(_) => Ok(TyPureBuiltinData::Seq),
+        RustBuiltinData::Map(..) => Ok(TyPureBuiltinData::Map),
     }
 }
 
@@ -23,7 +27,12 @@ pub(crate) fn ty_impure<'vir>(
     builder: &mut impure::PredicateBuilder<'vir>,
 ) -> Result<impure::TyImpureBuiltin<'vir>, EncodeFullError<'vir, impure::TyImpureEnc>> {
     match data.0 {
-        RustBuiltinData::Int | RustBuiltinData::Real => {
+        RustBuiltinData::Int
+        | RustBuiltinData::Real
+        | RustBuiltinData::Set(_)
+        | RustBuiltinData::Multiset(_)
+        | RustBuiltinData::Seq(_)
+        | RustBuiltinData::Map(..) => {
             super::primitive::set_primitive(builder);
             Ok(())
         }

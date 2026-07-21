@@ -85,8 +85,6 @@ pub struct SpecCollector<'a, 'tcx> {
     prusti_assertions: Vec<LocalDefId>,
     prusti_assumptions: Vec<LocalDefId>,
     prusti_refutations: Vec<LocalDefId>,
-    ghost_begin: Vec<LocalDefId>,
-    ghost_end: Vec<LocalDefId>,
 }
 
 impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
@@ -102,8 +100,6 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             prusti_assertions: vec![],
             prusti_assumptions: vec![],
             prusti_refutations: vec![],
-            ghost_begin: vec![],
-            ghost_end: vec![],
         }
     }
 
@@ -124,7 +120,6 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_prusti_assertions(&mut def_spec);
         self.determine_prusti_assumptions(&mut def_spec);
         self.determine_prusti_refutations(&mut def_spec);
-        self.determine_ghost_begin_ends(&mut def_spec);
         // TODO: remove spec functions (make sure none are duplicated or left over)
         // Load all local spec MIR bodies, for export and later use
         self.ensure_local_mirs_fetched(&def_spec);
@@ -291,20 +286,6 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             );
         }
     }
-    fn determine_ghost_begin_ends(&self, def_spec: &mut typed::DefSpecificationMap) {
-        for local_id in self.ghost_begin.iter() {
-            def_spec.ghost_begin.insert(
-                local_id.to_def_id(),
-                typed::GhostBegin { marker: *local_id },
-            );
-        }
-        for local_id in self.ghost_end.iter() {
-            def_spec
-                .ghost_end
-                .insert(local_id.to_def_id(), typed::GhostEnd { marker: *local_id });
-        }
-    }
-
     fn ensure_local_mirs_fetched(&mut self, def_spec: &typed::DefSpecificationMap) {
         let (specs, pure_fns, predicates) = def_spec.defid_for_export();
         for def_id in &specs {
@@ -544,14 +525,6 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 
             if has_prusti_attr(attrs, "prusti_refutation") {
                 self.prusti_refutations.push(local_id);
-            }
-
-            if has_prusti_attr(attrs, "ghost_begin") {
-                self.ghost_begin.push(local_id);
-            }
-
-            if has_prusti_attr(attrs, "ghost_end") {
-                self.ghost_end.push(local_id);
             }
         } else {
             // Don't collect specs "for" spec items

@@ -33,13 +33,47 @@ impl<'vir> TyDatas<'vir> for UsePureTyDatas {
     type StructData = TyUsePureStructData<'vir>;
     type VariantData = <PureTyDatas as TyDatas<'vir>>::VariantData;
     type EnumData = <PureTyDatas as TyDatas<'vir>>::EnumData;
-    type BuiltinData = <PureTyDatas as TyDatas<'vir>>::BuiltinData;
+    type BuiltinData = TyUsePureBuiltinData<'vir>;
 }
 
 pub type TyUsePure<'vir> = Ty<'vir, UsePureTyDatas>;
 pub type TyUsePureArray<'vir> = ArrayData<'vir, UsePureTyDatas>;
 pub type TyUsePureStruct<'vir> = StructData<'vir, UsePureTyDatas>;
 pub type TyUsePureEnum<'vir> = EnumData<'vir, UsePureTyDatas>;
+
+/// Use-side data for a `prusti_contracts` builtin. The collection builtins
+/// store their elements as generic snapshots (`s_Param`), so their operations
+/// cast the elements with the casters here; `Int`/`Real` have no elements.
+#[derive(Debug, Clone, Copy)]
+pub struct TyUsePureBuiltinData<'vir> {
+    pub pure: <PureTyDatas as TyDatas<'vir>>::BuiltinData,
+    /// `[elem, NoCast]` for `Set`/`Multiset`/`Seq`, `[key, val]` for `Map`,
+    /// and `[NoCast; 2]` for `Int`/`Real`.
+    casters: [FieldCaster<'vir>; 2],
+}
+
+impl<'vir> TyUsePureBuiltinData<'vir> {
+    /// The element caster of a `Set`/`Multiset`/`Seq`.
+    pub fn elem_caster(&self) -> &FieldCaster<'vir> {
+        assert!(matches!(
+            self.pure,
+            super::pure::TyPureBuiltinData::Set
+                | super::pure::TyPureBuiltinData::Multiset
+                | super::pure::TyPureBuiltinData::Seq
+        ));
+        &self.casters[0]
+    }
+
+    pub fn map_key_caster(&self) -> &FieldCaster<'vir> {
+        assert!(matches!(self.pure, super::pure::TyPureBuiltinData::Map));
+        &self.casters[0]
+    }
+
+    pub fn map_val_caster(&self) -> &FieldCaster<'vir> {
+        assert!(matches!(self.pure, super::pure::TyPureBuiltinData::Map));
+        &self.casters[1]
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyUsePureRaw<'vir> {
@@ -207,7 +241,26 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
             TySpecifics::EnumLike(data) => {
                 TySpecifics::EnumLike(self.encode_enumlike(data, ty.0.params)?)
             }
-            TySpecifics::Builtin(data) => TySpecifics::mk_builtin(*data.1),
+            TySpecifics::Builtin(data) => {
+                use super::rust_ty::RustBuiltinData;
+                let no_cast = GArgCaster::NoCast;
+                let casters = match data.0 {
+                    RustBuiltinData::Int | RustBuiltinData::Real => [no_cast, no_cast],
+                    RustBuiltinData::Set(elem)
+                    | RustBuiltinData::Multiset(elem)
+                    | RustBuiltinData::Seq(elem) => {
+                        [self.encode_normalized(*elem, ty.0.params)?, no_cast]
+                    }
+                    RustBuiltinData::Map(key, val) => [
+                        self.encode_normalized(*key, ty.0.params)?,
+                        self.encode_normalized(*val, ty.0.params)?,
+                    ],
+                };
+                TySpecifics::mk_builtin(TyUsePureBuiltinData {
+                    pure: *data.1,
+                    casters,
+                })
+            }
         };
         Ok(specifics)
     }

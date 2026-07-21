@@ -281,8 +281,8 @@ impl<'vir> WandEncOutput<'vir> {
         }
     }
 
-    fn mk_wand<'a, E: TaskEncoder>(
-        &'a self,
+    fn mk_wand<E: TaskEncoder>(
+        &self,
         wand_data: &WandData<'vir>,
         pledge_args: PledgeArgs<'vir>,
         call_ctx: WandCallContext<'vir>,

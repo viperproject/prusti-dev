@@ -1,8 +1,8 @@
 use rustc_hash::FxHashMap;
 
 use super::typed::{
-    DefSpecificationMap, GhostBegin, GhostEnd, LoopSpecification, ProcedureSpecification,
-    PrustiAssertion, PrustiAssumption, PrustiRefutation, TypeSpecification,
+    DefSpecificationMap, LoopSpecification, ProcedureSpecification, PrustiAssertion,
+    PrustiAssumption, PrustiRefutation, TypeSpecification,
 };
 use crate::{data::ProcedureDefId, specs::typed::Refinable};
 use prusti_rustc_interface::{
@@ -135,16 +135,6 @@ impl<'tcx> Specifications<'tcx> {
     #[tracing::instrument(level = "trace", skip(self))]
     pub fn get_refutation(&self, def_id: &DefId) -> Option<&PrustiRefutation> {
         self.user_typed_specs.get_refutation(def_id)
-    }
-
-    #[tracing::instrument(level = "trace", skip(self))]
-    pub fn get_ghost_begin(&self, def_id: &DefId) -> Option<&GhostBegin> {
-        self.user_typed_specs.get_ghost_begin(def_id)
-    }
-
-    #[tracing::instrument(level = "trace", skip(self))]
-    pub fn get_ghost_end(&self, def_id: &DefId) -> Option<&GhostEnd> {
-        self.user_typed_specs.get_ghost_end(def_id)
     }
 
     pub fn get_and_refine_proc_spec<'a, 'env: 'a>(

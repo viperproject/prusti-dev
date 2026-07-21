@@ -9,13 +9,15 @@ pub type AdtGen<'vir, Curr, Next> = &'vir crate::gendata::AdtGenData<'vir, Curr,
 pub type AdtConstructorGen<'vir, Curr, Next> =
     &'vir crate::gendata::AdtConstructorGenData<'vir, Curr, Next>;
 pub type BinOpGen<'vir, Curr, Next> = &'vir crate::gendata::BinOpGenData<'vir, Curr, Next>;
+pub type CollectionBinOpGen<'vir, Curr, Next> =
+    &'vir crate::gendata::CollectionBinOpGenData<'vir, Curr, Next>;
 pub type CfgBlockGen<'vir, Curr, Next> = &'vir crate::gendata::CfgBlockGenData<'vir, Curr, Next>;
 pub type CfgLabelGen<'vir, Curr, Next> = &'vir crate::gendata::CfgLabelGenData<'vir, Curr, Next>;
 pub type DecreasesGen<'vir, Curr, Next> = &'vir crate::gendata::DecreasesGenData<'vir, Curr, Next>;
 pub type DomainAxiomGen<'vir, Curr, Next> =
     &'vir crate::gendata::DomainAxiomGenData<'vir, Curr, Next>;
 pub type DomainGen<'vir, Curr, Next> = &'vir crate::gendata::DomainGenData<'vir, Curr, Next>;
-typed_gen!(Bool => ExprGenBool, Int => ExprGenInt, Perm => ExprGenPerm, Ref => ExprGenRef, Set => ExprGenSet);
+typed_gen!(Bool => ExprGenBool, Int => ExprGenInt, Perm => ExprGenPerm, Ref => ExprGenRef, Set => ExprGenSet, Multiset => ExprGenMultiset, Seq => ExprGenSeq, Map => ExprGenMap);
 typed_gen!(CSnap => ExprGenCSnap, PSnap => ExprGenPSnap, TyVal => ExprGenTyVal);
 typed_gen!(Prim => ExprGenPrim, Snap => ExprGenSnap, Dyn => ExprGenDyn);
 pub type ExprGen<'vir, Curr, Next, T> = &'vir crate::gendata::ExprGenData<'vir, Curr, Next, T>;
@@ -43,8 +45,10 @@ pub type PredicateAppGen<'vir, Curr, Next> =
 pub type ProgramGen<'vir, Curr, Next> = &'vir crate::gendata::ProgramGenData<'vir, Curr, Next>;
 pub type PureAssignGen<'vir, Curr, Next> =
     &'vir crate::gendata::PureAssignGenData<'vir, Curr, Next>;
-pub type SetLiteralGen<'vir, Curr, Next> =
-    &'vir crate::gendata::SetLiteralGenData<'vir, Curr, Next>;
+pub type CollectionLiteralGen<'vir, Curr, Next> =
+    &'vir crate::gendata::CollectionLiteralGenData<'vir, Curr, Next>;
+pub type CollectionUpdateGen<'vir, Curr, Next> =
+    &'vir crate::gendata::CollectionUpdateGenData<'vir, Curr, Next>;
 pub type StmtGen<'vir, Curr, Next> = &'vir crate::gendata::StmtGenData<'vir, Curr, Next>;
 pub type StmtKindGen<'vir, Curr, Next> = &'vir crate::gendata::StmtKindGenData<'vir, Curr, Next>;
 pub type TerminatorStmtGen<'vir, Curr, Next> =

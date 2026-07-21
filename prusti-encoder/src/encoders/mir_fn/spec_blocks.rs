@@ -11,11 +11,102 @@ use crate::encoders::mir_fn::RustSignature;
 #[derive(Clone, Debug)]
 pub enum SpecBlockKind {
     LoopInvariant,
-    GhostStart,
-    GhostEnd,
     Assert,
     Assume,
     Refute,
+}
+
+/// A `ghost!` block, i.e. the `if false { ghost_call(&closure, body) } else {
+/// ghost_erased() }` expansion. The encoders jump into the ghost arm (where
+/// the body is evaluated inline, ending in the `ghost_call` terminator) and
+/// skip the runtime `ghost_erased` stand-in arm.
+#[derive(Clone, Copy, Debug)]
+pub struct GhostBlock {
+    /// The entry block of the ghost arm.
+    pub arm_block: BasicBlock,
+    /// The block containing the (skipped) runtime `ghost_erased()` call.
+    pub erased_block: BasicBlock,
+}
+
+/// The `ghost!` blocks of a MIR body (see [`GhostBlock`]). Unlike the full
+/// [`SpecBlocks`], this needs no PCG analysis, so the pure encoder can use
+/// the same detection.
+#[derive(Default)]
+pub struct GhostBlocks {
+    /// Ghost blocks, keyed by the block whose `if false` switch guards them.
+    pub switches: FxHashMap<BasicBlock, GhostBlock>,
+    /// The blocks of all ghost arms (the inline ghost bodies): spec-only
+    /// `prusti_contracts` builtins are allowed there.
+    pub code: FxHashSet<BasicBlock>,
+}
+
+impl GhostBlocks {
+    /// Determine the ghost blocks of the given MIR body. A ghost block is
+    /// recognized by its (single-block) runtime stand-in arm calling
+    /// `ghost_erased`: the sibling arm of the guarding `if false` switch is
+    /// the ghost arm, holding the inline ghost body up to its `ghost_call`
+    /// terminator.
+    pub fn new<'vir>(def_id: DefId, body: &mir::Body<'vir>) -> Self {
+        let mut ghost = GhostBlocks::default();
+        vir::with_vcx(|vcx| {
+            let env_query = EnvQuery::new(vcx.tcx());
+            for (block, data) in body.basic_blocks.iter_enumerated() {
+                let mir::TerminatorKind::Call { func, .. } = &data.terminator().kind else {
+                    continue;
+                };
+                let func_ty = func.ty(body, vcx.tcx());
+                let (fn_def_id, arg_tys) = RustSignature::get_def_id_and_caller_substs(func_ty);
+                if env_query.is_function_in_crate(def_id, fn_def_id, arg_tys, "prusti_contracts")
+                    && vcx.tcx().item_name(fn_def_id).as_str() == "ghost_erased"
+                {
+                    ghost.visit_erased(body, block);
+                }
+            }
+        });
+        ghost
+    }
+
+    /// Records the ghost block whose runtime stand-in arm is `erased_block`.
+    fn visit_erased(&mut self, body: &mir::Body<'_>, erased_block: BasicBlock) {
+        let switch_block = get_single_predecessor(&body.basic_blocks.predecessors()[erased_block]);
+        let mir::TerminatorKind::SwitchInt { targets, .. } = &body[switch_block].terminator().kind
+        else {
+            unreachable!("malformed ghost block: `ghost_erased` arm not guarded by a switch");
+        };
+        let mut siblings = targets
+            .all_targets()
+            .iter()
+            .copied()
+            .filter(|target| *target != erased_block);
+        let arm_block = siblings
+            .next()
+            .expect("malformed ghost block: no sibling arm");
+        assert!(
+            siblings.next().is_none(),
+            "malformed ghost block: expected a two-armed switch"
+        );
+        self.switches.insert(
+            switch_block,
+            GhostBlock {
+                arm_block,
+                erased_block,
+            },
+        );
+
+        // The ghost arm's blocks (the inline ghost body): everything
+        // reachable from (and still dominated by) the arm entry. The
+        // dominance requirement keeps blocks shared with live code out of
+        // the region (the join both arms continue to, and cleanup blocks
+        // that calls outside the arm also unwind to).
+        let doms = body.basic_blocks.dominators();
+        let mut queue = vec![arm_block];
+        while let Some(block) = queue.pop() {
+            if !doms.dominates(arm_block, block) || !self.code.insert(block) {
+                continue;
+            }
+            queue.extend(body.basic_blocks[block].terminator().successors());
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -54,6 +145,8 @@ pub struct SpecBlocks {
     /// Maps loop IDs (as identified by the PCG loop analysis) to their loop
     /// heads.
     pub loop_head_at: FxHashMap<LoopId, BasicBlock>,
+    /// The `ghost!` blocks of the body.
+    pub ghost: GhostBlocks,
 }
 
 impl SpecBlocks {
@@ -74,6 +167,14 @@ impl SpecBlocks {
             spec_blocks: Default::default(),
         };
         visitor.visit_body(body);
+
+        // The runtime stand-in arms of ghost blocks are skipped in the
+        // encoding (their switches are encoded as unconditional jumps into
+        // the ghost arms).
+        let ghost = GhostBlocks::new(def_id, body);
+        visitor
+            .spec_blocks
+            .extend(ghost.switches.values().map(|g| g.erased_block));
 
         // Associate specs and determine loop heads (at body invariants) for loops
         let mut loop_specs: FxHashMap<LoopId, LoopSpec> = Default::default();
@@ -147,6 +248,7 @@ impl SpecBlocks {
             spec_blocks: visitor.spec_blocks,
             loop_specs,
             loop_head_at,
+            ghost,
         }
     }
 }
@@ -182,10 +284,6 @@ impl<'enc, 'vir: 'enc> mir::visit::Visitor<'vir> for SpecVisitor<'enc, 'vir> {
 
             let kind = if has_prusti_attr(cl_attrs, "loop_body_invariant_spec") {
                 SpecBlockKind::LoopInvariant
-            } else if has_prusti_attr(cl_attrs, "ghost_begin") {
-                SpecBlockKind::GhostStart
-            } else if has_prusti_attr(cl_attrs, "ghost_end") {
-                SpecBlockKind::GhostEnd
             } else if has_prusti_attr(cl_attrs, "prusti_assertion") {
                 SpecBlockKind::Assert
             } else if has_prusti_attr(cl_attrs, "prusti_assumption") {
