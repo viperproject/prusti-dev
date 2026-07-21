@@ -225,13 +225,17 @@ impl<'tcx> TyDatas<'tcx> for RustTyDatas {
     type FieldData = RustFieldData<'tcx>;
     type EnumData = RustEnumData<'tcx>;
     type VariantData = RustVariantData;
-    type BuiltinData = RustBuiltinData;
+    type BuiltinData = RustBuiltinData<'tcx>;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum RustBuiltinData {
+pub enum RustBuiltinData<'tcx> {
     Int,
     Real,
+    Set(LazyRustTy<'tcx>),
+    Multiset(LazyRustTy<'tcx>),
+    Seq(LazyRustTy<'tcx>),
+    Map(LazyRustTy<'tcx>, LazyRustTy<'tcx>),
 }
 
 /// An internal representation of a `ty::Ty`. Contains all that we care about
@@ -392,20 +396,19 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             ty::TyKind::RawPtr(_, ty::Mutability::Mut) => String::from("RawPtr_mutable"),
             ty::TyKind::Param(_) | ty::TyKind::Alias(..) => String::from("Param"),
             ty::TyKind::Closure(def_id, _) => vir::with_vcx(|vcx| {
-                let def_key = vcx.tcx().def_key(def_id);
-                match def_key.disambiguated_data.data {
-                    // Asking for the item_name of a closure triggers an ICE in
-                    // the compiler, so we give it a name based on its parent.
-                    hir::definitions::DefPathData::Closure => format!(
-                        "{}_Closure_{}",
-                        vcx.tcx().item_name(hir::def_id::DefId {
-                            krate: def_id.krate,
-                            index: def_key.parent.unwrap()
-                        }),
-                        def_key.disambiguated_data.disambiguator,
-                    ),
-                    _ => vcx.tcx().item_name(*def_id).to_ident_string(),
+                // Asking for the item_name of a closure triggers an ICE in
+                // the compiler, so name it after its nearest non-closure
+                // ancestor (closures can nest, e.g. a quantifier's closure
+                // inside an assertion's closure).
+                let mut def_id = *def_id;
+                let mut key = vcx.tcx().def_key(def_id);
+                let mut name = String::new();
+                while let hir::definitions::DefPathData::Closure = key.disambiguated_data.data {
+                    name = format!("_Closure_{}{name}", key.disambiguated_data.disambiguator);
+                    def_id.index = key.parent.unwrap();
+                    key = vcx.tcx().def_key(def_id);
                 }
+                format!("{}{name}", vcx.tcx().item_name(def_id).to_ident_string())
             }),
             ty::TyKind::FnPtr(..) => String::from("FnPtr"),
             ty::TyKind::Array(..) => String::from("Array"),
@@ -668,6 +671,15 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
             match adt.non_enum_variant().name.to_string().as_str() {
                 "Int" => Self::Builtin(RustBuiltinData::Int),
                 "Real" => Self::Builtin(RustBuiltinData::Real),
+                "Set" => Self::Builtin(RustBuiltinData::Set(LazyRustTy(Self::new_param_ty(0)))),
+                "Multiset" => {
+                    Self::Builtin(RustBuiltinData::Multiset(LazyRustTy(Self::new_param_ty(0))))
+                }
+                "Seq" => Self::Builtin(RustBuiltinData::Seq(LazyRustTy(Self::new_param_ty(0)))),
+                "Map" => Self::Builtin(RustBuiltinData::Map(
+                    LazyRustTy(Self::new_param_ty(0)),
+                    LazyRustTy(Self::new_param_ty(1)),
+                )),
                 // `Ghost<T>` is encoded as if it were `struct Ghost<T>(T)`
                 // (like `Box` above): the snapshot wraps the value of `T`.
                 "Ghost" => {

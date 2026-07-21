@@ -19,14 +19,14 @@ fn test2(seq1: Seq<i32>, seq2: Seq<i32>, idx: Int) {
 
 fn test3() {
     let seq = seq![1, 2, 3, 4, 5];
-    prusti_assert!(seq[2] == 4);
+    prusti_assert!(*seq[2] == 4);
 }
 
 #[requires(seq.len() == Int::from(2))]
 #[requires(a == 2 && a == b)] // force specific counterexample
 fn test4(a: i32, b: i32, seq: Seq<i32>) {
     //the counterexample only contains values for a and b but not for the elements of seq
-    prusti_assert!(seq == Seq::concat(Seq::single(a), Seq::single(b)));
+    prusti_assert!(seq == Seq::single(a).append(Seq::single(b)));
 }
 
 fn main() {}

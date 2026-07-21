@@ -282,14 +282,6 @@ pub fn is_loop_variant_block<'tcx>(env_query: EnvQuery, bb: &BasicBlockData<'tcx
     is_spec_block_kind(env_query, bb, "loop_body_variant_spec")
 }
 
-pub fn is_ghost_begin_marker<'tcx>(env_query: EnvQuery, bb: &BasicBlockData<'tcx>) -> bool {
-    is_spec_block_kind(env_query, bb, "ghost_begin")
-}
-
-pub fn is_ghost_end_marker<'tcx>(env_query: EnvQuery, bb: &BasicBlockData<'tcx>) -> bool {
-    is_spec_block_kind(env_query, bb, "ghost_end")
-}
-
 fn is_spec_block_kind(env_query: EnvQuery, bb_data: &BasicBlockData, kind: &str) -> bool {
     for stmt in &bb_data.statements {
         if let StatementKind::Assign(box (

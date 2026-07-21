@@ -332,9 +332,31 @@ macro_rules! expr_inner {
         $crate::expr_inner!(@expr_one; $($lhs)*),
         $crate::expr_inner!(@expr_one; $($rhs)*),
     ) };
-    (@expr_one; ( $($lhs:tt)+ ) in ( $($rhs:tt)+ )) => { vcx!().mk_set_in_expr(
+    (@expr_one; ( $($lhs:tt)+ ) in ( $($rhs:tt)+ )) => { vcx!().mk_contains_expr(
         $crate::expr_inner!(@expr_one; $($lhs)*),
         $crate::expr_inner!(@expr_one; $($rhs)*),
+    ) };
+    (@expr_one; ( $($lhs:tt)+ ) setminus ( $($rhs:tt)+ )) => { vcx!().mk_set_difference_expr(
+        $crate::expr_inner!(@expr_one; $($lhs)*),
+        $crate::expr_inner!(@expr_one; $($rhs)*),
+    ) };
+    (@expr_one; ( $($base:tt)+ ) [ $($index:tt)+ ]) => { vcx!().mk_index_expr(
+        $crate::expr_inner!(@expr_one; $($base)*),
+        $crate::expr_inner!(@expr_one; $($index)*),
+    ) };
+    (@expr_one; ! ( $($inner:tt)+ )) => { $crate::CastType::inner_cast_ty::<$crate::Bool>(
+        vcx!().mk_unary_op_expr(
+            $crate::UnOpKind::Not,
+            $crate::CastType::inner_cast_ty::<$crate::Prim>(
+                $crate::expr_inner!(@expr_one; $($inner)*),
+            ),
+        )
+    ) };
+    (@expr_one; domain( $($inner:tt)+ )) => { vcx!().mk_map_domain_expr(
+        $crate::expr_inner!(@expr_one; $($inner)*),
+    ) };
+    (@expr_one; | $inner:tt |) => { vcx!().mk_collection_len_expr(
+        $crate::expr_inner!(@expr_one; $inner),
     ) };
     (@expr_one; old( $($inner:tt)+ )) => { vcx!().mk_old_expr(
         $crate::expr_inner!(@expr_one; $($inner)*),

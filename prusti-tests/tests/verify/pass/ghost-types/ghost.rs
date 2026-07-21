@@ -8,15 +8,18 @@ use prusti_contracts::*;
 // `Ghost::new` preserves the value; distinct payloads are distinguishable.
 fn new_and_eq() {
     prusti_assert!(Ghost::new(5u32) == Ghost::new(5u32));
+    // Both `T` and `&T` can be passed (`impl Value<T>`), and `new_ref` pins
+    // the by-reference version; `==` on ghosts is snapshot equality.
+    prusti_assert!(Ghost::new(&5u32) == Ghost::new_ref(&5u32));
     prusti_assert!(Ghost::new(5u32) != Ghost::new(10u32));
 }
 
-// A `ghost!` block may reassign a ghost local; the new value is observed.
+// A `ghost!` block produces a `Ghost` of its body's value, which can rebind
+// (shadow) an earlier ghost local; the new value is observed.
 fn ghost_block() {
-    let mut x = Ghost::new(5u32);
-    ghost! {
-        x = Ghost::new(10);
-    };
+    let x = Ghost::new(5u32);
+    prusti_assert!(x == Ghost::new(5u32));
+    let x = ghost! { 10u32 };
     prusti_assert!(x == Ghost::new(10u32));
 }
 
@@ -41,9 +44,26 @@ fn composite_payload() {
     prusti_assert!(a != c);
 }
 
+// A ghost wrapping a reference type: `T = &u32` is passed directly via the
+// by-value `impl Value<T> for T` (no dereference), while `&&u32` still
+// dereferences one level.
+fn reference_payload() {
+    let r = &5u32;
+    let g: Ghost<&u32> = Ghost::new(r);
+    prusti_assert!(g == Ghost::new(r));
+    prusti_assert!(g == Ghost::new_ref(&r));
+}
+
 // A ghost wrapping the mathematical `Int` type.
 fn ghost_of_int() {
     let g = Ghost::new(Int::from(3) + Int::from(4));
     prusti_assert!(g == Ghost::new(Int::from(7)));
     prusti_assert!(g != Ghost::new(Int::from(8)));
+}
+
+// Dereferencing a ghost yields the wrapped value.
+fn deref() {
+    let g = Ghost::new(5u32);
+    prusti_assert!(*g == 5u32);
+    prusti_assert!(*Ghost::new(Int::from(3)) == Int::from(3));
 }

@@ -10,15 +10,15 @@ fn should_fail() {
 }
 
 fn trivial_pass1() {
-    prusti_assert!(Map::empty() == Map::empty());
+    prusti_assert!(Map::new() == Map::new());
 }
 
 fn trivial_pass2() {
-    prusti_assert!(Map::empty().insert(0, 1) == Map::empty().insert(0, 1));
+    prusti_assert!(Map::new().insert(0, 1) == Map::new().insert(0, 1));
 }
 
 fn trivial_fail() {
-    prusti_assert!(Map::empty().insert(0, 0) == Map::empty()); //~ ERROR: the asserted expression might not hold
+    prusti_assert!(Map::new().insert(0, 0) == Map::new()); //~ ERROR: the asserted expression might not hold
 }
 
 #[requires(k1 != k2)]
@@ -27,24 +27,24 @@ fn commutativity(k1: u32, v1: u32, k2: u32, v2: u32) {
 }
 
 fn map_len(m1: Map, k: u32, v: u32) {
-    prusti_assert!(Map::empty().len() == Int::from(0));
+    prusti_assert!(Map::new().len() == Int::from(0));
     prusti_assert!(map![0 => 0].len() == Int::from(1));
 
     prusti_assert!(
         m1.insert(k, v).len() == m1.len() || m1.insert(k, v).len() == m1.len() + Int::from(1)
     );
 
-    prusti_assert!(Map::empty().insert(0, 0).len() == Int::from(2)); //~ ERROR: the asserted expression might not hold
+    prusti_assert!(Map::new().insert(0, 0).len() == Int::from(2)); //~ ERROR: the asserted expression might not hold
 }
 
 fn map_lookup(m: Map, k: u32, v1: u32, v2: u32) {
-    prusti_assert!(m.insert(k, v1).insert(k, v2)[k] == v2);
-    prusti_assert!(m.insert(k, v1)[k] == v1);
+    prusti_assert!(*m.insert(k, v1).insert(k, v2)[k] == v2);
+    prusti_assert!(*m.insert(k, v1)[k] == v1);
     prusti_assert!(m[k] == m[k]) //~ ERROR:
 }
 
 fn map_construction() {
-    let map1 = Map::empty();
+    let map1 = Map::new();
 }
 
 fn main() {}

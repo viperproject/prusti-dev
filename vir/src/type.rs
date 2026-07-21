@@ -78,20 +78,18 @@ macro_rules! impl_exp_type {
         }
 
         $(pub const $name: $crate::Type<'static, $inner> = unsafe { &$crate::TypeData::new_unchecked($const) };)?
+        unsafe impl TransmuteFrom<$inner> for $inner {}
         $(
             $(
-                unsafe impl TransmuteFrom<$inner> for $up {
-                    // fn from(ty: $name<'vir>) -> Self {
-                    //     unsafe { core::mem::transmute(ty) }
-                    // }
-                }
+                unsafe impl TransmuteFrom<$inner> for $up {}
             )+
         )?
     };
 }
 
-// `Bool`, `Int` and `Perm` are subtypes of `CSnap` since Rust's `bool` and the
-// `prusti_contracts` builtins `Int` and `Real` translate to these. The meaning
+// `Bool`, `Int`, `Perm` and the collection types are subtypes of `CSnap`
+// since Rust's `bool` and the `prusti_contracts` builtins (`Int`, `Real`,
+// `Set`, `Multiset`, `Seq`, `Map`) translate to these. The meaning
 // of `Snap` is the mathematical representation of any Rust type (which these
 // types are). Note that the `Prim` type is unrelated and other `Prim` types
 // are not `Snap`.
@@ -100,18 +98,21 @@ impl_exp_type!(Bool[TYPE_BOOL = Bool] => Prim | CSnap | Snap | Dyn, "The Viper `
 impl_exp_type!(Int[TYPE_INT = Int] => Prim | CSnap | Snap | Dyn, "The Viper `Int` type");
 impl_exp_type!(Perm[TYPE_PERM = Perm] => Prim | CSnap | Snap | Dyn, "The Viper `Perm` type (reals)");
 impl_exp_type!(Ref[TYPE_REF = Ref] => Prim | Dyn, "The Viper `Ref` type");
-impl_exp_type!(Set => Prim | Dyn, TypeKind::Set(_), "The Viper `Set` type");
+impl_exp_type!(Set => Prim | CSnap | Snap | Dyn, TypeKind::Set(_), "The Viper `Set` type");
+impl_exp_type!(Multiset => Prim | CSnap | Snap | Dyn, TypeKind::Multiset(_), "The Viper `Multiset` type");
+impl_exp_type!(Seq => Prim | CSnap | Snap | Dyn, TypeKind::Seq(_), "The Viper `Seq` type");
+impl_exp_type!(Map => Prim | CSnap | Snap | Dyn, TypeKind::Map(..), "The Viper `Map` type");
 
 impl_exp_type!(Err[TYPE_ERR = Err] => Prim | Dyn, "Type for encoding errors");
 
-impl_exp_type!(CSnap => Snap | Dyn, ref kind if matches!(kind, TypeKind::Bool | TypeKind::Int | TypeKind::Perm) || matches!(kind, TypeKind::Domain(name, ..) if name.starts_with("s_") && *name != "s_Param"), "A concrete Prusti snapshot type");
+impl_exp_type!(CSnap => Snap | Dyn, ref kind if matches!(kind, TypeKind::Bool | TypeKind::Int | TypeKind::Perm | TypeKind::Set(_) | TypeKind::Multiset(_) | TypeKind::Seq(_) | TypeKind::Map(..)) || matches!(kind, TypeKind::Domain(name, ..) if name.starts_with("s_") && *name != "s_Param"), "A concrete Prusti snapshot type");
 impl_exp_type!(PSnap[TYPE_PSNAP = Domain("s_Param", &[])] => Snap | Dyn, "The generic snapshot domain (`s_Param`)");
 impl_exp_type!(TyVal[TYPE_TYVAL = Domain("Type", &[])] => Dyn, "The type domain (`ExpType`) which gives values to types");
 
 impl_exp_type!(Pair => Dyn, TypeKind::Domain(name, args) if name == format!("Pair{}", args.len()), "A custom generic tuple type");
 
 impl_exp_type!(Prim => Dyn, TypeKind::Bool | TypeKind::Int | TypeKind::Perm | TypeKind::Ref, "Represents any primitive Viper type");
-impl_exp_type!(Snap => Dyn, ref kind if matches!(kind, TypeKind::Bool | TypeKind::Int | TypeKind::Perm) || matches!(kind, TypeKind::Domain(name, ..) if name.starts_with("s_")), "A Prusti snapshot type, either concrete or generic");
+impl_exp_type!(Snap => Dyn, ref kind if matches!(kind, TypeKind::Bool | TypeKind::Int | TypeKind::Perm | TypeKind::Set(_) | TypeKind::Multiset(_) | TypeKind::Seq(_) | TypeKind::Map(..)) || matches!(kind, TypeKind::Domain(name, ..) if name.starts_with("s_")), "A Prusti snapshot type, either concrete or generic");
 impl_exp_type!(Dyn, TypeKind::Unsupported(..) => false, "Represents a dynamically typed value");
 
 #[macro_export]
