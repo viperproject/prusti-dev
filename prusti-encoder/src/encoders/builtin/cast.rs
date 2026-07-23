@@ -201,12 +201,31 @@ impl TaskEncoder for MirBuiltinCastEnc {
                     let e_res_ty = res_ty.expect_primitive();
                     let result_kind = result_ty.expect_primitive().kind();
 
-                    // real to int will always round down (also for negative numbers) - truncate first
-                    let arg_ex_trunc = (e_op_ty.fp_trunc)(arg_ex);
+                    let (bits, to_signed) = vir::VirCtxt::get_int_data(result_kind);
+                    let bitvec = deps.require_dep::<BitVecEnc>(
+                        match operand_ty.expect_primitive().kind() {
+                            ty::Float(F16) => BitVec16,
+                            ty::Float(F32) => BitVec32,
+                            ty::Float(F64) => BitVec64,
+                            ty::Float(F128) => BitVec128,
+                            _ => unreachable!()
+                        }
+                    )?;
 
-                    let real_op = (e_op_ty.fp_to_real)(arg_ex_trunc);
-                    let int_real_cast_domain = deps.require_dep::<IntRealCastEnc>(())?;
-                    let expr = (int_real_cast_domain.to_int)(real_op);
+                    let (min_bound, max_bound) = match (bits, to_signed) {
+                        (8, true) => ()
+                    }
+
+                    // real to int will always round down (also for negative numbers) - truncate first
+                    // let arg_ex_trunc = (e_op_ty.fp_trunc)(arg_ex);
+
+                    // let real_op = (e_op_ty.fp_to_real)(arg_ex_trunc);
+                    // let int_real_cast_domain = deps.require_dep::<IntRealCastEnc>(())?;
+                    // let expr = (int_real_cast_domain.to_int)(real_op);
+
+                    let (bv_fun, int_fun) = if to_signed { (e_op_ty.fp_to_sbv, bitvec.sbv_to_int) } else { (e_op_ty.fp_to_ubv, bitvec.ubv_to_int) };
+                    let bv_op = (bv_fun)(arg_ex);
+                    let expr = (int_fun)(bv_op);
 
                     // clamp result
                     let min = vcx.get_min_int(result_kind);
