@@ -45,11 +45,11 @@ pub enum TaskEncoderCacheState<'vir, E: TaskEncoder + 'vir + ?Sized> {
 /// Cache for a task encoder. See `TaskEncoderCacheState` for a description of
 /// the possible values in the encoding process.
 pub type Cache<'vir, E> =
-    LinkedHashMap<<E as TaskEncoder>::TaskKey<'vir>, TaskEncoderCacheState<'vir, E>>;
+    FxIndexMap<<E as TaskEncoder>::TaskKey<'vir>, TaskEncoderCacheState<'vir, E>>;
 pub type CacheRef<'vir, E> = RefCell<Cache<'vir, E>>;
 
 pub type CacheStatic<E> =
-    LinkedHashMap<<E as TaskEncoder>::TaskKey<'static>, TaskEncoderCacheState<'static, E>>;
+    FxIndexMap<<E as TaskEncoder>::TaskKey<'static>, TaskEncoderCacheState<'static, E>>;
 pub type CacheStaticRef<E> = RefCell<CacheStatic<E>>;
 
 /// Create the cache storage (a static `RefCell`) and a `with_cache`
@@ -77,6 +77,19 @@ macro_rules! encoder_cache {
                 //   the rustc type context, respectively
                 let cache = unsafe { ::std::mem::transmute(cache) };
                 f(cache)
+            })
+        }
+
+        fn with_watchers<'vir, F, R>(f: F) -> R
+            where F: FnOnce(&'vir $crate::WatchersRef<'vir, $encoder>) -> R,
+        {
+            ::std::thread_local! {
+                static WATCHERS: $crate::WatchersStaticRef<$encoder> = ::std::cell::RefCell::new(Default::default());
+            }
+            WATCHERS.with(|watchers| {
+                // SAFETY: as for the cache above
+                let watchers = unsafe { ::std::mem::transmute(watchers) };
+                f(watchers)
             })
         }
     };

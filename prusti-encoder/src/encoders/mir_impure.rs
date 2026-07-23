@@ -25,7 +25,7 @@ use pcg::{
         maybe_old::MaybeLabelledPlace,
     },
 };
-use prusti_interface::{PrustiError, specs::specifications::SpecQuery};
+use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
     abi,
     data_structures::graph::Successors,
@@ -48,6 +48,7 @@ use crate::encoders::{
     mir_shared::{PureRvalueEnc, RustcIntrinsic},
     ty::{
         RustTyDecomposition,
+        generics::{GArgs, GParams},
         use_impure::TyUseImpure,
         use_pure::{TyUsePure, TyUsePureEnc},
     },
@@ -664,8 +665,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     return Ok(());
                 }
 
-                let rvalue_ty = RustTyDecomposition::from_ty(dst_ty, self.def_id());
-                let operand_ty = RustTyDecomposition::from_ty(src_ty, self.def_id());
+                let rvalue_ty = RustTyDecomposition::from_ty(dst_ty, self.context());
+                let operand_ty = RustTyDecomposition::from_ty(src_ty, self.context());
                 let cast_output =
                     self.deps()
                         .require_dep::<MirBuiltinUseCastEnc>(MirBuiltinUseCastTask::new(
@@ -1165,14 +1166,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn get_call_data(&self, func: &mir::Operand<'vir>) -> (DefId, ty::GenericArgsRef<'vir>, bool) {
         let func_ty = func.ty(self.body, self.vcx.tcx());
         let (func_def_id, caller_substs) = RustSignature::get_def_id_and_caller_substs(func_ty);
-        let is_pure = crate::encoders::with_proc_spec(
-            SpecQuery::GetProcKind(
-                func_def_id,
-                ty::List::identity_for_item(self.vcx.tcx(), func_def_id),
-            ),
-            |spec| spec.kind.is_pure().unwrap_or_default(),
-        )
-        .unwrap_or_default();
+        let is_pure =
+            crate::encoders::is_function_pure(func_def_id, GArgs::new(self.def_id, caller_substs));
         (func_def_id, caller_substs, is_pure)
     }
 
@@ -2256,8 +2251,10 @@ impl<'vir, 'enc, E: TaskEncoder> PureRvalueEnc<'vir> for ImpureEncVisitor<'vir, 
     const PURE: bool = false;
     type ExprCurr = ();
     type ExprNext = !;
-    fn def_id(&self) -> DefId {
-        self.def_id
+    fn context(&self) -> GParams<'vir> {
+        // Impure bodies are encoded at identity substs, so the function's own
+        // context is the body's context.
+        self.def_id.into()
     }
 
     fn deps(&mut self) -> &mut TaskEncoderDependencies<'vir, Self::Encoder> {

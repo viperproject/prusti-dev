@@ -7,7 +7,7 @@ use super::typed::{
 use crate::{data::ProcedureDefId, specs::typed::Refinable};
 use prusti_rustc_interface::{
     hir::def_id::DefId,
-    middle::ty::{self, GenericArgsRef},
+    middle::ty::{self, GenericArg},
 };
 
 /// Defines the context for which we perform refinement.
@@ -47,16 +47,16 @@ impl<'qry, 'tcx> RefinementContext<'qry, 'tcx> {
 pub struct FunctionCallEncodingQuery<'tcx> {
     pub called_def_id: DefId,
     pub caller_def_id: DefId,
-    pub call_substs: GenericArgsRef<'tcx>,
+    pub call_substs: &'tcx [GenericArg<'tcx>],
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum SpecQuery<'tcx> {
-    FunctionDefEncoding(DefId, GenericArgsRef<'tcx>),
+    FunctionDefEncoding(DefId, &'tcx [GenericArg<'tcx>]),
     FunctionCallEncoding(FunctionCallEncodingQuery<'tcx>),
     /// For determining the [ProcedureSpecificationKind] of a procedure, e.g.
     /// for a check whether the function is pure or impure
-    GetProcKind(DefId, GenericArgsRef<'tcx>),
+    GetProcKind(DefId, &'tcx [GenericArg<'tcx>]),
     FetchSpan(DefId),
 }
 
@@ -73,7 +73,7 @@ impl<'tcx> SpecQuery<'tcx> {
         }
     }
 
-    pub fn adapt_to(&self, new_def_id: DefId, new_substs: GenericArgsRef<'tcx>) -> Self {
+    pub fn adapt_to(&self, new_def_id: DefId, new_substs: &'tcx [GenericArg<'tcx>]) -> Self {
         use SpecQuery::*;
         match self {
             FunctionDefEncoding(_, _) => FunctionDefEncoding(new_def_id, new_substs),
@@ -200,8 +200,8 @@ impl<'tcx> Specifications<'tcx> {
 pub fn find_trait_method_substs<'tcx>(
     tcx: ty::TyCtxt<'tcx>,
     impl_method_def_id: ProcedureDefId, // what are we calling?
-    impl_method_substs: GenericArgsRef<'tcx>, // what are the substs on the call?
-) -> Option<(ProcedureDefId, GenericArgsRef<'tcx>)> {
+    impl_method_substs: &'tcx [GenericArg<'tcx>], // what are the substs on the call?
+) -> Option<(ProcedureDefId, &'tcx [GenericArg<'tcx>])> {
     let impl_def_id = tcx.impl_of_assoc(impl_method_def_id)?;
     let trait_ref = tcx.impl_trait_ref(impl_def_id)?.skip_binder();
 
@@ -251,7 +251,7 @@ pub fn find_trait_method_substs<'tcx>(
     let trait_method_substs = tcx.mk_args_from_iter(
         call_trait_substs
             .iter()
-            .chain(impl_method_substs.iter().skip(impl_substs.len())),
+            .chain(impl_method_substs.iter().copied().skip(impl_substs.len())),
     );
 
     // sanity check: do we now have the correct number of substs?

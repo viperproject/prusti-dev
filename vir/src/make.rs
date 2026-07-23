@@ -1458,31 +1458,44 @@ impl<'tcx> VirCtxt<'tcx> {
         })
     }
 
+    /// Combines `elems` as a balanced tree rather than a linear fold. This
+    /// keeps the AST depth logarithmic, otherwise deep chains would overflow
+    /// the stack of recursive consumers (serde, `ToViper`).
+    fn mk_assoc_op<'vir, Curr, Next, T: CompType>(
+        &'vir self,
+        kind: BinOpKind,
+        default: Option<ExprGen<'vir, Curr, Next, T>>,
+        elems: &[ExprGen<'vir, Curr, Next, T>],
+    ) -> ExprGen<'vir, Curr, Next, T>
+    where
+        crate::Prim: crate::TransmuteFrom<T>,
+    {
+        match elems {
+            [] => default.unwrap(),
+            [e] => e,
+            _ => {
+                let (left, right) = elems.split_at(elems.len() / 2);
+                let lhs = self.mk_assoc_op(kind, None, left);
+                let rhs = self.mk_assoc_op(kind, None, right);
+                self.mk_bin_op_expr(kind, lhs, rhs).downcast_ty()
+            }
+        }
+    }
+
     pub fn mk_conj<'vir, Curr, Next>(
         &'vir self,
         elems: &[ExprGenBool<'vir, Curr, Next>],
     ) -> ExprGenBool<'vir, Curr, Next> {
-        elems
-            .split_last()
-            .map(|(last, rest)| {
-                rest.iter().rfold(*last, |acc, e| {
-                    self.mk_bin_op_expr(BinOpKind::And, e.as_dyn(), acc.as_dyn())
-                        .downcast_ty()
-                })
-            })
-            .unwrap_or_else(|| self.mk_bool::<true>().lazy())
+        let default = Some(self.mk_bool::<true>().lazy());
+        self.mk_assoc_op(BinOpKind::And, default, elems)
     }
 
-    pub fn mk_disj<'vir>(&'vir self, elems: &[ExprBool<'vir>]) -> ExprBool<'vir> {
-        elems
-            .split_last()
-            .map(|(last, rest)| {
-                rest.iter().rfold(*last, |acc, e| {
-                    self.mk_bin_op_expr(BinOpKind::Or, e.as_dyn(), acc.as_dyn())
-                        .downcast_ty()
-                })
-            })
-            .unwrap_or_else(|| self.mk_bool::<false>())
+    pub fn mk_disj<'vir, Curr, Next>(
+        &'vir self,
+        elems: &[ExprGenBool<'vir, Curr, Next>],
+    ) -> ExprGenBool<'vir, Curr, Next> {
+        let default = Some(self.mk_bool::<false>().lazy());
+        self.mk_assoc_op(BinOpKind::Or, default, elems)
     }
 
     pub const fn get_int_data(rust_ty: &ty::TyKind) -> (u32, bool) {

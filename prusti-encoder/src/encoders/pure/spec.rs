@@ -148,6 +148,7 @@ impl TaskEncoder for MirSpecEnc {
                 find_trait_method_substs(vcx.tcx(), context_def_id, context_params.rust_params())
                     .map(|s| s.1)
                     .unwrap_or(base_params.rust_params());
+            let substs = vcx.tcx().mk_args(substs);
 
             let local_defs = deps.require_dep::<crate::encoders::local_def::MirLocalDefEnc>(
                 MirLocalDefEncTask::LocalSubsts {

@@ -26,34 +26,32 @@ pub struct FunctionCallEncOutput<'vir> {
 }
 
 impl<'vir> FunctionCallEncOutput<'vir> {
+    /// Calls the definitional function `f_`, used in pure/spec contexts.
     pub fn call_pure<Curr, Next>(
         &self,
-        mut args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
+        args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
-        assert_eq!(self.inputs.len(), args.len());
-        let a = args.iter_mut().zip(self.inputs.iter());
-        for (arg, caster) in a {
-            *arg = caster.cast_to_callee_ctx(*arg);
-        }
-        let call = self.function.function_ref.call()(
-            &args,
-            self.ty_args.get_ty(),
-            self.ty_args.get_const(),
-        );
-        self.output.cast_to_caller_ctx(call)
+        self.call_casted(self.function.function_ref, args)
     }
 
+    /// Calls the caller wrapper `cf_`, used when encoding impure assignments.
     pub fn call_impure<Curr, Next>(
         &self,
+        args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        self.call_casted(self.function.caller_ref, args)
+    }
+
+    fn call_casted<Curr, Next>(
+        &self,
+        function: FunctionIdn<'vir, (vir::ManySnap, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
         mut args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
         assert_eq!(self.inputs.len(), args.len());
-        let a = args.iter_mut().zip(self.inputs.iter());
-        for (arg, caster) in a {
+        for (arg, caster) in args.iter_mut().zip(self.inputs.iter()) {
             *arg = caster.cast_to_callee_ctx(*arg);
         }
-        let call =
-            self.function.caller_ref.call()(&args, self.ty_args.get_ty(), self.ty_args.get_const());
+        let call = function.call()(&args, self.ty_args.get_ty(), self.ty_args.get_const());
         self.output.cast_to_caller_ctx(call)
     }
 }
