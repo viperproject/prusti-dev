@@ -28,7 +28,7 @@ pub(super) type PureTyDatas = ViperTyDatas<Pure>;
 
 impl<'vir> TyDatas<'vir> for PureTyDatas {
     type TyData = TyPureRef<'vir>;
-    type OpaqueData = TyPureOpaqueData<'vir>;
+    type OpaqueData = TyPureOpaqueData;
     type ArrayData = TyPureArrayData<'vir>;
     type PrimitiveData = TyPurePrimData<'vir>;
     type ImmRefData = TyPureImmRefData<'vir>;
@@ -61,11 +61,7 @@ pub enum TyPureBuiltinData {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct TyPureOpaqueData<'vir> {
-    /// Some arbitrary value of this type. Should probably be removed
-    /// eventually, but used for now in e.g. the str-const encoding.
-    pub arbitrary: FunctionIdn<'vir, (), vir::CSnap>,
-}
+pub struct TyPureOpaqueData {}
 
 /// Pure data for a raw pointer. Modelled like a reference (`TyPureImmRefData`)
 /// but with the pointee left opaque: the snapshot carries the address and the
