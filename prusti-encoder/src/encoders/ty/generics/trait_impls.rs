@@ -706,8 +706,11 @@ impl TraitImplEnc {
                     let projection =
                         trait_.assoc_consts[&proj_pred.def_id()](gargs.get_ty(), gargs.get_const());
                     let ty = tcx.type_of(proj_pred.def_id()).instantiate_identity();
-                    let ty = RustTyDecomposition::from_ty(ty, impl_ctx);
-                    let const_task = ConstEncTask::Ty { const_, ty };
+                    let const_task = ConstEncTask::Ty {
+                        const_,
+                        ty,
+                        context: impl_ctx,
+                    };
                     let const_expr = deps.require_dep::<ConstEnc>(const_task)?;
                     if let ty::ConstKind::Param(p) = const_.kind() {
                         generics_map
