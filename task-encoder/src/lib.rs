@@ -2,17 +2,18 @@
 #![feature(associated_type_defaults)]
 
 use core::panic;
-use hashlink::LinkedHashMap;
-use prusti_rustc_interface::span::Span;
+use prusti_rustc_interface::{data_structures::fx::FxIndexMap, span::Span};
 use std::cell::RefCell;
 
 mod cache;
 mod dependencies;
 mod result;
+mod triggers;
 
 pub use cache::*;
 pub use dependencies::*;
 pub use result::*;
+pub use triggers::*;
 
 #[derive(Debug, Default)]
 pub struct Program<'vir> {
@@ -149,6 +150,74 @@ pub trait TaskEncoder {
         Self: 'vir,
         F: FnOnce(&'vir CacheRef<'vir, Self>) -> R;
 
+    /// Enters the given function with a reference to the trigger watchers for
+    /// this encoder. These are continuations registered via [`Self::on_task_requested`],
+    /// waiting for a task of this encoder to be requested.
+    fn with_watchers<'vir, F, R>(f: F) -> R
+    where
+        Self: 'vir,
+        F: FnOnce(&'vir WatchersRef<'vir, Self>) -> R;
+
+    /// Queues `f` to run in [`drain_triggers`] once the given task of this
+    /// encoder has been requested (enqueued, started, or encoded - not
+    /// necessarily successfully). If it already has been, `f` is queued
+    /// immediately. Continuations of tasks that are never requested do not
+    /// run.
+    ///
+    /// Triggers must be registered during the encoding phase:
+    /// [`drain_triggers`] runs before outputs are emitted, so continuations
+    /// registered during `emit_outputs` would never run. From within an
+    /// in-flight encoder that already knows the task is needed, use a plain
+    /// `deps.require_*` instead.
+    fn on_task_requested<'vir>(key: Self::TaskKey<'vir>, f: impl FnOnce() + 'vir)
+    where
+        Self: Sized + 'vir,
+    {
+        let f = mk_continuation(f);
+        let requested = Self::with_cache(|cache| cache.borrow().contains_key(&key));
+        if requested {
+            triggers::queue(f);
+        } else {
+            Self::with_watchers(move |watchers| {
+                watchers.borrow_mut().entry(key).or_default().push(f)
+            });
+        }
+    }
+
+    /// Queues `f` to run once *every* task in `keys` has been requested (the
+    /// conjunction of [`Self::on_task_requested`]). An empty `keys` runs `f`
+    /// unconditionally.
+    fn on_all_requested<'vir>(mut keys: Vec<Self::TaskKey<'vir>>, f: impl FnOnce() + 'vir)
+    where
+        Self: Sized + 'vir,
+    {
+        match keys.pop() {
+            None => queue(mk_continuation(f)),
+            Some(key) => Self::on_task_requested(key, move || Self::on_all_requested(keys, f)),
+        }
+    }
+
+    /// Queues `f` to run once *any* task in `keys` has been requested (the
+    /// disjunction of [`Self::on_task_requested`]). `f` runs at most once, on
+    /// the first such task; an empty `keys` never runs `f`.
+    fn on_any_requested<'vir>(keys: Vec<Self::TaskKey<'vir>>, f: impl FnOnce() + 'vir)
+    where
+        Self: Sized + 'vir,
+    {
+        // The continuations share ownership of `f` and race to take it, so that
+        // it runs exactly once regardless of how many keys become requested.
+        let slot: std::rc::Rc<std::cell::Cell<Option<triggers::Continuation>>> =
+            std::rc::Rc::new(std::cell::Cell::new(Some(mk_continuation(f))));
+        for key in keys {
+            let slot = slot.clone();
+            Self::on_task_requested(key, move || {
+                if let Some(f) = slot.take() {
+                    f();
+                }
+            });
+        }
+    }
+
     //fn get_all_outputs() -> Self::CacheRef<'vir> {
     //  todo!()
     //  // while ... { process() } // process items in the queue
@@ -167,10 +236,12 @@ pub trait TaskEncoder {
         }
 
         // enqueue, expecting no entry (we just checked)
-        assert!(Self::with_cache(move |cache| cache
-            .borrow_mut()
-            .insert(task_key, TaskEncoderCacheState::Enqueued,)
-            .is_none()));
+        triggers::fire_watchers::<Self>(&task_key);
+        let old = Self::with_cache(move |cache| {
+            let v = TaskEncoderCacheState::Enqueued;
+            cache.borrow_mut().insert(task_key, v)
+        });
+        assert!(old.is_none());
     }
 
     fn encode_ref<'vir>(
@@ -264,6 +335,7 @@ pub trait TaskEncoder {
                 },
                 None => {
                     // enqueue
+                    triggers::fire_watchers::<Self>(&task_key);
                     cache.insert(task_key.clone(), TaskEncoderCacheState::Enqueued);
                     None
                 }

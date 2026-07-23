@@ -69,6 +69,7 @@ pub fn test_entrypoint<'tcx>(
     });
 
     crate::encoders::encode_all_in_crate(tcx);
+    task_encoder::drain_triggers();
 
     if config::show_ide_info() {
         vir::with_vcx(|vcx| vcx.emit_contract_spans(env_diagnostic));

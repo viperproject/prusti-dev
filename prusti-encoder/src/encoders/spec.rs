@@ -10,6 +10,8 @@ use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::VirCtxt;
 
+use crate::encoders::ty::generics::GArgs;
+
 pub struct SpecEnc;
 
 pub type SpecEncError = ();
@@ -53,6 +55,14 @@ pub fn is_function_trusted(def_id: DefId) -> bool {
         |proc_spec: &ProcedureSpecification| {
             proc_spec.trusted.extract_inherit().unwrap_or_default()
         },
+    )
+    .unwrap_or_default()
+}
+
+pub fn is_function_pure<'tcx>(def_id: DefId, args: GArgs<'tcx>) -> bool {
+    with_proc_spec(
+        SpecQuery::GetProcKind(def_id, args.args()),
+        |proc_spec: &ProcedureSpecification| proc_spec.kind.is_pure().unwrap_or_default(),
     )
     .unwrap_or_default()
 }
