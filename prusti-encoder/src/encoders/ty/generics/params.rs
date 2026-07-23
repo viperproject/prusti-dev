@@ -1,6 +1,6 @@
 use prusti_interface::specs::typed::ExternSpecKind;
 use prusti_rustc_interface::{
-    middle::ty::{self, TypeFoldable},
+    middle::ty,
     span::{def_id::DefId, symbol},
 };
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
@@ -16,23 +16,6 @@ use crate::encoders::{
     },
 };
 
-/// Replaces region inference variables (ReVar) with erased regions.
-/// Used before type normalization with a fresh `InferCtxt` that doesn't
-/// know about ReVars from the original type-checking context.
-struct EraseReVars<'tcx>(ty::TyCtxt<'tcx>);
-impl<'tcx> ty::TypeFolder<ty::TyCtxt<'tcx>> for EraseReVars<'tcx> {
-    fn cx(&self) -> ty::TyCtxt<'tcx> {
-        self.0
-    }
-    fn fold_region(&mut self, r: ty::Region<'tcx>) -> ty::Region<'tcx> {
-        if r.is_var() {
-            self.0.lifetimes.re_erased
-        } else {
-            r
-        }
-    }
-}
-
 /// The list of defined parameters in a given context. E.g. the type parameters
 /// `T` and `U` in the body of the function `fn foo<T, U>(t: T) -> U { ... }`
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -44,6 +27,8 @@ pub struct GParams<'tcx> {
     /// This flag indicates whether this is the case, so that we can replace it
     /// with the actual `Self` parameter when needed.
     is_trait_extern_spec: bool,
+    /// A suffix to disambiguate generic parameters of different contexts
+    suffix: Option<&'static str>,
 }
 
 impl<'tcx> GParams<'tcx> {
@@ -56,6 +41,7 @@ impl<'tcx> GParams<'tcx> {
             params,
             env,
             is_trait_extern_spec,
+            suffix: None,
         }
     }
 
@@ -141,6 +127,13 @@ impl<'tcx> GParams<'tcx> {
         true
     }
 
+    pub fn with_suffix(self, suffix: &'static str) -> Self {
+        Self {
+            suffix: Some(suffix),
+            ..self
+        }
+    }
+
     /// Tries to normalize associated types of the corresponding type. Returns
     /// `Some` if managed to normalize (or there were no associated types), else
     /// returns None.
@@ -155,8 +148,16 @@ impl<'tcx> GParams<'tcx> {
             },
         };
         vir::with_vcx(|vcx| {
-            // Erase ReVars before normalizing with a fresh InferCtxt.
-            let ty = ty.fold_with(&mut EraseReVars(vcx.tcx()));
+            // Erase ReVars before normalizing with a fresh InferCtxt that
+            // doesn't know about ReVars from the original type-checking
+            // context.
+            let ty = ty::fold_regions(vcx.tcx(), ty, |r, _| {
+                if r.is_var() {
+                    vcx.tcx().lifetimes.re_erased
+                } else {
+                    r
+                }
+            });
             // Normalize associated types
             let ifctxt: InferCtxt = vcx.tcx().infer_ctxt().build(ty::TypingMode::PostAnalysis);
             let mut fulfill_cx = <dyn TraitEngine<ScrubbedTraitError> as TraitEngineExt<
@@ -284,7 +285,7 @@ impl<'vir> GenericParams<'vir> {
         self.const_exprs()[self.map_idx(param.index).unwrap_err()]
     }
 
-    fn map_idx(&self, index: u32) -> Result<usize, usize> {
+    pub(super) fn map_idx(&self, index: u32) -> Result<usize, usize> {
         let result = self.indices[index as usize];
         assert!(
             result.ok().is_none_or(|i| i != usize::MAX),
@@ -349,7 +350,12 @@ impl TaskEncoder for GenericParamsEnc {
         deps.emit_output_ref(*task_key, ())?;
         vir::with_vcx(|vcx| {
             let sanitize = |name: symbol::Symbol, index: u32| {
-                vir::ViperIdent::sanitize(vcx, &format!("{name}${index}")).to_str()
+                let name = if let Some(suffix) = task_key.suffix {
+                    format!("{name}${index}_{suffix}")
+                } else {
+                    format!("{name}${index}")
+                };
+                vir::ViperIdent::sanitize(vcx, &name).to_str()
             };
 
             let mut indices = vec![Ok(usize::MAX); task_key.params.len()];

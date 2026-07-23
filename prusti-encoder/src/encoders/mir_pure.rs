@@ -10,7 +10,7 @@ use crate::encoders::{
 };
 use itertools::Itertools;
 use pcg::utils::Place;
-use prusti_interface::specs::{specifications::SpecQuery, typed::ExternSpecKind};
+use prusti_interface::specs::typed::ExternSpecKind;
 use prusti_rustc_interface::{
     abi,
     data_structures::graph::{self, Successors},
@@ -157,7 +157,7 @@ impl TaskEncoder for MirPureEnc {
             let snapshot = if let PureKind::SpecBlock(..) = kind {
                 vir::TYPE_BOOL.upcast_ty()
             } else {
-                let ret = RustTyDecomposition::from_ty(body.return_ty(), def_id);
+                let ret = RustTyDecomposition::from_ty(body.return_ty(), enc.context);
                 deps.require_ref::<TyUsePureEnc>(ret)?.snapshot
             };
             let expr = vcx.mk_lazy_expr(
@@ -298,8 +298,8 @@ impl<'vir: 'enc, 'enc> PureRvalueEnc<'vir> for Enc<'vir, 'enc> {
     const PURE: bool = true;
     type ExprCurr = ExprInput<'vir>;
     type ExprNext = vir::ExprKind<'vir>;
-    fn def_id(&self) -> DefId {
-        self.def_id
+    fn context(&self) -> GParams<'vir> {
+        self.context
     }
     fn deps(&mut self) -> &mut TaskEncoderDependencies<'vir, Self::Encoder> {
         self.deps
@@ -851,14 +851,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     // A fn call in pure can only be one of two kinds: a
                     // call to another pure function, or a call to a prusti
                     // builtin function.
-                    let is_pure = crate::encoders::with_proc_spec(
-                        SpecQuery::GetProcKind(
-                            def_id,
-                            ty::List::identity_for_item(self.vcx.tcx(), def_id),
-                        ),
-                        |def_spec| def_spec.kind.is_pure().unwrap_or_default(),
-                    )
-                    .unwrap_or_default();
+                    let is_pure = crate::encoders::is_function_pure(def_id, self.gargs(arg_tys));
 
                     // The bodiless `ptr_metadata` intrinsic is only lowered to
                     // `UnOp::PtrMetadata` in optimized MIR; do the lowering here.

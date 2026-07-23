@@ -71,6 +71,7 @@ impl TaskEncoder for CastersEnc<Pure> {
             let domain_ref = deps.require_ref::<TyPureEnc>(concrete)?;
             let generic_snap = vir::TYPE_PSNAP;
             let generic_typeof = deps.require_ref::<TypeOfEnc>(param)?.typeof_function;
+            let concrete_typeof = deps.require_ref::<TypeOfEnc>(concrete)?.typeof_function;
             let self_ty = domain_ref.snapshot.downcast_ty();
             let base_name = concrete.name();
             let ty_constructor = deps.require_ref::<TyConstructorEnc>(concrete)?;
@@ -105,14 +106,18 @@ impl TaskEncoder for CastersEnc<Pure> {
                 .ty_decls()
                 .iter()
                 .enumerate()
-                .map(|(idx, _)| ty_constructor.ty_param_from_snap(idx, make_generic_expr))
+                .map(|(idx, _)| {
+                    ty_constructor.ty_param_from_snap(idx, concrete_typeof, make_generic_expr)
+                })
                 .collect::<Vec<_>>();
 
             let const_params_from_snap = generics
                 .const_decls()
                 .iter()
                 .enumerate()
-                .map(|(idx, _)| ty_constructor.const_param_from_snap(idx, make_generic_expr))
+                .map(|(idx, _)| {
+                    ty_constructor.const_param_from_snap(idx, concrete_typeof, make_generic_expr)
+                })
                 .collect::<Vec<_>>();
 
             // Asserts that the type of `param` is equal to the ty constructor
