@@ -9,7 +9,7 @@ use crate::encoders::{
     r#const::ConstEncTask,
     ty::{
         RustTyDecomposition,
-        generics::{GArgs, GArgsTyEnc},
+        generics::{GArgs, GArgsTyEnc, GParams},
         use_pure::TyUsePure,
     },
 };
@@ -58,7 +58,10 @@ pub(crate) trait PureRvalueEnc<'vir> {
     /// (precondition-free) `f_` functions could never discharge their
     /// well-definedness obligations.
     const PURE: bool;
-    fn def_id(&self) -> DefId;
+    /// The generic context of the body being encoded. For a body substituted
+    /// with usage-site substs (pure/spec bodies), this is the caller's
+    /// context, in which the substituted types live - not the encoded def's.
+    fn context(&self) -> GParams<'vir>;
     fn deps(&mut self) -> &mut TaskEncoderDependencies<'vir, Self::Encoder>;
     fn vcx(&self) -> &'vir vir::VirCtxt<'vir>;
     fn body(&self) -> &mir::Body<'vir>;
@@ -118,8 +121,8 @@ pub(crate) trait PureRvalueEnc<'vir> {
     ) -> Result<CastSnap<'vir, Self>, EncodeFullError<'vir, Self::Encoder>> {
         let encoded_operand = self.encode_operand_snap(operand, ctxt)?.downcast_ty();
         let operand_ty = operand.ty(self.body(), self.vcx().tcx());
-        let rvalue_ty = RustTyDecomposition::from_ty(rvalue_ty, self.def_id());
-        let operand_ty = RustTyDecomposition::from_ty(operand_ty, self.def_id());
+        let rvalue_ty = RustTyDecomposition::from_ty(rvalue_ty, self.context());
+        let operand_ty = RustTyDecomposition::from_ty(operand_ty, self.context());
         let cast_output =
             self.deps()
                 .require_dep::<MirBuiltinUseCastEnc>(MirBuiltinUseCastTask::new(
@@ -140,9 +143,9 @@ pub(crate) trait PureRvalueEnc<'vir> {
     ) -> ExprResult<'vir, Self> {
         let l_ty = l.ty(self.body(), self.vcx().tcx());
         let r_ty = r.ty(self.body(), self.vcx().tcx());
-        let l_ty = RustTyDecomposition::from_ty(l_ty, self.def_id());
-        let r_ty = RustTyDecomposition::from_ty(r_ty, self.def_id());
-        let rvalue_ty = RustTyDecomposition::from_ty(rvalue_ty, self.def_id());
+        let l_ty = RustTyDecomposition::from_ty(l_ty, self.context());
+        let r_ty = RustTyDecomposition::from_ty(r_ty, self.context());
+        let rvalue_ty = RustTyDecomposition::from_ty(rvalue_ty, self.context());
         let task = MirBuiltinBinOpTask::new(rvalue_ty, op, l_ty, r_ty);
         let op = self.deps().require_dep::<MirBuiltinBinOpEnc>(task)?;
 
@@ -155,11 +158,11 @@ pub(crate) trait PureRvalueEnc<'vir> {
         &mut self,
         constant: &mir::ConstOperand<'vir>,
     ) -> Result<vir::ExprCSnap<'vir>, EncodeFullError<'vir, Self::Encoder>> {
-        let def_id = self.def_id();
+        let context = self.context();
         self.deps().require_dep::<ConstEnc>(ConstEncTask::Mir {
             const_: constant.const_,
             encoding_depth: 0,
-            def_id,
+            context,
             span: constant.span,
         })
     }
@@ -173,8 +176,8 @@ pub(crate) trait PureRvalueEnc<'vir> {
     ) -> ExprResult<'vir, Self> {
         let encoded_operand = self.encode_operand_snap(operand, ctxt)?;
         let operand_ty = operand.ty(self.body(), self.vcx().tcx());
-        let operand_ty = RustTyDecomposition::from_ty(operand_ty, self.def_id());
-        let rvalue_ty = RustTyDecomposition::from_ty(rvalue_ty, self.def_id());
+        let operand_ty = RustTyDecomposition::from_ty(operand_ty, self.context());
+        let rvalue_ty = RustTyDecomposition::from_ty(rvalue_ty, self.context());
         let un_op_function = self
             .deps()
             .require_dep::<MirBuiltinUnOpEnc>(MirBuiltinUnOpTask::new(rvalue_ty, op, operand_ty))?;
@@ -184,7 +187,7 @@ pub(crate) trait PureRvalueEnc<'vir> {
     /// The generic arguments of a call from this encoder's body: `args`
     /// paired with the body's generic context.
     fn gargs(&self, args: ty::GenericArgsRef<'vir>) -> GArgs<'vir> {
-        GArgs::new(self.def_id(), args)
+        GArgs::new(self.context(), args)
     }
 
     /// Encodes a call to a `prusti_contracts` builtin. Returns `None` for the
@@ -249,7 +252,7 @@ pub(crate) trait PureRvalueEnc<'vir> {
         match place_ty.ty.kind() {
             ty::TyKind::Array(..) => {
                 // An array's length is its (static) const generic argument.
-                let decomp = RustTyDecomposition::from_ty(place_ty.ty, self.def_id());
+                let decomp = RustTyDecomposition::from_ty(place_ty.ty, self.context());
                 let generics = self.deps().require_dep::<GArgsTyEnc>(decomp.args)?;
                 Ok(generics.get_const()[0].upcast_ty())
             }

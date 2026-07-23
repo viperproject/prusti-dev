@@ -1,4 +1,4 @@
-use prusti_interface::specs::{is_spec_fn, specifications::SpecQuery};
+use prusti_interface::specs::is_spec_fn;
 use prusti_rustc_interface::{
     middle::{mir, ty},
     span::def_id::DefId,
@@ -11,7 +11,7 @@ use crate::{
         FunctionCallEnc, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc,
         mir_fn::CallTaskDescription,
         pure::spec::MirSpecEncMode,
-        ty::generics::{GParams, GenericParamsEnc},
+        ty::generics::{GArgs, GParams, GenericParamsEnc},
     },
     trait_support::is_function_with_body,
 };
@@ -107,11 +107,10 @@ impl TaskEncoder for TraitFnEnc {
             let return_type = local_defs.snap_ty_return();
             let ref_args = vcx.alloc_slice(&vec![vir::TYPE_REF; arg_count]);
 
-            let is_pure = crate::encoders::with_proc_spec(
-                SpecQuery::GetProcKind(def_id, item_params.rust_params()),
-                |spec| spec.kind.is_pure().unwrap_or_default(),
-            )
-            .unwrap_or_default();
+            let is_pure = crate::encoders::is_function_pure(
+                def_id,
+                GArgs::new(item_params, item_params.rust_params()),
+            );
 
             let pre_func = FunctionIdn::new(
                 vir_format_identifier!(vcx, "{trait_name}_fn_pre_{item_name}"),
@@ -181,6 +180,12 @@ impl TaskEncoder for TraitFnEnc {
             dom_funcs.push(vcx.mk_domain_function(post_func, false, None));
 
             let func_args = local_defs.local_decl_args().collect::<Vec<_>>();
+            let func_arg_exprs = vcx.alloc_slice(
+                &func_args
+                    .iter()
+                    .map(|arg| vcx.mk_local_ex(arg))
+                    .collect::<Vec<_>>(),
+            );
             let func_ret = local_defs.local_decl_ret();
 
             let has_body = is_function_with_body(vcx.tcx(), def_id);
@@ -191,12 +196,7 @@ impl TaskEncoder for TraitFnEnc {
             )?;
             let pres = vcx.mk_conj(&spec.pres);
             let pre_func_call = pre_func.call()(
-                vcx.alloc_slice(
-                    &func_args
-                        .iter()
-                        .map(|arg| vcx.mk_local_ex(arg))
-                        .collect::<Vec<_>>(),
-                ),
+                func_arg_exprs,
                 item_generics.ty_exprs(),
                 item_generics.const_exprs(),
             );
@@ -216,12 +216,7 @@ impl TaskEncoder for TraitFnEnc {
                     CallTaskDescription::new(def_id, item_params.rust_params(), def_id)
                         .resolve_trait_calls(false),
                 )?;
-                let pure_func_app = pure_func.call_pure(
-                    func_args
-                        .iter()
-                        .map(|arg| vcx.mk_local_ex(arg))
-                        .collect::<Vec<_>>(),
-                );
+                let pure_func_app = pure_func.call_pure(func_arg_exprs.to_vec());
                 posts.push(vir::expr! {
                     ([func_ret]) == ([pure_func_app])
                 });
@@ -229,12 +224,7 @@ impl TaskEncoder for TraitFnEnc {
             let posts = vcx.mk_conj(&posts);
             let post_func_call = post_func.call()(
                 vcx.mk_local_ex(func_ret),
-                vcx.alloc_slice(
-                    &func_args
-                        .iter()
-                        .map(|arg| vcx.mk_local_ex(arg))
-                        .collect::<Vec<_>>(),
-                ),
+                func_arg_exprs,
                 item_generics.ty_exprs(),
                 item_generics.const_exprs(),
             );
@@ -274,10 +264,7 @@ impl TaskEncoder for TraitFnEnc {
                     item_generics.const_exprs(),
                 ));
                 let wrapped_call = call_stub_pure_function.unwrap().call()(
-                    &func_args
-                        .iter()
-                        .map(|arg| vcx.mk_local_ex(arg))
-                        .collect::<Vec<_>>(),
+                    func_arg_exprs,
                     item_generics.ty_exprs(),
                     item_generics.const_exprs(),
                 );
