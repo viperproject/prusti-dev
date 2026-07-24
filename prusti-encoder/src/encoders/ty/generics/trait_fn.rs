@@ -194,7 +194,7 @@ impl TaskEncoder for TraitFnEnc {
                 (def_id, def_id, MirSpecEncMode::PureWithoutResult),
                 span,
             )?;
-            let pres = vcx.mk_conj(&spec.pres);
+            let pres = vcx.mk_conj(&spec.pre_exprs().collect::<Vec<_>>());
             let pre_func_call = pre_func.call()(
                 func_arg_exprs,
                 item_generics.ty_exprs(),
@@ -210,7 +210,7 @@ impl TaskEncoder for TraitFnEnc {
                         (pres) ==> (pre_func_call)
                 },
             ));
-            let mut posts = spec.posts;
+            let mut posts = spec.post_exprs().collect::<Vec<_>>();
             if has_body && is_pure {
                 let pure_func = deps.require_dep::<FunctionCallEnc>(
                     CallTaskDescription::new(def_id, item_params.rust_params(), def_id)

@@ -91,12 +91,26 @@ pub struct EncodedPledge<'vir> {
 
 #[derive(Clone)]
 pub struct MirSpecEncOutput<'vir> {
-    pub pres: Vec<vir::ExprBool<'vir>>,
-    pub posts: Vec<vir::ExprBool<'vir>>,
+    /// Each precondition paired with the source span of its spec item.
+    pub pres: Vec<(vir::ExprBool<'vir>, Span)>,
+    /// Each postcondition paired with the source span of its spec item.
+    pub posts: Vec<(vir::ExprBool<'vir>, Span)>,
     pub pledges: Vec<EncodedPledge<'vir>>,
     pub pre_args: &'vir FxHashMap<mir::Local, vir::ExprSnap<'vir>>,
     #[allow(dead_code)]
     pub post_args: &'vir FxHashMap<mir::Local, vir::ExprSnap<'vir>>,
+}
+
+impl<'vir> MirSpecEncOutput<'vir> {
+    /// The precondition expressions, discarding their spans.
+    pub fn pre_exprs(&self) -> impl Iterator<Item = vir::ExprBool<'vir>> + '_ {
+        self.pres.iter().map(|(pre, _)| *pre)
+    }
+
+    /// The postcondition expressions, discarding their spans.
+    pub fn post_exprs(&self) -> impl Iterator<Item = vir::ExprBool<'vir>> + '_ {
+        self.posts.iter().map(|(post, _)| *post)
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -192,7 +206,7 @@ impl TaskEncoder for MirSpecEnc {
             // it uses an unsupported feature), report the error at *that spec's*
             // span and skip only it, keeping the permission contract and the other
             // specs intact.
-            let pres = specs
+            let pres: Vec<(vir::ExprBool<'_>, Span)> = specs
                 .pres
                 .iter()
                 .filter_map(|spec_def_id| {
@@ -208,9 +222,9 @@ impl TaskEncoder for MirSpecEnc {
                     let expr = spec.expr.downcast_ty::<vir::Bool>();
                     let expr = expr.reify(vcx, (*spec_def_id, pre_args));
                     let span = vcx.tcx().def_span(*spec_def_id);
-                    Some(vcx.with_span(span, |_| expr))
+                    Some((vcx.with_span(span, |_| expr), span))
                 })
-                .collect::<Vec<vir::ExprBool<'_>>>();
+                .collect();
 
             let post_args = match enc_mode {
                 MirSpecEncMode::Impure => {
@@ -226,7 +240,7 @@ impl TaskEncoder for MirSpecEnc {
                 }
                 MirSpecEncMode::PureWithResult | MirSpecEncMode::PureWithoutResult => all_args,
             };
-            let posts = specs
+            let posts: Vec<(vir::ExprBool<'_>, Span)> = specs
                 .posts
                 .iter()
                 .filter_map(|spec_def_id| {
@@ -249,10 +263,10 @@ impl TaskEncoder for MirSpecEnc {
                         });
                         let expr = spec.expr.downcast_ty::<vir::Bool>();
                         let expr = expr.reify(vcx, (*spec_def_id, post_args));
-                        Some(expr)
+                        Some((expr, span))
                     })
                 })
-                .collect::<Vec<vir::ExprBool<'_>>>();
+                .collect();
             let pledges = specs
                 .pledges
                 .iter()
