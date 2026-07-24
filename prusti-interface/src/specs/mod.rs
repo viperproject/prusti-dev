@@ -2,7 +2,7 @@ use crate::{
     environment::Environment,
     utils::{
         has_abstract_predicate_attr, has_extern_spec_attr, has_prusti_attr, has_to_model_fn_attr,
-        read_prusti_attr, read_prusti_attrs,
+        prusti_annotation_spans, read_prusti_attr, read_prusti_attrs,
     },
     PrustiError,
 };
@@ -124,6 +124,54 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         // Load all local spec MIR bodies, for export and later use
         self.ensure_local_mirs_fetched(&def_spec);
         def_spec
+    }
+
+    /// A trait implementation may only carry Prusti annotations if its `impl`
+    /// block is marked `#[refine_trait_spec]`. Without it, an annotated method
+    /// silently fails to refine the inherited trait spec (and would conflict
+    /// with a `#[pure]` trait method), so we reject it instead. Inherent impls
+    /// and trait items are unaffected. The error points at the offending
+    /// annotation (the `prusti::specs_version` marker the attribute macros emit
+    /// at the invocation site) with a note pointing at the `impl` block, where
+    /// the missing `#[refine_trait_spec]` must be added.
+    fn check_trait_impl_refinement(&self, method_def_id: DefId) {
+        let tcx = self.env.tcx();
+        let Some(impl_def_id) = tcx.impl_of_assoc(method_def_id) else {
+            return;
+        };
+        if tcx.impl_trait_ref(impl_def_id).is_none() {
+            return;
+        }
+        let Some(impl_local) = impl_def_id.as_local() else {
+            return;
+        };
+        let impl_attrs = self.env.query.get_local_attributes(impl_local);
+        if has_prusti_attr(impl_attrs, "refine_trait_spec") {
+            return;
+        }
+        let method_attrs = self
+            .env
+            .query
+            .get_local_attributes(method_def_id.expect_local());
+        // Point at the offending annotation(s). Each carries its own span, so
+        // this is precise even when several are stacked. No annotation marker
+        // means no explicit annotation - e.g. the implicit trusted from opt-in
+        // verification - which must not error.
+        let annotation_spans = prusti_annotation_spans(method_attrs).collect::<Vec<_>>();
+        if annotation_spans.is_empty() {
+            return;
+        }
+        PrustiError::incorrect(
+            "Prusti annotations on a trait implementation require the \
+             `#[refine_trait_spec]` attribute on the `impl` block"
+                .to_string(),
+            MultiSpan::from_spans(annotation_spans),
+        )
+        .add_note(
+            "add `#[refine_trait_spec]` to this `impl` block",
+            Some(tcx.def_span(impl_def_id)),
+        )
+        .emit(&self.env.diagnostic);
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
@@ -361,33 +409,27 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[hir::Attribute]) -> Option<Pro
 
     spec_id_refs.extend(
         read_prusti_attrs("pre_spec_id_ref", attrs)
-            .into_iter()
             .map(|raw_spec_id| SpecIdRef::Precondition(parse_spec_id(raw_spec_id, def_id))),
     );
     spec_id_refs.extend(
         read_prusti_attrs("post_spec_id_ref", attrs)
-            .into_iter()
             .map(|raw_spec_id| SpecIdRef::Postcondition(parse_spec_id(raw_spec_id, def_id))),
     );
     spec_id_refs.extend(
         read_prusti_attrs("pure_spec_id_ref", attrs)
-            .into_iter()
             .map(|raw_spec_id| SpecIdRef::Purity(parse_spec_id(raw_spec_id, def_id))),
     );
     spec_id_refs.extend(
         read_prusti_attrs("terminates_spec_id_ref", attrs)
-            .into_iter()
             .map(|raw_spec_id| SpecIdRef::Terminates(parse_spec_id(raw_spec_id, def_id))),
     );
     spec_id_refs.extend(
         // TODO: pledges with LHS that is not "result" would need to carry the
         // LHS expression through typing
-        read_prusti_attrs("pledge_spec_id_ref", attrs)
-            .into_iter()
-            .map(|raw_spec_id| SpecIdRef::Pledge {
-                lhs: None,
-                rhs: parse_spec_id(raw_spec_id, def_id),
-            }),
+        read_prusti_attrs("pledge_spec_id_ref", attrs).map(|raw_spec_id| SpecIdRef::Pledge {
+            lhs: None,
+            rhs: parse_spec_id(raw_spec_id, def_id),
+        }),
     );
     match (
         read_prusti_attr("assert_pledge_spec_id_ref_lhs", attrs),
@@ -539,6 +581,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 
             // Collect procedure specifications
             if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
+                self.check_trait_impl_refinement(def_id);
                 self.procedure_specs.insert(local_id, procedure_spec_ref);
             }
 

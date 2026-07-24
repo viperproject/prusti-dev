@@ -35,6 +35,7 @@ pub fn test2<T: Copy>(x: &Pair<T>) -> T {
 }
 
 use std::ops::Add;
+#[refine_trait_spec]
 impl<'a, T> Add<&'a Pair<T>> for Pair<T> {
     type Output = Pair<T>;
 
