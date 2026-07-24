@@ -349,8 +349,8 @@ impl TaskEncoder for MethodEnc {
             };
 
             // Add functional specification as the last pre- and postconditions.
-            pres.extend(spec.pres);
-            posts.extend(spec.posts);
+            pres.extend(spec.pre_exprs());
+            posts.extend(spec.post_exprs());
 
             Ok((
                 MethodEncOutput {

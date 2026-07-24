@@ -226,6 +226,25 @@ impl ProcedureSpecification {
             purity: SpecificationItem::Inherent(None),
         }
     }
+
+    /// Like [Self::empty], but with every item `Empty` so that refinement
+    /// against a trait spec inherits it wholesale. Used for a trait impl that
+    /// does not carry `#[refine_trait_spec]`: it has no annotations of its own
+    /// (enforced during collection), so unlike [Self::empty] its defaults must
+    /// not override the trait spec (e.g. with an impure kind).
+    pub fn empty_inheriting(source: DefId) -> Self {
+        ProcedureSpecification {
+            source,
+            extern_spec: None,
+            kind: SpecificationItem::Empty,
+            pres: SpecificationItem::Empty,
+            posts: SpecificationItem::Empty,
+            pledges: SpecificationItem::Empty,
+            trusted: SpecificationItem::Empty,
+            terminates: SpecificationItem::Empty,
+            purity: SpecificationItem::Empty,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, TyEncodable, TyDecodable)]

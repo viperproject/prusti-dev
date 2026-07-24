@@ -166,15 +166,18 @@ impl<'tcx> Specifications<'tcx> {
         impl_query: &SpecQuery<'tcx>,
         trait_query: &SpecQuery<'tcx>,
     ) -> Option<&'a ProcedureSpecification> {
-        let impl_spec = self
-            .get_proc_spec(impl_query)
-            .cloned()
-            .unwrap_or_else(|| ProcedureSpecification::empty(impl_query.referred_def_id()));
-
         let trait_spec = self
             .get_proc_spec(trait_query)
             .cloned()
             .unwrap_or_else(|| ProcedureSpecification::empty(trait_query.referred_def_id()));
+
+        // A trait impl that does not carry a `#[refine_trait_spec]` has no
+        // annotations (enforced during collection) and hence no spec entry:
+        // it inherits the trait spec wholesale. An impl that does refine has a
+        // spec entry, which refines the trait spec below.
+        let impl_spec = self.get_proc_spec(impl_query).cloned().unwrap_or_else(|| {
+            ProcedureSpecification::empty_inheriting(impl_query.referred_def_id())
+        });
         let refined = impl_spec.refine(&trait_spec);
 
         self.refined_specs.insert(*impl_query, refined);
