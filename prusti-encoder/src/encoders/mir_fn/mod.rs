@@ -98,7 +98,10 @@ pub fn encode_all_in_crate<'tcx>(tcx: ty::TyCtxt<'tcx>) {
                 let (is_pure, is_trusted) = crate::encoders::with_proc_spec(
                     SpecQuery::GetProcKind(def_id, ty::List::identity_for_item(tcx, def_id)),
                     |proc_spec| {
-                        let is_pure = proc_spec.kind.is_pure().unwrap_or_default();
+                        // Report an invalid trait-to-impl kind refinement once,
+                        // here, rather than on every purity query.
+                        crate::encoders::report_kind_refinement_error(def_id, &proc_spec.kind);
+                        let is_pure = crate::encoders::kind_is_pure(&proc_spec.kind);
                         let is_trusted = proc_spec.trusted.extract_inherit().unwrap_or_default();
                         (is_pure, is_trusted)
                     },
