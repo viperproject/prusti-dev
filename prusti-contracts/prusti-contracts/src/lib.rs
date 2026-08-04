@@ -476,7 +476,7 @@ mod private {
     macro_rules! prusti_assert_eq {
         ($left:expr, $right:expr $(,)?) => {
             $crate::prusti_assert!(
-                $crate::Ghost::new_ref(&$left) == $crate::Ghost::new_ref(&$right)
+                $crate::Ghost::new_ref(&($left)) == $crate::Ghost::new_ref(&($right))
             )
         };
     }
@@ -485,7 +485,7 @@ mod private {
     macro_rules! prusti_assert_ne {
         ($left:expr, $right:expr $(,)?) => {
             $crate::prusti_assert!(
-                $crate::Ghost::new_ref(&$left) != $crate::Ghost::new_ref(&$right)
+                $crate::Ghost::new_ref(&($left)) != $crate::Ghost::new_ref(&($right))
             )
         };
     }
