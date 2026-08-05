@@ -58,6 +58,16 @@ impl<'vir> FunctionCallEncOutput<'vir> {
         self.call_casted(self.function.caller_ref, args, &[])
     }
 
+    /// Like [`Self::call_impure`], for a `#[pure_unstable]` callee: passes the
+    /// inner-IM-QP `Map` snapshot as the extra Viper argument.
+    pub fn call_impure_unstable<Curr, Next>(
+        &self,
+        args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
+        inner_map: vir::ExprGenMap<'vir, Curr, Next>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        self.call_casted(self.function.caller_ref, args, &[inner_map])
+    }
+
     fn call_casted<Curr, Next>(
         &self,
         function: FnSig<'vir>,
@@ -250,7 +260,10 @@ impl TaskEncoder for FunctionEnc {
                     caller_def_id: None,
                 }) {
                     Ok(out) => {
-                        let expr = out.expr.reify(vcx, (def_id, spec.pre_args));
+                        let expr = out.expr.reify(
+                            vcx,
+                            (def_id, spec.pre_args, vcx.alloc(Default::default())),
+                        );
                         assert!(
                             expr.ty() == return_type,
                             "expected {:?}, got {:?}",

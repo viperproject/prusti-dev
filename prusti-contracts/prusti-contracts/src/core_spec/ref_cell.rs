@@ -4,6 +4,7 @@ use core::cell::RefCell;
 
 #[extern_spec]
 impl<T> RefCell<T> {
+    #[pure_unstable(true)]
     #[interior_mut(match refcell_count(self) {
         0 => Real::FULL,
         n if n > 0 => Real::FULL / Real::from(n),

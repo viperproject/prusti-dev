@@ -276,11 +276,28 @@ impl TaskEncoder for MethodEnc {
             // (placeholder); and the result's own IM objects are not yet
             // returned in the postcondition.
             let mut mk_qps = |deps: &mut TaskEncoderDependencies<'vir, _>,
-                              snap_of: &dyn Fn(vir::ExprSnap<'vir>) -> vir::ExprSnap<'vir>|
-             -> Result<_, EncodeFullError<'vir, MethodEnc>> {
+                              snap_of: &dyn Fn(vir::ExprSnap<'vir>) -> vir::ExprSnap<'vir>,
+                              prefix: &str|
+             -> Result<vir::ExprBool<'vir>, EncodeFullError<'vir, MethodEnc>> {
+                // Bind each argument's snapshot once with a `let` and use the
+                // bound variable in every set expression. The snapshot
+                // functions are heap-dependent (framed by a `wildcard`
+                // permission), and Silicon fails to match `qp_to_map`'s
+                // precondition against the just-inhaled inner QP when the two
+                // set expressions evaluate the snapshots separately.
+                let mut lets = Vec::with_capacity(arg_ims.len());
+                let mut snap_vars = Vec::with_capacity(arg_ims.len());
                 let mut inner = Vec::with_capacity(arg_ims.len());
-                for (im, addr, snap) in &arg_ims {
-                    inner.push(im.get_all_inner(*addr, snap_of(*snap)));
+                for (idx, (im, addr, snap)) in arg_ims.iter().enumerate() {
+                    let val = snap_of(*snap);
+                    let decl = vcx.mk_local_decl(
+                        vir::vir_format!(vcx, "{prefix}_im_snap_{idx}"),
+                        val.ty(),
+                    );
+                    lets.push((decl, val));
+                    let var = vcx.mk_local_ex(decl);
+                    snap_vars.push(var);
+                    inner.push(im.get_all_inner(*addr, var));
                 }
                 let union_inner = inner.iter().copied().reduce(|a, b| {
                     vcx.mk_anyset_op_expr(vir::CollectionBinOpKind::Union, a, b)
@@ -289,8 +306,8 @@ impl TaskEncoder for MethodEnc {
                 let mut object = Vec::with_capacity(arg_ims.len());
                 if let Some(union_inner) = union_inner {
                     let map = interior_mut_inner_map(deps, union_inner)?;
-                    for (im, addr, snap) in &arg_ims {
-                        object.push(im.get_all_object(*addr, snap_of(*snap), map));
+                    for ((im, addr, _), var) in arg_ims.iter().zip(&snap_vars) {
+                        object.push(im.get_all_object(*addr, *var, map));
                     }
                 }
                 let inner_qp = interior_mut_quant_perm(
@@ -311,12 +328,16 @@ impl TaskEncoder for MethodEnc {
                     object,
                     object_perm,
                 )?;
-                Ok((inner_qp, object_qp))
+                // The inner QP comes first: the object QP's `qp_to_map` needs
+                // the inner permission to be inhaled already.
+                let mut expr = vcx.mk_conj(&[inner_qp, object_qp]);
+                for (decl, val) in lets.into_iter().rev() {
+                    expr = vcx.mk_let_expr(decl, val, expr);
+                }
+                Ok(expr)
             };
 
-            let (pre_inner_qp, pre_object_qp) = mk_qps(deps, &|s| s)?;
-            pres.push(pre_inner_qp);
-            pres.push(pre_object_qp);
+            pres.push(mk_qps(deps, &|s| s, "pre")?);
 
             // In the postcondition we return only the interior-mutable objects
             // reachable *behind a reference* (computed by the indirect encoder,
@@ -331,7 +352,34 @@ impl TaskEncoder for MethodEnc {
             // the object QP's `qp_to_map` precondition / permission amounts can
             // no longer be matched at exhale here — that is the open QP-matching
             // problem (the perm verified before only because the map was dead).
-            let (post_inner, post_object) = wands.interior_mut_post_sets(vcx, &arg_defs, deps);
+            let (mut post_inner, mut post_object) =
+                wands.interior_mut_post_sets(vcx, &arg_defs, deps);
+            // The result's own IM objects are created by the function and
+            // returned to the caller: add its full sets (in the post state).
+            // As in `mk_qps`, the result's snapshot is bound once with a `let`
+            // shared by the inner set, the map and the object set.
+            let result = &arg_defs[mir::RETURN_PLACE];
+            let result_im = deps.require_dep::<TyInteriorMutUseEnc>(result.ty)?;
+            let result_snap_decl =
+                vcx.mk_local_decl("post_im_snap_result", result.impure_snap.ty());
+            let result_snap_var = vcx.mk_local_ex(result_snap_decl);
+            post_inner.push(result_im.get_all_inner(result.local_ex, result_snap_var));
+            let post_map = interior_mut_inner_map(
+                deps,
+                post_inner
+                    .iter()
+                    .copied()
+                    .reduce(|a, b| {
+                        vcx.mk_anyset_op_expr(vir::CollectionBinOpKind::Union, a, b)
+                            .downcast_ty()
+                    })
+                    .unwrap(),
+            )?;
+            post_object.push(result_im.get_all_object(
+                result.local_ex,
+                result_snap_var,
+                post_map,
+            ));
             let post_inner_qp = interior_mut_quant_perm(
                 vcx,
                 deps,
@@ -350,8 +398,11 @@ impl TaskEncoder for MethodEnc {
                 post_object,
                 object_perm,
             )?;
-            posts.push(post_inner_qp);
-            posts.push(post_object_qp);
+            posts.push(vcx.mk_let_expr(
+                result_snap_decl,
+                result.impure_snap,
+                vcx.mk_conj(&[post_inner_qp, post_object_qp]),
+            ));
 
             // Do not encode the method body if it is external, trusted, just
             // a call stub, or a trait function without a default implementation

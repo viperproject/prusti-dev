@@ -238,7 +238,11 @@ impl<'vir> WandEncOutput<'vir> {
     ) -> (Vec<vir::ExprSet<'vir>>, Vec<vir::ExprSet<'vir>>) {
         let mut inner = Vec::new();
         let mut object = Vec::new();
-        for g in self.inputs() {
+        // As in `indirect_posts`, inputs blocked by a result lifetime
+        // projection are skipped: their permission sits behind the wand until
+        // expiry (so their sets cannot even be evaluated here), and their
+        // interior-mutable objects are reachable through the result's set.
+        for g in self.inputs().filter(|i| !self.blocked_inputs().contains(i)) {
             let snap = vcx.mk_old_expr(local_defs[g.mir_local()].impure_snap);
             let (i, o) = self.interior_mut_sets_for_function_shape_node(vcx, deps, g, None, snap);
             inner.extend(i);

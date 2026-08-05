@@ -70,7 +70,10 @@ impl<'vir> PledgeExpr<'vir> {
     }
 
     pub fn expr(&self, args: PledgeArgs<'vir>) -> vir::ExprBool<'vir> {
-        vir::with_vcx(|vcx| self.expr.reify(vcx, (self.did, args.0)))
+        vir::with_vcx(|vcx| {
+            self.expr
+                .reify(vcx, (self.did, args.0, vcx.alloc(FxHashMap::default())))
+        })
     }
 
     pub fn span(&self) -> Span {
@@ -202,6 +205,20 @@ impl TaskEncoder for MirSpecEnc {
             let all_args = vcx.alloc(all_args);
             let pre_args = all_args; // it should be ok to provide more keys than required
 
+            // The addresses of the method locals the spec parameters
+            // correspond to, for `Impure` mode (where args and result live in
+            // `Ref`-typed locals). Pure modes have snapshot-only arguments.
+            let arg_addrs: FxHashMap<mir::Local, vir::ExprRef<'vir>> = match enc_mode {
+                MirSpecEncMode::Impure => (1..=local_defs.arg_count)
+                    .map(mir::Local::from)
+                    .map(|local| (local, local_defs[local].local_ex))
+                    .collect(),
+                MirSpecEncMode::PureWithResult | MirSpecEncMode::PureWithoutResult => {
+                    FxHashMap::default()
+                }
+            };
+            let pre_addrs = vcx.alloc(arg_addrs);
+
             // Encode each functional precondition; if one cannot be encoded (e.g.
             // it uses an unsupported feature), report the error at *that spec's*
             // span and skip only it, keeping the permission contract and the other
@@ -220,7 +237,7 @@ impl TaskEncoder for MirSpecEnc {
                         "precondition",
                     )?;
                     let expr = spec.expr.downcast_ty::<vir::Bool>();
-                    let expr = expr.reify(vcx, (*spec_def_id, pre_args));
+                    let expr = expr.reify(vcx, (*spec_def_id, pre_args, pre_addrs));
                     let span = vcx.tcx().def_span(*spec_def_id);
                     Some((vcx.with_span(span, |_| expr), span))
                 })
@@ -239,6 +256,22 @@ impl TaskEncoder for MirSpecEnc {
                     vcx.alloc(post_args)
                 }
                 MirSpecEncMode::PureWithResult | MirSpecEncMode::PureWithoutResult => all_args,
+            };
+            let post_addrs = match enc_mode {
+                // Addresses are not `old`-wrapped: locals do not move. The
+                // result's address is added under the result parameter.
+                MirSpecEncMode::Impure => {
+                    let post_addrs: FxHashMap<mir::Local, vir::ExprRef<'vir>> = pre_addrs
+                        .iter()
+                        .map(|(local, addr)| (*local, *addr))
+                        .chain([(
+                            (local_defs.arg_count + 1).into(),
+                            local_defs[mir::RETURN_PLACE].local_ex,
+                        )])
+                        .collect();
+                    vcx.alloc(post_addrs)
+                }
+                MirSpecEncMode::PureWithResult | MirSpecEncMode::PureWithoutResult => pre_addrs,
             };
             let posts: Vec<(vir::ExprBool<'_>, Span)> = specs
                 .posts
@@ -262,7 +295,7 @@ impl TaskEncoder for MirSpecEnc {
                             )])
                         });
                         let expr = spec.expr.downcast_ty::<vir::Bool>();
-                        let expr = expr.reify(vcx, (*spec_def_id, post_args));
+                        let expr = expr.reify(vcx, (*spec_def_id, post_args, post_addrs));
                         Some((expr, span))
                     })
                 })

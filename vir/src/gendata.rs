@@ -44,6 +44,7 @@ impl<'vir, Curr, Next> BinOpGenData<'vir, Curr, Next> {
             | BinOpKind::PermMul
             | BinOpKind::PermPermDiv
             | BinOpKind::FracPerm => crate::TYPE_PERM.upcast_ty(),
+            BinOpKind::PermGeCmp => crate::TYPE_BOOL.upcast_ty(),
         };
         ty.as_dyn()
     }

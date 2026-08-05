@@ -382,9 +382,11 @@ impl TaskEncoder for ConstEnc {
                         let expr = deps.require_dep::<MirPureEnc>(task)?.expr;
                         use vir::Reify;
                         let args = Default::default();
+                        let addrs = Default::default();
                         Ok((
                             Vec::new(),
-                            expr.reify(vcx, (uneval.def, vcx.alloc(args))).downcast_ty(),
+                            expr.reify(vcx, (uneval.def, vcx.alloc(args), vcx.alloc(addrs)))
+                                .downcast_ty(),
                         ))
                     } else {
                         todo!("const too generic")

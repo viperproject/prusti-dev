@@ -1572,9 +1572,21 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             .iter()
             .map(|local| (*local, self.local_defs.locals[*local].impure_snap))
             .collect();
+        let addrs: FxHashMap<mir::Local, _> = enc_output
+            .inputs
+            .iter()
+            .map(|local| (*local, self.local_defs.locals[*local].local_ex))
+            .collect();
         let expr = enc_output
             .expr
-            .reify(self.vcx, (self.def_id, self.vcx.alloc(locals)))
+            .reify(
+                self.vcx,
+                (
+                    self.def_id,
+                    self.vcx.alloc(locals),
+                    self.vcx.alloc(addrs),
+                ),
+            )
             .downcast_ty();
         Ok(expr)
     }
@@ -2287,7 +2299,26 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     })
                 })
                 .collect::<Vec<_>>();
-            Some((true, pure_func.call_impure(snap_args)))
+            let call = if pure_func.is_pure_unstable() {
+                // The callee expects the inner-IM-QP `Map`: materialize it
+                // from the heap at this statement.
+                let arg_data = args
+                    .iter()
+                    .zip(snap_args.iter())
+                    .map(|(arg, snap)| {
+                        let ty = arg.node.ty(self.body, self.vcx.tcx());
+                        let ty = RustTyDecomposition::from_ty(ty, self.context());
+                        (ty, self.vcx.mk_null(), *snap)
+                    })
+                    .collect::<Vec<_>>();
+                let inner_map =
+                    crate::encoders::ty::interior_mut::pure_unstable_call_map(self.deps, &arg_data)
+                        .unwrap();
+                pure_func.call_impure_unstable(snap_args, inner_map)
+            } else {
+                pure_func.call_impure(snap_args)
+            };
+            Some((true, call))
         } else {
             None
         })

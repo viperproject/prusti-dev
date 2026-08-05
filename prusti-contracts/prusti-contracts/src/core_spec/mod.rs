@@ -1,9 +1,10 @@
 use crate::*;
 
+pub mod cell;
+pub mod default;
 pub mod eq;
 pub mod float;
 pub mod slice;
-pub mod cell;
 // pub mod ref_cell;
 
 pub use eq::PureEq;

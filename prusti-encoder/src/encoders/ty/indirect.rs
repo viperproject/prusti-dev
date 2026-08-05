@@ -104,7 +104,7 @@ pub fn interior_mut_quant_perm<'vir, E: TaskEncoder>(
     // The elements of the `_IM` sets are `(address, type, ..)` tuples of unknown
     // (dynamic) type, so the permission for each element is to the generic
     // (`Param`) predicate at that address.
-    let param = RustTyDecomposition::from_ty(vcx.tcx().types.self_param, GParams::empty()).ty;
+    let param = RustTyDecomposition::param();
     let generic_pred = deps.require_dep::<TyImpureEnc>(param)?.data.ref_to_pred;
     let set = sets
         .into_iter()

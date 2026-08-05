@@ -34,7 +34,17 @@ pub enum MirPureEncError {
     // UnsupportedTerminator,
 }
 
-pub type ExprInput<'vir> = (DefId, &'vir FxHashMap<mir::Local, vir::ExprSnap<'vir>>);
+/// The reify context of pure/spec expressions: the function whose body is
+/// encoded, the snapshot of each of its parameters, and (for specs of impure
+/// contexts) the address of the method local each parameter corresponds to.
+/// The address map may be empty (e.g. for the specs of pure functions, whose
+/// arguments are snapshot-only); references to locals without an address are
+/// encoded with a `null` address.
+pub type ExprInput<'vir> = (
+    DefId,
+    &'vir FxHashMap<mir::Local, vir::ExprSnap<'vir>>,
+    &'vir FxHashMap<mir::Local, vir::ExprRef<'vir>>,
+);
 type ExprRet<'vir> = vir::ExprGenSnap<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
 type ExprRetRef<'vir> = vir::ExprGenRef<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
 type ExprRetAny<'vir, T> = vir::ExprGen<'vir, ExprInput<'vir>, vir::ExprKind<'vir>, T>;
@@ -911,16 +921,28 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             .collect::<Result<Vec<_>, _>>()?;
                         if pure_func.is_pure_unstable() {
                             // The callee expects the inner-IM-QP `Map`. Forward
-                            // the one this (`#[pure_unstable]`) function received.
-                            let caller = self.def_id;
-                            let pu = crate::encoders::get_pure_unstable(caller);
-                            let inner_map = self.inner_map.unwrap_or_else(|| {
-                                panic!(
-                                    "call to #[pure_unstable] {def_id:?} from {caller:?} \
-                                     (pure_unstable={pu:?}) that does not have an inner-IM map \
-                                     in scope"
-                                )
-                            });
+                            // the one this (`#[pure_unstable]`) function
+                            // received, or, when encoding a spec/assertion of
+                            // an impure context, materialize it from the heap
+                            // at this position.
+                            let inner_map = match self.inner_map {
+                                Some(map) => map,
+                                None => {
+                                    let arg_data = args
+                                        .iter()
+                                        .zip(snap_args.iter())
+                                        .map(|(arg, snap)| {
+                                            let ty = arg.node.ty(self.body, self.vcx.tcx());
+                                            let ty =
+                                                RustTyDecomposition::from_ty(ty, self.context);
+                                            (ty, self.vcx.mk_null().lazy(), *snap)
+                                        })
+                                        .collect::<Vec<_>>();
+                                    crate::encoders::ty::interior_mut::pure_unstable_call_map(
+                                        self.deps, &arg_data,
+                                    )?
+                                }
+                            };
                             Ok(pure_func.call_pure_unstable(snap_args, inner_map))
                         } else {
                             Ok(pure_func.call_pure(snap_args))
@@ -999,7 +1021,29 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     // e.g. `#[requires(x == y)]`, which creates a borrow of the
                     // arguments which weren't borrows in the first place.
                     .filter(|_| place.is_indirect())
-                    .unwrap_or_else(|| self.vcx.mk_null().lazy());
+                    .unwrap_or_else(|| {
+                        if place.projection.is_empty() {
+                            // A reference to a bare local (e.g. `&result` in a
+                            // postcondition): use the address of the method
+                            // local this parameter corresponds to, if the reify
+                            // context provides one. Interior-mutability
+                            // reasoning identifies objects by address, so this
+                            // is what connects such specs to the caller's heap.
+                            let local = place.local;
+                            self.vcx.mk_lazy_expr(
+                                vir::vir_format!(self.vcx, "addr of _{}", local.index()),
+                                vir::TYPE_REF,
+                                Box::new(move |vcx, lctx: ExprInput<'vir>| {
+                                    lctx.2
+                                        .get(&local)
+                                        .map(|addr| addr.kind)
+                                        .unwrap_or_else(|| vcx.mk_null().kind)
+                                }),
+                            )
+                        } else {
+                            self.vcx.mk_null().lazy()
+                        }
+                    });
                 let metadata = encoded_place
                     .metadata
                     .unwrap_or_else(|| self.expect_thin_ptr_metadata(rvalue_ty));
@@ -1308,7 +1352,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 caller_def_id: Some(self.def_id),
             })?
             .expr
-            .reify(self.vcx, (cl_def_id, self.vcx.alloc(reify_args)))
+            .reify(
+                self.vcx,
+                (
+                    cl_def_id,
+                    self.vcx.alloc(reify_args),
+                    self.vcx.alloc(FxHashMap::default()),
+                ),
+            )
             .lift();
         Ok((qvars, body.downcast_ty::<vir::Bool>()))
     }

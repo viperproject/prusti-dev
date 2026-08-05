@@ -139,6 +139,52 @@ pub fn interior_mut_inner_map<'vir, E: TaskEncoder>(
     Ok(qp_to_map(inner_set))
 }
 
+/// The inner-IM-QP `Map` argument for a call to a `#[pure_unstable]` function
+/// from a context that does not itself carry the map: an impure body, or a
+/// spec/assertion of an impure method. There the heap is available at the
+/// position the expression lands in, so the map is materialized on the spot
+/// via `qp_to_map` over the union of the callee arguments' inner-IM sets (the
+/// same sets the enclosing method's boundary QPs range over, so `qp_to_map`'s
+/// precondition is dischargeable from the held QP).
+///
+/// `args` provides, per callee argument, its type decomposition, an address
+/// expression, and its snapshot. The address may be a dummy (`null`) for
+/// reference arguments: their inner-IM set functions read through the
+/// snapshot's deref address and ignore the top-level address parameter.
+pub(crate) fn pure_unstable_call_map<'vir, Curr: 'vir, Next: 'vir, E: TaskEncoder>(
+    deps: &mut task_encoder::TaskEncoderDependencies<'vir, E>,
+    args: &[(
+        RustTyDecomposition<'vir>,
+        vir::ExprGenRef<'vir, Curr, Next>,
+        vir::ExprGenSnap<'vir, Curr, Next>,
+    )],
+) -> Result<vir::ExprGenMap<'vir, Curr, Next>, EncodeFullError<'vir, E>> {
+    let pair = deps
+        .require_dep::<PairUseEnc>(vec![vir::TYPE_REF.as_dyn(), vir::TYPE_TYVAL.as_dyn()])
+        .unwrap();
+    let qp_to_map = deps.require_dep::<QpToMapEnc>(())?;
+    let mut sets = Vec::new();
+    for (ty, addr, snap) in args {
+        let im = deps.require_dep::<TyInteriorMutUseEnc>(*ty)?;
+        sets.push(im.inner.call()(
+            *addr,
+            *snap,
+            im.args.get_ty(),
+            im.args.get_const(),
+        ));
+    }
+    Ok(vir::with_vcx(|vcx| {
+        let set = sets
+            .into_iter()
+            .reduce(|a, b| {
+                vcx.mk_anyset_op_expr(vir::CollectionBinOpKind::Union, a, b)
+                    .downcast_ty()
+            })
+            .unwrap_or_else(|| vcx.mk_set_literal_expr(&[], pair.ty));
+        qp_to_map.call()(set)
+    }))
+}
+
 pub(super) struct TyInteriorMutEnc;
 
 pub(crate) type InteriorMutFn<'vir> =
@@ -284,7 +330,7 @@ impl TaskEncoder for TyInteriorMutEnc {
                 TySpecifics::Param(_) => None,
                 TySpecifics::Opaque(_) => None,
                 TySpecifics::ImmRef(data) => Some(field_enc.all_in_immref(data)?),
-                TySpecifics::MutRef(_) => todo!(),
+                TySpecifics::MutRef(data) => Some(field_enc.all_in_mutref(data)?),
                 // Builtins (e.g. `Real`) have no interior-mutable objects.
                 TySpecifics::Builtin(_) => Some(empty_sets),
                 TySpecifics::ArrayLike(_) => todo!(),
@@ -312,13 +358,24 @@ impl TaskEncoder for TyInteriorMutEnc {
                     .unwrap()
                     .metadata
                     .decompose_normalize(input.args);
-                let metadata = field_enc
+                let metadata = match field_enc
                     .deps
                     .require_dep::<TyUsePureEnc>(metadata_ty)
                     .unwrap()
                     .zst_to_snap()
-                    .expect("interior mutability accessor should take a thin reference")
-                    .upcast_ty();
+                {
+                    Some(m) => m.upcast_ty(),
+                    // The receiver is not statically thin (e.g. the accessor is
+                    // on `impl<T: ?Sized>`). The metadata value is irrelevant
+                    // for the accessor call, so use the arbitrary (but
+                    // deterministic) unreachable snapshot to keep the IM set
+                    // consistent across states.
+                    None => field_enc
+                        .deps
+                        .require_ref::<TyUsePureEnc>(metadata_ty)
+                        .unwrap()
+                        .unreachable_to_snap(),
+                };
                 let input = field_enc
                     .deps
                     .require_dep::<TyUsePureEnc>(input)
@@ -403,6 +460,7 @@ impl TaskEncoder for TyInteriorMutEnc {
             // `s_Param_IM_object`) then passes the receiver injectivity check.
             let mut object_posts = mk_post(object_set);
             object_posts.push(field_enc.object_injective_post(object_result));
+            object_posts.push(field_enc.object_nonneg_post(object_result));
             let object_fn = vcx.mk_function(
                 object_idn,
                 (
@@ -492,6 +550,37 @@ impl<'vir> TyInteriorMutField<'_, 'vir> {
         )
     }
 
+    /// The (assumed) nonnegativity postcondition for an object-IM set
+    /// function: every triple's permission amount is nonnegative. Object QPs
+    /// over such sets need this to be well-formed (a QP amount must be
+    /// provably nonnegative).
+    fn object_nonneg_post(&self, set_ty: vir::TypeSet<'vir>) -> vir::ExprBool<'vir> {
+        let vcx = self.vcx;
+        let result: vir::ExprSet<'vir> = vcx.mk_result(set_ty);
+        let im = vcx.mk_local_decl("im", self.triple.ty);
+        let im_ex = vcx.mk_local_ex(im);
+        let im_in = vcx.mk_set_in_expr(im_ex, result);
+        let amount = self.triple.destructors[2].call()(im_ex).downcast_ty::<vir::Perm>();
+        let zero = vcx
+            .mk_bin_op_expr(
+                vir::BinOpKind::FracPerm,
+                vcx.mk_const_expr(vir::ConstData::Int(0)),
+                vcx.mk_const_expr(vir::ConstData::Int(1)),
+            )
+            .downcast_ty::<vir::Perm>();
+        let nonneg = vcx
+            .mk_bin_op_expr(vir::BinOpKind::PermGeCmp, amount, zero)
+            .downcast_ty();
+        let body = vcx
+            .mk_bin_op_expr(vir::BinOpKind::Implies, im_in, nonneg)
+            .downcast_ty();
+        vcx.mk_forall_expr(
+            vcx.alloc_slice(&[im]),
+            vcx.alloc_slice(&[vcx.mk_trigger(&[im_in])]),
+            body,
+        )
+    }
+
     /// Evaluates the `#[interior_mut(EXPR)]` permission expression (the spec
     /// closure `perm_def_id`, taking the interior-mutable object's `self`
     /// snapshot `input`) into a Viper `Perm` amount.
@@ -516,6 +605,25 @@ impl<'vir> TyInteriorMutField<'_, 'vir> {
         // `Real` is represented natively as Viper `Perm`, so the returned
         // snapshot is the permission amount directly.
         Ok(perm_snap.downcast_ty())
+    }
+
+    /// A mutable reference also grants all interior-mutable objects reachable
+    /// through it, computed like [`Self::all_in_immref`] from the referent
+    /// value in the reference's snapshot.
+    fn all_in_mutref(
+        &mut self,
+        data: &<(RustTyDatas, (PureTyDatas, ImpureTyDatas)) as TyDatas<'vir>>::MutRefData,
+    ) -> Result<ImSets<'vir>, EncodeFullError<'vir, TyInteriorMutEnc>> {
+        let (inner, (pure, _)) = *data;
+        let ty = inner.referent.decompose(self.params);
+        let inner = self.deps.require_dep::<TyInteriorMutUseEnc>(ty)?;
+
+        let addr = pure.deref_access.call()(self.snap.downcast_ty());
+        let snap = pure.value_access.call()(self.snap.downcast_ty());
+        Ok(ImSets {
+            inner: inner.get_all_inner(addr, snap.upcast_ty()),
+            object: inner.get_all_object(addr, snap.upcast_ty(), self.inner_map),
+        })
     }
 
     fn all_in_immref(
@@ -571,7 +679,7 @@ impl<'vir> TyInteriorMutField<'_, 'vir> {
     ) -> Result<ImSets<'vir>, EncodeFullError<'vir, TyInteriorMutEnc>> {
         let discr_snap = data.1.0.snap_to_discr_snap.call()(self.snap.downcast_ty());
         let vcx = self.vcx;
-        let (_, sets) = data
+        let folded = data
             .variants
             .iter()
             .map(|variant| {
@@ -588,9 +696,13 @@ impl<'vir> TyInteriorMutField<'_, 'vir> {
                         object: vcx.mk_ternary_expr(cond, sets.object, next_sets.object),
                     },
                 ))
-            })
-            .unwrap()?;
-        Ok(sets)
+            });
+        match folded {
+            Some(sets) => Ok(sets?.1),
+            // An uninhabited enum (e.g. `Never`) has no values and therefore
+            // no interior-mutable objects.
+            None => Ok(self.empty_sets()),
+        }
     }
 }
 
@@ -616,7 +728,9 @@ impl TaskEncoder for RawPtrToRefEnc {
             let raw_ptr = vcx
                 .tcx()
                 .mk_ty_from_kind(ty::TyKind::RawPtr(vcx.tcx().types.self_param, *task_key));
-            let raw_ptr = RustTyDecomposition::from_ty(raw_ptr, GParams::empty());
+            // Decompose in the context of the generic `Param` type, which
+            // declares the single type parameter the pointee refers to.
+            let raw_ptr = RustTyDecomposition::from_ty(raw_ptr, RustTyDecomposition::param().params);
             let raw_ptr = deps
                 .require_ref::<TyPureEnc>(raw_ptr.ty)?
                 .snapshot
@@ -672,11 +786,7 @@ impl TaskEncoder for QpToMapEnc {
             .require_dep::<PairUseEnc>(vec![vir::TYPE_REF.as_dyn(), vir::TYPE_TYVAL.as_dyn()])
             .unwrap();
         // The generic `Param` predicate and its snapshot function.
-        let param = RustTyDecomposition::from_ty(
-            vir::with_vcx(|vcx| vcx.tcx().types.self_param),
-            GParams::empty(),
-        )
-        .ty;
+        let param = RustTyDecomposition::param();
         let param_ref = deps.require_dep::<TyImpureEnc>(param)?;
         let generic_pred = param_ref.data.ref_to_pred;
         let generic_snap = param_ref.data.ref_to_snap;
