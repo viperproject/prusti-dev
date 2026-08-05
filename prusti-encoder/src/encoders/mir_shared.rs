@@ -140,6 +140,7 @@ pub(crate) trait PureRvalueEnc<'vir> {
         l: &mir::Operand<'vir>,
         r: &mir::Operand<'vir>,
         ctxt: &Self::EncodePlaceCtxt,
+        span: Span,
     ) -> ExprResult<'vir, Self> {
         let l_ty = l.ty(self.body(), self.vcx().tcx());
         let r_ty = r.ty(self.body(), self.vcx().tcx());
@@ -147,7 +148,9 @@ pub(crate) trait PureRvalueEnc<'vir> {
         let r_ty = RustTyDecomposition::from_ty(r_ty, self.context());
         let rvalue_ty = RustTyDecomposition::from_ty(rvalue_ty, self.context());
         let task = MirBuiltinBinOpTask::new(rvalue_ty, op, l_ty, r_ty);
-        let op = self.deps().require_dep::<MirBuiltinBinOpEnc>(task)?;
+        let op = self
+            .deps()
+            .require_dep_spanned::<MirBuiltinBinOpEnc>(task, span)?;
 
         let encoded_l = self.encode_operand_snap(l, ctxt)?;
         let encoded_r = self.encode_operand_snap(r, ctxt)?;
