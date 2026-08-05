@@ -15,5 +15,16 @@ trait PartialEq<Rhs> {
     fn ne(&self, other: &Rhs) -> bool;
 }
 
+#[extern_spec]
+impl<T: PartialEq> PartialEq for Option<T> {
+    #[pure]
+    #[ensures(result == match (self, other) {
+        (Some(l), Some(r)) => *l == *r,
+        (None, None) => true,
+        _ => false,
+    })]
+    fn eq(&self, other: &Option<T>) -> bool;
+}
+
 /// Specifies that `PartialEq::eq`, if implemented, is a pure method, allowing its usage in specs.
 pub auto trait PureEq {}

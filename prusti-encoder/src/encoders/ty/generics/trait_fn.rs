@@ -11,7 +11,7 @@ use crate::{
         FunctionCallEnc, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc,
         mir_fn::CallTaskDescription,
         pure::spec::MirSpecEncMode,
-        ty::generics::{GArgs, GParams, GenericParamsEnc},
+        ty::generics::{GArgs, GParams, GenericParamsEnc, r#trait::TraitEnc},
     },
     trait_support::is_function_with_body,
 };
@@ -176,6 +176,10 @@ impl TaskEncoder for TraitFnEnc {
                     call_stub_pure_function,
                 },
             )?;
+            // The stubs' semantics are given by the impls' axioms; require the
+            // trait so that its impls' condition/axiom triggers are registered
+            // (foreign traits are not encoded by `encode_all_in_crate`).
+            deps.require_ref::<TraitEnc>(trait_def_id)?;
             dom_funcs.push(vcx.mk_domain_function(pre_func, false, None));
             dom_funcs.push(vcx.mk_domain_function(post_func, false, None));
 

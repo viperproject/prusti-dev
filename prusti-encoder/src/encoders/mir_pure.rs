@@ -992,7 +992,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 Ok(snap.upcast_ty())
             }
             mir::Rvalue::BinaryOp(op, box (l, r)) => {
-                self.encode_binop_snap(rvalue_ty, *op, l, r, curr_ver)
+                self.encode_binop_snap(rvalue_ty, *op, l, r, curr_ver, span)
             }
             mir::Rvalue::UnaryOp(unop, operand) => {
                 self.encode_unary_op_snap(rvalue_ty, *unop, operand, curr_ver)
