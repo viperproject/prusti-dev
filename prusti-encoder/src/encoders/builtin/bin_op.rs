@@ -11,6 +11,13 @@ use crate::encoders::ty::{
 /// etc.) as Viper functions with the correct semantics.
 pub struct MirBuiltinBinOpEnc;
 
+#[derive(Clone, Debug)]
+pub enum MirBuiltinBinOpEncError {
+    Unsupported(#[allow(dead_code)] String),
+}
+
+type EncodeResult<'vir, T> = Result<T, EncodeFullError<'vir, MirBuiltinBinOpEnc>>;
+
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct MirBuiltinBinOpTask<'vir> {
     result_ty: RustTyDecomposition<'vir>,
@@ -46,6 +53,8 @@ impl TaskEncoder for MirBuiltinBinOpEnc {
 
     type OutputFullDependency<'vir> = vir::FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::CSnap>;
     type OutputFullLocal<'vir> = vir::Function<'vir>;
+
+    type EncodingError = MirBuiltinBinOpEncError;
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task
@@ -103,7 +112,7 @@ impl TaskEncoder for MirBuiltinBinOpEnc {
                     } else {
                         let res_ty = *result_ty.ty.expect_primitive();
                         let (pres, val) =
-                            Self::handle_bin_op_native(vcx, lhs, rhs, res_ty, op, l_ty);
+                            Self::handle_bin_op_native(vcx, lhs, rhs, res_ty, op, l_ty)?;
                         (pres, res.expect_primitive().prim_to_snap(val))
                     }
                 }
@@ -135,8 +144,18 @@ impl MirBuiltinBinOpEnc {
         res_ty: ty::Ty<'vir>,
         op: mir::BinOp,
         in_ty: ty::Ty<'vir>,
-    ) -> (Vec<vir::ExprBool<'vir>>, vir::ExprPrim<'vir>) {
+    ) -> EncodeResult<'vir, (Vec<vir::ExprBool<'vir>>, vir::ExprPrim<'vir>)> {
         use mir::BinOp::*;
+        if matches!(op, BitXor | BitAnd | BitOr) && !in_ty.is_bool() {
+            // Viper `Int`s have no native bitwise operations; the `BinOpKind`
+            // mapping (`!=`/`&&`/`||`) is only correct for `bool` operands.
+            return Err(EncodeFullError::EncodingError(
+                MirBuiltinBinOpEncError::Unsupported(format!(
+                    "bitwise operation `{op:?}` on `{in_ty}`"
+                )),
+                None,
+            ));
+        }
         if matches!(op, Shl | Shr) {
             // RHS must be smaller than the bit width of the LHS, this is
             // implicit in the `Shl` and `Shr` operators.
@@ -164,13 +183,13 @@ impl MirBuiltinBinOpEnc {
                     vcx.mk_ternary_expr(b_gt_a, vcx.mk_int::<-1>(), vcx.mk_int::<0>()),
                 )
                 .upcast_ty();
-            (vec![], val)
+            Ok((vec![], val))
         } else {
             let op_kind = vir::BinOpKind::from(op);
             let viper_val = vcx
                 .mk_bin_op_expr_inner(op_kind, lhs.as_dyn(), rhs.as_dyn())
                 .downcast_ty();
-            match op {
+            Ok(match op {
                 // Overflow well defined as wrapping (implicit) and for the shifts
                 // the RHS will be masked to the bit width.
                 Add | Sub | Mul | Shl | Shr => (
@@ -267,7 +286,8 @@ impl MirBuiltinBinOpEnc {
                     }
                     (pres, val)
                 }
-                // Cannot overflow and no undefined behavior
+                // Cannot overflow and no undefined behavior (the bitwise
+                // operations are `bool`-only, rejected above for integers)
                 BitXor | BitAnd | BitOr | Eq | Lt | Le | Ne | Ge | Gt | Offset => {
                     (Vec::new(), viper_val)
                 }
@@ -277,7 +297,7 @@ impl MirBuiltinBinOpEnc {
 
                 // this is handled separately, earlier
                 Cmp => unreachable!(),
-            }
+            })
         }
     }
 
