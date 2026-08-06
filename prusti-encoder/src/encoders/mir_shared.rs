@@ -67,21 +67,31 @@ pub(crate) trait PureRvalueEnc<'vir> {
     fn body(&self) -> &mir::Body<'vir>;
     fn ty_use_pure(&mut self, ty: ty::Ty<'vir>) -> TyUsePure<'vir>;
 
-    /// The pointer metadata for a freshly created reference of type `ref_ty`
-    /// when no metadata is carried over from the referent place (i.e. a thin
-    /// pointer to a sized referent): the snapshot of the referent's metadata
-    /// type, which is `()` for all sized types, built with its regular
-    /// (zero-field) constructor. Returns `None` for an unsized referent
-    /// (slice/`dyn`), whose metadata cannot be conjured here and must instead
-    /// be propagated from the wide pointer the place is reached through.
-    fn thin_ptr_metadata(
+    /// When creating a reference to a place, the metadata either comes from a
+    /// deref along the projections in the place (e.g. `(*x).last_field` would
+    /// take the metadata from `x`) or the place has no derefs in which case
+    /// rustc guarantees that it is `Sized` and thus the metadata is `()`. In
+    /// this case, this function constructs such a metadata value, panicking if
+    /// we could not prove that `ref_ty` points to a sized type (which should
+    /// never happen due to the rustc guarantee).
+    fn expect_thin_ptr_metadata(
         &mut self,
         ref_ty: ty::Ty<'vir>,
-    ) -> Option<vir::ExprGenSnap<'vir, Self::ExprCurr, Self::ExprNext>> {
+    ) -> vir::ExprGenSnap<'vir, Self::ExprCurr, Self::ExprNext> {
         let metadata_ty = ref_ty.pointee_metadata_ty_or_projection(self.vcx().tcx());
+        // `pointee_metadata_ty_or_projection` only resolves bound-independent
+        // ("trivial") sizedness, leaving e.g. `<Cell<T> as Pointee>::Metadata`
+        // as a projection even though the body's `T: Sized` bound makes it
+        // `()`. Normalize in the body's environment to resolve such cases.
+        let metadata_ty = self.context().normalize(metadata_ty);
+        assert!(
+            metadata_ty.is_unit(),
+            "expected metadata type {metadata_ty:?} to be unit for a sized referent"
+        );
         self.ty_use_pure(metadata_ty)
             .zst_to_snap()
-            .map(|m| m.upcast_ty())
+            .unwrap()
+            .upcast_ty()
     }
 
     /// Build an error for an unsupported feature reached during rvalue encoding.
