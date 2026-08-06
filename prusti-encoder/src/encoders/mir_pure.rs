@@ -67,6 +67,7 @@ pub enum PureKind {
     Spec(Option<ExternSpecKind>),
     Pure,
     Constant(mir::Promoted),
+    NamedConstant,
     SpecBlock(mir::BasicBlock),
 }
 
@@ -140,6 +141,9 @@ impl TaskEncoder for MirPureEnc {
                     .get_pure_fn_body(def_id, substs, caller_def_id),
                 PureKind::Constant(promoted) => {
                     vcx.body_mut().get_promoted_constant_body(def_id, promoted)
+                }
+                PureKind::NamedConstant => {
+                    vcx.body_mut().get_const_body(def_id, substs, caller_def_id)
                 }
                 PureKind::SpecBlock(_) => vcx
                     .body_mut()
@@ -364,12 +368,11 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         deps: &'enc mut TaskEncoderDependencies<'vir, MirPureEnc>,
     ) -> Self {
         let rev_doms = rev_doms::ReverseDominators::new(&body.basic_blocks);
-        // A `#[pure_unstable]` function takes the inner-IM-QP `Map` as an extra
-        // Viper parameter (added by `FunctionEnc`); reference it here so the body
-        // can forward it to `#[pure_unstable]` callees.
+        // A `#[pure_unstable]` function takes the IM-QP `Map` snapshot as an
+        // extra Viper parameter (added by `FunctionEnc`); reference it here so
+        // the body can forward it to `#[pure_unstable]` callees.
         let inner_map = crate::encoders::get_pure_unstable(def_id).map(|_| {
-            let decl =
-                crate::encoders::ty::interior_mut::pure_unstable_inner_map_decl(deps).unwrap();
+            let decl = crate::encoders::ty::interior_mut::pure_unstable_map_decl(deps).unwrap();
             vcx.mk_local_ex(decl)
         });
         Self {
@@ -939,7 +942,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                                         })
                                         .collect::<Vec<_>>();
                                     crate::encoders::ty::interior_mut::pure_unstable_call_map(
-                                        self.deps, &arg_data,
+                                        self.deps,
+                                        &arg_data,
+                                        pure_func.pure_unstable_inner_only(),
                                     )?
                                 }
                             };
@@ -982,7 +987,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             mir::StatementKind::StorageDead(..)
             | mir::StatementKind::FakeRead(..)
             | mir::StatementKind::AscribeUserType(..)
-            | mir::StatementKind::PlaceMention(..) => {} // nop
+            | mir::StatementKind::PlaceMention(..)
+            | mir::StatementKind::ConstEvalCounter => {} // nop
             mir::StatementKind::Assign(box (dest, rvalue)) => {
                 //assert!(dest.projection.is_empty());
                 let span = stmt.source_info.span;

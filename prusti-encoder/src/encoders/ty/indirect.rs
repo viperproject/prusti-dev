@@ -6,20 +6,17 @@ use prusti_rustc_interface::{
     index::IndexVec,
     middle::ty::{self, TyCtxt},
 };
-use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, Reify};
 
-use crate::encoders::{
-    TyUseImpureEnc,
-    custom::{PairUse, PairUseEnc},
-    ty::RustTyDecomposition,
-};
+use crate::encoders::{TyUseImpureEnc, ty::RustTyDecomposition};
 
 use super::{
     data::{StructData, TySpecifics},
-    generics::GParams,
-    impure::TyImpureEnc,
-    interior_mut::{QpToMapEnc, TyInteriorMutUseEnc},
+    interior_mut::{
+        IM_LEVELS, ImTys, MapUnionEnc, MapUnionFns, QpToMapEnc, QpToMapFn, TyInteriorMutUseEnc,
+        TyInteriorMutUseExpr, fold_pairs,
+    },
     rust_ty::RustTyDatas,
     use_pure::{TyUsePureEnc, UsePureTyDatas},
 };
@@ -46,111 +43,27 @@ pub struct IndirectPredicatesEnc;
 
 type ExprInput<'vir> = vir::ExprSnap<'vir>;
 type ExprOutput<'vir> = vir::ExprGenBool<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
-type SetOutput<'vir> = vir::ExprGenSet<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
+type PairOutput<'vir> = vir::ExprGen<'vir, ExprInput<'vir>, vir::ExprKind<'vir>, vir::Pair>;
 
 #[derive(Clone)]
 pub struct IndirectPredicatesEncOutputRef<'vir> {
     pub predicate_applications: Vec<ExprOutput<'vir>>,
-    /// Sets of `(address, type)` pairs of the full-permission (inner-IM)
+    /// Per IM level, the `(owned, shared)` permission-map pairs of the
     /// interior-mutable objects reachable through references with the
     /// projection's region.
-    pub interior_mut_inner_sets: Vec<SetOutput<'vir>>,
-    /// Sets of `(address, type)` pairs of the permission-expression (object-IM)
-    /// interior-mutable objects reachable through references with the
-    /// projection's region.
-    pub interior_mut_object_sets: Vec<SetOutput<'vir>>,
+    pub interior_mut_pairs: [Vec<PairOutput<'vir>>; IM_LEVELS],
 }
 
 impl<'vir> IndirectPredicatesEncOutputRef<'vir> {
     pub fn new(
         predicate_applications: Vec<ExprOutput<'vir>>,
-        interior_mut_inner_sets: Vec<SetOutput<'vir>>,
-        interior_mut_object_sets: Vec<SetOutput<'vir>>,
+        interior_mut_pairs: [Vec<PairOutput<'vir>>; IM_LEVELS],
     ) -> Self {
         Self {
             predicate_applications,
-            interior_mut_inner_sets,
-            interior_mut_object_sets,
+            interior_mut_pairs,
         }
     }
-}
-
-/// Constructs a quantified permission granting access to all interior-mutable
-/// objects in the union of the given `_IM` sets. A single quantified permission
-/// over the union (rather than one per set) ensures that aliased objects, which
-/// appear in multiple sets, are counted only once.
-///
-/// `pair_tys` is the element type of the sets: `[Ref, Type]` for inner-IM sets
-/// and `[Ref, Type, Perm]` for object-IM sets (whose elements carry the
-/// permission amount as the third component). `amount` computes the permission
-/// for an element given the `PairUse` and the element expression; `None`
-/// (returned or as the whole closure result) means full (`write`) permission.
-/// Note that the inner-IM and object-IM sets must be passed to *separate* calls
-/// (distinct QPs): unioning sets built from different `_IM` functions into one
-/// QP breaks Silicon's quantified-permission receiver matching between pre- and
-/// postconditions.
-pub fn interior_mut_quant_perm<'vir, E: TaskEncoder>(
-    vcx: &'vir vir::VirCtxt<'vir>,
-    deps: &mut TaskEncoderDependencies<'vir, E>,
-    pair_tys: Vec<vir::TypeDyn<'vir>>,
-    sets: Vec<vir::ExprSet<'vir>>,
-    amount: impl FnOnce(
-        &mut TaskEncoderDependencies<'vir, E>,
-        &PairUse<'vir>,
-        vir::ExprDyn<'vir>,
-    ) -> Result<Option<vir::ExprPerm<'vir>>, EncodeFullError<'vir, E>>,
-) -> Result<vir::ExprBool<'vir>, EncodeFullError<'vir, E>> {
-    let pair = deps.require_dep::<PairUseEnc>(pair_tys).unwrap();
-    // The elements of the `_IM` sets are `(address, type, ..)` tuples of unknown
-    // (dynamic) type, so the permission for each element is to the generic
-    // (`Param`) predicate at that address.
-    let param = RustTyDecomposition::param();
-    let generic_pred = deps.require_dep::<TyImpureEnc>(param)?.data.ref_to_pred;
-    let set = sets
-        .into_iter()
-        .reduce(|acc, e| {
-            vcx.mk_anyset_op_expr(vir::CollectionBinOpKind::Union, acc, e)
-                .downcast_ty()
-        })
-        .unwrap_or_else(|| vcx.mk_set_literal_expr(&[], pair.ty));
-    let im_decl = vcx.mk_local_decl("im", pair.ty);
-    let im = vcx.mk_local_ex(im_decl);
-    let in_set = vcx.mk_set_in_expr(im, set);
-    let amount = amount(deps, &pair, im.as_dyn())?;
-    let perm = vcx.mk_predicate_app_expr(generic_pred(
-        pair.destructors[0].call()(im).downcast_ty::<vir::Ref>(),
-        &[pair.destructors[1].call()(im).downcast_ty::<vir::TyVal>()],
-        &[],
-    )(amount));
-    let body = vcx
-        .mk_bin_op_expr(vir::BinOpKind::Implies, in_set, perm)
-        .downcast_ty();
-    Ok(vcx.mk_forall_expr(
-        vcx.alloc_slice(&[im_decl]),
-        vcx.alloc_slice(&[vcx.mk_trigger(&[in_set])]),
-        body,
-    ))
-}
-
-/// The full-permission amount builder for [`interior_mut_quant_perm`] (used for
-/// the inner-IM QP, whose elements are `[Ref, Type]` pairs).
-pub fn full_perm<'vir, E: TaskEncoder>(
-    _deps: &mut TaskEncoderDependencies<'vir, E>,
-    _pair: &PairUse<'vir>,
-    _im: vir::ExprDyn<'vir>,
-) -> Result<Option<vir::ExprPerm<'vir>>, EncodeFullError<'vir, E>> {
-    Ok(None)
-}
-
-/// The amount builder for the object-IM QP, reading the permission baked into
-/// the third component of each `[Ref, Type, Perm]` element.
-pub fn object_perm<'vir, E: TaskEncoder>(
-    _deps: &mut TaskEncoderDependencies<'vir, E>,
-    pair: &PairUse<'vir>,
-    im: vir::ExprDyn<'vir>,
-) -> Result<Option<vir::ExprPerm<'vir>>, EncodeFullError<'vir, E>> {
-    let im = im.downcast_ty::<vir::Pair>();
-    Ok(Some(pair.destructors[2].call()(im).downcast_ty::<vir::Perm>()))
 }
 
 impl<'vir> task_encoder::OutputRefAny for IndirectPredicatesEncOutputRef<'vir> {}
@@ -189,36 +102,20 @@ impl TaskEncoder for IndirectPredicatesEnc {
             let self_ty_enc = deps.require_dep::<TyUsePureEnc>(ty)?;
             let combined = ty.ty.zip(self_ty_enc);
             let mut predicate_applications = vec![];
-            let mut interior_mut_inner_sets = vec![];
-            let mut interior_mut_object_sets = vec![];
-            // The inner-IM sets contain `(address, type)` pairs; the object-IM
-            // sets contain `(address, type, perm)` triples (with the permission
-            // amount baked into the third component).
-            let pair = deps
-                .require_dep::<PairUseEnc>(vec![vir::TYPE_REF.as_dyn(), vir::TYPE_TYVAL.as_dyn()])
-                .unwrap();
-            let triple = deps
-                .require_dep::<PairUseEnc>(vec![
-                    vir::TYPE_REF.as_dyn(),
-                    vir::TYPE_TYVAL.as_dyn(),
-                    vir::TYPE_PERM.as_dyn(),
-                ])
-                .unwrap();
-            let set_ty = vcx.mk_ty_set(pair.ty);
-            let object_set_ty = vcx.mk_ty_set(triple.ty);
-            // The `qp_to_map` function, used to materialize the inner-IM QP
-            // `Map` snapshot passed to object-IM set functions.
+            let mut interior_mut_pairs: [Vec<PairOutput<'vir>>; IM_LEVELS] = [vec![], vec![]];
+            let tys = ImTys::new(deps);
+            let unions = deps.require_dep::<MapUnionEnc>(())?;
+            // The `qp_to_map` function, used to materialize the level-0 IM-QP
+            // `Map` snapshot passed to level-1 functions.
             let qp_to_map = deps.require_dep::<QpToMapEnc>(())?;
-            // Collects (accessor, indirect_predicate) and (accessor,
-            // interior_mut_set) pairs (separately for inner-IM and object-IM)
-            // for the fields of a struct-like (used for structs and enum
-            // variants).
+            // Collects (accessor, indirect_predicate) and per-level
+            // (accessor, pair) entries for the fields of a struct-like (used
+            // for structs and enum variants).
             let collect_field_data =
                 |struct_data: StructData<'vir, (RustTyDatas, UsePureTyDatas)>,
                  deps: &mut TaskEncoderDependencies<'vir, IndirectPredicatesEnc>| {
                     let mut preds = vec![];
-                    let mut inner_sets = vec![];
-                    let mut object_sets = vec![];
+                    let mut pairs: [Vec<(_, PairOutput<'vir>)>; IM_LEVELS] = [vec![], vec![]];
                     for (field_ty, accessor) in struct_data.fields {
                         let field_ty = field_ty.decompose_context(ty.ty.params, ty.args);
                         if let Some(new_projection) =
@@ -229,15 +126,16 @@ impl TaskEncoder for IndirectPredicatesEnc {
                             for inner_expr in field_indirect.predicate_applications {
                                 preds.push((accessor, inner_expr));
                             }
-                            for inner_set in field_indirect.interior_mut_inner_sets {
-                                inner_sets.push((accessor, inner_set));
-                            }
-                            for object_set in field_indirect.interior_mut_object_sets {
-                                object_sets.push((accessor, object_set));
+                            for (level, ps) in
+                                field_indirect.interior_mut_pairs.into_iter().enumerate()
+                            {
+                                for p in ps {
+                                    pairs[level].push((accessor, p));
+                                }
                             }
                         }
                     }
-                    Ok((preds, inner_sets, object_sets))
+                    Ok((preds, pairs))
                 };
             match combined.specifics {
                 // Optimisation: if there are no type arguments, there cannot be
@@ -247,50 +145,48 @@ impl TaskEncoder for IndirectPredicatesEnc {
                 _ if ty.args.args().is_empty() => (),
                 TySpecifics::Primitive(_) | TySpecifics::Raw(_) | TySpecifics::Builtin(_) => (),
                 // A shared reference gives no direct (write) permission to the
-                // place behind it, but it does provide write permission to all
+                // place behind it, but it does provide access to all
                 // interior-mutable objects reachable through it. These are
-                // collected by the `_IM` function of the inner type, which
-                // itself recurses through everything reachable from the inner
-                // type (including nested shared references), so no further
-                // recursion is needed here.
+                // collected by the `_IM_N` functions of the inner type, which
+                // themselves recurse through everything reachable from the
+                // inner type (including nested shared references), so no
+                // further recursion is needed here.
                 TySpecifics::ImmRef((data, ref_domain)) => {
                     assert_eq!(ty.args.args().len(), 2);
                     let ref_region = PcgRegion::from(ty.args.args()[0].expect_region());
                     if ref_region == task_region {
-                        // Compute the referent's IM sets generically (as a
+                        // Compute the referent's IM maps generically (as a
                         // `Param`): `decompose_context` keeps the inner type a
                         // `Param` (substituting the concrete type argument), and
                         // `value_access_generic` gives the raw `s_Param` value
-                        // behind the reference. This yields `s_Param_IM_*(deref,
+                        // behind the reference. This yields `s_Param_IM_N(deref,
                         // param_val, RefCell_type)` rather than
-                        // `s_RefCell_IM_*(deref, make_concrete(..), i32)`.
+                        // `s_RefCell_IM_N(deref, make_concrete(..), i32)`.
                         let inner_ty = data.referent.decompose_context(ty.ty.params, ty.args);
                         let inner_im = deps.require_dep::<TyInteriorMutUseEnc>(inner_ty)?;
                         let ref_domain = *ref_domain;
-                        interior_mut_inner_sets.push(vcx.mk_lazy_expr(
-                            "immref_interior_mut_inner",
-                            set_ty,
-                            Box::new(move |_vcx, self_expr: vir::ExprSnap<'vir>| {
-                                let snap = self_expr.downcast_ty();
-                                inner_im
-                                    .get_all_inner(
-                                        ref_domain.deref_access(snap),
-                                        ref_domain.value_access_generic(snap).upcast_ty(),
-                                    )
-                                    .kind
-                            }),
-                        ));
-                        interior_mut_object_sets.push(vcx.mk_lazy_expr(
-                            "immref_interior_mut_object",
-                            object_set_ty,
-                            Box::new(move |_vcx, self_expr: vir::ExprSnap<'vir>| {
-                                let snap = self_expr.downcast_ty();
-                                let addr = ref_domain.deref_access(snap);
-                                let val = ref_domain.value_access_generic(snap).upcast_ty();
-                                let map = qp_to_map(inner_im.get_all_inner(addr, val));
-                                inner_im.get_all_object(addr, val, map).kind
-                            }),
-                        ));
+                        for (level, pairs) in interior_mut_pairs.iter_mut().enumerate() {
+                            let tys_c = tys.clone();
+                            pairs.push(vcx.mk_lazy_expr(
+                                "immref_interior_mut",
+                                tys.result.ty,
+                                Box::new(move |_vcx, self_expr: vir::ExprSnap<'vir>| {
+                                    let snap = self_expr.downcast_ty();
+                                    let addr = ref_domain.deref_access(snap);
+                                    let val =
+                                        ref_domain.value_access_generic(snap).upcast_ty();
+                                    let p = source_pair(
+                                        &tys_c, &unions, qp_to_map, inner_im, level, addr, val,
+                                    );
+                                    // Crossing a `&`: the referent's whole pair
+                                    // collapses into the shared side.
+                                    let (o, s) = tys_c.split(p);
+                                    tys_c
+                                        .cons(tys_c.empty_map(), unions.disjoint.call()(o, s))
+                                        .kind
+                                }),
+                            ));
+                        }
                     }
                 }
                 // TODO: it's not valid to have nothing for these. We should fix
@@ -315,30 +211,28 @@ impl TaskEncoder for IndirectPredicatesEnc {
                             }),
                         ));
                         // Along with the place behind it, a mutable reference
-                        // also provides write permission to all
-                        // interior-mutable objects reachable from it. Note
-                        // that the inner snapshot is read in the heap state
+                        // also provides access to all interior-mutable objects
+                        // reachable from it, preserving the owned/shared split.
+                        // Note that the inner snapshot is read in the heap state
                         // where this expression ends up (not the state of the
                         // snapshot used for reification).
                         let inner_im = deps.require_dep::<TyInteriorMutUseEnc>(inner_ty)?;
-                        interior_mut_inner_sets.push(vcx.mk_lazy_expr(
-                            "mutref_interior_mut_inner",
-                            set_ty,
-                            Box::new(move |_vcx, self_expr: vir::ExprSnap<'vir>| {
-                                let addr = ref_domain.deref_access(self_expr.downcast_ty());
-                                inner_im.get_all_inner(addr, inner_impure.ref_to_snap(addr)).kind
-                            }),
-                        ));
-                        interior_mut_object_sets.push(vcx.mk_lazy_expr(
-                            "mutref_interior_mut_object",
-                            object_set_ty,
-                            Box::new(move |_vcx, self_expr: vir::ExprSnap<'vir>| {
-                                let addr = ref_domain.deref_access(self_expr.downcast_ty());
-                                let val = inner_impure.ref_to_snap(addr);
-                                let map = qp_to_map(inner_im.get_all_inner(addr, val));
-                                inner_im.get_all_object(addr, val, map).kind
-                            }),
-                        ));
+                        for (level, pairs) in interior_mut_pairs.iter_mut().enumerate() {
+                            let tys_c = tys.clone();
+                            pairs.push(vcx.mk_lazy_expr(
+                                "mutref_interior_mut",
+                                tys.result.ty,
+                                Box::new(move |_vcx, self_expr: vir::ExprSnap<'vir>| {
+                                    let addr =
+                                        ref_domain.deref_access(self_expr.downcast_ty());
+                                    let val = inner_impure.ref_to_snap(addr);
+                                    source_pair(
+                                        &tys_c, &unions, qp_to_map, inner_im, level, addr, val,
+                                    )
+                                    .kind
+                                }),
+                            ));
+                        }
                     }
                     if let Some(new_projection) =
                         LifetimeProjection::new(inner_ty, task_region, None, PrustiPcgCtxt)
@@ -367,47 +261,37 @@ impl TaskEncoder for IndirectPredicatesEnc {
                                     )
                                 }),
                         );
-                        let reproject =
-                            |sets: Vec<SetOutput<'vir>>, name: &'static str, ty: vir::TypeSet<'vir>| {
-                                sets.into_iter()
-                                    .map(|inner_set| {
-                                        vcx.mk_lazy_expr(
-                                            name,
-                                            ty,
-                                            Box::new(
-                                                move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
-                                                    inner_set
-                                                        .reify(
-                                                            vcx,
-                                                            inner_impure.ref_to_snap(
-                                                                ref_domain.deref_access(
-                                                                    self_expr.downcast_ty(),
-                                                                ),
-                                                            ),
-                                                        )
-                                                        .kind
-                                                },
-                                            ),
-                                        )
-                                    })
-                                    .collect::<Vec<_>>()
-                            };
-                        interior_mut_inner_sets.extend(reproject(
-                            inner_indirect.interior_mut_inner_sets,
-                            "ref_inner_interior_mut_inner",
-                            set_ty,
-                        ));
-                        interior_mut_object_sets.extend(reproject(
-                            inner_indirect.interior_mut_object_sets,
-                            "ref_inner_interior_mut_object",
-                            object_set_ty,
-                        ));
+                        // Nested projections through the `&mut`: crossing a
+                        // `&mut` preserves the owned/shared split, so the inner
+                        // pairs pass through unchanged (reified with the
+                        // referent's snapshot).
+                        for (level, ps) in
+                            inner_indirect.interior_mut_pairs.into_iter().enumerate()
+                        {
+                            for inner_pair in ps {
+                                interior_mut_pairs[level].push(vcx.mk_lazy_expr(
+                                    "ref_inner_interior_mut",
+                                    tys.result.ty,
+                                    Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
+                                        inner_pair
+                                            .reify(
+                                                vcx,
+                                                inner_impure.ref_to_snap(
+                                                    ref_domain
+                                                        .deref_access(self_expr.downcast_ty()),
+                                                ),
+                                            )
+                                            .kind
+                                    }),
+                                ));
+                            }
+                        }
                     }
                 }
                 TySpecifics::StructLike(data) => {
                     // TODO: invalid recursion here if the defined struct is
                     // recursive!
-                    let (preds, inner_sets, object_sets) = collect_field_data(data, deps)?;
+                    let (preds, pairs) = collect_field_data(data, deps)?;
                     for (accessor, inner_expr) in preds {
                         predicate_applications.push(vcx.mk_lazy_expr(
                             "struct_field_indirect",
@@ -419,47 +303,38 @@ impl TaskEncoder for IndirectPredicatesEnc {
                             }),
                         ));
                     }
-                    for (accessor, inner_set) in inner_sets {
-                        interior_mut_inner_sets.push(vcx.mk_lazy_expr(
-                            "struct_field_interior_mut_inner",
-                            set_ty,
-                            Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
-                                inner_set
-                                    .reify(vcx, accessor.read(self_expr.downcast_ty()))
-                                    .kind
-                            }),
-                        ));
-                    }
-                    for (accessor, object_set) in object_sets {
-                        interior_mut_object_sets.push(vcx.mk_lazy_expr(
-                            "struct_field_interior_mut_object",
-                            object_set_ty,
-                            Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
-                                object_set
-                                    .reify(vcx, accessor.read(self_expr.downcast_ty()))
-                                    .kind
-                            }),
-                        ));
+                    for (level, ps) in pairs.into_iter().enumerate() {
+                        for (accessor, pair_expr) in ps {
+                            interior_mut_pairs[level].push(vcx.mk_lazy_expr(
+                                "struct_field_interior_mut",
+                                tys.result.ty,
+                                Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
+                                    pair_expr
+                                        .reify(vcx, accessor.read(self_expr.downcast_ty()))
+                                        .kind
+                                }),
+                            ));
+                        }
                     }
                 }
                 TySpecifics::EnumLike(data) => {
                     let snap_to_discr_snap = data.data.1.snap_to_discr_snap;
 
                     let mut variant_preds = Vec::new();
-                    let mut variant_inner_sets = Vec::new();
-                    let mut variant_object_sets = Vec::new();
+                    let mut variant_pairs: [Vec<(_, Vec<(_, PairOutput<'vir>)>)>; IM_LEVELS] =
+                        [vec![], vec![]];
                     for variant in data.variants {
-                        let (preds, inner_sets, object_sets) =
-                            collect_field_data(variant.inner, deps)?;
+                        let (preds, pairs) = collect_field_data(variant.inner, deps)?;
                         variant_preds.push((variant.data.1.discr, preds));
-                        variant_inner_sets.push((variant.data.1.discr, inner_sets));
-                        variant_object_sets.push((variant.data.1.discr, object_sets));
+                        for (level, ps) in pairs.into_iter().enumerate() {
+                            variant_pairs[level].push((variant.data.1.discr, ps));
+                        }
                     }
 
                     if variant_preds.is_empty() {
                         return Ok((
                             (),
-                            IndirectPredicatesEncOutputRef::new(vec![], vec![], vec![]),
+                            IndirectPredicatesEncOutputRef::new(vec![], [vec![], vec![]]),
                         ));
                     }
 
@@ -491,79 +366,68 @@ impl TaskEncoder for IndirectPredicatesEnc {
                                 .kind
                         }),
                     ));
-                    // Builds the per-variant ternary over the union of a
-                    // variant's field sets (the same shape for inner-IM and
-                    // object-IM); duplicated for the two kinds to avoid naming
-                    // the accessor type. `$set_ty`/`$elem_ty` differ between the
-                    // two: `Pair2`/`Set[Pair2]` for inner, `Pair3`/`Set[Pair3]`
-                    // for object.
-                    macro_rules! variant_set {
-                        ($variant_sets:expr, $name:literal, $set_ty:expr, $elem_ty:expr) => {
-                            vcx.mk_lazy_expr(
-                                $name,
-                                $set_ty,
-                                Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
-                                    let self_csnap = self_expr.downcast_ty();
-                                    let self_discr = snap_to_discr_snap.call()(self_csnap);
-                                    let variant_unions: Vec<_> = $variant_sets
-                                        .iter()
-                                        .map(|(discr, fields)| {
-                                            let union = fields
-                                                .iter()
-                                                .map(|(acc, set): &(_, SetOutput<'vir>)| {
-                                                    set.reify(vcx, acc.read(self_csnap))
-                                                })
-                                                .reduce(|acc, e| {
-                                                    vcx.mk_anyset_op_expr(
-                                                        vir::CollectionBinOpKind::Union,
-                                                        acc,
-                                                        e,
-                                                    )
-                                                    .downcast_ty()
-                                                })
-                                                .unwrap_or_else(|| {
-                                                    vcx.mk_set_literal_expr(&[], $elem_ty)
-                                                });
-                                            (discr, union)
-                                        })
-                                        .collect();
-                                    let (first, rest) = variant_unions.split_first().unwrap();
-                                    rest.iter()
-                                        .fold(first.1, |else_, (discr, set)| {
-                                            vcx.mk_ternary_expr(
-                                                vir::expr! { ([self_discr]) == ([*discr]) },
-                                                *set,
-                                                else_,
-                                            )
-                                        })
-                                        .kind
-                                }),
-                            )
-                        };
+                    // Per level: a ternary over the variants, each variant's
+                    // field pairs merged component-wise.
+                    for (level, variants) in variant_pairs.into_iter().enumerate() {
+                        let tys_c = tys.clone();
+                        interior_mut_pairs[level].push(vcx.mk_lazy_expr(
+                            "enum_variant_interior_mut",
+                            tys.result.ty,
+                            Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
+                                let self_csnap = self_expr.downcast_ty();
+                                let self_discr = snap_to_discr_snap.call()(self_csnap);
+                                let variant_merges: Vec<_> = variants
+                                    .iter()
+                                    .map(|(discr, fields)| {
+                                        let ps = fields.iter().map(|(acc, pair_expr)| {
+                                            pair_expr.reify(vcx, acc.read(self_csnap))
+                                        });
+                                        (discr, fold_pairs(&tys_c, &unions, ps))
+                                    })
+                                    .collect();
+                                let (first, rest) = variant_merges.split_first().unwrap();
+                                rest.iter()
+                                    .fold(first.1, |else_, (discr, pair)| {
+                                        vcx.mk_ternary_expr(
+                                            vir::expr! { ([self_discr]) == ([*discr]) },
+                                            *pair,
+                                            else_,
+                                        )
+                                    })
+                                    .kind
+                            }),
+                        ));
                     }
-                    interior_mut_inner_sets.push(variant_set!(
-                        variant_inner_sets,
-                        "enum_variant_interior_mut_inner",
-                        set_ty,
-                        pair.ty
-                    ));
-                    interior_mut_object_sets.push(variant_set!(
-                        variant_object_sets,
-                        "enum_variant_interior_mut_object",
-                        object_set_ty,
-                        triple.ty
-                    ));
                 }
             };
             Ok((
                 (),
-                IndirectPredicatesEncOutputRef::new(
-                    predicate_applications,
-                    interior_mut_inner_sets,
-                    interior_mut_object_sets,
-                ),
+                IndirectPredicatesEncOutputRef::new(predicate_applications, interior_mut_pairs),
             ))
         })
+    }
+}
+
+/// The `(owned, shared)` pair of a referent reachable through a reference, per
+/// level: the level-1 call gets its `im_0_map` argument materialized from the
+/// referent's own level-0 maps.
+fn source_pair<'vir, Curr: 'vir, Next: 'vir>(
+    tys: &ImTys<'vir>,
+    unions: &MapUnionFns<'vir>,
+    qp_to_map: QpToMapFn<'vir>,
+    im: TyInteriorMutUseExpr<'vir>,
+    level: usize,
+    addr: vir::ExprGenRef<'vir, Curr, Next>,
+    val: vir::ExprGenSnap<'vir, Curr, Next>,
+) -> vir::ExprGen<'vir, Curr, Next, vir::Pair> {
+    match level {
+        0 => im.get_0(addr, val),
+        1 => {
+            let (o, s) = tys.split(im.get_0(addr, val));
+            let m0 = unions.disjoint.call()(o, s);
+            im.get_1(addr, val, qp_to_map.call()(m0))
+        }
+        _ => unreachable!(),
     }
 }
 

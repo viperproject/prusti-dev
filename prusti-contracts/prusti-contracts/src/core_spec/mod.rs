@@ -5,7 +5,7 @@ pub mod default;
 pub mod eq;
 pub mod float;
 pub mod slice;
-// pub mod ref_cell;
+pub mod ref_cell;
 
 pub use eq::PureEq;
 

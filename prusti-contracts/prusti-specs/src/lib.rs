@@ -175,6 +175,12 @@ fn generate_spec_and_assertions(
     let mut generated_items = vec![];
     let mut generated_attributes = vec![];
 
+    // Whether the item is a level-1 accessor (`#[pure_unstable(true)]`); the
+    // `#[interior_mut(EXPR)]` permission closure inherits this marking.
+    let pure_unstable_level1 = prusti_attributes.iter().any(|(kind, _, tokens)| {
+        matches!(kind, SpecAttributeKind::PureUnstable) && tokens.to_string().trim() == "true"
+    });
+
     for (attr_kind, attr_span, attr_tokens) in prusti_attributes.drain(..) {
         let rewriting_result = match attr_kind {
             SpecAttributeKind::Requires => generate_for_requires(attr_tokens, attr_span, item),
@@ -187,7 +193,9 @@ fn generate_spec_and_assertions(
             }
             SpecAttributeKind::Pure => generate_for_pure(attr_tokens, attr_span, item),
             SpecAttributeKind::PureUnstable => generate_for_pure_unstable(attr_tokens, item),
-            SpecAttributeKind::InteriorMut => generate_for_interior_mut(attr_tokens, item),
+            SpecAttributeKind::InteriorMut => {
+                generate_for_interior_mut(attr_tokens, item, pure_unstable_level1)
+            }
             SpecAttributeKind::Verified => generate_for_verified(attr_tokens, attr_span, item),
             SpecAttributeKind::Terminates => generate_for_terminates(attr_tokens, attr_span, item),
             SpecAttributeKind::Trusted => generate_for_trusted(attr_tokens, attr_span, item),
@@ -339,7 +347,11 @@ fn generate_for_pure(attr: TokenStream, span: Span, _item: &untyped::AnyFnItem) 
     ))
 }
 
-fn generate_for_interior_mut(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+fn generate_for_interior_mut(
+    attr: TokenStream,
+    item: &untyped::AnyFnItem,
+    level1: bool,
+) -> GeneratedResult {
     // No permission expression: the interior-mutable object always has full
     // (write) permission (e.g. `Cell`).
     if attr.is_empty() {
@@ -357,8 +369,12 @@ fn generate_for_interior_mut(attr: TokenStream, item: &untyped::AnyFnItem) -> Ge
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
-    let spec_item =
-        rewriter.process_assertion(rewriter::SpecItemType::InteriorMutPerm, spec_id, attr, item)?;
+    let spec_item = rewriter.process_assertion(
+        rewriter::SpecItemType::InteriorMutPerm { level1 },
+        spec_id,
+        attr,
+        item,
+    )?;
     Ok((
         vec![spec_item],
         vec![

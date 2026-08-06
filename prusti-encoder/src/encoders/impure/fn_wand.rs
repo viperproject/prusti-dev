@@ -5,6 +5,7 @@ use crate::encoders::{
         RustTyDecomposition,
         generics::{GArgs, GParams},
         indirect::{IndirectPredicatesEnc, projection_for_generalized_idx},
+        interior_mut::IM_LEVELS,
     },
 };
 use pcg::borrow_pcg::{
@@ -186,19 +187,20 @@ impl<'vir> WandEncOutput<'vir> {
         )
     }
 
-    /// The sets of interior-mutable objects reachable through references in a
-    /// single function shape node (collected by the `_IM` functions of the
-    /// types behind those references). Mirrors
+    /// The `(owned, shared)` permission-map pairs of the interior-mutable
+    /// objects reachable through references in a single function shape node
+    /// (collected by the `_IM_N` functions of the types behind those
+    /// references), per IM level. Mirrors
     /// [`Self::encode_predicates_for_function_shape_node`], but returns the
-    /// `_IM` sets instead of the predicate applications.
-    fn interior_mut_sets_for_function_shape_node(
+    /// `_IM_N` pairs instead of the predicate applications.
+    fn interior_mut_pairs_for_function_shape_node(
         &self,
         vcx: &'vir vir::VirCtxt<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, impl TaskEncoder>,
         g: impl Into<FunctionShapeNode<Generalized>>,
         call_ctx: WandCallContext<'vir>,
         snap: vir::ExprSnap<'vir>,
-    ) -> (Vec<vir::ExprSet<'vir>>, Vec<vir::ExprSet<'vir>>) {
+    ) -> [Vec<vir::Expr<'vir, vir::Pair>>; IM_LEVELS] {
         use vir::Reify;
         let g = g.into();
         let fn_sig = self.fn_sig(vcx, call_ctx);
@@ -207,48 +209,40 @@ impl<'vir> WandEncOutput<'vir> {
         let Some(region_proj) =
             projection_for_generalized_idx(arg_ty, g.region_idx(), decomp, vcx.tcx())
         else {
-            return (Vec::new(), Vec::new());
+            return [vec![], vec![]];
         };
         let out = deps
             .require_dep::<IndirectPredicatesEnc>(region_proj)
             .unwrap();
-        let inner = out
-            .interior_mut_inner_sets
-            .iter()
-            .map(|s| s.reify(vcx, snap))
-            .collect();
-        let object = out
-            .interior_mut_object_sets
-            .iter()
-            .map(|s| s.reify(vcx, snap))
-            .collect();
-        (inner, object)
+        out.interior_mut_pairs
+            .map(|ps| ps.iter().map(|p| p.reify(vcx, snap)).collect())
     }
 
-    /// The sets of interior-mutable objects reachable through references in
-    /// the function's arguments, in the `old` state (i.e. for use in the
-    /// postcondition), as `(inner_IM, object_IM)`. Note that this does not
-    /// include the interior-mutable objects owned by the arguments directly:
-    /// those are consumed by the function and are not returned to the caller.
-    pub fn interior_mut_post_sets<E: TaskEncoder>(
+    /// The `(owned, shared)` pairs of the interior-mutable objects reachable
+    /// through references in the function's arguments, per IM level, in the
+    /// `old` state (i.e. for use in the postcondition). Note that this does
+    /// not include the interior-mutable objects owned by the arguments
+    /// directly: those are consumed by the function and are not returned to
+    /// the caller.
+    pub fn interior_mut_post_pairs<E: TaskEncoder>(
         &self,
         vcx: &'vir vir::VirCtxt<'vir>,
         local_defs: &MirLocalDefEncOutput<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, E>,
-    ) -> (Vec<vir::ExprSet<'vir>>, Vec<vir::ExprSet<'vir>>) {
-        let mut inner = Vec::new();
-        let mut object = Vec::new();
+    ) -> [Vec<vir::Expr<'vir, vir::Pair>>; IM_LEVELS] {
+        let mut pairs: [Vec<vir::Expr<'vir, vir::Pair>>; IM_LEVELS] = [vec![], vec![]];
         // As in `indirect_posts`, inputs blocked by a result lifetime
         // projection are skipped: their permission sits behind the wand until
-        // expiry (so their sets cannot even be evaluated here), and their
-        // interior-mutable objects are reachable through the result's set.
+        // expiry (so their maps cannot even be evaluated here), and their
+        // interior-mutable objects are reachable through the result's maps.
         for g in self.inputs().filter(|i| !self.blocked_inputs().contains(i)) {
             let snap = vcx.mk_old_expr(local_defs[g.mir_local()].impure_snap);
-            let (i, o) = self.interior_mut_sets_for_function_shape_node(vcx, deps, g, None, snap);
-            inner.extend(i);
-            object.extend(o);
+            let ps = self.interior_mut_pairs_for_function_shape_node(vcx, deps, g, None, snap);
+            for (level, p) in ps.into_iter().enumerate() {
+                pairs[level].extend(p);
+            }
         }
-        (inner, object)
+        pairs
     }
 
     pub fn indirect_pres<'a, E: TaskEncoder>(

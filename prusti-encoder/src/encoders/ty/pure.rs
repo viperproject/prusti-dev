@@ -213,7 +213,12 @@ pub(super) type TyPureEnc = super::TyEnc<Pure>;
 #[derive(Debug, Clone, Copy)]
 pub struct TyPureRef<'vir> {
     pub snapshot: vir::TypeSnap<'vir>,
+    /// An `ensures false` snapshot, only usable in provably dead code.
     pub unreachable_to_snap: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
+    /// An arbitrary but deterministic snapshot, for values whose content is
+    /// irrelevant (e.g. the metadata of a not-statically-thin reference).
+    /// Unlike `unreachable_to_snap` it is safe to use in reachable code.
+    pub arbitrary_to_snap: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
 }
 
 impl<'vir> task_encoder::OutputRefAny for TyPureRef<'vir> {}
@@ -221,6 +226,7 @@ impl<'vir> task_encoder::OutputRefAny for TyPureRef<'vir> {}
 #[derive(Debug, Clone, Copy)]
 pub struct TyPureEncLocal<'vir> {
     unreachable_to_snap: vir::Function<'vir>,
+    arbitrary_to_snap: vir::Function<'vir>,
     /// Other functions related to this type.
     functions: &'vir [vir::Function<'vir>],
     kind: TyPureEncLocalKind<'vir>,
@@ -329,6 +335,7 @@ impl TaskEncoder for TyPureEnc {
                 continue;
             };
             program.add_function(output.unreachable_to_snap);
+            program.add_function(output.arbitrary_to_snap);
             for function in output.functions {
                 program.add_function(function);
             }
@@ -389,6 +396,7 @@ pub(crate) struct TyPureBuilder<'vir> {
     name: vir::ViperIdent<'vir>,
     self_type: vir::TypeSnap<'vir>,
     unreachable_to_snap: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
+    arbitrary_to_snap: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
     pub(super) params: GenericParams<'vir>,
     data: BuilderData<'vir>,
 }
@@ -465,11 +473,17 @@ impl<'vir> TyPureBuilder<'vir> {
             (params.ty_args(), params.const_args()),
             self_type,
         );
+        let arbitrary_to_snap = FunctionIdn::new(
+            vir::ViperIdent::new(vir::vir_format!(vcx, "{name}_arbitrary")),
+            (params.ty_args(), params.const_args()),
+            self_type,
+        );
         TyPureBuilder {
             vcx,
             name,
             self_type,
             unreachable_to_snap,
+            arbitrary_to_snap,
             params,
             data: BuilderData::None,
         }
@@ -483,6 +497,7 @@ impl<'vir> TyPureBuilder<'vir> {
         TyPureRef {
             snapshot: self.self_type,
             unreachable_to_snap: self.unreachable_to_snap,
+            arbitrary_to_snap: self.arbitrary_to_snap,
         }
     }
 
@@ -522,6 +537,14 @@ impl<'vir> TyPureBuilder<'vir> {
                 None,
                 None,
             );
+            let arbitrary_to_snap = vcx.mk_function(
+                self.arbitrary_to_snap,
+                (self.params.ty_decls(), self.params.const_decls()),
+                &[],
+                &[],
+                None,
+                None,
+            );
             let functions = match &self.data {
                 BuilderData::Adt(data) => data.functions.as_slice(),
                 _ => &[],
@@ -530,6 +553,7 @@ impl<'vir> TyPureBuilder<'vir> {
             let kind = self.build_kind();
             TyPureEncLocal {
                 unreachable_to_snap,
+                arbitrary_to_snap,
                 kind,
                 functions,
             }

@@ -1,8 +1,10 @@
 #![no_std]
 #![allow(internal_features)]
 #![cfg_attr(feature = "prusti", feature(unboxed_closures, tuple_trait))]
-#![feature(core_intrinsics)]
 #![feature(auto_traits)]
+#![feature(const_convert)]
+#![feature(const_trait_impl)]
+#![feature(core_intrinsics)]
 #![feature(negative_impls)]
 #![feature(try_trait_v2)]
 #![feature(cfg_version)]
@@ -117,7 +119,7 @@ mod private_shared {
 
     macro_rules! __dummy_from_impls__ {
         ($ty:ident: $($src:ty),*) => {$(
-            impl From<$src> for $ty {
+            impl const From<$src> for $ty {
                 fn from(_: $src) -> Self {
                     $ty(())
                 }
@@ -161,12 +163,10 @@ mod private_shared {
     pub struct Real(());
 
     impl Real {
-        /// Full (write) permission amount, i.e. Viper `write` (`1/1`).
-        pub const FULL: Real = Real(());
-        /// Read (shared) permission amount, i.e. Viper `wildcard`.
-        pub const READ: Real = Real(());
+        /// Write (full) permission amount, i.e. Viper `write` (`1/1`).
+        pub const WRITE: Real = Real::from(1isize);
         /// No permission, i.e. Viper `none` (`0/1`).
-        pub const NONE: Real = Real(());
+        pub const NONE: Real = Real::from(0isize);
     }
 
     __dummy_from_impls__!(Real: isize, f16, f32, f64, f128);

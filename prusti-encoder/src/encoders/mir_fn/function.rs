@@ -27,9 +27,17 @@ pub struct FunctionCallEncOutput<'vir> {
 
 impl<'vir> FunctionCallEncOutput<'vir> {
     /// `true` if the callee is `#[pure_unstable]` and therefore expects the
-    /// inner-IM-QP `Map` argument (callers must use [`Self::call_pure_unstable`]).
+    /// IM-QP `Map` argument (callers must use [`Self::call_pure_unstable`]).
     pub fn is_pure_unstable(&self) -> bool {
         self.function.pure_unstable.is_some()
+    }
+
+    /// The `inner_only` flag of a `#[pure_unstable]` callee: `true` means it
+    /// takes the level-0 map only, `false` the combined level-0/level-1 map.
+    pub fn pure_unstable_inner_only(&self) -> bool {
+        self.function
+            .pure_unstable
+            .expect("not a pure_unstable function")
     }
 
     /// Calls the definitional function `f_`, used in pure/spec contexts.
@@ -213,7 +221,7 @@ impl TaskEncoder for FunctionEnc {
             // an empty `ManyMap` slot, leaving their Viper signature unchanged.
             let pure_unstable = crate::encoders::get_pure_unstable(def_id);
             let map_decls: &[vir::LocalDeclMap<'vir>] = if pure_unstable.is_some() {
-                vcx.alloc_slice(&[crate::encoders::ty::interior_mut::pure_unstable_inner_map_decl(
+                vcx.alloc_slice(&[crate::encoders::ty::interior_mut::pure_unstable_map_decl(
                     deps,
                 )?])
             } else {

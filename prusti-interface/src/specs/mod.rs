@@ -617,18 +617,41 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             }
 
             if has_prusti_attr(attrs, "interior_mut") {
-                let impl_ = self.env.query.tcx().parent(fn_id);
-                let self_ty = self.env.query.tcx().type_of(impl_).skip_binder();
-                let ty = self_ty
-                    .ty_adt_def()
-                    .expect("interior_mut can only be applied to ADTs")
-                    .did();
-                self.extern_resolver
-                    .extern_ty_map
-                    .entry(ty)
-                    .or_default()
-                    .interior_mut
-                    .push(fn_id);
+                // An `#[interior_mut]` accessor must be either `#[pure]` (a
+                // level-0 accessor, collected by `_IM_0`: its permission
+                // expression cannot read interior-mutable state) or
+                // `#[pure_unstable(true)]` (a level-1 accessor, collected by
+                // `_IM_1`: its permission expression may read level-0 state).
+                // `#[pure_unstable]` (which reads level-1 state as well) would
+                // be circular, and a non-pure accessor cannot be evaluated in
+                // the `_IM_N` functions at all.
+                let valid = match read_prusti_attr("pure_unstable", attrs).as_deref() {
+                    Some("true") => true,
+                    Some(_) => false,
+                    None => has_prusti_attr(attrs, "pure"),
+                };
+                if !valid {
+                    PrustiError::incorrect(
+                        "an `#[interior_mut]` accessor must be marked either `#[pure]` \
+                         (level 0) or `#[pure_unstable(true)]` (level 1)"
+                            .to_string(),
+                        MultiSpan::from_span(span),
+                    )
+                    .emit(&self.env.diagnostic);
+                } else {
+                    let impl_ = self.env.query.tcx().parent(fn_id);
+                    let self_ty = self.env.query.tcx().type_of(impl_).skip_binder();
+                    let ty = self_ty
+                        .ty_adt_def()
+                        .expect("interior_mut can only be applied to ADTs")
+                        .did();
+                    self.extern_resolver
+                        .extern_ty_map
+                        .entry(ty)
+                        .or_default()
+                        .interior_mut
+                        .push(fn_id);
+                }
             }
 
             // Collect procedure specifications

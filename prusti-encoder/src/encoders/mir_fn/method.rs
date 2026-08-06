@@ -4,18 +4,17 @@ use prusti_rustc_interface::{middle::mir, span::def_id::DefId};
 use task_encoder::{
     EncodeFullError, EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies,
 };
-use vir::{CastType, MethodIdn};
+use vir::MethodIdn;
 
 use crate::{
     encoders::{
         Impure, ImpureEncVisitor, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc, WandEnc,
         WandEncTask,
-        interior_mut::{TyInteriorMutUseEnc, interior_mut_inner_map},
+        interior_mut::{ImTys, MapUnionEnc, QpToMapEnc, TyInteriorMutUseEnc, im_quant_perm, merge_pairs},
         mir_fn::{CallTaskDescription, RustSignature, SpecBlocks},
         pure::spec::MirSpecEncMode,
         ty::{
             generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
-            indirect::{full_perm, interior_mut_quant_perm, object_perm},
         },
     },
     trait_support::is_function_with_body,
@@ -263,74 +262,71 @@ impl TaskEncoder for MethodEnc {
                 arg_ims.push((im, arg.local_ex, arg.impure_snap));
             }
 
-            // Emits an inner-IM QP and an object-IM QP over the arguments,
-            // evaluating each argument's snapshot via `snap_of`. The object-IM
-            // set function takes the inner-IM QP `Map` snapshot, materialized
-            // once from the union of the arguments' inner-IM sets (this matches
-            // the single inner-IM QP exactly, so `qp_to_map`'s precondition is
-            // discharged). The two QPs are returned as `(inner, object)` so the
-            // caller can order them appropriately (the object-IM QP must be
-            // processed while the inner-IM permission is held).
-            //
-            // TODO(interior-mut): the object-IM QP still grants full permission
-            // (placeholder); and the result's own IM objects are not yet
-            // returned in the postcondition.
-            let mut mk_qps = |deps: &mut TaskEncoderDependencies<'vir, _>,
+            let tys = ImTys::new(deps);
+            let unions = deps.require_dep::<MapUnionEnc>(())?;
+            let qp_to_map = deps.require_dep::<QpToMapEnc>(())?;
+
+            // Emits the level-0 and level-1 QPs over the arguments, evaluating
+            // each argument's snapshot via `snap_of`. The maps of all
+            // arguments are merged into one per level (arguments may alias, in
+            // which case the shared maps' overlaps are assumed to agree), and
+            // the level-1 functions take the level-0 IM-QP `Map` snapshot,
+            // materialized once from the merged level-0 map (this matches the
+            // level-0 QP exactly, so `qp_to_map`'s precondition is
+            // discharged).
+            let mk_qps = |deps: &mut TaskEncoderDependencies<'vir, _>,
                               snap_of: &dyn Fn(vir::ExprSnap<'vir>) -> vir::ExprSnap<'vir>,
                               prefix: &str|
              -> Result<vir::ExprBool<'vir>, EncodeFullError<'vir, MethodEnc>> {
                 // Bind each argument's snapshot once with a `let` and use the
-                // bound variable in every set expression. The snapshot
+                // bound variable in every map expression. The snapshot
                 // functions are heap-dependent (framed by a `wildcard`
                 // permission), and Silicon fails to match `qp_to_map`'s
-                // precondition against the just-inhaled inner QP when the two
-                // set expressions evaluate the snapshots separately.
+                // precondition against the just-inhaled level-0 QP when the
+                // two map expressions evaluate the snapshots separately.
                 let mut lets = Vec::with_capacity(arg_ims.len());
                 let mut snap_vars = Vec::with_capacity(arg_ims.len());
-                let mut inner = Vec::with_capacity(arg_ims.len());
-                for (idx, (im, addr, snap)) in arg_ims.iter().enumerate() {
+                for (idx, (_, _, snap)) in arg_ims.iter().enumerate() {
                     let val = snap_of(*snap);
                     let decl = vcx.mk_local_decl(
                         vir::vir_format!(vcx, "{prefix}_im_snap_{idx}"),
                         val.ty(),
                     );
                     lets.push((decl, val));
-                    let var = vcx.mk_local_ex(decl);
-                    snap_vars.push(var);
-                    inner.push(im.get_all_inner(*addr, var));
+                    snap_vars.push(vcx.mk_local_ex(decl));
                 }
-                let union_inner = inner.iter().copied().reduce(|a, b| {
-                    vcx.mk_anyset_op_expr(vir::CollectionBinOpKind::Union, a, b)
-                        .downcast_ty()
-                });
-                let mut object = Vec::with_capacity(arg_ims.len());
-                if let Some(union_inner) = union_inner {
-                    let map = interior_mut_inner_map(deps, union_inner)?;
-                    for ((im, addr, _), var) in arg_ims.iter().zip(&snap_vars) {
-                        object.push(im.get_all_object(*addr, *var, map));
-                    }
-                }
-                let inner_qp = interior_mut_quant_perm(
-                    vcx,
-                    deps,
-                    vec![vir::TYPE_REF.as_dyn(), vir::TYPE_TYVAL.as_dyn()],
-                    inner,
-                    full_perm,
-                )?;
-                let object_qp = interior_mut_quant_perm(
-                    vcx,
-                    deps,
-                    vec![
-                        vir::TYPE_REF.as_dyn(),
-                        vir::TYPE_TYVAL.as_dyn(),
-                        vir::TYPE_PERM.as_dyn(),
-                    ],
-                    object,
-                    object_perm,
-                )?;
-                // The inner QP comes first: the object QP's `qp_to_map` needs
-                // the inner permission to be inhaled already.
-                let mut expr = vcx.mk_conj(&[inner_qp, object_qp]);
+                let m0 = merge_pairs(
+                    &tys,
+                    &unions,
+                    arg_ims
+                        .iter()
+                        .zip(&snap_vars)
+                        .map(|((im, addr, _), var)| im.get_0(*addr, *var)),
+                );
+                let qp0 = im_quant_perm(vcx, deps, m0)?;
+                // The level-0 IM-QP `Map` snapshot is bound with a `let`
+                // (evaluated after the level-0 QP, whose permission its
+                // `qp_to_map` needs): embedding the heap-dependent `qp_to_map`
+                // application in the level-1 map terms directly defeats the
+                // instantiation of the union functions' postconditions.
+                let l0_map_decl = vcx.mk_local_decl(
+                    vir::vir_format!(vcx, "{prefix}_im0_map"),
+                    tys.snap_map,
+                );
+                let l0_map_var = vcx.mk_local_ex(l0_map_decl);
+                let m1 = merge_pairs(
+                    &tys,
+                    &unions,
+                    arg_ims
+                        .iter()
+                        .zip(&snap_vars)
+                        .map(|((im, addr, _), var)| im.get_1(*addr, *var, l0_map_var)),
+                );
+                let qp1 = im_quant_perm(vcx, deps, m1)?;
+                let qp1 = vcx.mk_let_expr(l0_map_decl, qp_to_map.call()(m0), qp1);
+                // The level-0 QP comes first: the level-1 QP's `qp_to_map`
+                // needs the level-0 permission to be inhaled already.
+                let mut expr = vcx.mk_conj(&[qp0, qp1]);
                 for (decl, val) in lets.into_iter().rev() {
                     expr = vcx.mk_let_expr(decl, val, expr);
                 }
@@ -342,66 +338,35 @@ impl TaskEncoder for MethodEnc {
             // In the postcondition we return only the interior-mutable objects
             // reachable *behind a reference* (computed by the indirect encoder,
             // i.e. the data behind the `&` as a `Param`), in the `old` state —
-            // NOT the arguments' own `s_Ref_immutable_IM_*` sets. The owned IM
-            // objects of the arguments are consumed by the function.
-            //
-            // The inner-IM QP is pushed BEFORE the object-IM QP (this ordering
-            // is what makes the `Cell`/multi-arg cases verify). NOTE: once the
-            // object-IM perm genuinely depends on `qp_to_map(inner_set)` (i.e.
-            // a `RefCell` whose `#[pure_unstable]` perm closure reads the map),
-            // the object QP's `qp_to_map` precondition / permission amounts can
-            // no longer be matched at exhale here — that is the open QP-matching
-            // problem (the perm verified before only because the map was dead).
-            let (mut post_inner, mut post_object) =
-                wands.interior_mut_post_sets(vcx, &arg_defs, deps);
-            // The result's own IM objects are created by the function and
-            // returned to the caller: add its full sets (in the post state).
-            // As in `mk_qps`, the result's snapshot is bound once with a `let`
-            // shared by the inner set, the map and the object set.
+            // NOT the arguments' own `s_Ref_immutable_IM_N` maps. The owned IM
+            // objects of the arguments are consumed by the function. The
+            // result's own IM objects are created by the function and returned
+            // to the caller: its pairs (in the post state) are added, with the
+            // result's snapshot bound once with a `let` shared by all its map
+            // expressions.
+            let mut post_pairs = wands.interior_mut_post_pairs(vcx, &arg_defs, deps);
             let result = &arg_defs[mir::RETURN_PLACE];
             let result_im = deps.require_dep::<TyInteriorMutUseEnc>(result.ty)?;
             let result_snap_decl =
                 vcx.mk_local_decl("post_im_snap_result", result.impure_snap.ty());
             let result_snap_var = vcx.mk_local_ex(result_snap_decl);
-            post_inner.push(result_im.get_all_inner(result.local_ex, result_snap_var));
-            let post_map = interior_mut_inner_map(
-                deps,
-                post_inner
-                    .iter()
-                    .copied()
-                    .reduce(|a, b| {
-                        vcx.mk_anyset_op_expr(vir::CollectionBinOpKind::Union, a, b)
-                            .downcast_ty()
-                    })
-                    .unwrap(),
-            )?;
-            post_object.push(result_im.get_all_object(
-                result.local_ex,
-                result_snap_var,
-                post_map,
-            ));
-            let post_inner_qp = interior_mut_quant_perm(
-                vcx,
-                deps,
-                vec![vir::TYPE_REF.as_dyn(), vir::TYPE_TYVAL.as_dyn()],
-                post_inner,
-                full_perm,
-            )?;
-            let post_object_qp = interior_mut_quant_perm(
-                vcx,
-                deps,
-                vec![
-                    vir::TYPE_REF.as_dyn(),
-                    vir::TYPE_TYVAL.as_dyn(),
-                    vir::TYPE_PERM.as_dyn(),
-                ],
-                post_object,
-                object_perm,
-            )?;
+            post_pairs[0].push(result_im.get_0(result.local_ex, result_snap_var));
+            let [post_pairs_0, mut post_pairs_1] = post_pairs;
+            let m0_post = merge_pairs(&tys, &unions, post_pairs_0);
+            let post_qp0 = im_quant_perm(vcx, deps, m0_post)?;
+            // As in `mk_qps`, the level-0 map snapshot is `let`-bound.
+            let l0_map_post_decl = vcx.mk_local_decl("post_im0_map", tys.snap_map);
+            let l0_map_post_var = vcx.mk_local_ex(l0_map_post_decl);
+            post_pairs_1.push(result_im.get_1(result.local_ex, result_snap_var, l0_map_post_var));
+            let m1_post = merge_pairs(&tys, &unions, post_pairs_1);
+            let post_qp1 = im_quant_perm(vcx, deps, m1_post)?;
+            let post_qp1 =
+                vcx.mk_let_expr(l0_map_post_decl, qp_to_map.call()(m0_post), post_qp1);
+            // The level-0 QP comes first (see `mk_qps`).
             posts.push(vcx.mk_let_expr(
                 result_snap_decl,
                 result.impure_snap,
-                vcx.mk_conj(&[post_inner_qp, post_object_qp]),
+                vcx.mk_conj(&[post_qp0, post_qp1]),
             ));
 
             // Do not encode the method body if it is external, trusted, just

@@ -2311,9 +2311,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         (ty, self.vcx.mk_null(), *snap)
                     })
                     .collect::<Vec<_>>();
-                let inner_map =
-                    crate::encoders::ty::interior_mut::pure_unstable_call_map(self.deps, &arg_data)
-                        .unwrap();
+                let inner_map = crate::encoders::ty::interior_mut::pure_unstable_call_map(
+                    self.deps,
+                    &arg_data,
+                    pure_func.pure_unstable_inner_only(),
+                )
+                .unwrap();
                 pure_func.call_impure_unstable(snap_args, inner_map)
             } else {
                 pure_func.call_impure(snap_args)

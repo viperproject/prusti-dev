@@ -214,9 +214,15 @@ impl PrustiBuiltin {
                     "rel_end" => Self::Spec(SpecBuiltin::ModeEnd(Mode::Rel(rel_index()))),
                     "before_expiry_start" => Self::Spec(SpecBuiltin::ModeStart(Mode::BeforeExpiry)),
                     "before_expiry_end" => Self::Spec(SpecBuiltin::ModeEnd(Mode::BeforeExpiry)),
-                    other => Self::float_fn(other).unwrap_or_else(|| {
-                        todo!("unsupported `prusti_contracts` function {other}")
-                    }),
+                    other => match Self::float_fn(other) {
+                        Some(f) => f,
+                        // Ordinary `prusti_contracts` functions with their own
+                        // Prusti spec (e.g. the `#[trusted]
+                        // `#[pure_unstable(true)]` `refcell_count`) are
+                        // encoded as normal calls.
+                        None if crate::encoders::is_function_pure(def_id, args) => return None,
+                        None => todo!("unsupported `prusti_contracts` function {other}"),
+                    },
                 },
                 Some("Ghost") => match item {
                     "new" | "new_ref" => Self::Ghost(GhostOp::New),

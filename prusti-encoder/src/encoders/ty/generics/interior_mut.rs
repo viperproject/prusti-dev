@@ -6,7 +6,7 @@ use crate::encoders::{
     ty::{
         RustTy, RustTyDecomposition,
         generics::{GenericParamsEnc, casters::CastersEnc},
-        interior_mut::TyInteriorMutEnc,
+        interior_mut::{ImTys, TyInteriorMutEnc},
     },
 };
 
@@ -34,26 +34,17 @@ impl TaskEncoder for InteriorMutGenericsEnc {
         let im_param = deps.require_ref::<TyInteriorMutEnc>(param)?;
         let im_concrete = deps.require_ref::<TyInteriorMutEnc>(concrete)?;
 
-        // For each of the inner-IM and object-IM set functions:
-        // forall r: Ref, s: s_Param, tys: ManyTyVal, cs: ManyCSnap ::
-        //   { s_Param_IM_K(r, s, MyType_cons(tys, cs), []) }
-        //   s_Param_IM_K(r, s, MyType_cons(tys, cs), []) ==
-        //   s_MyType_IM_K(r, make_concrete(s, tys, cs), tys, cs)
+        // For each of the two `_IM_N` functions:
+        // forall r: Ref, s: s_Param, [m: Map,] tys: ManyTyVal, cs: ManyCSnap ::
+        //   { s_Param_IM_N(r, s, [m,] MyType_cons(tys, cs), []) }
+        //   s_Param_IM_N(r, s, [m,] MyType_cons(tys, cs), []) ==
+        //   s_MyType_IM_N(r, make_concrete(s, tys, cs), [m,] tys, cs)
 
         let params = deps.require_dep::<GenericParamsEnc>(concrete.params)?;
         let ty_expr = params.ty_expr(deps, RustTyDecomposition::identity(concrete))?;
-
-        // `Map[Pair2[Ref, Type], s_Param]` — the inner-IM QP snapshot type that
-        // the object-IM functions take as an extra argument.
-        let pair = deps
-            .require_dep::<crate::encoders::custom::PairUseEnc>(vec![
-                vir::TYPE_REF.as_dyn(),
-                vir::TYPE_TYVAL.as_dyn(),
-            ])
-            .unwrap();
+        let tys = ImTys::new(deps);
 
         let axioms = vir::with_vcx(|vcx| {
-            let map_ty = vcx.mk_ty_map(pair.ty, vir::TYPE_PSNAP);
             let common_qvars = |extra: &[vir::LocalDeclDyn<'vir>]| {
                 let tys = params.ty_decls().iter().copied().map(vir::LocalDeclData::as_dyn);
                 let cs = params.const_decls().iter().copied().map(vir::LocalDeclData::as_dyn);
@@ -69,14 +60,14 @@ impl TaskEncoder for InteriorMutGenericsEnc {
                     .upcast_ty()
             };
 
-            // Inner-IM: s_Param_IM_inner(r, s, MyType) == s_Ty_IM_inner(r, make_concrete(s), ..)
-            let inner_axiom = {
+            // Level 0: s_Param_IM_0(r, s, MyType) == s_Ty_IM_0(r, make_concrete(s), ..)
+            let l0_axiom = {
                 let r = vcx.mk_local_decl("r", vir::TYPE_REF);
                 let s = vcx.mk_local_decl("s", vir::TYPE_PSNAP);
                 let r_exp = vcx.mk_local_ex(r);
                 let s_exp = vcx.mk_local_ex(s);
-                let lhs = im_param.inner.call()(r_exp, s_exp.upcast_ty(), &[ty_expr], &[]);
-                let rhs = im_concrete.inner.call()(
+                let lhs = im_param.l0.call()(r_exp, s_exp.upcast_ty(), &[ty_expr], &[]);
+                let rhs = im_concrete.l0.call()(
                     r_exp,
                     make_concrete(s_exp),
                     params.ty_exprs(),
@@ -91,24 +82,23 @@ impl TaskEncoder for InteriorMutGenericsEnc {
                 );
                 let name = vir::ViperIdent::new(vir::vir_format!(
                     vcx,
-                    "ax_{}_Param_IM_inner",
+                    "ax_{}_Param_IM_0",
                     concrete.name()
                 ));
                 vcx.mk_domain_axiom(name, forall)
             };
 
-            // Object-IM: takes the extra inner-IM `Map` snapshot argument `m`.
-            // s_Param_IM_object(r, s, m, MyType) == s_Ty_IM_object(r, make_concrete(s), m, ..)
-            let object_axiom = {
+            // Level 1: takes the extra level-0 `Map` snapshot argument `m`.
+            // s_Param_IM_1(r, s, m, MyType) == s_Ty_IM_1(r, make_concrete(s), m, ..)
+            let l1_axiom = {
                 let r = vcx.mk_local_decl("r", vir::TYPE_REF);
                 let s = vcx.mk_local_decl("s", vir::TYPE_PSNAP);
-                let m = vcx.mk_local_decl("m", map_ty);
+                let m = vcx.mk_local_decl("m", tys.snap_map);
                 let r_exp = vcx.mk_local_ex(r);
                 let s_exp = vcx.mk_local_ex(s);
                 let m_exp = vcx.mk_local_ex(m);
-                let lhs =
-                    im_param.object.call()(r_exp, s_exp.upcast_ty(), m_exp, &[ty_expr], &[]);
-                let rhs = im_concrete.object.call()(
+                let lhs = im_param.l1.call()(r_exp, s_exp.upcast_ty(), m_exp, &[ty_expr], &[]);
+                let rhs = im_concrete.l1.call()(
                     r_exp,
                     make_concrete(s_exp),
                     m_exp,
@@ -124,13 +114,13 @@ impl TaskEncoder for InteriorMutGenericsEnc {
                 );
                 let name = vir::ViperIdent::new(vir::vir_format!(
                     vcx,
-                    "ax_{}_Param_IM_object",
+                    "ax_{}_Param_IM_1",
                     concrete.name()
                 ));
                 vcx.mk_domain_axiom(name, forall)
             };
 
-            vec![inner_axiom, object_axiom]
+            vec![l0_axiom, l1_axiom]
         });
         Ok((axioms, ()))
     }

@@ -334,6 +334,10 @@ impl<'vir> TyUsePureRef<'vir> {
     pub fn unreachable_to_snap<Curr, Next>(&self) -> vir::ExprGenSnap<'vir, Curr, Next> {
         self.ty_pure_ref.unreachable_to_snap.call()(self.args.get_ty(), self.args.get_const())
     }
+
+    pub fn arbitrary_to_snap<Curr, Next>(&self) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        self.ty_pure_ref.arbitrary_to_snap.call()(self.args.get_ty(), self.args.get_const())
+    }
 }
 
 impl<'vir> TyData<'vir, UsePureTyDatas> {
