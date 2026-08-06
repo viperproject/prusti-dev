@@ -423,8 +423,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             mir::Rvalue::Ref(_reg, _kind, place) => Ok(match rvalue_ty.kind() {
                 TyKind::Ref(.., ty::Mutability::Not) => {
                     let (address, snap, _, _) = self.encode_place_with_snap((*place).into());
-                    let metadata = address.expr.metadata.or_else(|| self.thin_ptr_metadata(rvalue_ty))
-                    .expect("reference to an unsized place requires metadata propagated from its wide pointer");
+                    let metadata = address.expr.metadata;
+                    let metadata =
+                        metadata.unwrap_or_else(|| self.expect_thin_ptr_metadata(rvalue_ty));
                     let inner = self.ty_use_pure(rvalue_ty).expect_immref();
                     inner
                         .prim_to_snap(address.expr.address, metadata, snap)
@@ -435,8 +436,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     let p_rvalue_ty = self.ty_use_impure(rvalue_ty);
                     let place_expr = self.encode_place(Place::from(*place));
 
-                    let metadata = place_expr.expr.metadata.or_else(|| self.thin_ptr_metadata(rvalue_ty))
-                    .expect("reference to an unsized place requires metadata propagated from its wide pointer");
+                    let metadata = place_expr.expr.metadata;
+                    let metadata =
+                        metadata.unwrap_or_else(|| self.expect_thin_ptr_metadata(rvalue_ty));
                     let inner = p_rvalue_ty.expect_mutref();
                     let place_ref = place_expr.expr.expect_predicate();
                     EncodedRvalue {
@@ -452,16 +454,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             mir::Rvalue::RawPtr(_, place) => {
                 let place_expr = self.encode_place(Place::from(*place));
                 let metadata = place_expr.expr.metadata;
-                let metadata = metadata
-                    // Metadata is none if the place does not contain any deref projections.
-                    .or_else(|| self.thin_ptr_metadata(rvalue_ty))
-                    .ok_or_else(|| {
-                        self.unsupported_rvalue(
-                            "unsupported raw pointer: could not construct metadata for place"
-                                .to_string(),
-                            span,
-                        )
-                    })?;
+                let metadata = metadata.unwrap_or_else(|| self.expect_thin_ptr_metadata(rvalue_ty));
                 let raw = self.ty_use_pure(rvalue_ty).expect_raw();
                 Ok(raw
                     .prim_to_snap(place_expr.expr.address, metadata)

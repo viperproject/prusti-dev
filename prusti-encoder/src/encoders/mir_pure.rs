@@ -973,15 +973,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .unwrap_or_else(|| self.vcx.mk_null().lazy());
                 let metadata = encoded_place
                     .metadata
-                    // Metadata is none if the place does not contain any deref projections.
-                    .or_else(|| self.thin_ptr_metadata(rvalue_ty))
-                    .ok_or_else(||
-                        self.unsupported_rvalue(
-                            "unsupported reference: could not construct metadata for place in pure code"
-                                .to_string(),
-                            span,
-                        )
-                    )?;
+                    .unwrap_or_else(|| self.expect_thin_ptr_metadata(rvalue_ty));
                 let snap = if kind.mutability().is_mut() {
                     let e_rvalue_ty = rvalue_snapshot_encoding.expect_mutref();
                     e_rvalue_ty.prim_to_snap(place_ref, metadata, encoded_place.snap)
@@ -1041,15 +1033,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .unwrap_or_else(|| self.vcx.mk_null().lazy());
                 let metadata = encoded_place
                     .metadata
-                    // Metadata is none if the place does not contain any deref projections.
-                    .or_else(|| self.thin_ptr_metadata(rvalue_ty))
-                    .ok_or_else(||
-                        self.unsupported_rvalue(
-                            "unsupported raw pointer: could not construct metadata for place in pure code"
-                                .to_string(),
-                            span,
-                        )
-                    )?;
+                    .unwrap_or_else(|| self.expect_thin_ptr_metadata(rvalue_ty));
                 let raw_ty = self.ty_use(rvalue_ty);
                 Ok(raw_ty
                     .expect_raw()

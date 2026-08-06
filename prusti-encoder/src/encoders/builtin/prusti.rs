@@ -1118,6 +1118,10 @@ impl<'enc, 'vir> BuiltinCtxt<'enc, 'vir> {
             .sig
             .output()
             .pointee_metadata_ty_or_projection(self.vcx.tcx());
+        // Resolve e.g. `<T as Pointee>::Metadata` to `()` when the context's
+        // bounds prove `T: Sized` (`pointee_metadata_ty_or_projection` only
+        // resolves bound-independent sizedness).
+        let metadata_ty = self.args.context().normalize(metadata_ty);
         // This can only happen for `Ghost::deref` (the `index` functions all
         // return `&Ghost<T>`).
         let metadata = self.encode_ty(metadata_ty)?.zst_to_snap().ok_or_else(|| {
