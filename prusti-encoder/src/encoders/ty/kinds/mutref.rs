@@ -56,9 +56,19 @@ pub(crate) fn ty_impure<'vir>(
     let metadata_ex = builder.vcx.mk_local_ex(metadata_param);
     let arbitrary_value = builder.inner.function(
         "arbitrary_value",
-        (vir::TYPE_REF, metadata_type),
+        (
+            vir::TYPE_REF,
+            metadata_type,
+            builder.params.ty_args(),
+            builder.params.const_args(),
+        ),
         snap_type,
-        (ref_param, metadata_param),
+        (
+            ref_param,
+            metadata_param,
+            builder.params.ty_decls(),
+            builder.params.const_decls(),
+        ),
         &[],
         &[
             vir::expr! {

@@ -49,13 +49,31 @@ where
     })
 }
 
+/// Whether a function's spec is trusted -- assumed rather than verified. This
+/// holds if the function itself is marked `#[trusted]` (never inherited; see
+/// `ProcedureSpecification::refine`), or if the spec derives from an
+/// `#[extern_spec]` and the function is foreign: such specs are always
+/// assumed (the mandatory `#[trusted]` inside the extern spec covers them).
+/// In particular a foreign impl inheriting the spec of an extern-spec'd trait
+/// method is assumed, necessarily: the annotation postdates the compilation
+/// of the defining crate (or that crate is not compiled by Prusti at all,
+/// e.g. `std`), so no body for it can ever have been exported. A *local* impl
+/// of such a trait has a body and is verified.
+pub fn spec_is_trusted(proc_spec: &ProcedureSpecification, def_id: DefId) -> bool {
+    let user_trusted = proc_spec
+        .trusted
+        .extract_with_selective_replacement()
+        .copied()
+        .unwrap_or_default();
+    let extern_trusted = proc_spec.extern_spec.is_some() && !def_id.is_local();
+    user_trusted || extern_trusted
+}
+
 pub fn is_function_trusted(def_id: DefId) -> bool {
     let substs = ty::GenericArgs::identity_for_item(vir::with_vcx(|vcx| vcx.tcx()), def_id);
     with_proc_spec(
         SpecQuery::GetProcKind(def_id, substs),
-        |proc_spec: &ProcedureSpecification| {
-            proc_spec.trusted.extract_inherit().unwrap_or_default()
-        },
+        |proc_spec: &ProcedureSpecification| spec_is_trusted(proc_spec, def_id),
     )
     .unwrap_or_default()
 }

@@ -32,6 +32,7 @@ impl Max for TestStruct {
 
 #[extern_spec]
 impl TestStruct {
+    #[trusted]
     #[pure]
     #[ensures(result >= a && result >= b)]
     #[ensures(result == a || result == b)]
@@ -40,6 +41,7 @@ impl TestStruct {
 
 #[extern_spec]
 impl Max for TestStruct {
+    #[trusted]
     #[pure]
     #[ensures(result >= a && result >= b)]
     #[ensures(result == a || result == b)]

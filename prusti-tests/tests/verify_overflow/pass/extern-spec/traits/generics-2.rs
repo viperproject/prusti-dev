@@ -9,6 +9,7 @@ trait MyTrait<T> {
 #[extern_spec]
 trait MyTrait<T> {
     // no equality constraints yet
+    #[trusted]
     #[refine_spec(where T: SpecifiedGeneric, [
         ensures(result === T::my_trait__get_value()),
     ])]

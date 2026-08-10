@@ -211,7 +211,6 @@ pub(crate) fn generate_extern_spec_function_stub<Input: HasSignature + HasAttrib
     };
 
     quote_spanned! {function.span()=>
-        #[trusted]
         #[prusti::extern_spec = #extern_spec_kind_string]
         #(#attrs)*
         #[allow(unused, dead_code)]

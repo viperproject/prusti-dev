@@ -7,6 +7,7 @@ struct PeerList<T> {
 
 #[extern_spec]
 impl <T: Clone + Eq> Clone for PeerList<T> {
+    #[trusted]
     #[ensures(some_property(self) ==> some_property(&result))]
     pub fn clone(&self) -> PeerList<T>;
 }

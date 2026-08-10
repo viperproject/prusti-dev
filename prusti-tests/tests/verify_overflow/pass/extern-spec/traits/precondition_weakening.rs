@@ -8,6 +8,7 @@ trait RestrictiveTrait {
 
 #[extern_spec]
 trait RestrictiveTrait {
+    #[trusted]
     #[requires(x > 10)]
     fn foo(&self, x: i32) -> i32;
 }

@@ -6,7 +6,7 @@ use vir::{FunctionIdn, vir_format_identifier};
 use crate::encoders::{
     TyUsePureEnc,
     ty::{
-        RustTy, RustTyDecomposition,
+        RustTyDecomposition,
         generics::{
             GParams, GenericParams, GenericParamsEnc,
             trait_impls::{self, TraitImplConditionEnc},
@@ -57,11 +57,10 @@ impl TaskEncoder for TraitEnc {
         // `register_impl_triggers`), so the function is assembled here,
         // analogously to how `TyConstructorEnc` assembles the `Type` ADT.
         let mut conditions: FxHashMap<DefId, Vec<vir::ExprBool<'vir>>> = FxHashMap::default();
-        for (trait_did, condition, axioms) in
+        for (trait_did, condition) in
             trait_impls::TraitImplConditionEnc::all_outputs_local_no_errors(program)
         {
             conditions.entry(trait_did).or_default().push(condition);
-            program.add_domain(axioms);
         }
         vir::with_vcx(|vcx| {
             for output in TraitEnc::all_outputs_local_no_errors(program) {
@@ -165,45 +164,26 @@ impl TaskEncoder for TraitEnc {
 
             // The `impl_fun` body (a disjunction over the conditions of this
             // trait's impls) is assembled in `emit_outputs`, once it is known
-            // which impls are relevant.
+            // which impls are relevant (see `impl_unlock_keys` for the
+            // gating).
             for impl_did in tcx.all_impls(*task_key) {
-                // An `impl<T> MyTrait<ArgType> for MyType<T, OtherType>` is
-                // only relevant if a) it is in the current crate (in which
-                // case it will be encoded by `TraitImplEnc`) or b) the
-                // `TyConstructorEnc` has been called with `MyType`,
-                // `OtherType` and `ArgType` (we guard on the conjunction of
-                // these below). Gating on the trait args (not just the self
-                // type) is fail-closed: any site that states a dependence on
-                // this impl does so by applying `impl_fun` to type
-                // expressions for the full trait ref, and building those
-                // requests exactly the constructors gated on here. Without
-                // the arg gate, encoding one impl's condition constructs its
-                // arg types as a side effect, unlocking further impls
-                // transitively (e.g. `Array` alone would pull in every
-                // `core::arch` <-> `Simd` `From` impl).
-                let impl_trait_ref = tcx.impl_trait_ref(impl_did).unwrap().instantiate_identity();
-                let mut keys = Vec::new();
-                fn collect_ctor_keys<'vir>(
-                    ty: ty::Ty<'vir>,
-                    ctx: DefId,
-                    out: &mut Vec<RustTy<'vir>>,
-                ) {
-                    let decomp = RustTyDecomposition::from_ty(ty, ctx);
-                    if decomp.ty.specifics.is_param() {
-                        return;
-                    }
-                    out.push(decomp.ty);
-                    for inner in decomp.args.args().iter().filter_map(|arg| arg.as_type()) {
-                        collect_ctor_keys(inner, ctx, out);
-                    }
-                }
-                for ty in impl_trait_ref.args.iter().filter_map(|arg| arg.as_type()) {
-                    collect_ctor_keys(ty, impl_did, &mut keys);
-                }
+                let keys = trait_impls::impl_unlock_keys(impl_did);
                 let span = tcx.def_span(impl_did);
-                TyConstructorEnc::on_all_requested(keys, move || {
+                TyConstructorEnc::on_all_requested(keys.clone(), move || {
                     let _ = TraitImplConditionEnc::encode(impl_did, false, span);
                 });
+                // The impl's associated types resolve through the trait's
+                // type functions declared above, so they unlock together
+                // with the condition (fn items instead unlock per called
+                // function, from `TraitFnEnc`).
+                for item in tcx.associated_items(impl_did).in_definition_order() {
+                    if matches!(item.kind, ty::AssocKind::Type { .. }) {
+                        let item_did = item.def_id;
+                        TyConstructorEnc::on_all_requested(keys.clone(), move || {
+                            let _ = trait_impls::TraitImplItemEnc::encode(item_did, false, span);
+                        });
+                    }
+                }
             }
             let unknown_type_check = {
                 let self_expr = trait_generics.ty_exprs()[0];

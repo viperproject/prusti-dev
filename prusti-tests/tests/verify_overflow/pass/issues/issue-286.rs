@@ -7,6 +7,7 @@ struct A {
 
 #[extern_spec]
 trait PartialOrd<Rhs> {
+    #[trusted]
     #[pure]
     fn lt(&self, other: &Rhs) -> bool;
 }

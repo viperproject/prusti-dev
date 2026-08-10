@@ -32,6 +32,7 @@ pub trait Zero: Sized + Add<Self, Output = Self> {
 
 macro_rules! zero_impl {
     ($t:ty, $v:expr) => {
+        #[refine_trait_spec]
         impl Zero for $t {
             #[inline]
             fn zero() -> $t {
@@ -65,6 +66,7 @@ zero_impl!(i128, 0);
 //zero_impl!(f32, 0.0);
 //zero_impl!(f64, 0.0);
 
+#[refine_trait_spec]
 impl<T: Zero> Zero for Wrapping<T>
 where
     Wrapping<T>: Add<Output = Wrapping<T>>,
@@ -203,6 +205,7 @@ pub trait CheckedAdd: Sized + Add<Self, Output = Self> {
 
 macro_rules! checked_impl {
     ($trait_name:ident, $method:ident, $t:ty) => {
+        #[refine_trait_spec]
         impl $trait_name for $t {
             #[trusted]
             #[inline]
@@ -347,6 +350,7 @@ checked_impl!(CheckedRem, checked_rem, i128);
 
 macro_rules! checked_impl_unary {
     ($trait_name:ident, $method:ident, $t:ty) => {
+        #[refine_trait_spec]
         impl $trait_name for $t {
             #[trusted]
             #[inline]
@@ -416,6 +420,7 @@ pub trait CheckedShl: Sized + Shl<u32, Output = Self> {
 
 macro_rules! checked_shift_impl {
     ($trait_name:ident, $method:ident, $t:ty) => {
+        #[refine_trait_spec]
         impl $trait_name for $t {
             #[trusted]
             #[inline]
@@ -515,6 +520,7 @@ macro_rules! pow_impl {
             }
         }
 
+        #[refine_trait_spec]
         impl<'a> Pow<&'a $rhs> for $t {
             type Output = $t;
             #[trusted]
@@ -524,6 +530,7 @@ macro_rules! pow_impl {
             }
         }
 
+        #[refine_trait_spec]
         impl<'a> Pow<$rhs> for &'a $t {
             type Output = $t;
             #[trusted]
@@ -533,6 +540,7 @@ macro_rules! pow_impl {
             }
         }
 
+        #[refine_trait_spec]
         impl<'a, 'b> Pow<&'a $rhs> for &'b $t {
             type Output = $t;
             #[trusted]

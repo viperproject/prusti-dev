@@ -7,6 +7,7 @@ use prusti_contracts::*;
 #[extern_spec]
 mod std {
     mod mem {
+        #[trusted]
         #[ensures(*a == old(*b) && *b == old(*a))]
         pub fn swap<T: std::cmp::PartialEq + Copy>(a: &mut T, b: &mut T);
     }

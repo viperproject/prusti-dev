@@ -6,6 +6,7 @@ trait MyTrait {
 
 #[extern_spec]
 trait MyTrait {
+    #[trusted]
     #[ensures(result == 42)] //~ ERROR: postcondition might not hold.
     fn get_value(&self) -> i32;
 }

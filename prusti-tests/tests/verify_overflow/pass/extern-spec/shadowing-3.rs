@@ -17,12 +17,14 @@ impl TestTrait for TestStruct {
 
 #[extern_spec]
 impl TestStruct {
+    #[trusted]
     #[ensures(result == 42)]
     fn foo() -> i32;
 }
 
 #[extern_spec]
 impl TestTrait for TestStruct {
+    #[trusted]
     #[ensures(result == 24)]
     fn foo() -> i32;
 }

@@ -578,7 +578,12 @@ impl<'vir> TyUseImpureMutRef<'vir> {
         metadata: vir::ExprSnap<'vir>,
     ) -> vir::ExprCSnap<'vir> {
         let metadata = self.metadata_caster.cast_to_callee_ctx(metadata);
-        (self.impure.arbitrary_value)(self_ref, metadata.downcast_ty())
+        (self.impure.arbitrary_value)(
+            self_ref,
+            metadata.downcast_ty(),
+            self.args.get_ty(),
+            self.args.get_const(),
+        )
     }
 
     fn fold(

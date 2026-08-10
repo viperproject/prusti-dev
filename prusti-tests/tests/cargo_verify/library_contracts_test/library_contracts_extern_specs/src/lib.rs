@@ -3,6 +3,7 @@ use library_contracts_lib::*;
 
 #[extern_spec]
 impl<T> Opt<T> {
+    #[trusted]
     #[ensures(self.is_some() == result.is_some())]
     pub fn map<U, F>(self, f: F) -> Opt<U>
     where

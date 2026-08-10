@@ -1,50 +1,35 @@
 use prusti_contracts::*;
 
 fn main() {
-    let value = 42;
-    assert!(value.combine(5) == 47);
-    assert!(value.combine(true) == 42);
-    assert!(value.combine(false) == 0);
-    let t = true;
-    assert!(t.combine(value));
+    let a: i32 = i32::from(true);
+    assert!(a == 1);
+    let b: i32 = i32::from(false);
+    assert!(b == 0);
+    let c: i32 = i32::from(7u8);
+    assert!(c == 7);
+    let d: i32 = i32::from(9u16);
+    assert!(d == 9);
 }
 
-trait Combine<T> {
-    fn combine(&self, other: T) -> Self;
-}
-
-impl Combine<i32> for i32 {
-    fn combine(&self, other: i32) -> Self {
-        self + other
-    }
-}
-
-impl Combine<bool> for i32 {
-    fn combine(&self, other: bool) -> Self {
-        if other { *self } else { 0 }
-    }
-}
-
-impl<T> Combine<T> for bool {
-    fn combine(&self, _other: T) -> Self {
-        *self
-    }
+// `extern_spec` for the impls of a *foreign* generic trait (`core`'s
+// `From<T>`), covering several distinct type arguments.
+#[extern_spec]
+impl From<bool> for i32 {
+    #[trusted]
+    #[ensures(result == if source { 1 } else { 0 })]
+    fn from(source: bool) -> i32;
 }
 
 #[extern_spec]
-impl Combine<i32> for i32 {
-    #[ensures(result == *self + other)]
-    fn combine(&self, other: i32) -> Self;
+impl From<u8> for i32 {
+    #[trusted]
+    #[ensures(result == source as i32)]
+    fn from(source: u8) -> i32;
 }
 
 #[extern_spec]
-impl Combine<bool> for i32 {
-    #[ensures(result == if other { *self } else { 0 })]
-    fn combine(&self, other: bool) -> Self;
-}
-
-#[extern_spec]
-impl<T> Combine<T> for bool {
-    #[ensures(result == *self)]
-    fn combine(&self, _other: T) -> Self;
+impl From<u16> for i32 {
+    #[trusted]
+    #[ensures(result == source as i32)]
+    fn from(source: u16) -> i32;
 }

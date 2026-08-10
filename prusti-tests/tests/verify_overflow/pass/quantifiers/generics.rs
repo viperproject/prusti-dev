@@ -15,12 +15,14 @@ fn foo<T>(x: T) -> T { x }
 
 #[extern_spec]
 trait Ord {
+    #[trusted]
     #[pure]
     fn cmp(&self, other: &Self) -> Ordering;
 }
 
 #[extern_spec]
 impl Ord for i32 {
+    #[trusted]
     #[pure]
     #[ensures(
            (*self == *other) == matches!(result, Ordering::Equal)

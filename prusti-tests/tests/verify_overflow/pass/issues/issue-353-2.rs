@@ -4,31 +4,37 @@ use std::hash::{Hash, BuildHasher};
 
 #[extern_spec]
 impl<T> HashSet<T> {
+    #[trusted]
     #[ensures(result.is_empty())]
     fn new() -> Self;
 }
 
 #[extern_spec]
 impl<T, S: BuildHasher> HashSet<T, S> {
+    #[trusted]
     #[pure]
     #[ensures(result >= 0)]
     fn len(&self) -> usize;
 
+    #[trusted]
     #[pure]
     #[ensures(result ==> self.len() > 0)]
     #[ensures(!result ==> self.len() == 0)]
     fn is_empty(&self) -> bool;
 
+    #[trusted]
     #[ensures(self.is_empty())]
     fn clear(&mut self);
 }
 
 #[extern_spec]
 impl<T: Hash + Eq, S: BuildHasher> HashSet<T, S> {
+    #[trusted]
     #[pure]
     fn contains<Q: Hash + Eq>(&self, elem: &Q) -> bool
         where T: std::borrow::Borrow<Q>;
 
+    #[trusted]
     #[ensures(result ==> !old(self).contains(&old(elem)))]
     #[ensures(!result ==> old(self).contains(&old(elem)))]
     #[ensures(self.contains(&old(elem)))]

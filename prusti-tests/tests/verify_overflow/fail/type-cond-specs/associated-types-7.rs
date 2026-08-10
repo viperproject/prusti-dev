@@ -44,6 +44,7 @@ impl SomeTrait<i8, i16> for FooNoMatch2 {
 
 #[extern_spec]
 trait SomeTrait<X, Y> {
+    #[trusted]
     #[refine_spec(where Self: A<X, Y, AssocType = <Self as SomeTrait<X, Y>>::AssocType>, [
         ensures(result > 0)
     ])]

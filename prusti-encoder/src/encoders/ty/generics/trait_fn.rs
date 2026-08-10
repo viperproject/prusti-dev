@@ -11,7 +11,10 @@ use crate::{
         FunctionCallEnc, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc,
         mir_fn::CallTaskDescription,
         pure::spec::MirSpecEncMode,
-        ty::generics::{GArgs, GParams, GenericParamsEnc, r#trait::TraitEnc},
+        ty::{
+            generics::{GArgs, GParams, GenericParamsEnc, r#trait::TraitEnc, trait_impls},
+            lifted::TyConstructorEnc,
+        },
     },
     trait_support::is_function_with_body,
 };
@@ -182,6 +185,26 @@ impl TaskEncoder for TraitFnEnc {
             deps.require_ref::<TraitEnc>(trait_def_id)?;
             dom_funcs.push(vcx.mk_domain_function(pre_func, false, None));
             dom_funcs.push(vcx.mk_domain_function(post_func, false, None));
+
+            // The stub emitted below is only useful together with the axioms
+            // bridging the abstract pre/post functions to concrete impl
+            // specs. Unlock, per impl of the trait, the axioms of just the
+            // item implementing this function once the impl's constructor
+            // keys are requested - the same gating as the impl's condition
+            // (see `TraitEnc`), but calling a trait function must not pull in
+            // the trait's whole machinery.
+            for impl_did in tcx.all_impls(trait_def_id) {
+                let Some(&impl_item_def_id) = tcx.impl_item_implementor_ids(impl_did).get(&def_id)
+                else {
+                    continue;
+                };
+                let keys = trait_impls::impl_unlock_keys(impl_did);
+                let impl_span = tcx.def_span(impl_did);
+                TyConstructorEnc::on_all_requested(keys, move || {
+                    let _ =
+                        trait_impls::TraitImplItemEnc::encode(impl_item_def_id, false, impl_span);
+                });
+            }
 
             let func_args = local_defs.local_decl_args().collect::<Vec<_>>();
             let func_arg_exprs = vcx.alloc_slice(

@@ -5,17 +5,21 @@ use std::option::Option;
 
 #[extern_spec]
 impl<T> std::option::Option<T> {
+    #[trusted]
     #[pure]
     #[ensures(matches!(*self, Some(_)) == result)]
     pub fn is_some(&self) -> bool;
 
+    #[trusted]
     #[pure]
     #[ensures(self.is_some() == !result)]
     pub fn is_none(&self) -> bool;
 
+    #[trusted]
     #[requires(self.is_some())]
     pub fn unwrap(self) -> T;
 
+    #[trusted]
     #[requires(self.is_some())]
     pub fn expect(self, msg: &str) -> T;
 }
@@ -36,44 +40,53 @@ fn get<T: Copy>(list: &LinkedList<T>, index: usize) -> T {
 #[extern_spec]
 impl<T> LinkedList<T>
     where T: Copy + PartialEq {
+    #[trusted]
     #[ensures(result.is_empty())]
     pub fn new() -> LinkedList<T>;
 
+    #[trusted]
     #[pure]
     #[ensures(result ==> self.len() == 0)]
     #[ensures(!result ==> self.len() > 0)]
     pub fn is_empty(&self) -> bool;
 
+    #[trusted]
     #[pure]
     pub fn len(&self) -> usize;
 
+    #[trusted]
     #[ensures(self.len() == 0)]
     pub fn clear(&mut self);
 
+    #[trusted]
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(get(self, 0) == elt)]
     #[ensures(forall (|i: usize| (i < old(self.len())) ==>
         get(self, i + 1) == old(get(self, i))))]
     pub fn push_front(&mut self, elt: T);
 
+    #[trusted]
     #[ensures(old(self.len()) == 0 ==> (self.len() == old(self.len())) && result.is_none())]
     #[ensures(old(self.len()) > 0 ==> self.len() == old(self.len()) - 1 && result.is_some())]
     #[ensures(old(self.len()) > 0 ==> forall (|i: usize| (i < self.len()) ==>
     get(self, i) == old(get(self, i + 1))))]
     pub fn pop_front(&mut self) -> Option<T>;
 
+    #[trusted]
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(get(self, self.len() - 1) == elt)]
     #[ensures(forall (|i: usize| (i < old(self.len())) ==>
     get(self, i) == old(get(self, i))))]
     pub fn push_back(&mut self, elt: T);
 
+    #[trusted]
     #[ensures(old(self.len()) == 0 ==> (self.len() == old(self.len())) && result.is_none())]
     #[ensures(old(self.len()) > 0 ==> self.len() == old(self.len()) - 1 && result.is_some())]
     #[ensures(old(self.len()) > 0 ==> forall (|i: usize| (i < self.len()) ==>
     get(self, i) == old(get(self, i))))]
     pub fn pop_back(&mut self) -> Option<T>;
 
+    #[trusted]
     #[ensures(self.len() == old(self.len() + other.len()))]
     #[ensures(forall (|i: usize| (i < old(self.len())) ==>
         get(self, i) == old(get(self, i))))]
@@ -82,6 +95,7 @@ impl<T> LinkedList<T>
     #[ensures(other.len() == 0)]
     pub fn append(&mut self, other: &mut LinkedList<T>);
 
+    #[trusted]
     #[requires(at <= self.len())]
     #[ensures(result.len() == old(self.len()) - at)]
     #[ensures(self.len() == at)]
