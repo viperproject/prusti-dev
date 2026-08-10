@@ -1,4 +1,5 @@
 use prusti_contracts::*;
+use core::hash::Hasher;
 
 trait HasContract {
     #[pure]
@@ -7,36 +8,38 @@ trait HasContract {
     fn post(&self) -> bool;
 }
 
-trait MyTrait {
-    fn foo(&mut self);
+struct S {
+    x: i32,
 }
 
+// Type-conditional refinement attached to a foreign trait method.
 #[extern_spec]
-trait MyTrait {
+trait Hasher {
+    #[trusted]
     #[refine_spec(where Self: HasContract, [
         requires(self.pre()),
         ensures(self.post())
     ])]
-    fn foo(&mut self);
+    fn write(&mut self, bytes: &[u8]);
 }
 
-struct MyStruct {
-    x: i32,
-}
-
-impl MyTrait for MyStruct {
-    // Implicitly inherits contract from external specification of `MyTrait`
-    fn foo(&mut self) {
+impl Hasher for S {
+    // Implicitly inherits the refined contract from the external specification
+    // of `Hasher` (when `Self: HasContract`).
+    fn write(&mut self, _bytes: &[u8]) {
         self.x += 10;
+    }
+    fn finish(&self) -> u64 {
+        0
     }
 }
 
-impl HasContract for MyStruct {
+#[refine_trait_spec]
+impl HasContract for S {
     #[pure]
     fn post(&self) -> bool {
         self.x >= 20
     }
-
     #[pure]
     fn pre(&self) -> bool {
         self.x >= 10
@@ -44,7 +47,7 @@ impl HasContract for MyStruct {
 }
 
 fn main() {
-    let mut s = MyStruct { x: 10 };
-    s.foo();
+    let mut s = S { x: 10 };
+    s.write(&[]);
     assert!(s.x >= 20);
 }

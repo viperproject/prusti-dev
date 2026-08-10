@@ -9,6 +9,7 @@ trait ExternTrait {
 
 #[extern_spec]
 trait ExternTrait {
+    #[trusted]
     #[ensures(result == 42)]
     fn foo(&self) -> i32;
 }

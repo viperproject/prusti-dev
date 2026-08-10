@@ -12,6 +12,7 @@ impl Trait for Test {
 
 #[extern_spec]
 impl Trait for Test {
+    #[trusted]
     #[ensures(result == 5)]
     fn foo(&mut self) -> i32;
 }

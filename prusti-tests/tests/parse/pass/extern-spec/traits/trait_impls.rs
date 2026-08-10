@@ -24,6 +24,7 @@ impl ExternTrait for Dummy {
 
 #[extern_spec]
 impl ExternTrait for Dummy {
+    #[trusted]
     #[requires(x > 0)]
     fn foo(&self, x: Self::Arg1Ty, y: Self::Arg2Ty) -> Self::Ret1Ty;
 }

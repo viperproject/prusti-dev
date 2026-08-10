@@ -2,6 +2,7 @@ use prusti_contracts::*;
 
 #[extern_spec]
 impl<T> Box<T> {
+    #[trusted]
     #[ensures(*result === value)]
     fn new(value: T) -> Box<T>;
 }

@@ -18,6 +18,7 @@ impl MyTrait for MyStruct {
 
 #[extern_spec]
 impl MyTrait for MyStruct {
+    #[trusted]
     #[requires(x > 10)]
     #[ensures(result == x + 10)]
     fn foo(&self, x: i32) -> i32;

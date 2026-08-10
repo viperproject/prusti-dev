@@ -7,6 +7,7 @@ trait MyTrait<T> {
 /// External traits
 #[extern_spec]
 trait MyTrait<T> {
+    #[trusted]
     #[ensures(true)]
     fn get_value(&self) -> T;
 }

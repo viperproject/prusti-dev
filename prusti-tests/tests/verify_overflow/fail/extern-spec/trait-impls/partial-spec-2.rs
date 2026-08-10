@@ -21,6 +21,7 @@ impl Trait for Struct2 {
 
 #[extern_spec]
 impl Trait for Struct1 {
+    #[trusted]
     #[ensures( result == 42 )]
     fn foo(&self) -> i32;
 }
