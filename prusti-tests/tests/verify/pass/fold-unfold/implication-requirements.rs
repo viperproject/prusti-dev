@@ -14,6 +14,7 @@ where
     T: Eq + std::hash::Hash,
     S: std::hash::BuildHasher,
 {
+    #[trusted]
     #[pure]
     pub fn contains<Q: ?Sized>(&self, value: &Q) -> bool
     where

@@ -37,12 +37,14 @@ type CastSnap<'vir, Enc: PureRvalueEnc<'vir>> = (
 #[derive(Debug, PartialEq, Eq)]
 pub(super) enum RustcIntrinsic {
     PtrMetadata,
+    DiscriminantValue,
 }
 
 impl RustcIntrinsic {
     pub(super) fn from_intrinsic(intrinsic: ty::IntrinsicDef) -> Option<Self> {
         Some(match intrinsic.name {
             sym::ptr_metadata => RustcIntrinsic::PtrMetadata,
+            sym::discriminant_value => RustcIntrinsic::DiscriminantValue,
             _ => return None,
         })
     }
@@ -291,6 +293,30 @@ pub(crate) trait PureRvalueEnc<'vir> {
                 assert_eq!(args.len(), 1);
                 let dest_ty = arg_tys[1].expect_ty();
                 self.encode_unary_op_snap(dest_ty, mir::UnOp::PtrMetadata, &args[0].node, ctxt)
+            }
+            // pub const fn discriminant_value<T>(v: &T) -> <T as DiscriminantKind>::Discriminant
+            RustcIntrinsic::DiscriminantValue => {
+                assert_eq!(arg_tys.len(), 1);
+                assert_eq!(args.len(), 1);
+                let enum_ty = arg_tys[0].expect_ty();
+                let Some(place) = args[0].node.place() else {
+                    return Err(self.unsupported_rvalue(
+                        "`discriminant_value` of a constant operand".to_string(),
+                        args[0].span,
+                    ));
+                };
+                let deref_place = self.vcx().tcx().mk_place_deref(place);
+                let snap = self.encode_place_snap(deref_place.into(), ctxt);
+                let e_enum_ty = self.ty_use_pure(enum_ty);
+                match e_enum_ty.get_enumlike() {
+                    Some(e_enum_ty) => {
+                        Ok(e_enum_ty.snap_to_discr_snap(snap.downcast_ty()).upcast_ty())
+                    }
+                    None => Err(self.unsupported_rvalue(
+                        format!("`discriminant_value` of `{enum_ty}`, which has no discriminant"),
+                        args[0].span,
+                    )),
+                }
             }
         }
     }

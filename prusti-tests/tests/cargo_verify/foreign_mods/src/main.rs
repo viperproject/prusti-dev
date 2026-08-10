@@ -10,12 +10,15 @@ extern "C" {
 
 #[extern_spec(crate)]
 extern "C" {
+    #[trusted]
     #[ensures(a >= b ==> result == a)]
     #[ensures(b >= a ==> result == b)]
     fn max(a: i32, b: i32) -> i32;
 
+    #[trusted]
     fn unannotated();
 
+    #[trusted]
     #[ensures(a < 0 ==> result == -a)]
     #[ensures(a >= 0 ==> result == a)]
     fn abs(a: i32) -> i32;

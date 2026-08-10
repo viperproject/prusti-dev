@@ -218,7 +218,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 }
             }
 
-            spec.set_trusted(refs.trusted);
+            // An `#[extern_spec]` is assumed whether or not it says
+            // `#[trusted]`; the missing annotation is reported by
+            // `determine_extern_specs`, which knows the specified function.
+            let attrs = self.env.query.get_local_attributes(*local_id);
+            spec.set_trusted(refs.trusted || has_extern_spec_attr(attrs));
 
             if let Some(kind) = kind_override {
                 spec.set_kind(kind);
@@ -243,18 +247,70 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         for (extern_spec_decl, spec_id) in self.extern_resolver.extern_fn_map.iter() {
             let target_def_id = extern_spec_decl.get_target_def_id();
 
+            // `#[extern_spec]` is for items defined in other crates. A local
+            // target should be specified directly on its definition instead.
+            // Declarations in an `extern` block are the exception: they are
+            // local but have no body to attach a specification to, so an
+            // `#[extern_spec]` is the only way to specify them.
+            let target = self.env.name.get_item_name(target_def_id);
+            let span = MultiSpan::from_span(self.env.query.get_def_span(spec_id));
+            if target_def_id.is_local() && !self.env.tcx().is_foreign_item(target_def_id) {
+                PrustiError::incorrect(
+                    format!("`#[extern_spec]` cannot be used for `{target}`, which is defined in this crate"),
+                    span,
+                )
+                .set_help(format!("specify `{target}` directly on its definition instead"))
+                .emit(&self.env.diagnostic);
+                continue;
+            }
+
             if def_spec.proc_specs.contains_key(&target_def_id) {
                 PrustiError::incorrect(
                     format!(
-                        "external specification provided for {}, which already has a specification",
-                        self.env.name.get_item_name(target_def_id)
+                        "external specification provided for {target}, which already has a specification"
                     ),
-                    MultiSpan::from_span(self.env.query.get_def_span(spec_id)),
+                    span.clone(),
                 )
                 .emit(&self.env.diagnostic);
             }
 
-            let mut spec = def_spec.proc_specs.remove(spec_id).unwrap();
+            // Prusti never verifies the specified function against this
+            // specification, so require an explicit `#[trusted]`. A stub with
+            // no annotation at all does not reach `determine_procedure_specs`,
+            // hence both cases are checked here; a stub that has annotations
+            // but no `#[trusted]` still gets one there, so that a single
+            // omission does not cascade.
+            let stub_refs = self.procedure_specs.get(&spec_id.expect_local());
+            if !stub_refs.is_some_and(|refs| refs.trusted) {
+                let mut error = PrustiError::incorrect(
+                    format!(
+                        "function `{target}` in an `#[extern_spec]` must be marked `#[trusted]`"
+                    ),
+                    span.clone(),
+                )
+                .add_note(
+                    "an `#[extern_spec]` is never verified against the body of the function it \
+                     specifies, so the specification is assumed; `#[trusted]` states that \
+                     explicitly",
+                    None,
+                );
+                if stub_refs.is_none() {
+                    // Nothing is specified, so removing it loses nothing.
+                    error = error.set_help(
+                        "if this function is not meant to be specified, remove it from the \
+                         `#[extern_spec]` instead",
+                    );
+                }
+                error.emit(&self.env.diagnostic);
+            }
+
+            // The stub may have been rejected during procedure-spec collection
+            // (e.g. a type-conditional refinement that could not be applied),
+            // or carry no specification at all; either way there is nothing to
+            // transfer, and any error is already reported.
+            let Some(mut spec) = def_spec.proc_specs.remove(spec_id) else {
+                continue;
+            };
             spec.set_extern_spec(extern_spec_decl.into());
             def_spec.proc_specs.insert(target_def_id, spec);
         }

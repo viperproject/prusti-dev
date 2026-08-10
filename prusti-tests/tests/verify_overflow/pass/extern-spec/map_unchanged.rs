@@ -2,12 +2,14 @@ use prusti_contracts::*;
 
 #[extern_spec]
 impl<T> std::option::Option<T> {
+    #[trusted]
     #[pure]
     pub fn is_some(&self) -> bool;
 }
 
 #[extern_spec]
 impl<K, V, S: std::hash::BuildHasher> std::collections::HashMap<K, V, S> {
+    #[trusted]
     #[pure]
     #[ensures(result.is_some() == self.contains_key(k))]
     pub fn get<Q: ?Sized>(&self, k: &Q) -> Option<&V>
@@ -15,6 +17,7 @@ impl<K, V, S: std::hash::BuildHasher> std::collections::HashMap<K, V, S> {
         K: core::borrow::Borrow<Q> + std::cmp::Eq + std::hash::Hash,
         Q: core::hash::Hash + Eq;
 
+    #[trusted]
     #[pure]
     fn contains_key<Q: ?Sized>(&self, k: &Q) -> bool
     where

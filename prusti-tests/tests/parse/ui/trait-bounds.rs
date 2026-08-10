@@ -14,6 +14,7 @@ impl<'a, T: PartialEq, const L: usize> Foo<'a, T, L> {
 
 #[extern_spec]
 impl<'a, T: PartialEq, const L: usize> Foo<'a, T, L> {
+    #[trusted]
     #[pure]
     #[ensures(result == self.0)]
     pub fn bar(self) -> &'a [T; L];

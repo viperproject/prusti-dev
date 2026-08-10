@@ -2,10 +2,12 @@ use prusti_contracts::*;
 
 #[extern_spec]
 impl<T: std::cmp::PartialEq> std::option::Option<T> {
+    #[trusted]
     #[pure]
     #[ensures(matches!(*self, Some(_)) == result)]
     pub fn is_some(&self) -> bool;
 
+    #[trusted]
     #[pure]
     #[ensures(self.is_some() == !result)]
     pub fn is_none(&self) -> bool;

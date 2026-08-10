@@ -1,78 +1,55 @@
+//! Exercises the `#[extern_spec(path)]` module-path argument against real
+//! `core`/`std` items (traits, free functions, module blocks and impls).
+
 use prusti_contracts::*;
+use core::hash::Hasher;
+
+// Trait, addressed by a `core` module path.
+#[extern_spec(core::hash)]
+trait Hasher {
+    #[trusted]
+    #[ensures(result == 0)]
+    fn finish(&self) -> u64;
+}
+
+// Free function, addressed by a `core` module path.
+#[extern_spec(core::mem)]
+#[trusted]
+#[ensures(result == 4)]
+fn size_of<T>() -> usize;
+
+// Free function inside a module block, addressed by the enclosing path.
+#[extern_spec(core)]
+mod mem {
+    #[trusted]
+    #[ensures(result >= 1)]
+    fn align_of<T>() -> usize;
+}
+
+// Method on a foreign type.
+#[extern_spec]
+impl i32 {
+    #[trusted]
+    #[pure]
+    #[ensures(result >= 0)]
+    fn abs(self) -> i32;
+}
+
+struct H {
+    v: u64,
+}
+
+impl Hasher for H {
+    fn finish(&self) -> u64 {
+        0
+    }
+    fn write(&mut self, _b: &[u8]) {}
+}
 
 fn main() {
-    use module::inner::*;
-
-    fn _trait_test_1<T: Example>() {
-        assert!(T::example() == 42)
-    }
-
-    fn _trait_test_2<T: Advanced<U>, U: Copy>() {
-        prusti_assert!(T::example() === T::example())
-    }
-
-    assert!(free_1() == 1);
-    assert!(free_2() == 2);
-
-    let s = Struct;
-    assert!(s.method() == 42);
-}
-
-#[extern_spec(module::inner)]
-trait Example {
-    #[ensures(result == 42)]
-    fn example() -> i32;
-}
-
-#[extern_spec(module::inner)]
-trait Advanced<T>
-where
-    T: Copy,
-{
-    #[pure]
-    fn example() -> T;
-}
-
-#[extern_spec(module)]
-mod inner {
-    #[ensures(result == 1)]
-    fn free_1() -> i32;
-}
-
-#[extern_spec(module::inner)]
-#[ensures(result == 2)]
-fn free_2() -> i32;
-
-#[extern_spec]
-impl module::inner::Struct {
-    #[ensures(result == 42)]
-    fn method(&self) -> i32;
-}
-
-mod module {
-    pub mod inner {
-        pub trait Example {
-            fn example() -> i32;
-        }
-
-        pub trait Advanced<T: Copy> {
-            fn example() -> T;
-        }
-
-        pub fn free_1() -> i32 {
-            1
-        }
-
-        pub fn free_2() -> i32 {
-            2
-        }
-
-        pub struct Struct;
-
-        impl Struct {
-            pub fn method(&self) -> i32 {
-                42
-            }
-        }
-    }
+    let h = H { v: 9 };
+    assert!(h.finish() == 0);
+    assert!(core::mem::size_of::<i32>() == 4);
+    assert!(core::mem::align_of::<i32>() >= 1);
+    assert!((-4i32).abs() >= 0);
 }

@@ -16,6 +16,7 @@ struct Vec<#[generic] T, #[generic] A: std::alloc::Allocator> {
 
 #[extern_spec]
 impl<T> Vec<T, Global> {
+    #[trusted]
     #[ensures( result.model().elems == 0 )]
     fn new() -> Vec<T>;
 }
@@ -23,11 +24,13 @@ impl<T> Vec<T, Global> {
 #[extern_spec]
 impl<T, A: std::alloc::Allocator> Vec<T, A> {
 
+    #[trusted]
     #[requires( self.model().elems > 0 )]
     #[requires( 0 <= index && index <= self.model().elems )]
     #[ensures( self.model().elems == old(self.model().elems) - 1 )]
     fn remove(&mut self, index: usize) -> T;
 
+    #[trusted]
     #[ensures( self.model().elems == 1 + old(self.model().elems) )]
     fn push(&mut self, val: T);
 }

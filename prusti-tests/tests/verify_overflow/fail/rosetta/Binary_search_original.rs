@@ -8,6 +8,7 @@ use std::cmp::Ordering;
 
 #[extern_spec]
 impl std::cmp::Ord for i32 {
+    #[trusted]
     #[ensures(
         match result {
             Ordering::Less => *self < *other,

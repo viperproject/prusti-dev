@@ -4,6 +4,7 @@ fn main() {}
 
 #[extern_spec]
 trait Ord {
+    #[trusted]
     #[pure]
     fn cmp(&self, other: &Self) -> Ordering;
 }

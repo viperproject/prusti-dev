@@ -214,8 +214,11 @@ mod tests {
         fn impl_no_generics() {
             let inp_impl: syn::ItemImpl = parse_quote!(
                 impl MyStruct {
+                    #[trusted]
                     fn foo(&self);
+                    #[trusted]
                     fn bar(&mut self);
+                    #[trusted]
                     fn baz(self);
                 }
             );
@@ -253,6 +256,7 @@ mod tests {
         fn impl_generics() {
             let inp_impl: syn::ItemImpl = parse_quote!(
                 impl<I, O> MyStruct<I, O, i32> {
+                    #[trusted]
                     fn foo(&self, arg1: I, arg2: i32) -> O;
                 }
             );
@@ -278,6 +282,7 @@ mod tests {
         fn impl_forwarded_generics() {
             let inp_impl: syn::ItemImpl = parse_quote!(
                 impl MyStruct {
+                    #[trusted]
                     fn foo<T: Copy>(&self) -> bool;
                 }
             );
@@ -307,6 +312,7 @@ mod tests {
         fn associated_types() {
             let inp_impl: syn::ItemImpl = parse_quote!(
                 impl MyTrait for MyStruct {
+                    #[trusted]
                     fn foo(&mut self) -> Self::Result;
                 }
             );
@@ -332,6 +338,7 @@ mod tests {
         fn generic_trait() {
             let inp_impl: syn::ItemImpl = parse_quote!(
                 impl MyTrait<Foo> for MyStruct {
+                    #[trusted]
                     fn foo(&mut self, arg1: Foo);
                 }
             );
@@ -357,6 +364,7 @@ mod tests {
         fn generic_blanket_impl() {
             let inp_impl: syn::ItemImpl = parse_quote!(
                 impl<I> MyTrait<I> for MyStruct {
+                    #[trusted]
                     fn foo(&mut self, arg1: I);
                 }
             );

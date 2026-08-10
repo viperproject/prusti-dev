@@ -19,11 +19,13 @@ pub(super) mod type_eq {
 }
 
 #[extern_spec(core::panicking)]
+#[trusted]
 #[requires(false)]
 #[pure]
 fn panic(expr: &'static str) -> !;
 
 #[extern_spec(core::panicking)]
+#[trusted]
 #[requires(false)]
 pub fn assert_failed<T, U>(
     kind: core::panicking::AssertKind,
