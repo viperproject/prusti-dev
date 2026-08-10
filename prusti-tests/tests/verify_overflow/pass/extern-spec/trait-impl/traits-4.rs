@@ -6,12 +6,14 @@ use std::vec::Vec;
 
 #[extern_spec]
 impl<T: Clone, A: std::alloc::Allocator + Clone> Clone for Vec<T, A> {
+    #[trusted]
     #[ensures(true)]
     fn clone<'a>(&'a self) -> Self;
 }
 
 #[extern_spec]
 impl<T> Clone for Option<T> {
+    #[trusted]
     #[ensures(true)]
     fn clone(&self) -> Option::<T>
         where T: std::clone::Clone;

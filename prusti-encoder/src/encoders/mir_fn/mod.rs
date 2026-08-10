@@ -94,6 +94,13 @@ pub fn encode_all_in_crate<'tcx>(tcx: ty::TyCtxt<'tcx>) {
                 if prusti_interface::specs::is_spec_fn(tcx, def_id) {
                     continue;
                 }
+                // Extern-spec stubs are macro-generated forwarding bodies whose
+                // spec is transplanted onto the foreign target: verifying the
+                // stub against it would be circular, and by this point the stub
+                // has no spec of its own left to verify against.
+                if prusti_interface::utils::has_extern_spec_attr(tcx.get_all_attrs(def_id)) {
+                    continue;
+                }
 
                 let (is_pure, is_trusted) = crate::encoders::with_proc_spec(
                     SpecQuery::GetProcKind(def_id, ty::List::identity_for_item(tcx, def_id)),
@@ -102,7 +109,7 @@ pub fn encode_all_in_crate<'tcx>(tcx: ty::TyCtxt<'tcx>) {
                         // here, rather than on every purity query.
                         crate::encoders::report_kind_refinement_error(def_id, &proc_spec.kind);
                         let is_pure = crate::encoders::kind_is_pure(&proc_spec.kind);
-                        let is_trusted = proc_spec.trusted.extract_inherit().unwrap_or_default();
+                        let is_trusted = crate::encoders::spec_is_trusted(proc_spec, def_id);
                         (is_pure, is_trusted)
                     },
                 )

@@ -82,9 +82,11 @@ impl DefSpecificationMap {
                     specs.extend(pledges.iter().filter_map(|pledge| pledge.lhs));
                     specs.extend(pledges.iter().map(|pledge| pledge.rhs));
                 }
-                let is_trusted = spec.trusted.extract_inherit().expect("Expected trusted")
-                // It has to be non-extern_spec which is trusted (since extern_specs are always trusted)
-                    && (*def_id == spec.source || !def_id.is_local());
+                // Trusted functions are opaque and need no body; `extern_spec`
+                // targets are trusted in the same way (their `#[trusted]` is
+                // mandatory). Every other pure function needs its MIR loaded
+                // for pure encoding and cross-crate export.
+                let is_trusted = spec.trusted.extract_inherit().expect("Expected trusted");
                 if spec.kind.is_pure().expect("Expected pure") && !is_trusted {
                     pure_fns.push(*def_id)
                 }
@@ -797,13 +799,24 @@ impl Refinable for ProcedureSpecification {
         }
         ProcedureSpecification {
             source: self.source,
-            // TODO: what here?
+            // Record the extern spec backing this spec's derivation, preferring
+            // our own. It must be inherited from the trait: spec items inherited
+            // from an `extern_spec` trait are closures inside the generated stub
+            // and need the extern-spec kind to encode, and foreign impls of such
+            // traits are trusted based on it (see `spec_is_trusted`). It does
+            // NOT mean the function itself is an extern-spec target.
             extern_spec: self.extern_spec.or(other.extern_spec),
             pres: self.pres.refine(replace_empty(&EMPTYL, &other.pres)),
             posts: self.posts.refine(replace_empty(&EMPTYL, &other.posts)),
             pledges: self.pledges.refine(replace_empty(&EMPTYP, &other.pledges)),
             kind: self.kind.refine(&other.kind),
-            trusted: self.trusted.refine(&other.trusted),
+            // `trusted` is deliberately not inherited: it only applies to the
+            // item it is written on. An impl is verified against the inherited
+            // contract unless the impl itself is marked `#[trusted]`, wherever
+            // that impl is verified. The one exception is an impl that cannot
+            // be annotated at all -- a foreign impl of an `extern_spec` trait
+            // -- which `spec_is_trusted` keeps opaque via `extern_spec`.
+            trusted: self.trusted,
             terminates: self.terminates.refine(&other.terminates),
             purity: self.purity.refine(&other.purity),
         }
