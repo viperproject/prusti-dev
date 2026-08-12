@@ -182,15 +182,16 @@ impl TaskEncoder for MirBuiltinCastEnc {
                         GParams::empty_env(vcx.tcx().mk_args(&[u.into(), v.into()]))
                     };
                     let unsize_params = deps.require_dep::<GenericParamsEnc>(unsize_gparams)?;
+                    let u = unsize_params.ty_exprs()[0];
+                    let v = unsize_params.ty_exprs()[1];
+                    let value_cast = deps.require_dep::<ValueCastEnc>(())?;
                     let (is_mut, metadata, res_cons) = match &op_ty.specifics {
                         TySpecifics::ImmRef(data) => {
                             let res_data = res_ty.expect_immref();
+                            let value = value_cast(data.value_access(arg_ex).downcast_ty(), u, v)
+                                .upcast_ty();
                             let res_cons = |metadata| {
-                                res_data.prim_to_snap(
-                                    data.deref_access(arg_ex),
-                                    metadata,
-                                    data.value_access(arg_ex),
-                                )
+                                res_data.prim_to_snap(data.deref_access(arg_ex), metadata, value)
                             };
                             (
                                 false,
@@ -269,15 +270,12 @@ impl TaskEncoder for MirBuiltinCastEnc {
                         let v_impure = deps.require_dep::<TyUseImpureEnc>(
                             LazyRustTy::new_param_ty(1).decompose(unsize_gparams),
                         )?;
-                        let value_cast = deps.require_dep::<ValueCastEnc>(())?;
 
                         let src_mutref = op_ty.expect_mutref();
                         let src_decl = vcx.mk_local_decl("src", op_ty_snap);
                         let src_ex = vcx.mk_local_ex(src_decl);
                         let addr = src_mutref.deref_access(src_ex);
 
-                        let u = unsize_params.ty_exprs()[0];
-                        let v = unsize_params.ty_exprs()[1];
                         let u_pred = u_impure.ref_to_pred(vcx, addr, None);
                         let v_pred = v_impure.ref_to_pred(vcx, addr, None);
                         let u_snap = u_impure.ref_to_snap(addr).downcast_ty::<vir::PSnap>();
