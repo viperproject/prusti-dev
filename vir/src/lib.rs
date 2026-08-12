@@ -15,6 +15,7 @@ mod make;
 mod refs;
 mod reify;
 mod serde;
+pub mod simplify;
 mod spans;
 mod callable;
 mod viper_ident;

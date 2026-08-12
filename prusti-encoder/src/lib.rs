@@ -142,6 +142,10 @@ pub fn test_entrypoint<'tcx>(
     TraitImplItemEnc::emit_outputs(&mut program);
     TraitImplDefaultFnEnc::emit_outputs(&mut program);
 
+    if config::simplify_encoding() {
+        program.simplify();
+    }
+
     if std::env::var("LOCAL_TESTING").is_ok() {
         std::fs::write("local-testing/simple.vpr", program.code()).unwrap();
     }

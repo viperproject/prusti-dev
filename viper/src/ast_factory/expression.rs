@@ -1071,15 +1071,16 @@ impl<'a> AstFactory<'a> {
         Expr::new(obj)
     }
 
-    pub fn adt_constructor_app(
+    pub fn adt_constructor_app_with_pos(
         &self,
         constructor_name: &str,
         args: &[Expr],
         type_var_map: &[(Type, Type)],
         return_type: Type,
         adt_name: &str,
+        pos: Position,
     ) -> Expr<'a> {
-        build_adt_node!(
+        build_adt_node_with_pos!(
             self,
             Expr,
             plugin::standard::adt::AdtConstructorApp,
@@ -1087,19 +1088,21 @@ impl<'a> AstFactory<'a> {
             self.jni.new_seq(&map_to_jobjects!(args)),
             self.jni.new_map(&map_to_jobject_pairs!(type_var_map));
             return_type.to_jobject(),
-            self.jni.new_string(adt_name)
+            self.jni.new_string(adt_name);
+            pos
         )
     }
 
-    pub fn adt_destructor(
+    pub fn adt_destructor_with_pos(
         &self,
         destructor_name: &str,
         rcv: Expr,
         type_var_map: &[(Type, Type)],
         return_type: Type,
         adt_name: &str,
+        pos: Position,
     ) -> Expr<'a> {
-        build_adt_node!(
+        build_adt_node_with_pos!(
             self,
             Expr,
             plugin::standard::adt::AdtDestructorApp,
@@ -1107,25 +1110,28 @@ impl<'a> AstFactory<'a> {
             rcv.to_jobject(),
             self.jni.new_map(&map_to_jobject_pairs!(type_var_map));
             return_type.to_jobject(),
-            self.jni.new_string(adt_name)
+            self.jni.new_string(adt_name);
+            pos
         )
     }
 
-    pub fn adt_discr(
+    pub fn adt_discr_with_pos(
         &self,
         constructor_name: &str,
         rcv: Expr,
         type_var_map: &[(Type, Type)],
         adt_name: &str,
+        pos: Position,
     ) -> Expr<'a> {
-        build_adt_node!(
+        build_adt_node_with_pos!(
             self,
             Expr,
             plugin::standard::adt::AdtDiscriminatorApp,
             self.jni.new_string(constructor_name),
             rcv.to_jobject(),
             self.jni.new_map(&map_to_jobject_pairs!(type_var_map));
-            self.jni.new_string(adt_name)
+            self.jni.new_string(adt_name);
+            pos
         )
     }
 

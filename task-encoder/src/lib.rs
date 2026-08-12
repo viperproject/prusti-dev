@@ -65,8 +65,24 @@ impl<'vir> Program<'vir> {
         self.code.push_str(&format!("{method:?}\n"));
     }
 
+    /// The program as added, before any [`Self::simplify`].
     pub fn code(&self) -> &str {
         &self.code
+    }
+
+    /// Simplifies the expressions of all functions and methods added so far
+    /// (see [`vir::simplify`]). Domains are left untouched: folding in their
+    /// axioms could remove the terms that quantifier triggers rely on.
+    pub fn simplify(&mut self) {
+        vir::with_vcx(|vcx| {
+            let adts = vir::simplify::AdtIndex::new(&self.adts);
+            for function in self.functions.iter_mut() {
+                *function = vir::simplify::function(vcx, &adts, function);
+            }
+            for method in self.methods.iter_mut() {
+                *method = vir::simplify::method(vcx, &adts, method);
+            }
+        });
     }
 
     pub fn mk_program(self) -> vir::Program<'vir> {

@@ -508,7 +508,7 @@ impl<'vir, 'v, T: vir::CompType> ToViper<'vir, 'v> for vir::Expr<'vir, T> {
 
             vir::ExprKindData::AdtDestructor(recv, field) => {
                 let type_map = ctx.adt_type_map(recv.ty().kind());
-                ctx.ast.adt_destructor(
+                ctx.ast.adt_destructor_with_pos(
                     field.name,
                     recv.to_viper_no_pos(ctx),
                     &type_map,
@@ -520,15 +520,17 @@ impl<'vir, 'v, T: vir::CompType> ToViper<'vir, 'v> for vir::Expr<'vir, T> {
                             println!("no such destructor {field:?} for receiver {recv:?}");
                             "invalid_destructor"
                         }),
+                    ctx.span_to_pos(self.span),
                 )
             }
             vir::ExprKindData::AdtDiscriminator(recv, field) => {
                 let type_map = ctx.adt_type_map(recv.ty().kind());
-                ctx.ast.adt_discr(
+                ctx.ast.adt_discr_with_pos(
                     field,
                     recv.to_viper_no_pos(ctx),
                     &type_map,
                     ctx.adt_constructors.get(field).unwrap().0.name,
+                    ctx.span_to_pos(self.span),
                 )
             }
 
@@ -607,7 +609,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::FuncApp<'vir> {
                 "adt constructors construct the type map internally"
             );
             let type_map = ctx.adt_type_map(self.result_ty.kind());
-            ctx.ast.adt_constructor_app(
+            ctx.ast.adt_constructor_app_with_pos(
                 self.target,
                 &self
                     .args
@@ -617,6 +619,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::FuncApp<'vir> {
                 &type_map,
                 self.result_ty.to_viper_no_pos(ctx),
                 adt.name,
+                pos,
             )
         } else {
             assert_eq!(
