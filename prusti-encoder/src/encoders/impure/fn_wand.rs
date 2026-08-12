@@ -36,7 +36,7 @@ impl<'vir, E: TaskEncoder> ImpureEncVisitor<'vir, '_, E> {
     ) -> Result<Vec<vir::Stmt<'vir>>, EncodeFullError<'vir, E>> {
         let mut wand_packages = Vec::new();
         let label = self.new_label("package_post");
-        let result = self.local_defs.locals[mir::RETURN_PLACE].impure_snap;
+        let result = self.local_defs[mir::RETURN_PLACE].impure_snap;
         let result = self.vcx.mk_local_labelled_old_expr(result, label);
         let args = self
             .local_defs

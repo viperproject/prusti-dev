@@ -1543,6 +1543,11 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             self.current_block_succs = None;
 
             for successor in body.basic_blocks.successors(block) {
+                // Specification-only arms are not encoded at all; their
+                // switches are encoded as jumps to the live target.
+                if self.spec_blocks.spec_arms.blocks.contains(&successor) {
+                    continue;
+                }
                 queue.push(WorkItem {
                     rpo_idx: rpo_idx[&successor],
                     seq: next_seq.next().unwrap(),
@@ -1561,16 +1566,14 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         let enc_output = self.deps.require_dep::<MirPureEnc>(MirPureEncTask {
             encoding_depth: 0,
             parent_def_id: self.def_id,
-            param_env: self.vcx.tcx().param_env(self.def_id),
-            substs: ty::List::identity_for_item(self.vcx.tcx(), self.def_id),
+            gargs: GParams::from(self.def_id).identity_args(),
             kind: PureKind::SpecBlock(spec_block),
-            caller_def_id: Some(self.def_id),
         })?;
         use vir::Reify;
         let locals: FxHashMap<mir::Local, _> = enc_output
             .inputs
             .iter()
-            .map(|local| (*local, self.local_defs.locals[*local].impure_snap))
+            .map(|local| (*local, self.local_defs[*local].impure_snap))
             .collect();
         let expr = enc_output
             .expr
@@ -1604,19 +1607,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             return Ok(());
         }
 
-        // Blocks resulting from our embedding of loop invariants etc into the
-        // program should not be emitted. Loop invariants are handled separately
-        // at the loop head instead.
-        if self.spec_blocks.spec_blocks.contains(&block) {
-            self.encoded_blocks.push(
-                self.vcx.mk_cfg_block(
-                    current_block_label,
-                    &[],
-                    &[],
-                    self.vcx
-                        .mk_dummy_stmt(vir::vir_format!(self.vcx, "spec-only block")),
-                ),
-            );
+        // Specification-only arms are unreachable after their switches are
+        // encoded as jumps to the live target; emit nothing. The specs
+        // themselves are encoded separately (assertions at the block they
+        // are attached to, loop invariants at the loop head, closure specs
+        // as the closure's contract).
+        if self.spec_blocks.spec_arms.blocks.contains(&block) {
             return Ok(());
         }
 
@@ -1777,6 +1773,16 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             self.pcg_phase_actions(location, EvalStmtPhase::PostOperands)?;
             self.pcg_phase_actions(location, EvalStmtPhase::PreMain)?;
 
+            // Assignments to the locals only serving specification-only arms
+            // (necessarily scaffolding stores) are not encoded, since the
+            // locals are not declared.
+            if let mir::StatementKind::Assign(box (dest, _)) = &statement.kind
+                && let Some(local) = dest.as_local()
+                && self.spec_blocks.spec_arms.spec_only_locals.contains(&local)
+            {
+                return Ok(());
+            }
+
             let span = statement.source_info.span;
 
             match &statement.kind {
@@ -1878,18 +1884,18 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             self.pcg_phase_actions(location, phase)?;
         }
 
-        // A `ghost!` block's `if false` switch is encoded as an unconditional
-        // jump into the ghost arm (the inline ghost body); the runtime
-        // `ghost_erased` stand-in arm is skipped.
-        let ghost_goto = self
+        // A specification-only arm's `if false` switch is encoded as an
+        // unconditional jump to the live target (the continuation, or the
+        // inline ghost body); the arm itself is not encoded.
+        let spec_goto = self
             .spec_blocks
-            .ghost
+            .spec_arms
             .switches
             .get(&location.block)
-            .map(|ghost| mir::TerminatorKind::Goto {
-                target: ghost.arm_block,
+            .map(|live_target| mir::TerminatorKind::Goto {
+                target: *live_target,
             });
-        let terminator = match ghost_goto.as_ref().unwrap_or(&terminator.kind) {
+        let terminator = match spec_goto.as_ref().unwrap_or(&terminator.kind) {
             mir::TerminatorKind::Goto { target }
             | mir::TerminatorKind::FalseUnwind {
                 real_target: target,
