@@ -56,6 +56,18 @@ macro_rules! result_to_tokens {
     }};
 }
 
+/// The argument of an attribute in inner position, i.e. its tokens with the
+/// surrounding parenthesis dropped. This makes them identical to the ones
+/// passed by the native procedural macro call.
+fn unwrap_argument(tokens: TokenStream) -> TokenStream {
+    let mut iter = tokens.into_iter();
+    let Some(TokenTree::Group(group)) = iter.next() else {
+        unreachable!("Unexpected shape of an attribute.")
+    };
+    assert!(iter.next().is_none(), "Unexpected shape of an attribute.");
+    group.stream()
+}
+
 fn extract_prusti_attributes(
     item: &mut untyped::AnyFnItem,
 ) -> Vec<(SpecAttributeKind, Span, TokenStream)> {
@@ -75,16 +87,10 @@ fn extract_prusti_attributes(
                     | SpecAttributeKind::Ensures
                     | SpecAttributeKind::AfterExpiry
                     | SpecAttributeKind::AssertOnExpiry
-                    | SpecAttributeKind::RefineSpec => {
-                        // We need to drop the surrounding parenthesis to make the
-                        // tokens identical to the ones passed by the native procedural
-                        // macro call.
-                        let mut iter = attr.tokens.into_iter();
-                        let TokenTree::Group(group) = iter.next().unwrap() else {
-                            unreachable!()
-                        };
-                        assert!(iter.next().is_none(), "Unexpected shape of an attribute.");
-                        group.stream()
+                    | SpecAttributeKind::RefineSpec => unwrap_argument(attr.tokens),
+                    // The argument of `terminates` is optional.
+                    SpecAttributeKind::Terminates if !attr.tokens.is_empty() => {
+                        unwrap_argument(attr.tokens)
                     }
                     // Nothing to do for attributes without arguments.
                     SpecAttributeKind::Pure
