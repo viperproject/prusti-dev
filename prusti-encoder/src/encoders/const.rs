@@ -374,10 +374,8 @@ impl TaskEncoder for ConstEnc {
                         let task = MirPureEncTask {
                             encoding_depth: encoding_depth + 1,
                             parent_def_id: uneval.def,
-                            param_env: vcx.tcx().param_env(uneval.def),
-                            substs: ty::List::identity_for_item(vcx.tcx(), uneval.def),
+                            gargs: GParams::from(uneval.def).identity_args(),
                             kind: PureKind::Constant(promoted),
-                            caller_def_id: None,
                         };
                         let expr = deps.require_dep::<MirPureEnc>(task)?.expr;
                         use vir::Reify;

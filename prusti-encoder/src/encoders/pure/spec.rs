@@ -19,7 +19,7 @@ use vir::{CastType, HasType, Reify};
 use crate::encoders::{
     MirLocalDefEncTask, MirPureEnc,
     mir_pure::{ExprInput, MirPureEncOutput, PureKind},
-    ty::generics::GParams,
+    ty::generics::{GArgs, GParams},
 };
 pub struct MirSpecEnc;
 
@@ -330,12 +330,15 @@ impl MirSpecEnc {
         let span = vcx.tcx().def_span(def_id);
         let spec = deps.require_dep::<MirPureEnc>(crate::encoders::MirPureEncTask {
             encoding_depth: 0,
-            kind: PureKind::Spec(ctx.extern_spec, ctx.enc_mode),
+            kind: PureKind::Spec {
+                context: ctx.context_def_id,
+                mode: ctx.enc_mode,
+            },
             parent_def_id: def_id,
-            param_env: vcx.tcx().param_env(def_id),
-            substs: ctx.substs,
-            // TODO: should this be `def_id` or `caller_def_id`
-            caller_def_id: Some(ctx.context_def_id),
+            gargs: GArgs::new(
+                GParams::new_maybe_extern(ctx.context_def_id, ctx.extern_spec),
+                ctx.substs,
+            ),
         });
         spec.inspect_err(|err| {
             vcx.emit_early_error(PrustiError::unsupported(

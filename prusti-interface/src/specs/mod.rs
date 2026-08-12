@@ -459,6 +459,25 @@ pub fn is_spec_fn(tcx: ty::TyCtxt, def_id: DefId) -> bool {
     read_prusti_attr("spec_id", attrs).is_some()
 }
 
+/// Returns true iff def_id points to a specification-only item: a spec
+/// function or closure (marked `spec_only` or carrying a `spec_id`, e.g.
+/// the spec closures of `closure!` and the checker closure of `ghost!`),
+/// or a closure nested inside one (e.g. a closure used within a
+/// specification expression).
+pub fn is_spec_item(tcx: ty::TyCtxt, def_id: DefId) -> bool {
+    let mut def_id = def_id;
+    loop {
+        let attrs = tcx.get_all_attrs(def_id);
+        if has_prusti_attr(attrs, "spec_only") || read_prusti_attr("spec_id", attrs).is_some() {
+            return true;
+        }
+        if !tcx.is_closure_like(def_id) {
+            return false;
+        }
+        def_id = tcx.parent(def_id);
+    }
+}
+
 #[tracing::instrument(level = "trace")]
 fn get_procedure_spec_ids(def_id: DefId, attrs: &[hir::Attribute]) -> Option<ProcedureSpecRefs> {
     let mut spec_id_refs = vec![];

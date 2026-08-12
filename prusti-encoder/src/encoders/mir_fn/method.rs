@@ -6,15 +6,11 @@ use task_encoder::{
 };
 use vir::MethodIdn;
 
-use crate::{
-    encoders::{
-        Impure, ImpureEncVisitor, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc, WandEnc,
-        WandEncTask,
-        mir_fn::{CallTaskDescription, RustSignature, SpecBlocks},
-        pure::spec::MirSpecEncMode,
-        ty::generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
-    },
-    trait_support::is_function_with_body,
+use crate::encoders::{
+    Impure, ImpureEncVisitor, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc, WandEnc, WandEncTask,
+    mir_fn::{CallTaskDescription, RustSignature, SpecBlocks, SpecBlocksEnc},
+    pure::spec::MirSpecEncMode,
+    ty::generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
 };
 
 // Method wrapper
@@ -148,7 +144,6 @@ impl TaskEncoder for MethodEnc {
         let def_id = *task_key;
         vir::with_vcx(|vcx| {
             let span = vcx.tcx().def_span(def_id);
-            let trusted = crate::encoders::is_function_trusted(def_id);
 
             let arg_defs = deps.require_ref_spanned::<MirLocalDefEnc>(
                 MirLocalDefEncTask::Local {
@@ -228,17 +223,16 @@ impl TaskEncoder for MethodEnc {
             posts.extend(wands.indirect_posts(vcx, &arg_defs, deps));
             posts.extend(wands.wand_posts(vcx, &arg_defs, deps));
 
-            // Do not encode the method body if it is external, trusted, just
-            // a call stub, or a trait function without a default implementation
-            let local_def_id = def_id
-                .as_local()
-                .filter(|_| !trusted && is_function_with_body(vcx.tcx(), def_id));
-            let blocks = if let Some(local_def_id) = local_def_id {
-                let body_with_facts = vcx.body_mut().get_impure_fn_body_with_facts(local_def_id);
+            // Trusted functions, call stubs, external functions and trait
+            // functions without a default implementation have no body to
+            // encode; only their contract is emitted.
+            let blocks = if let Some(body_with_facts) =
+                crate::encoders::impure_body_with_facts(def_id)
+            {
                 let body = &body_with_facts.body;
                 let local_defs = deps.require_dep_spanned::<MirLocalDefEnc>(
                     MirLocalDefEncTask::Local {
-                        def_id: local_def_id.to_def_id(),
+                        def_id,
                         all_locals: true,
                     },
                     span,
@@ -257,7 +251,11 @@ impl TaskEncoder for MethodEnc {
                 );
                 let mut start_stmts = Vec::new();
                 for local in (arg_count..body.local_decls.len()).map(mir::Local::from) {
-                    let name_p = local_defs[local].local.name;
+                    // Spec-only locals have no definition.
+                    let Some(local_def) = local_defs.get(local) else {
+                        continue;
+                    };
+                    let name_p = local_def.local.name;
                     start_stmts.push(
                         vcx.mk_local_decl_stmt(vir::vir_local_decl! { vcx; [name_p] : Ref }, None),
                     )
@@ -270,8 +268,11 @@ impl TaskEncoder for MethodEnc {
                     vcx.mk_goto_stmt(&vir::CfgBlockLabelData::BasicBlock(0)),
                 ));
 
-                let spec_blocks =
-                    SpecBlocks::new(def_id, body, fpcs_analysis.analysis().loop_analysis());
+                let spec_blocks = SpecBlocks::new(
+                    deps.require_dep::<SpecBlocksEnc>(def_id)?,
+                    body,
+                    fpcs_analysis.analysis().loop_analysis(),
+                );
 
                 deps.check_cycle()?;
                 let mut visitor = ImpureEncVisitor {

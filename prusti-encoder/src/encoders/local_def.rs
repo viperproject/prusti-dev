@@ -10,12 +10,9 @@ use prusti_rustc_interface::{
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::HasType;
 
-use crate::{
-    encoders::{
-        TyUseImpureEnc,
-        ty::{RustTyDecomposition, use_impure::TyUseImpure},
-    },
-    trait_support::is_function_with_body,
+use crate::encoders::{
+    TyUseImpureEnc,
+    ty::{RustTyDecomposition, use_impure::TyUseImpure},
 };
 
 pub struct MirLocalDefEnc;
@@ -28,11 +25,19 @@ impl task_encoder::OutputRefAny for MirLocalDefEncOutputRef {}
 
 #[derive(Clone, Copy)]
 pub struct MirLocalDefEncOutput<'vir> {
-    pub locals: &'vir IndexVec<mir::Local, LocalDef<'vir>>,
+    /// The definitions of the locals; `None` for the locals only serving
+    /// specification-only arms, which are invisible in the encoding.
+    locals: &'vir IndexVec<mir::Local, Option<LocalDef<'vir>>>,
     pub arg_count: usize,
 }
 
 impl<'vir> MirLocalDefEncOutput<'vir> {
+    /// Returns the definition of the given local, or `None` if the local
+    /// only serves specification-only arms.
+    pub fn get(&self, local: mir::Local) -> Option<LocalDef<'vir>> {
+        self.locals[local]
+    }
+
     /// Returns the definitions for the function return value.
     pub fn ret(&self) -> LocalDef<'vir> {
         self[mir::RETURN_PLACE]
@@ -82,22 +87,6 @@ pub struct LocalDef<'vir> {
     pub impure_pred: vir::ExprBool<'vir>,
 }
 
-fn should_encode_locals<'vir>(vcx: &vir::VirCtxt<'vir>, def_id: DefId) -> bool {
-    if crate::encoders::spec::is_function_trusted(def_id) {
-        tracing::info!("function {def_id:?} is trusted, skipping local encoding");
-        return false;
-    }
-    if def_id.as_local().is_none() {
-        tracing::info!("function {def_id:?} is not a local function, skipping local encoding");
-        return false;
-    }
-    if !is_function_with_body(vcx.tcx(), def_id) {
-        tracing::info!("function {def_id:?} is not a function with body, skipping local encoding");
-        return false;
-    }
-    true
-}
-
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum MirLocalDefEncTask<'vir> {
     // TODO: is this case needed?
@@ -133,34 +122,18 @@ impl<'vir> MirLocalDefEncTask<'vir> {
         }
     }
 
-    fn body(self, vcx: &vir::VirCtxt<'vir>) -> Option<MirBody<'vir>> {
+    /// The body whose locals are encoded, or `None` if there is none to
+    /// encode, in which case the locals are derived from the signature
+    /// instead.
+    ///
+    /// The body is never instantiated: the encoding is generic, and the
+    /// callers that do pass substs only need them for the signature.
+    fn body(self) -> Option<MirBody<'vir>> {
         match self {
-            MirLocalDefEncTask::ExternSpec(def_id) => {
-                let substs = ty::GenericArgs::identity_for_item(vcx.tcx(), def_id);
-                Some(vcx.body_mut().get_spec_body(def_id, substs, None))
-            }
-            MirLocalDefEncTask::Local { def_id, .. } => {
-                if should_encode_locals(vcx, def_id) {
-                    let substs = ty::GenericArgs::identity_for_item(vcx.tcx(), def_id);
-                    Some(vcx.body_mut().get_impure_fn_body(
-                        def_id.as_local().unwrap(),
-                        substs,
-                        None,
-                    ))
-                } else {
-                    None
-                }
-            }
-            MirLocalDefEncTask::LocalSubsts { def_id, substs, .. } => {
-                if should_encode_locals(vcx, def_id) {
-                    Some(vcx.body_mut().get_impure_fn_body(
-                        def_id.as_local().unwrap(),
-                        substs,
-                        None,
-                    ))
-                } else {
-                    None
-                }
+            MirLocalDefEncTask::ExternSpec(def_id) => Some(crate::encoders::spec_body(def_id)),
+            MirLocalDefEncTask::Local { def_id, .. }
+            | MirLocalDefEncTask::LocalSubsts { def_id, .. } => {
+                crate::encoders::impure_body(def_id)
             }
         }
     }
@@ -225,19 +198,34 @@ impl TaskEncoder for MirLocalDefEnc {
         vir::with_vcx(|vcx| {
             // TODO: refactor this a bit: split into one encoder for arguments (only)
             //   and one for locals (only)
-            let data = if let Some(body) = task_key.body(vcx) {
+            let data = if let Some(body) = task_key.body() {
                 deps.emit_output_ref(
                     *task_key,
                     MirLocalDefEncOutputRef {
                         arg_count: body.arg_count,
                     },
                 )?;
+                // Locals only serving specification-only arms are never
+                // used in the encoding; give them no definition so that
+                // their types are not encoded. Arguments and the return
+                // place never serve only a spec arm, so args-only tasks skip
+                // the analysis.
+                let spec_only_locals = if task_key.all_locals() {
+                    deps.require_dep::<crate::encoders::mir_fn::SpecBlocksEnc>(task_key.def_id())?
+                        .spec_arms
+                        .spec_only_locals
+                } else {
+                    Default::default()
+                };
                 let locals = IndexVec::from_fn_n(
                     |local: mir::Local| {
+                        if spec_only_locals.contains(&local) {
+                            return None;
+                        }
                         let rust_ty = body.local_decls[local].ty;
                         let rust_ty_task = RustTyDecomposition::from_ty(rust_ty, task_key.def_id());
                         let ty = deps.require_dep::<TyUseImpureEnc>(rust_ty_task).unwrap();
-                        mk_local_def(vcx, local, ty)
+                        Some(mk_local_def(vcx, local, ty))
                     },
                     if task_key.all_locals() {
                         body.local_decls.len()
@@ -276,7 +264,7 @@ impl TaskEncoder for MirLocalDefEnc {
                         let rust_ty_task =
                             RustTyDecomposition::from_ty(rust_ty, task_key.context_def_id());
                         let ty = deps.require_dep::<TyUseImpureEnc>(rust_ty_task)?;
-                        Ok(mk_local_def(vcx, local, ty))
+                        Ok(Some(mk_local_def(vcx, local, ty)))
                     })
                     .collect::<Result<IndexVec<_, _>, _>>()?;
 
@@ -293,6 +281,8 @@ impl TaskEncoder for MirLocalDefEnc {
 impl<'vir> Index<mir::Local> for MirLocalDefEncOutput<'vir> {
     type Output = LocalDef<'vir>;
     fn index(&self, index: mir::Local) -> &Self::Output {
-        &self.locals[index]
+        self.locals[index]
+            .as_ref()
+            .unwrap_or_else(|| panic!("spec-only local {index:?} has no definition"))
     }
 }

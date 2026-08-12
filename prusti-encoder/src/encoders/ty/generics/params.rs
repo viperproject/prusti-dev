@@ -16,6 +16,20 @@ use crate::encoders::{
     },
 };
 
+/// The identity arguments of `def_id`, i.e. its own generic parameters.
+///
+/// For a closure this is *not* `identity_for_item`: the compiler gives every
+/// closure three synthetic parameters (for its kind, signature and captures)
+/// which are junk parameter defs rather than parameters the closure is
+/// generic over. The parameters of a closure are those of its parent.
+pub fn identity_params<'tcx>(tcx: ty::TyCtxt<'tcx>, def_id: DefId) -> ty::GenericArgsRef<'tcx> {
+    let params = ty::GenericArgs::identity_for_item(tcx, def_id);
+    if !tcx.is_closure_like(def_id) {
+        return params;
+    }
+    tcx.mk_args(&params[..tcx.generics_of(def_id).parent_count])
+}
+
 /// The list of defined parameters in a given context. E.g. the type parameters
 /// `T` and `U` in the body of the function `fn foo<T, U>(t: T) -> U { ... }`
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -50,7 +64,7 @@ impl<'tcx> GParams<'tcx> {
     /// `Prusti_T_Self` parameter with the `Self` that the actual trait has.
     pub fn new_maybe_extern(def_id: DefId, kind: Option<ExternSpecKind>) -> Self {
         vir::with_vcx(|vcx| {
-            let params = ty::GenericArgs::identity_for_item(vcx.tcx(), def_id);
+            let params = identity_params(vcx.tcx(), def_id);
             let env = vcx.tcx().param_env(def_id);
             let is_trait_extern_spec = matches!(kind, Some(ExternSpecKind::Trait));
             Self::new(params, env, is_trait_extern_spec)
@@ -192,6 +206,12 @@ impl<'tcx> GParams<'tcx> {
 
     pub fn rust_params(self) -> ty::GenericArgsRef<'tcx> {
         self.params
+    }
+
+    /// The identity arguments in this context, i.e. the parameters
+    /// themselves. Use when encoding an item generically.
+    pub fn identity_args(self) -> GArgs<'tcx> {
+        GArgs::new(self, self.rust_params())
     }
 
     pub fn typing_env(self) -> ty::TypingEnv<'tcx> {

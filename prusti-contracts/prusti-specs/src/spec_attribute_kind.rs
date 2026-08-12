@@ -34,6 +34,7 @@ impl TryFrom<String> for SpecAttributeKind {
             "predicate" => Ok(SpecAttributeKind::Predicate),
             "invariant" => Ok(SpecAttributeKind::Invariant),
             "refine_spec" => Ok(SpecAttributeKind::RefineSpec),
+            "terminates" => Ok(SpecAttributeKind::Terminates),
             "model" => Ok(SpecAttributeKind::Model),
             "print_counterexample" => Ok(SpecAttributeKind::PrintCounterexample),
             "verified" => Ok(SpecAttributeKind::Verified),
