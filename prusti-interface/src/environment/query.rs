@@ -3,21 +3,19 @@ use std::fmt::Debug;
 use crate::data::ProcedureDefId;
 use log::debug;
 use prusti_rustc_interface::{
-    data_structures::fx::FxIndexSet,
     hir::{hir_id::HirId, Attribute},
-    infer::infer::{outlives::env::OutlivesEnvironment, InferCtxt},
+    infer::infer::InferCtxt,
     middle::ty::{
         self, GenericArgsRef, ParamEnv, PredicatePolarity, TraitPredicate, TyCtxt, TypeVisitableExt,
     },
     span::{
-        def_id::{DefId, LocalDefId, CRATE_DEF_ID},
+        def_id::{DefId, LocalDefId},
         source_map::SourceMap,
         Span,
     },
     trait_selection::{
         infer::{InferCtxtExt, TyCtxtInferExt},
         traits::{
-            outlives_bounds::InferCtxtExt as BoundsInferCtxtExt,
             query::evaluate_obligation::InferCtxtExt as QueryInferCtxtExt, ImplSource, Obligation,
             ObligationCause, SelectionContext,
         },
@@ -175,40 +173,6 @@ impl<'tcx> EnvQuery<'tcx> {
         let def_id = def_id.into_param();
         let sig = self.get_fn_sig(def_id, substs);
         self.resolve_assoc_types(sig, caller_def_id.into_param())
-    }
-
-    pub fn get_liberated_fn_sig(
-        self,
-        def_id: impl IntoParam<ProcedureDefId>,
-        substs: GenericArgsRef<'tcx>,
-    ) -> ty::FnSig<'tcx> {
-        let def_id = def_id.into_param();
-        let sig = self.get_fn_sig(def_id, substs);
-        self.tcx.liberate_late_bound_regions(def_id, sig)
-    }
-
-    pub fn assumed_wf_types(
-        self,
-        def_id: impl IntoParam<ProcedureDefId>,
-    ) -> FxIndexSet<ty::Ty<'tcx>> {
-        let def_id = def_id.into_param();
-        let liberated_sig = self.get_liberated_fn_sig(def_id, self.identity_substs(def_id));
-        // TODO: same as `ObligationCtxt::assumed_wf_types` but skips `deeply_normalize` step, is that fine?
-        liberated_sig
-            .inputs_and_output
-            .iter()
-            .collect::<FxIndexSet<_>>()
-    }
-
-    pub fn outlives_env(self, def_id: impl IntoParam<ProcedureDefId>) -> OutlivesEnvironment<'tcx> {
-        let def_id = def_id.into_param();
-        let wf_tys = self.assumed_wf_types(def_id);
-
-        let infcx = self.infer_ctxt();
-        let param_env = self.tcx.param_env(def_id);
-        // TODO: what value to use for `disable_implied_bounds_hack`?
-        let ib = infcx.implied_bounds_tys(CRATE_DEF_ID, param_env, wf_tys, true);
-        OutlivesEnvironment::from_normalized_bounds(param_env, vec![], ib, Default::default())
     }
 
     /// Returns true iff `def_id` is a closure.

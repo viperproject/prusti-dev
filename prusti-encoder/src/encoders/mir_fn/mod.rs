@@ -89,9 +89,18 @@ pub fn encode_all_in_crate<'tcx>(tcx: ty::TyCtxt<'tcx>) {
     for def_id in tcx.hir_body_owners() {
         tracing::debug!("test_entrypoint item: {def_id:?}");
         match tcx.def_kind(def_id) {
-            hir::def::DefKind::Fn | hir::def::DefKind::AssocFn => {
+            // Closure bodies are verified like `fn` bodies, whether or not
+            // they carry a `closure!` specification; only the closures of
+            // specifications themselves are exempt.
+            hir::def::DefKind::Fn | hir::def::DefKind::AssocFn | hir::def::DefKind::Closure => {
                 let def_id = def_id.to_def_id();
-                if prusti_interface::specs::is_spec_fn(tcx, def_id) {
+                if prusti_interface::specs::is_spec_item(tcx, def_id) {
+                    continue;
+                }
+                // A closure inside a trusted function is part of its
+                // (unencoded) body.
+                let root = tcx.typeck_root_def_id(def_id);
+                if root != def_id && crate::encoders::is_function_trusted(root) {
                     continue;
                 }
                 // Extern-spec stubs are macro-generated forwarding bodies whose
