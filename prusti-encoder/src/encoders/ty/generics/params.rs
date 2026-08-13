@@ -334,7 +334,13 @@ impl<'vir> GenericParams<'vir> {
         ty: RustTyDecomposition<'vir>,
     ) -> Result<vir::ExprTyVal<'vir>, EncodeFullError<'vir, E>> {
         if let TySpecifics::Param(RustParamData::Generic) = &ty.ty.specifics {
-            let param = ty.args.expect_param();
+            let Some(param) = ty.args.param() else {
+                // The parameter is instantiated with a concrete type (e.g.
+                // the normalized referent of a reference use): the lifted
+                // value is that of the argument itself.
+                let args = deps.require_dep::<GArgsTyEnc>(ty.args)?;
+                return Ok(args.get_ty()[0]);
+            };
             return Ok(match param {
                 GParamVariant::Param(p) => self.ty_exprs[self.map_idx(p.index).unwrap()],
                 GParamVariant::Alias(alias) => vir::with_vcx(|vcx| {

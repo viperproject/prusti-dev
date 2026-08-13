@@ -51,12 +51,14 @@ impl<'tcx> GArgs<'tcx> {
         self.context.normalize(ty)
     }
 
-    pub fn expect_param(self) -> GParamVariant<'tcx> {
+    /// The single argument as a type parameter or alias, or `None` when the
+    /// parameter is instantiated with a concrete type.
+    pub fn param(self) -> Option<GParamVariant<'tcx>> {
         assert_eq!(self.args.len(), 1);
         match self.args[0].expect_ty().kind() {
-            ty::TyKind::Param(p) => GParamVariant::Param(*p),
-            ty::TyKind::Alias(_k, t) => GParamVariant::Alias(*t),
-            other => panic!("expected type parameter, {other:?}"),
+            ty::TyKind::Param(p) => Some(GParamVariant::Param(*p)),
+            ty::TyKind::Alias(_k, t) => Some(GParamVariant::Alias(*t)),
+            _ => None,
         }
     }
 
