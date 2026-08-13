@@ -50,8 +50,13 @@ impl<'vir: 'a, 'a, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             cfpcs.loop_invariant_place_capabilities(loop_place_usages, ctxt);
 
         for (place, capability) in loop_invariant_place_capabilities.iter() {
+            if self.is_spec_only_local(place.local) {
+                continue;
+            }
             if capability.is_write() {
-                continue; // No permissions are encoded for places with write capabilities currently
+                // A place without a value holds its `Uninit` token.
+                inv.push(self.place_uninit(*place)?);
+                continue;
             }
             let (place_res, _snap, _, _) = self.encode_place_with_snap(*place)?;
             let ty = (*place).ty(self.pcg_ctxt());
