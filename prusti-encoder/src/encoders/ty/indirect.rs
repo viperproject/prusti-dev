@@ -141,8 +141,11 @@ impl TaskEncoder for IndirectPredicatesEnc {
                             }),
                         ));
                     }
+                    // Collect the indirect predicates of the referent itself
+                    // (e.g. of the inner reference in `&'a mut &'b mut i32`).
+                    let referent_ty = data.referent.decompose_normalize(ty.args);
                     if let Some(new_projection) =
-                        LifetimeProjection::new(inner_ty, task_region, None, PrustiPcgCtxt)
+                        LifetimeProjection::new(referent_ty, task_region, None, PrustiPcgCtxt)
                     {
                         let inner_indirect =
                             deps.require_dep::<IndirectPredicatesEnc>(new_projection)?;
@@ -155,12 +158,14 @@ impl TaskEncoder for IndirectPredicatesEnc {
                                         "ref_inner_indirect",
                                         vir::TYPE_BOOL,
                                         Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
+                                            let inner_snap = inner_impure.ref_to_snap(
+                                                ref_domain.deref_access(self_expr.downcast_ty()),
+                                            );
                                             inner_expr
                                                 .reify(
                                                     vcx,
-                                                    inner_impure.ref_to_snap(
-                                                        ref_domain
-                                                            .deref_access(self_expr.downcast_ty()),
+                                                    ref_domain.cast_to_caller_ctx(
+                                                        inner_snap.downcast_ty(),
                                                     ),
                                                 )
                                                 .kind
