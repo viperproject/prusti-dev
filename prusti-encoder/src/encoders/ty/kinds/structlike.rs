@@ -100,7 +100,7 @@ pub(crate) fn ty_impure<'vir>(
     deps: &mut TaskEncoderDependencies<'vir, TyImpureEnc>,
     builder: &mut PredicateBuilder<'vir>,
 ) -> Result<StructData<'vir, ImpureTyDatas>, EncodeFullError<'vir, TyImpureEnc>> {
-    let (data, _, snap_expr) = ty_impure_variant("", task_key, data, deps, builder)?;
+    let (data, _, snap_expr) = ty_impure_variant("", task_key, data, deps, builder, None)?;
 
     // Ref-to-snap
     builder.mk_snap_function(Some(snap_expr), &[]);
@@ -119,6 +119,9 @@ pub(crate) fn ty_impure_variant<'vir>(
     data: &StructData<'vir, (RustTyDatas, PureTyDatas)>,
     deps: &mut TaskEncoderDependencies<'vir, TyImpureEnc>,
     builder: &mut PredicateBuilder<'vir>,
+    // Held alongside the fields' `Uninit` tokens when unpacked (an enum's
+    // discriminant predicate).
+    extra_unpacked_resource: Option<vir::ExprBool<'vir>>,
 ) -> Result<ImpureVariant<'vir>, EncodeFullError<'vir, TyImpureEnc>> {
     let fields = data
         .fields
@@ -191,10 +194,53 @@ pub(crate) fn ty_impure_variant<'vir>(
         .collect::<Vec<_>>();
     let variant_snap_expr = data.1.field_snaps_to_snap.call()(snap_args.as_slice());
 
+    // Uninit token repacking methods. A `Box` is unpacked only through its
+    // value, so its token also stands for the other fields' predicates.
+    let params = builder.params.clone();
+    let self_uninit = builder.uninit_pred_expr(ref_self);
+    let value_field = if box_data.is_some() {
+        fields.len() - 1
+    } else {
+        0
+    };
+    let mut field_uninits = fields
+        .iter()
+        .zip(&field_accessors)
+        .enumerate()
+        .map(|(idx, (field, TyImpureFieldData { ref_to_field_ref }))| {
+            let field_ref = ref_to_field_ref(ref_self, params.ty_exprs(), params.const_exprs());
+            if idx < value_field {
+                field.ref_to_pred(builder.vcx, field_ref, None)
+            } else {
+                field.uninit_pred(builder.vcx, field_ref)
+            }
+        })
+        .collect::<Vec<_>>();
+    field_uninits.extend(extra_unpacked_resource);
+    let uninit_args = (ref_self_decl.ty(), params.ty_args(), params.const_args());
+    let method_uninit_expand = builder.inner.method(
+        &format!("{prefix}$uninit_expand"),
+        uninit_args,
+        &[],
+        (ref_self_decl, params.ty_decls(), params.const_decls()),
+        &[self_uninit],
+        &field_uninits,
+    );
+    let method_uninit_collapse = builder.inner.method(
+        &format!("{prefix}$uninit_collapse"),
+        uninit_args,
+        &[],
+        (ref_self_decl, params.ty_decls(), params.const_decls()),
+        &field_uninits,
+        &[self_uninit],
+    );
+
     Ok((
         StructData::new(
             TyImpureStructData {
                 box_data: box_data.map(|(box_data, _)| box_data),
+                method_uninit_expand,
+                method_uninit_collapse,
             },
             field_accessors,
         ),

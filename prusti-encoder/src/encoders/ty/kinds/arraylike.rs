@@ -160,6 +160,30 @@ pub(crate) fn ty_impure<'vir>(
             ],
         );
 
+    let method_uninit_fold = builder
+        .inner
+        .method::<(vir::Int, vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>(
+            "$uninit_fold_index",
+            (
+                vir::TYPE_INT,
+                ref_self_decl.ty(),
+                builder.params.ty_args(),
+                builder.params.const_args(),
+            ),
+            &[],
+            (
+                index_decl,
+                ref_self_decl,
+                builder.params.ty_decls(),
+                builder.params.const_decls(),
+            ),
+            &[
+                element_ty_out.uninit_pred(builder.vcx, index_ref),
+                vir::expr! { [index_predicate](ref_self, index, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]) },
+            ],
+            &[builder.uninit_pred_expr(ref_self)],
+        );
+
     Ok(ArrayData::new(
         TyImpureArrayData {
             ref_to_index_ref,
@@ -167,6 +191,7 @@ pub(crate) fn ty_impure<'vir>(
             index_predicate,
             method_fold,
             method_unfold,
+            method_uninit_fold,
         },
         data.slice,
     ))
