@@ -299,14 +299,22 @@ pub(crate) trait PureRvalueEnc<'vir> {
                 assert_eq!(arg_tys.len(), 1);
                 assert_eq!(args.len(), 1);
                 let enum_ty = arg_tys[0].expect_ty();
-                let Some(place) = args[0].node.place() else {
+                if args[0].node.place().is_none() {
                     return Err(self.unsupported_rvalue(
                         "`discriminant_value` of a constant operand".to_string(),
                         args[0].span,
                     ));
-                };
-                let deref_place = self.vcx().tcx().mk_place_deref(place);
-                let snap = self.encode_place_snap(deref_place.into(), ctxt);
+                }
+                // Read the `&T` operand as an operand (a `Move` is then
+                // consumed like any other) and project out the referent's
+                // snapshot, rather than peeking through the reference's
+                // predicate directly.
+                let arg_ty = args[0].node.ty(self.body(), self.vcx().tcx());
+                let ref_snap = self.encode_operand_snap(&args[0].node, ctxt)?;
+                let snap = self
+                    .ty_use_pure(arg_ty)
+                    .expect_immref()
+                    .value_access(ref_snap.downcast_ty());
                 let e_enum_ty = self.ty_use_pure(enum_ty);
                 match e_enum_ty.get_enumlike() {
                     Some(e_enum_ty) => {

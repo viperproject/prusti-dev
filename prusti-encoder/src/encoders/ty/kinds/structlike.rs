@@ -3,7 +3,9 @@ use crate::encoders::{
     ty::{
         RustTyDatas,
         data::{StructData, TyData},
-        impure::{ImpureTyDatas, PredicateBuilder, TyImpureEnc, TyImpureFieldData},
+        impure::{
+            ImpureTyDatas, PredicateBuilder, TyImpureEnc, TyImpureFieldData, TyImpureStructData,
+        },
         pure::{AdtBuilder, PureTyDatas, TyPureEnc, TyPureFieldData, TyPureStructData},
         use_pure::TyUsePureEnc,
     },
@@ -80,7 +82,7 @@ pub(crate) fn ty_impure<'vir>(
     deps: &mut TaskEncoderDependencies<'vir, TyImpureEnc>,
     builder: &mut PredicateBuilder<'vir>,
 ) -> Result<StructData<'vir, ImpureTyDatas>, EncodeFullError<'vir, TyImpureEnc>> {
-    let (data, _, snap_expr) = ty_impure_variant("", task_key, data, deps, builder)?;
+    let (data, _, snap_expr) = ty_impure_variant("", task_key, data, deps, builder, None)?;
 
     // Ref-to-snap
     builder.mk_snap_function(Some(snap_expr));
@@ -99,6 +101,10 @@ pub(crate) fn ty_impure_variant<'vir>(
     data: &StructData<'vir, (RustTyDatas, PureTyDatas)>,
     deps: &mut TaskEncoderDependencies<'vir, TyImpureEnc>,
     builder: &mut PredicateBuilder<'vir>,
+    // A resource held alongside the fields' `Uninit` tokens while unpacked at
+    // write capability; for enum variants this is the discriminant's
+    // predicate, which the variant's `uninit_collapse` must consume.
+    extra_unpacked_resource: Option<vir::ExprBool<'vir>>,
 ) -> Result<ImpureVariant<'vir>, EncodeFullError<'vir, TyImpureEnc>> {
     let fields = data
         .fields
@@ -159,8 +165,47 @@ pub(crate) fn ty_impure_variant<'vir>(
         .collect::<Vec<_>>();
     let variant_snap_expr = data.1.field_snaps_to_snap.call()(snap_args.as_slice());
 
+    // Uninit token repacking methods: exchange the (variant's) token for the
+    // fields' tokens when unpacking at write capability, and vice versa.
+    let params = builder.params.clone();
+    let self_uninit = builder.uninit_pred_expr(ref_self);
+    let mut field_uninits = fields
+        .iter()
+        .zip(&field_accessors)
+        .map(|(field, TyImpureFieldData { ref_to_field_ref })| {
+            field.uninit_pred(
+                builder.vcx,
+                ref_to_field_ref(ref_self, params.ty_exprs(), params.const_exprs()),
+            )
+        })
+        .collect::<Vec<_>>();
+    field_uninits.extend(extra_unpacked_resource);
+    let uninit_args = (ref_self_decl.ty(), params.ty_args(), params.const_args());
+    let method_uninit_expand = builder.inner.method(
+        &format!("{prefix}uninit_expand"),
+        uninit_args,
+        &[],
+        (ref_self_decl, params.ty_decls(), params.const_decls()),
+        &[self_uninit],
+        &field_uninits,
+    );
+    let method_uninit_collapse = builder.inner.method(
+        &format!("{prefix}uninit_collapse"),
+        uninit_args,
+        &[],
+        (ref_self_decl, params.ty_decls(), params.const_decls()),
+        &field_uninits,
+        &[self_uninit],
+    );
+
     Ok((
-        StructData::new((), field_accessors),
+        StructData::new(
+            TyImpureStructData {
+                method_uninit_expand,
+                method_uninit_collapse,
+            },
+            field_accessors,
+        ),
         pred_owned,
         variant_snap_expr,
     ))

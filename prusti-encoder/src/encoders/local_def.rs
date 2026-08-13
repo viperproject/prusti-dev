@@ -85,6 +85,9 @@ pub struct LocalDef<'vir> {
     pub local_ex: vir::ExprRef<'vir>,
     pub impure_snap: vir::ExprSnap<'vir>,
     pub impure_pred: vir::ExprBool<'vir>,
+    /// The local's `Uninit` token: held while the local's storage is
+    /// allocated but the local holds no value.
+    pub impure_uninit: vir::ExprBool<'vir>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -186,12 +189,14 @@ impl TaskEncoder for MirLocalDefEnc {
             let local_ex = vcx.mk_local_ex(local);
             let impure_snap = ty.ref_to_snap(local_ex);
             let impure_pred = ty.ref_to_pred(vcx, local_ex, None);
+            let impure_uninit = ty.uninit_pred(vcx, local_ex);
             LocalDef {
                 local,
                 local_snap,
                 local_ex,
                 impure_snap,
                 impure_pred,
+                impure_uninit,
             }
         }
 

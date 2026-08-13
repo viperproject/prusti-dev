@@ -41,8 +41,18 @@ impl<'vir: 'a, 'a, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             cfpcs.loop_invariant_place_capabilities(loop_place_usages, ctxt);
 
         for (place, capability) in loop_invariant_place_capabilities.iter() {
+            if self.is_spec_only_local(place.local) {
+                continue;
+            }
             if capability.is_write() {
-                continue; // No permissions are encoded for places with write capabilities currently
+                // A write-capability place holds only its Uninit token, which
+                // must survive the loop head for assignments in the body.
+                let place_res = self.encode_place(*place);
+                let ty = (*place).ty(self.pcg_ctxt());
+                let task = RustTyDecomposition::from_ty(ty.ty, self.def_id);
+                let ty_out = self.deps.require_dep::<TyUseImpureEnc>(task).unwrap();
+                inv.push(ty_out.uninit_pred(self.vcx, place_res.expr.expect_predicate()));
+                continue;
             }
             let (place_res, _snap, _, _) = self.encode_place_with_snap(*place);
             let ty = (*place).ty(self.pcg_ctxt());

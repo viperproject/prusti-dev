@@ -330,6 +330,7 @@ impl TaskEncoder for TraitFnEnc {
                         stub_pres.push(local_defs[arg_idx].impure_pred);
                     }
                 }
+                stub_pres.push(local_defs[mir::RETURN_PLACE].impure_uninit);
                 stub_posts.push(local_defs[mir::RETURN_PLACE].impure_pred);
                 // TODO: wands
 

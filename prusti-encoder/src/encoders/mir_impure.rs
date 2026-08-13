@@ -172,6 +172,14 @@ where
     /// created no wand to apply on expiry.
     pub wandless_calls: FxHashSet<mir::BasicBlock>,
     pub from_to_vars: FromToVars<'vir>,
+    /// Value-dropping weakens from CFG-join edges, deferred into the join
+    /// block (guarded by the edge's flag) so that they execute *after* the
+    /// block's label: labelled reads of the dropped value resolve to that
+    /// label. Keyed by the join block; injected at its start.
+    pub deferred_join_stmts: FxHashMap<mir::BasicBlock, Vec<vir::Stmt<'vir>>>,
+    /// Blocks already encoded (deferral falls back to inline emission for
+    /// edges into them, e.g. loop back-edges).
+    pub blocks_encoded: FxHashSet<mir::BasicBlock>,
 
     // for the current basic block
     pub current_fpcs: Option<PcgBasicBlock<'enc, 'vir>>,
@@ -584,21 +592,13 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         self.stmts(stmts);
     }
 
-    fn pcs_handle_edge(
-        &mut self,
-        borrows_state: &BorrowsState<'_, 'vir>,
-        edge: &BorrowPcgEdge<'vir>,
-        edge_action: EdgeAction,
-        label: Option<&'vir str>,
-        edge_to_loop: bool,
-        to_skip: &mut Vec<mir::BasicBlock>,
-    ) -> EncodeResult<'vir, (), E> {
-        let conditions = edge.conditions();
-
-        // For each block `b` where the edge is only valid if control flow
-        // continues from `b` to a specified subset of its successors, `cond`
-        // contains the corresponding VIR expression.
-        let cond_conjuncts = conditions
+    /// The path condition under which `edge` is valid, or `None` when the
+    /// edge is unconditional. For each block `b` where the edge is only
+    /// valid if control flow continues from `b` to a specified subset of its
+    /// successors, the condition requires continuing to one of them.
+    fn edge_path_condition(&mut self, edge: &BorrowPcgEdge<'vir>) -> Option<vir::ExprBool<'vir>> {
+        let cond_conjuncts = edge
+            .conditions()
             .all_branch_choices()
             .map(|choices| {
                 let successors = choices.successors(self.body);
@@ -611,9 +611,24 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 self.vcx.mk_disj(self.vcx.alloc_slice(&conj))
             })
             .collect::<Vec<_>>();
-        // For each block `b` where the edge validity depends on the successor taken from `b`,
-        // every successor must be valid.
-        let cond = self.vcx.mk_conj(self.vcx.alloc_slice(&cond_conjuncts));
+        if cond_conjuncts.is_empty() {
+            None
+        } else {
+            // Every block the edge validity depends on must take a valid successor.
+            Some(self.vcx.mk_conj(self.vcx.alloc_slice(&cond_conjuncts)))
+        }
+    }
+
+    fn pcs_handle_edge(
+        &mut self,
+        borrows_state: &BorrowsState<'_, 'vir>,
+        edge: &BorrowPcgEdge<'vir>,
+        edge_action: EdgeAction,
+        label: Option<&'vir str>,
+        edge_to_loop: bool,
+        to_skip: &mut Vec<mir::BasicBlock>,
+    ) -> EncodeResult<'vir, (), E> {
+        let cond = self.edge_path_condition(edge);
         let stmts = self.block(|self_| {
             self_.pcs_handle_edge_conditionless(
                 borrows_state,
@@ -624,11 +639,14 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 to_skip,
             )
         })?;
+        let Some(cond) = cond else {
+            self.stmts(stmts);
+            return Ok(());
+        };
         if stmts.is_empty()
             || stmts
                 .iter()
                 .all(|stmt| matches!(stmt.kind, vir::StmtKindData::Comment(_)))
-            || cond_conjuncts.is_empty()
         {
             self.stmts(stmts);
             return Ok(());
@@ -837,14 +855,142 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         pcg: &Pcg<'_, 'vir>,
         actions: &PcgActions<'vir>,
         edge_to_loop: bool,
+        defer_to: Option<mir::BasicBlock>,
     ) -> EncodeResult<'vir, (), E> {
-        for action in actions.iter() {
+        let mut deferred_locals = FxHashSet::default();
+        for (idx, action) in actions.iter().enumerate() {
             match action {
                 PcgAction::Borrow(action) => self.borrow_action(pcg, action, edge_to_loop)?,
-                PcgAction::Owned(action) => self.pcg_repack(action.kind()),
+                PcgAction::Owned(action) => {
+                    if !self.maybe_defer_join_weaken(
+                        action.kind(),
+                        pcg,
+                        defer_to,
+                        &mut deferred_locals,
+                    )? && !self.regain_w_drop(actions, idx, action.kind())?
+                    {
+                        self.pcg_repack(action.kind(), pcg)
+                    }
+                }
             }
         }
         Ok(())
+    }
+
+    /// A `RegainLoanedCapability` to only write capability announces that
+    /// the value a loan expiry restores must be dropped: the place was moved
+    /// out on another control-flow path. Perform the drop at the op's
+    /// position, under the path condition of the mut-borrow removal that
+    /// unblocked the place (the removal action precedes the regain op in the
+    /// same batch). Returns whether the op was handled here; regains outside
+    /// a mut-borrow expiry fall through to [Self::pcg_repack]. On CFG-join
+    /// edges the op is instead deferred by [Self::maybe_defer_join_weaken].
+    fn regain_w_drop(
+        &mut self,
+        actions: &PcgActions<'vir>,
+        idx: usize,
+        repack_op: &RepackOp<'vir>,
+    ) -> EncodeResult<'vir, bool, E> {
+        let RepackOp::RegainLoanedCapability(rc) = repack_op else {
+            return Ok(false);
+        };
+        let place = rc.place();
+        if !rc.capability().is_write() || self.is_spec_only_local(place.local) {
+            return Ok(false);
+        }
+        let removed_edge = actions[..idx].iter().rev().find_map(|action| {
+            let PcgAction::Borrow(action) = action else {
+                return None;
+            };
+            let BorrowPcgActionKind::RemoveEdge(edge) = action.kind() else {
+                return None;
+            };
+            let BorrowPcgEdgeKind::Borrow(borrow) = edge.kind() else {
+                return None;
+            };
+            (borrow.is_mut() && borrow.blocked_place() == MaybeLabelledPlace::Current(place))
+                .then_some(edge)
+        });
+        let Some(edge) = removed_edge else {
+            return Ok(false);
+        };
+        let place_ty = place.ty(self.pcg_ctxt());
+        let ty_out = self.ty_use_impure(place_ty.ty);
+        let place_ref = self.encode_place(place).expr.expect_predicate();
+        comment!(self, "loan expiry regains only W: drop restored value");
+        let drop_stmt = ty_out.apply_method_drop(self.vcx, place_ref);
+        if let Some(cond) = self.edge_path_condition(edge) {
+            self.stmt(
+                self.vcx
+                    .mk_if_stmt(cond, self.vcx.alloc_slice(&[drop_stmt]), &[]),
+            );
+        } else {
+            self.stmt(drop_stmt);
+        }
+        Ok(true)
+    }
+
+    /// A value drop on a CFG-join edge -- a weaken of a place lent through
+    /// on this path but moved out on another, or a loan-expiry regain to
+    /// only write capability -- must execute *after* the join block's label,
+    /// which labelled reads of the dropped value resolve to. Defer it into
+    /// the join block, guarded by this edge's flag; write-capability
+    /// collapses of the same local later on the edge depend on the minted
+    /// tokens and are deferred along with it, in order. Returns whether the
+    /// op was deferred.
+    fn maybe_defer_join_weaken(
+        &mut self,
+        repack_op: &RepackOp<'vir>,
+        pcg: &Pcg<'_, 'vir>,
+        defer_to: Option<mir::BasicBlock>,
+        deferred_locals: &mut FxHashSet<mir::Local>,
+    ) -> EncodeResult<'vir, bool, E> {
+        let Some(target) = defer_to else {
+            return Ok(false);
+        };
+        let drop_place = match repack_op {
+            RepackOp::Weaken(weaken)
+                if !weaken.from_cap().is_write()
+                    && weaken.to_cap().is_write()
+                    && !weaken.is_for_storage_dead() =>
+            {
+                Some(weaken.place())
+            }
+            RepackOp::RegainLoanedCapability(rc) if rc.capability().is_write() => Some(rc.place()),
+            RepackOp::Collapse(collapse)
+                if collapse.capability().is_write()
+                    && deferred_locals.contains(&collapse.to().local) =>
+            {
+                None
+            }
+            _ => return Ok(false),
+        };
+        let stmts = self.block::<EncodeFullError<'vir, E>>(|self_| {
+            match drop_place {
+                Some(place) => self_.pcg_weaken(place, false, true),
+                None => self_.pcg_repack(repack_op, pcg),
+            }
+            Ok(())
+        })?;
+        if let Some(place) = drop_place {
+            deferred_locals.insert(place.local);
+        }
+        if self.blocks_encoded.contains(&target) {
+            // The join block was already encoded (e.g. a loop back-edge):
+            // fall back to dropping on the edge itself.
+            comment!(self, "[PCG] {repack_op:?} (dropping value on the edge)");
+            self.stmts(stmts);
+            return Ok(true);
+        }
+        comment!(self, "[PCG] {repack_op:?} (deferred to join block)");
+        let from = self.current_block.unwrap();
+        let flag = self.from_to_vars.get_or_create(self.vcx, from, target).expr;
+        let stmt = self.vcx.mk_if_stmt(flag, self.vcx.alloc_slice(&stmts), &[]);
+        self.deferred_join_stmts
+            .entry(target)
+            .or_default()
+            .push(stmt);
+        Ok(true)
     }
 
     /// Emit the repacks of `phase` at `location`.
@@ -855,7 +1001,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     ) -> EncodeResult<'vir, (), E> {
         let current_fpcs = self.current_fpcs.take().unwrap();
         let cfpcs = &current_fpcs.statements[location.statement_index];
-        self.pcg_actions(&cfpcs.states[phase], &cfpcs.actions(phase), false)?;
+        self.pcg_actions(&cfpcs.states[phase], &cfpcs.actions(phase), false, None)?;
         self.current_fpcs = Some(current_fpcs);
         Ok(())
     }
@@ -889,10 +1035,19 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 &mut to_skip,
             ),
             BorrowPcgActionKind::Weaken(weaken)
-                if matches!(weaken.from_cap(), CapabilityKind::Exclusive)
-                    && matches!(weaken.to_cap(), None | Some(CapabilityKind::Write)) =>
+                if (matches!(
+                    weaken.from_cap(),
+                    CapabilityKind::Exclusive | CapabilityKind::ShallowExclusive
+                ) && matches!(weaken.to_cap(), None | Some(CapabilityKind::Write)))
+                    || (matches!(weaken.from_cap(), CapabilityKind::Read)
+                        && matches!(weaken.to_cap(), Some(CapabilityKind::Write))) =>
             {
-                self.pcg_weaken(weaken.place(), weaken.is_for_storage_dead());
+                // Weakening to `None` lends the place out: its predicate goes
+                // into the borrow machinery and is restored on expiry, so no
+                // Uninit token is minted. Only weakening to write capability
+                // leaves the place owned-but-uninitialised.
+                let mint_token = matches!(weaken.to_cap(), Some(CapabilityKind::Write));
+                self.pcg_weaken(weaken.place(), weaken.is_for_storage_dead(), mint_token);
                 Ok(())
             }
             //RenamePlace {
@@ -906,7 +1061,18 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         }
     }
 
-    fn pcg_repack(&mut self, repack_op: &RepackOp<'vir>) {
+    /// Specification-only locals are not declared and their assignments are
+    /// not encoded, so they are entirely outside the token discipline: no
+    /// storage, weaken, or repack event concerning them is encoded either.
+    pub(crate) fn is_spec_only_local(&self, local: mir::Local) -> bool {
+        self.spec_blocks.spec_arms.spec_only_locals.contains(&local)
+    }
+
+    fn pcg_repack(&mut self, repack_op: &RepackOp<'vir>, pcg: &Pcg<'_, 'vir>) {
+        if self.is_spec_only_local(repack_op.affected_place().local) {
+            comment!(self, "(spec-only) {repack_op:?}");
+            return;
+        }
         comment!(self, "[PCG] {repack_op:?}");
 
         fn should_ignore(repack_op: &RepackOp<'_>) -> bool {
@@ -915,12 +1081,20 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 RepackOp::Weaken(weaken) => {
                     weaken.from_cap().is_exclusive() && weaken.to_cap().is_read()
                 }
-                RepackOp::StorageDead(..) => true,
                 _ => false,
             }
         }
 
         match repack_op {
+            RepackOp::StorageDead(local) => {
+                let consume_token = self.storage_dead_consumes_token(pcg, *local);
+                self.encode_storage_dead(*local, consume_token);
+            }
+            RepackOp::IgnoreStorageDead(local) => {
+                // A preceding `RepackOp::StorageDead` is guaranteed to have
+                // deallocated the local already.
+                comment!(self, "IgnoreStorageDead({local:?})");
+            }
             RepackOp::Expand(_) | RepackOp::Collapse(_) => {
                 let (place, capability_kind) = match repack_op {
                     RepackOp::Expand(expand) => (expand.from(), expand.capability()),
@@ -928,11 +1102,27 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     _ => unreachable!(),
                 };
                 if matches!(capability_kind, CapabilityKind::Write) {
-                    // Collapsing an already exhaled place is a no-op
-                    // TODO: unless it's through a Ref I imagine?
-                    //assert!(matches!(repack_op, RepackOp::Collapse(..)));
-                    if !matches!(repack_op, RepackOp::Collapse(..)) {
-                        comment!(self, "expected RepackOp::Collapse but got {repack_op:?}");
+                    // Repacking at write capability exchanges the place's
+                    // `Uninit` token for its fields' tokens (expand) or vice
+                    // versa (collapse).
+                    // Enums repack in two steps (fields <-> variant with the
+                    // variant in the place, variant <-> enum with a Downcast
+                    // guide); the variant-level token method performs the
+                    // whole exchange at once, so only the step whose place
+                    // carries the downcast applies it and the guide-only
+                    // step is a no-op.
+                    let expand = matches!(repack_op, RepackOp::Expand(..));
+                    let place_enc = self.encode_place(place);
+                    let variant = place_enc.ty.variant_index;
+                    let data = self.ty_use_impure(place_enc.ty.ty);
+                    match data.uninit_repack(variant, place_enc.expr.expect_predicate(), expand) {
+                        Some(stmt) => self.stmt(stmt),
+                        None => {
+                            comment!(
+                                self,
+                                "no uninit repack for {repack_op:?} (unsupported type)"
+                            )
+                        }
                     }
                     return;
                 }
@@ -970,9 +1160,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 }
             }
             RepackOp::Weaken(weaken)
-                if weaken.from_cap().is_exclusive() && weaken.to_cap().is_write() =>
+                if !weaken.from_cap().is_write() && weaken.to_cap().is_write() =>
             {
-                self.pcg_weaken(weaken.place(), weaken.is_for_storage_dead())
+                self.pcg_weaken(weaken.place(), weaken.is_for_storage_dead(), true)
             }
             other => {
                 if should_ignore(other) {
@@ -991,32 +1181,135 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         }
     }
 
-    fn pcg_weaken(&mut self, place: Place<'vir>, for_storage_dead: bool) {
-        let place_ty = place.ty(self.pcg_ctxt());
-        assert!(place_ty.variant_index.is_none());
-
-        // Skip the exhale for StorageDead-triggered weakens, since the place may
-        // have already been moved/consumed and no longer hold permissions.
-        // Temporary workaround until https://github.com/prusti/pcg/issues/137
-        // is resolved.
-        if for_storage_dead {
-            comment!(
-                self,
-                "Weaken(E, W) for {:?} (skipped exhale: StorageDead)",
-                place
-            );
+    fn pcg_weaken(&mut self, place: Place<'vir>, for_storage_dead: bool, mint_token: bool) {
+        if self.is_spec_only_local(place.local) {
+            comment!(self, "(spec-only) weaken of {place:?}");
             return;
         }
+        let place_ty = place.ty(self.pcg_ctxt());
+        assert!(place_ty.variant_index.is_none());
 
         let place_ty_out = self.ty_use_impure(place_ty.ty);
 
         let place_enc = self.encode_place(place);
-        comment!(self, "exhale due to Weaken(E, W)");
-        self.stmt(self.vcx.mk_exhale_stmt(place_ty_out.ref_to_pred(
-            self.vcx,
-            place_enc.expr.expect_predicate(),
-            None,
-        )));
+        // Places behind a shared reference have no predicate of their own
+        // (only a snapshot); there is nothing to exhale or mint for them.
+        if place_enc.expr.snap.is_some() {
+            comment!(self, "weaken of snapshot-only place {place:?} (skipped)");
+            return;
+        }
+        let place_ref = place_enc.expr.expect_predicate();
+        comment!(
+            self,
+            "exhale due to Weaken(E, _){}",
+            if for_storage_dead {
+                " (for StorageDead)"
+            } else {
+                ""
+            }
+        );
+        // Note: exhaling here for storage-dead weakens is stricter than the
+        // old encoding, which skipped it and leaked the predicate. The leak
+        // is the unsoundness vector this branch closes (a re-lived local
+        // would receive a second predicate on the same ref), so the exhale
+        // stays even though rare leak-dependent proofs (nested loop guards)
+        // lose completeness.
+        if mint_token {
+            // The place keeps its (write-capability) storage: exchange its
+            // predicate for its Uninit token, to be consumed by a later
+            // assignment or StorageDead.
+            self.stmt(place_ty_out.apply_method_drop(self.vcx, place_ref));
+        } else {
+            self.stmt(
+                self.vcx
+                    .mk_exhale_stmt(place_ty_out.ref_to_pred(self.vcx, place_ref, None)),
+            );
+        }
+    }
+
+    /// Allocate storage for `local`: mint its `Uninit` token. The local's
+    /// `Ref` variable is deliberately left untouched: the borrow machinery
+    /// encodes labelled snapshots as `old[l](..._xp...)`, and Viper's `old`
+    /// does not roll back local variables, so the `Ref` must stay constant
+    /// for the whole body (no re-havoc, no nulling on dead).
+    fn encode_storage_live(&mut self, local: mir::Local) {
+        if self.is_spec_only_local(local) {
+            return;
+        }
+        let ty_out = self.ty_use_impure(self.local_decls[local].ty);
+        let local_ex = self.local_defs[local].local_ex;
+        self.stmt(
+            self.vcx
+                .mk_inhale_stmt(ty_out.uninit_pred(self.vcx, local_ex)),
+        );
+    }
+
+    /// Deallocate storage for `local`: consume its `Uninit` token. When the
+    /// local is not in an owned uninitialised state at this point (e.g. it
+    /// dies while lent to a live reborrow), no token is held and the token
+    /// (if any) is leaked instead.
+    fn encode_storage_dead(&mut self, local: mir::Local, consume_token: bool) {
+        if self.is_spec_only_local(local) {
+            return;
+        }
+        let ty_out = self.ty_use_impure(self.local_decls[local].ty);
+        let local_ex = self.local_defs[local].local_ex;
+        comment!(self, "StorageDead({local:?})");
+        if consume_token {
+            self.stmt(
+                self.vcx
+                    .mk_exhale_stmt(ty_out.uninit_pred(self.vcx, local_ex)),
+            );
+        } else {
+            comment!(self, "no Uninit token to consume (place lent or borrowed)");
+        }
+    }
+
+    /// Whether `local` holds its `Uninit` token when its storage dies in
+    /// state `pcg`: it does at write capability (uninitialised), at exclusive
+    /// capability (the accompanying storage-dead weaken exhales the value and
+    /// mints the token), and while unpacked (the accompanying collapse merges
+    /// the sub-places' tokens). It does not when lent out (no capability
+    /// entry): the owned predicate then sits inside the borrow machinery and
+    /// there is no token to consume.
+    fn storage_dead_consumes_token(&self, pcg: &Pcg<'_, 'vir>, local: mir::Local) -> bool {
+        let place = Place::from(mir::Place::from(local));
+        match pcg.place_capability(place, self.pcg_ctxt()) {
+            // The accompanying storage-dead weaken exhales the value and
+            // mints the token in this very statement (a lent-through
+            // reference sits at shallow-exclusive until then).
+            Some(CapabilityKind::Exclusive | CapabilityKind::ShallowExclusive) => true,
+            // At write capability the local holds no value, i.e. its token.
+            Some(CapabilityKind::Write) => true,
+            Some(_) => false,
+            // No capability entry: unpacked (the accompanying collapse
+            // merges the sub-places' tokens) or lent out (no token).
+            None => pcg.local_is_expanded(local),
+        }
+    }
+
+    /// Whether the PCG marked this `StorageDead` statement as possibly acting
+    /// on an already-dead local; the deallocation is then instead performed
+    /// by `RepackOp::StorageDead` ops on the edges where the local was live.
+    fn storage_dead_is_ignored(&self, location: mir::Location, local: mir::Local) -> bool {
+        let current_fpcs = self.current_fpcs.as_ref().unwrap();
+        let cfpcs = &current_fpcs.statements[location.statement_index];
+        [
+            EvalStmtPhase::PreOperands,
+            EvalStmtPhase::PostOperands,
+            EvalStmtPhase::PreMain,
+            EvalStmtPhase::PostMain,
+        ]
+        .into_iter()
+        .any(|phase| {
+            cfpcs.actions(phase).iter().any(|action| {
+                matches!(
+                    action,
+                    PcgAction::Owned(owned)
+                        if matches!(owned.kind(), RepackOp::IgnoreStorageDead(l) if *l == local)
+                )
+            })
+        })
     }
 
     fn loop_analysis(&mut self) -> &LoopAnalysis {
@@ -1037,9 +1330,14 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         // [Self::visit_terminator].
         comment!(self, "PCG (T) {}", EvalStmtPhase::PostMain);
         let post_main = &cfpcs.states[EvalStmtPhase::PostMain];
-        self.pcg_actions(post_main, &cfpcs.actions(EvalStmtPhase::PostMain), false)?;
+        self.pcg_actions(
+            post_main,
+            &cfpcs.actions(EvalStmtPhase::PostMain),
+            false,
+            None,
+        )?;
         let edge_to_loop = self.loop_head_of(succ.block()).is_some();
-        self.pcg_actions(post_main, succ.actions(), edge_to_loop)
+        self.pcg_actions(post_main, succ.actions(), edge_to_loop, Some(succ.block()))
     }
 
     fn encode_operand(
@@ -1065,6 +1363,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             }
         };
         let tmp_exp: vir::ExprRef<'vir> = self.new_tmp(vir::TYPE_REF);
+        // Fresh temporaries are "allocated" on the spot: mint the Uninit
+        // token consumed by the assignment below.
+        self.stmt(
+            self.vcx
+                .mk_inhale_stmt(ty_out.uninit_pred(self.vcx, tmp_exp)),
+        );
         self.stmt(ty_out.apply_method_assign(self.vcx, tmp_exp, encode_place_result));
         Ok(tmp_exp)
     }
@@ -1098,11 +1402,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 let tmp = self.new_tmp(ty_out.snapshot());
                 self.stmt(self.vcx.mk_pure_assign_stmt(tmp, snap_val));
                 if matches!(operand, mir::Operand::Move(_)) {
-                    self.stmt(self.vcx.mk_exhale_stmt(ty_out.ref_to_pred(
-                        self.vcx,
-                        result.expr.expect_predicate(),
-                        None,
-                    )));
+                    // The moved-out place keeps its storage: exchange its
+                    // predicate for its Uninit token.
+                    let place_ref = result.expr.expect_predicate();
+                    self.stmt(ty_out.apply_method_drop(self.vcx, place_ref));
                 }
                 Ok(tmp)
             }
@@ -1669,6 +1972,14 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
         self.current_fpcs = Some(cfpcs);
 
+        // Value drops deferred from incoming join edges execute here, right
+        // after the block's label, so that labelled reads resolving to this
+        // block still see the dropped values.
+        if let Some(deferred) = self.deferred_join_stmts.get(&block) {
+            let deferred = deferred.clone();
+            self.stmts(deferred);
+        }
+
         /*
         let mut phi_stmts = vec![];
         if let Some(phi_nodes) = self.ssa_analysis.phi.get(&block) {
@@ -1746,6 +2057,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             self.vcx.alloc_slice(&stmts),
             terminator,
         ));
+        self.blocks_encoded.insert(block);
         Ok(())
     }
 
@@ -1818,10 +2130,23 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     }
                 }
 
+                mir::StatementKind::StorageLive(local) => self.encode_storage_live(*local),
+                mir::StatementKind::StorageDead(local) => {
+                    // If the local may already be dead here, the PCG marks the
+                    // statement with `IgnoreStorageDead` and instead emits
+                    // `RepackOp::StorageDead` on the edges where it was live.
+                    if !self.storage_dead_is_ignored(location, *local) {
+                        let current_fpcs = self.current_fpcs.take().unwrap();
+                        let state = &current_fpcs.statements[location.statement_index].states
+                            [EvalStmtPhase::PreOperands];
+                        let consume_token = self.storage_dead_consumes_token(state, *local);
+                        self.current_fpcs = Some(current_fpcs);
+                        self.encode_storage_dead(*local, consume_token);
+                    }
+                }
+
                 // no-ops
-                mir::StatementKind::StorageLive(..)
-                | mir::StatementKind::StorageDead(..)
-                | mir::StatementKind::FakeRead(_)
+                mir::StatementKind::FakeRead(_)
                 | mir::StatementKind::PlaceMention(_)
                 | mir::StatementKind::AscribeUserType(..)
                 | mir::StatementKind::Coverage(_)
@@ -2057,6 +2382,24 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                             },
                         );
                         self.stmts(call);
+                        // Moved-out argument places keep their storage; their
+                        // predicates went to the callee, so mint their Uninit
+                        // tokens.
+                        for arg in args {
+                            if let &mir::Operand::Move(place) = &arg.node {
+                                let ty_out = self.ty_use_impure(
+                                    place.ty(self.local_decls, self.vcx.tcx()).ty,
+                                );
+                                let place_ref = self
+                                    .encode_place(Place::from(place))
+                                    .expr
+                                    .expect_predicate();
+                                self.stmt(
+                                    self.vcx
+                                        .mk_inhale_stmt(ty_out.uninit_pred(self.vcx, place_ref)),
+                                );
+                            }
+                        }
                         let label_post = self.new_label("post");
                         self.call_labels
                             .insert(location.block, (label_pre, label_post));

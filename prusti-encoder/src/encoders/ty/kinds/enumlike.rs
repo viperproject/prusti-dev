@@ -83,6 +83,7 @@ pub(crate) fn ty_impure<'vir>(
     );
     let ref_disc = fdisc_func(ref_self);
     let snap_disc = discr_ty_impure.ref_to_snap(ref_disc).downcast_ty();
+    let discr_pred = discr_ty_impure.ref_to_pred(builder.vcx, ref_disc, None);
 
     let variants = data
         .variants
@@ -100,6 +101,10 @@ pub(crate) fn ty_impure<'vir>(
                 &variant.inner,
                 deps,
                 builder,
+                // While an enum is unpacked (to a variant) at write
+                // capability, the discriminant's predicate is still held;
+                // collapsing back to the enum's token must consume it.
+                Some(discr_pred),
             )?;
 
             let variant_pred_expr = vir::expr! {

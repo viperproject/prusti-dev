@@ -3,10 +3,10 @@ use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDe
 use vir::{CastType, PredicateIdn};
 
 use crate::encoders::{
-    Impure,
+    Impure, UninitEnc,
     ty::{
         LazyRustTy, RustTyDatas,
-        generics::{GArgs, GArgsCastEnc, GArgsTyEnc, GParams},
+        generics::{GArgs, GArgsCastEnc, GArgsTyEnc, GParams, TyExprEnc},
     },
 };
 
@@ -45,6 +45,11 @@ pub struct TyUseImpureData<'vir> {
     args: GArgsTy<'vir>,
     impure: <ImpureTyDatas as TyDatas<'vir>>::TyData,
     maybe_inhabited: bool,
+    /// The global `Uninit` token predicate.
+    uninit_pred: PredicateIdn<'vir, (vir::Ref, vir::TyVal)>,
+    /// The lifted type value of this type use, with the use's arguments
+    /// applied.
+    lifted_ty: vir::ExprTyVal<'vir>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -137,6 +142,8 @@ impl TaskEncoder for TyUseImpureEnc {
         deps.emit_output_ref(*task_key, ())?;
 
         let ty_impure = deps.require_dep::<TyImpureEnc>(task_key.ty)?;
+        let uninit_pred = deps.require_dep::<UninitEnc>(())?;
+        let lifted_ty = deps.require_dep::<TyExprEnc>(*task_key)?;
         let mut walker = TyUseImpureWalker::new(deps, task_key.args)?;
         // Impure encoding needs to know whether the type may be inhabited (to emit
         // the right predicate). It is `None` only from `RustTyDecomposition::identity`.
@@ -144,7 +151,12 @@ impl TaskEncoder for TyUseImpureEnc {
             "impure type encoding requires a decomposition with known inhabitedness \
              (from `from_ty`), not one built by `RustTyDecomposition::identity`",
         );
-        let ty_use_impure = walker.encode_ty(task_key.ty.zip(ty_impure), maybe_inhabited)?;
+        let ty_use_impure = walker.encode_ty(
+            task_key.ty.zip(ty_impure),
+            maybe_inhabited,
+            uninit_pred,
+            lifted_ty,
+        )?;
         Ok(((), ty_use_impure.alloc()))
     }
 
@@ -172,6 +184,8 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
         &mut self,
         ty: TyData<'vir, (RustTyDatas, ImpureTyDatas)>,
         maybe_inhabited: bool,
+        uninit_pred: PredicateIdn<'vir, (vir::Ref, vir::TyVal)>,
+        lifted_ty: vir::ExprTyVal<'vir>,
     ) -> EncResult<'vir, TyData<'vir, UseImpureTyDatas>> {
         let specifics = match &ty.specifics {
             TySpecifics::Param(..) => TySpecifics::mk_param(()),
@@ -223,6 +237,8 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
             args: self.args_t,
             impure: *ty.1,
             maybe_inhabited,
+            uninit_pred,
+            lifted_ty,
         };
         Ok(TyData::new(data, specifics))
     }
@@ -327,6 +343,20 @@ impl<'vir> TyUseImpureData<'vir> {
         ))))
     }
 
+    /// Generates a call to `method_drop`, exchanging the place's owned
+    /// predicate for its `Uninit` token. Appropriate type arguments are used.
+    pub fn apply_method_drop<'tcx>(
+        &self,
+        vcx: &'vir vir::VirCtxt<'tcx>,
+        self_ref: vir::ExprRef<'vir>,
+    ) -> vir::Stmt<'vir> {
+        vcx.alloc(vir::StmtData::new(vcx.alloc((self.impure.method_drop)(
+            self_ref,
+            self.args.get_ty(),
+            self.args.get_const(),
+        ))))
+    }
+
     /// Constructs the Viper predicate application expression.
     pub fn ref_to_pred<'tcx>(
         &self,
@@ -361,9 +391,46 @@ impl<'vir> TyUseImpureData<'vir> {
     pub fn snapshot(&self) -> vir::TypeSnap<'vir> {
         self.impure.ref_to_snap.result()
     }
+
+    /// The `Uninit` token predicate application for a place of this type.
+    pub fn uninit_pred_app(&self, self_ref: vir::ExprRef<'vir>) -> vir::PredicateApp<'vir> {
+        (self.uninit_pred)(self_ref, self.lifted_ty)(None)
+    }
+
+    /// The `Uninit` token predicate application expression for a place of
+    /// this type.
+    pub fn uninit_pred<'tcx>(
+        &self,
+        vcx: &'vir vir::VirCtxt<'tcx>,
+        self_ref: vir::ExprRef<'vir>,
+    ) -> vir::ExprBool<'vir> {
+        vcx.mk_predicate_app_expr(self.uninit_pred_app(self_ref))
+    }
 }
 
 impl<'vir> TyData<'vir, UseImpureTyDatas> {
+    /// Statement exchanging the place's `Uninit` token for its fields' tokens
+    /// (`expand`) or vice versa (collapse), for repacks of places at write
+    /// capability. Returns `None` for types without token repacking support
+    /// (primitives and refs have no fields to repack to; arrays and opaque
+    /// types are not supported).
+    pub fn uninit_repack(
+        &self,
+        variant: Option<abi::VariantIdx>,
+        self_ref: vir::ExprRef<'vir>,
+        expand: bool,
+    ) -> Option<vir::Stmt<'vir>> {
+        let struct_data = if let Some(variant) = variant {
+            &self.expect_variant(variant).inner
+        } else {
+            match &self.specifics {
+                TySpecifics::StructLike(data) => data,
+                _ => return None,
+            }
+        };
+        Some(struct_data.apply_uninit_repack(self_ref, expand))
+    }
+
     /// Fold the predicate (including generic casts).
     pub fn fold(
         &self,
@@ -478,6 +545,21 @@ impl<'vir> TyUseImpureArray<'vir> {
 }
 
 impl<'vir> TyUseImpureStruct<'vir> {
+    fn apply_uninit_repack(&self, self_ref: vir::ExprRef<'vir>, expand: bool) -> vir::Stmt<'vir> {
+        let method = if expand {
+            self.impure.method_uninit_expand
+        } else {
+            self.impure.method_uninit_collapse
+        };
+        vir::with_vcx(|vcx| {
+            vcx.alloc(vir::StmtData::new(vcx.alloc((method)(
+                self_ref,
+                self.args.get_ty(),
+                self.args.get_const(),
+            ))))
+        })
+    }
+
     fn ref_to_pred_app(
         &self,
         self_ref: vir::ExprRef<'vir>,

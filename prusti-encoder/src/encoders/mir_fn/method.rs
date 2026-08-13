@@ -1,6 +1,6 @@
 use pcg::borrow_pcg::FunctionData;
 use prusti_interface::PrustiError;
-use prusti_rustc_interface::{middle::mir, span::def_id::DefId};
+use prusti_rustc_interface::{dataflow, middle::mir, span::def_id::DefId};
 use task_encoder::{
     EncodeFullError, EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies,
 };
@@ -216,6 +216,9 @@ impl TaskEncoder for MethodEnc {
                     pres.push(arg_defs[arg_idx].impure_pred);
                 }
             }
+            // The caller provides allocated-but-uninitialised storage for the
+            // return place; assigning to it in the body consumes this token.
+            pres.push(arg_defs[mir::RETURN_PLACE].impure_uninit);
             posts.push(arg_defs[mir::RETURN_PLACE].impure_pred);
 
             // ..
@@ -226,9 +229,8 @@ impl TaskEncoder for MethodEnc {
             // Trusted functions, call stubs, external functions and trait
             // functions without a default implementation have no body to
             // encode; only their contract is emitted.
-            let blocks = if let Some(body_with_facts) =
-                crate::encoders::impure_body_with_facts(def_id)
-            {
+            let body_with_facts = crate::encoders::impure_body_with_facts(def_id);
+            let blocks = if let Some(body_with_facts) = body_with_facts {
                 let body = &body_with_facts.body;
                 let local_defs = deps.require_dep_spanned::<MirLocalDefEnc>(
                     MirLocalDefEncTask::Local {
@@ -249,6 +251,10 @@ impl TaskEncoder for MethodEnc {
                     // extra blocks: Start, End
                     2 + block_count,
                 );
+                // Always-live locals start out allocated but uninitialised, so
+                // their `Uninit` token is minted up front. All other locals
+                // receive their token at `StorageLive`.
+                let always_live = dataflow::impls::always_storage_live_locals(body);
                 let mut start_stmts = Vec::new();
                 for local in (arg_count..body.local_decls.len()).map(mir::Local::from) {
                     // Spec-only locals have no definition.
@@ -258,7 +264,10 @@ impl TaskEncoder for MethodEnc {
                     let name_p = local_def.local.name;
                     start_stmts.push(
                         vcx.mk_local_decl_stmt(vir::vir_local_decl! { vcx; [name_p] : Ref }, None),
-                    )
+                    );
+                    if always_live.contains(local) {
+                        start_stmts.push(vcx.mk_inhale_stmt(local_defs[local].impure_uninit));
+                    }
                 }
                 // This will be overwritten later.
                 encoded_blocks.push(vcx.mk_cfg_block(
@@ -292,6 +301,8 @@ impl TaskEncoder for MethodEnc {
                     call_labels: Default::default(),
                     wandless_calls: Default::default(),
                     from_to_vars: Default::default(),
+                    deferred_join_stmts: Default::default(),
+                    blocks_encoded: Default::default(),
 
                     current_block: None,
                     current_block_pres: None,
