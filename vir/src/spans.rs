@@ -115,6 +115,24 @@ impl<'tcx> VirCtxt<'tcx> {
         res
     }
 
+    /// Execute the given function with an empty span stack, restoring the
+    /// current stack afterwards. Used when crossing an encoder-context
+    /// boundary (a task encoder starting to encode a new task): encodings are
+    /// demand-driven and cached, so without this the encoded item's spans
+    /// would be linked to whatever span happens to be ambient at the *first*
+    /// demand site, and error positions inside the shared encoding would
+    /// forever backtranslate to that first caller (e.g. every failing
+    /// `assert!` in a crate reporting its "failing precondition" note at the
+    /// first `assert!` encoded).
+    pub fn with_span_stack_isolated<T>(&'tcx self, f: impl FnOnce() -> T) -> T {
+        let saved = std::mem::take(&mut self.spans.borrow_mut().stack);
+        let res = f();
+        // Overwrite rather than assert emptiness: a panicking encoder (the
+        // panic is caught by the task encoder) leaves its pushed spans behind.
+        self.spans.borrow_mut().stack = saved;
+        res
+    }
+
     /// Add an error handler to the span currently on top of the stack.
     /// `error_kind` is the machine-readable identifier of an error, as
     /// defined by Viper. The handler function should construct one or more
@@ -124,7 +142,10 @@ impl<'tcx> VirCtxt<'tcx> {
         error_kind: &'static str,
         handler: impl Fn(Option<Span>) -> Option<Vec<PrustiError>> + 'tcx,
     ) {
-        let top_span_id = self.top_span().unwrap().id;
+        let top_span_id = self
+            .top_span()
+            .expect("an error handler must be registered under a span")
+            .id;
         let mut manager = self.spans.borrow_mut();
         let previous = manager.handlers.remove(&top_span_id);
         manager.handlers.insert(
@@ -163,18 +184,26 @@ impl<'tcx> VirCtxt<'tcx> {
         let reason_span_opt = reason_pos_id
             .and_then(|id| manager.all.get(id))
             .map(|vir_span| vir_span.span);
-        let mut span_opt = manager.all.get(offending_pos_id);
-        while let Some(span) = span_opt {
-            let mut handler_opt = manager.handlers.get(&span.id);
-            while let Some(handler) = handler_opt {
-                if handler.error_kind == error_kind {
-                    if let Some(errors) = (handler.handler)(reason_span_opt) {
-                        return errors;
+        // TODO: the `reason_pos_id` fallback works around Viper blaming the
+        //   *enclosing* node (e.g. method call statement) for a failed
+        //   well-definedness check of a native partial operation expression
+        //   (e.g. a sequence index), which leaves the expression that actually
+        //   failed in the `reason` rather than in the `offending` position.
+        //   See https://github.com/viperproject/silver/issues/928
+        for pos_id in [Some(offending_pos_id), reason_pos_id] {
+            let mut span_opt = pos_id.and_then(|id| manager.all.get(id));
+            while let Some(span) = span_opt {
+                let mut handler_opt = manager.handlers.get(&span.id);
+                while let Some(handler) = handler_opt {
+                    if handler.error_kind == error_kind {
+                        if let Some(errors) = (handler.handler)(reason_span_opt) {
+                            return errors;
+                        }
                     }
+                    handler_opt = handler.next.as_deref();
                 }
-                handler_opt = handler.next.as_deref();
+                span_opt = span.parent.as_ref();
             }
-            span_opt = span.parent.as_ref();
         }
         // No handler found for the error, this must be a bug. We'll try to provide a span at least.
         let span = manager

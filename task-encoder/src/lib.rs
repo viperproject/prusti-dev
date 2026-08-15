@@ -346,11 +346,18 @@ pub trait TaskEncoder {
         }
 
         let value = task_key.clone();
-        let catch_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(move || {
-            let mut deps = TaskEncoderDependencies::new();
-            let encode_result = Self::do_encode_full(&value, &mut deps);
-            (encode_result, deps)
-        }));
+        // The span stack is isolated across the encoder-context boundary: the
+        // encoding is demand-driven and cached, so its spans must not chain
+        // up to whatever span is ambient at the (first) demand site.
+        let catch_result = vir::with_vcx(|vcx| {
+            vcx.with_span_stack_isolated(|| {
+                std::panic::catch_unwind(std::panic::AssertUnwindSafe(move || {
+                    let mut deps = TaskEncoderDependencies::new();
+                    let encode_result = Self::do_encode_full(&value, &mut deps);
+                    (encode_result, deps)
+                }))
+            })
+        });
 
         let (encode_result, deps) = catch_result.map_err(|panic_payload| {
             // There was a panic within the encoder. We want to report it
