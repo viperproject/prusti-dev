@@ -443,6 +443,27 @@ impl TaskEncoder for PrustiBuiltinEnc {
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
         deps.emit_output_ref(*task_key, ())?;
+        // The span of a checked operation is part of the key, so this
+        // encoding belongs to (and is reachable from) that call statement.
+        vir::with_vcx(|vcx| match task_key.span {
+            Some(span) => vcx.with_span(span, |vcx| Self::encode(task_key, deps, vcx)),
+            None => Self::encode(task_key, deps, vcx),
+        })
+    }
+
+    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
+        CollectionOpsEnc::emit_outputs(program);
+    }
+}
+
+impl PrustiBuiltinEnc {
+    /// Encodes the operation of `task_key`, with its span (if it is a
+    /// checked operation) on the span stack.
+    fn encode<'vir>(
+        task_key: &PrustiBuiltinTask<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+        vcx: &'vir vir::VirCtxt<'vir>,
+    ) -> EncodeFullResult<'vir, Self> {
         let PrustiBuiltinTask {
             builtin,
             def_id,
@@ -451,85 +472,79 @@ impl TaskEncoder for PrustiBuiltinEnc {
             span,
         } = *task_key;
         assert_eq!(is_pure, span.is_none());
-        vir::with_vcx(|vcx| {
-            let tcx = vcx.tcx();
-            let sig = tcx
-                .fn_sig(def_id)
-                .instantiate(tcx, args.args())
-                .skip_binder();
+        let tcx = vcx.tcx();
+        let sig = tcx
+            .fn_sig(def_id)
+            .instantiate(tcx, args.args())
+            .skip_binder();
 
-            // One hole per operand, typed with the operand's snapshot type.
-            let operands = (0..sig.inputs().len())
-                .map(|i| {
-                    let ty = RustTyDecomposition::from_ty(sig.inputs()[i], args.context());
-                    let snap_ty = deps.require_ref::<TyUsePureEnc>(ty)?.snapshot;
-                    Ok(vcx.mk_lazy_expr(
-                        vir::vir_format!(vcx, "prusti_builtin_operand_{i}"),
-                        snap_ty,
-                        Box::new(move |_vcx, lctx: PrustiBuiltinOperands<'vir>| {
-                            assert_eq!(lctx.len(), sig.inputs().len());
-                            lctx[i].kind
-                        }),
-                    ))
-                })
-                .collect::<EncResult<'vir, Vec<ExprRet<'vir, vir::Snap>>>>()?;
-            let operands = &operands;
+        // One hole per operand, typed with the operand's snapshot type.
+        let operands = (0..sig.inputs().len())
+            .map(|i| {
+                let ty = RustTyDecomposition::from_ty(sig.inputs()[i], args.context());
+                let snap_ty = deps.require_ref::<TyUsePureEnc>(ty)?.snapshot;
+                Ok(vcx.mk_lazy_expr(
+                    vir::vir_format!(vcx, "prusti_builtin_operand_{i}"),
+                    snap_ty,
+                    Box::new(move |_vcx, lctx: PrustiBuiltinOperands<'vir>| {
+                        assert_eq!(lctx.len(), sig.inputs().len());
+                        lctx[i].kind
+                    }),
+                ))
+            })
+            .collect::<EncResult<'vir, Vec<ExprRet<'vir, vir::Snap>>>>()?;
+        let operands = &operands;
 
-            let mut ctxt = BuiltinCtxt {
-                vcx,
-                deps,
-                sig,
-                args,
-                operands,
-                span,
-            };
-            let res: ExprRet<'vir, vir::Snap> = match builtin {
-                PrustiBuiltin::Spec(_) => {
-                    unreachable!("pure-only builtin in `PrustiBuiltinEnc`: {builtin:?}")
+        let mut ctxt = BuiltinCtxt {
+            vcx,
+            deps,
+            sig,
+            args,
+            operands,
+            span,
+        };
+        let res: ExprRet<'vir, vir::Snap> = match builtin {
+            PrustiBuiltin::Spec(_) => {
+                unreachable!("pure-only builtin in `PrustiBuiltinEnc`: {builtin:?}")
+            }
+            PrustiBuiltin::Ghost(op) => ctxt.encode_ghost(op)?,
+            PrustiBuiltin::SnapEq | PrustiBuiltin::SnapNe => {
+                let bin_op = match builtin {
+                    PrustiBuiltin::SnapEq => vir::BinOpKind::CmpEq,
+                    PrustiBuiltin::SnapNe => vir::BinOpKind::CmpNe,
+                    _ => unreachable!(),
+                };
+                let (lhs, rhs) = ctxt.deref_operands::<vir::Snap>()?;
+                ctxt.native_cmp(bin_op, lhs, rhs).upcast_ty()
+            }
+            PrustiBuiltin::SnapClone => ctxt.deref_operand(0)?,
+            PrustiBuiltin::Seq(op) => ctxt.encode_seq(op)?,
+            PrustiBuiltin::AnySet { multiset, op } => ctxt.encode_any_set(multiset, op)?,
+            PrustiBuiltin::Map(op) => ctxt.encode_map(op)?,
+            // `From` differs structurally between the numeric types; the
+            // shared operations are handled by `encode_num`.
+            PrustiBuiltin::Int(NumOp::From) => {
+                let prim = *ctxt.e_input(0)?.expect_primitive();
+                let val = prim.snap_to_prim(ctxt.operands[0].downcast_ty());
+                val.downcast_ty::<vir::Int>().upcast_ty()
+            }
+            PrustiBuiltin::Int(op) => ctxt.encode_num::<vir::Int>(op, false)?,
+            PrustiBuiltin::Real(NumOp::From) => {
+                let fp_to_real = ctxt.e_input(0)?.expect_float().fp_to_real;
+                fp_to_real.call()(ctxt.operands[0].downcast_ty()).upcast_ty()
+            }
+            PrustiBuiltin::Real(op) => ctxt.encode_num::<vir::Perm>(op, true)?,
+            PrustiBuiltin::Float(op, fl) => {
+                let domain = ctxt.float_domain(fl)?;
+                let operand = ctxt.operands[0].downcast_ty();
+                match op {
+                    FloatOp::IsNan => domain.fp_is_nan.call()(operand).upcast_ty(),
+                    FloatOp::IsInfinite => domain.fp_is_infinite.call()(operand).upcast_ty(),
+                    FloatOp::Abs => domain.fp_abs.call()(operand).upcast_ty(),
                 }
-                PrustiBuiltin::Ghost(op) => ctxt.encode_ghost(op)?,
-                PrustiBuiltin::SnapEq | PrustiBuiltin::SnapNe => {
-                    let bin_op = match builtin {
-                        PrustiBuiltin::SnapEq => vir::BinOpKind::CmpEq,
-                        PrustiBuiltin::SnapNe => vir::BinOpKind::CmpNe,
-                        _ => unreachable!(),
-                    };
-                    let (lhs, rhs) = ctxt.deref_operands::<vir::Snap>()?;
-                    ctxt.native_cmp(bin_op, lhs, rhs).upcast_ty()
-                }
-                PrustiBuiltin::SnapClone => ctxt.deref_operand(0)?,
-                PrustiBuiltin::Seq(op) => ctxt.encode_seq(op)?,
-                PrustiBuiltin::AnySet { multiset, op } => ctxt.encode_any_set(multiset, op)?,
-                PrustiBuiltin::Map(op) => ctxt.encode_map(op)?,
-                // `From` differs structurally between the numeric types; the
-                // shared operations are handled by `encode_num`.
-                PrustiBuiltin::Int(NumOp::From) => {
-                    let prim = *ctxt.e_input(0)?.expect_primitive();
-                    let val = prim.snap_to_prim(ctxt.operands[0].downcast_ty());
-                    val.downcast_ty::<vir::Int>().upcast_ty()
-                }
-                PrustiBuiltin::Int(op) => ctxt.encode_num::<vir::Int>(op, false)?,
-                PrustiBuiltin::Real(NumOp::From) => {
-                    let fp_to_real = ctxt.e_input(0)?.expect_float().fp_to_real;
-                    fp_to_real.call()(ctxt.operands[0].downcast_ty()).upcast_ty()
-                }
-                PrustiBuiltin::Real(op) => ctxt.encode_num::<vir::Perm>(op, true)?,
-                PrustiBuiltin::Float(op, fl) => {
-                    let domain = ctxt.float_domain(fl)?;
-                    let operand = ctxt.operands[0].downcast_ty();
-                    match op {
-                        FloatOp::IsNan => domain.fp_is_nan.call()(operand).upcast_ty(),
-                        FloatOp::IsInfinite => domain.fp_is_infinite.call()(operand).upcast_ty(),
-                        FloatOp::Abs => domain.fp_abs.call()(operand).upcast_ty(),
-                    }
-                }
-            };
-            Ok(((), PrustiBuiltinExpr(res)))
-        })
-    }
-
-    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        CollectionOpsEnc::emit_outputs(program);
+            }
+        };
+        Ok(((), PrustiBuiltinExpr(res)))
     }
 }
 
@@ -1045,8 +1060,8 @@ impl<'enc, 'vir> BuiltinCtxt<'enc, 'vir> {
 
     /// Registers a backtranslation handler for the well-definedness
     /// obligation of a checked (impure-code) partial collection operation.
-    /// The handler attaches to the caller's current span - the call
-    /// statement, where Viper anchors these error positions.
+    /// The handler attaches to this encoding's span - the call statement,
+    /// which is part of the task key.
     fn handle_partial_op_error(&self, error_kind: &'static str, message: &'static str, span: Span) {
         self.vcx.handle_error(error_kind, move |_| {
             Some(vec![PrustiError::verification(message, span.into())])

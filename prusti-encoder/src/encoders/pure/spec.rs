@@ -227,9 +227,12 @@ impl TaskEncoder for MirSpecEnc {
                 .filter_map(|spec_def_id| {
                     let spec = Self::encode_pure(vcx, deps, ctx, *spec_def_id, "precondition")?;
                     let expr = spec.expr.downcast_ty::<vir::Bool>();
-                    let expr = expr.reify(vcx, (*spec_def_id, pre_args));
                     let span = vcx.tcx().def_span(*spec_def_id);
-                    Some((vcx.with_span(span, |_| expr), span))
+                    // Reify *inside* the span scope: the nodes created by the
+                    // reification pick up the ambient span, which makes error
+                    // positions inside this precondition point at the spec.
+                    let expr = vcx.with_span(span, |vcx| expr.reify(vcx, (*spec_def_id, pre_args)));
+                    Some((expr, span))
                 })
                 .collect();
 

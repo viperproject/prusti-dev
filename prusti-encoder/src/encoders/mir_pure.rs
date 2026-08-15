@@ -138,12 +138,26 @@ impl TaskEncoder for MirPureEnc {
                     .unwrap_or_else(|| panic!("no body to encode for {def_id:?}")),
             };
 
-            let mut enc = Enc::new(vcx, task_key.0, def_id, kind, gargs, &body, deps);
-            let expr_inner = if let PureKind::SpecBlock(block) = kind {
-                enc.encode_spec_block(block)?
+            // Encode under the body's span: expression nodes pick up the
+            // ambient span at creation, so everything in a pure/spec body
+            // defaults to the body's source (e.g. the spec attribute for a
+            // spec closure), refined per statement in `encode_stmt`. This is
+            // what error positions inside the body backtranslate to. The MIR
+            // span of a body deserialized from another crate is dummy; the
+            // definition's span survives in the crate metadata.
+            let body_span = if body.span.is_dummy() {
+                vcx.tcx().def_span(def_id)
             } else {
-                enc.encode_body()?
+                body.span
             };
+            let mut enc = Enc::new(vcx, task_key.0, def_id, kind, gargs, &body, deps);
+            let expr_inner = vcx.with_span(body_span, |_| {
+                if let PureKind::SpecBlock(block) = kind {
+                    enc.encode_spec_block(block)
+                } else {
+                    enc.encode_body()
+                }
+            })?;
             let inputs = std::mem::take(&mut enc.versions_used)
                 .into_iter()
                 .filter(|(l, v)| *l != mir::RETURN_PLACE && *v == 0)
@@ -162,23 +176,30 @@ impl TaskEncoder for MirPureEnc {
                 let ret = RustTyDecomposition::from_ty(body.return_ty(), enc.context);
                 deps.require_ref::<TyUsePureEnc>(ret)?.snapshot
             };
-            let expr = vcx.mk_lazy_expr(
-                vir::vir_format!(vcx, "pure body {def_id:?}"),
-                snapshot,
-                Box::new(move |vcx, lctx: ExprInput<'_>| {
-                    // check: are we actually providing inputs for the
-                    //   correct `DefId`?
-                    assert_eq!(lctx.0, def_id);
+            // Created under the body's span: this wrapper is the node whose
+            // span survives reification as the top of the expression (`span`
+            // is passed through by `reify`), so it is what error positions
+            // pointing at the whole body (e.g. a failing precondition
+            // conjunct) backtranslate to.
+            let expr = vcx.with_span(body_span, |vcx| {
+                vcx.mk_lazy_expr(
+                    vir::vir_format!(vcx, "pure body {def_id:?}"),
+                    snapshot,
+                    Box::new(move |vcx, lctx: ExprInput<'_>| {
+                        // check: are we actually providing inputs for the
+                        //   correct `DefId`?
+                        assert_eq!(lctx.0, def_id);
 
-                    // check: are we providing the expected number of inputs?
-                    // TODO: check that the expected inputs are present; this
-                    //   check is not precise
-                    assert!(lctx.1.len() >= inputs_expected);
+                        // check: are we providing the expected number of inputs?
+                        // TODO: check that the expected inputs are present; this
+                        //   check is not precise
+                        assert!(lctx.1.len() >= inputs_expected);
 
-                    use vir::Reify;
-                    expr_inner.kind.reify(vcx, lctx)
-                }),
-            );
+                        use vir::Reify;
+                        expr_inner.kind.reify(vcx, lctx)
+                    }),
+                )
+            });
             add_debug_note!(expr.debug_info, "Inner expr: {}", expr_inner.debug_info);
             Ok((inputs, expr))
         })?;
@@ -934,25 +955,31 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         stmt: &mir::Statement<'vir>,
         location: mir::Location,
     ) -> Result<Update<'vir>, EncodeFullError<'vir, MirPureEnc>> {
-        let mut update = Update::new();
-        match &stmt.kind {
-            &mir::StatementKind::StorageLive(local) => {
-                let new_version = self.bump_version_no_assign(local, location);
-                update.versions.insert(local, new_version);
+        // Encoded under the statement's span: expressions pick up the ambient
+        // span at creation, which makes error positions inside pure/spec
+        // bodies point at the originating source (e.g. the failing conjunct
+        // of a spec).
+        self.vcx.with_span(stmt.source_info.span, |_| {
+            let mut update = Update::new();
+            match &stmt.kind {
+                &mir::StatementKind::StorageLive(local) => {
+                    let new_version = self.bump_version_no_assign(local, location);
+                    update.versions.insert(local, new_version);
+                }
+                mir::StatementKind::StorageDead(..)
+                | mir::StatementKind::FakeRead(..)
+                | mir::StatementKind::AscribeUserType(..)
+                | mir::StatementKind::PlaceMention(..) => {} // nop
+                mir::StatementKind::Assign(box (dest, rvalue)) => {
+                    //assert!(dest.projection.is_empty());
+                    let span = stmt.source_info.span;
+                    let expr = self.encode_rvalue(curr_ver, rvalue, span)?;
+                    self.bump_version(&mut update, dest.local, expr, location);
+                }
+                k => todo!("statement kind {k:?}"),
             }
-            mir::StatementKind::StorageDead(..)
-            | mir::StatementKind::FakeRead(..)
-            | mir::StatementKind::AscribeUserType(..)
-            | mir::StatementKind::PlaceMention(..) => {} // nop
-            mir::StatementKind::Assign(box (dest, rvalue)) => {
-                //assert!(dest.projection.is_empty());
-                let span = stmt.source_info.span;
-                let expr = self.encode_rvalue(curr_ver, rvalue, span)?;
-                self.bump_version(&mut update, dest.local, expr, location);
-            }
-            k => todo!("statement kind {k:?}"),
-        }
-        Ok(update)
+            Ok(update)
+        })
     }
 
     fn encode_rvalue(

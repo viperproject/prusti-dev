@@ -27,13 +27,9 @@ fn consistency_error() {
             ast.seqn(&[ast.assert(ast.false_lit(), ast.no_position())], &[]),
         );
 
-        ast.seqn(
-            &[assignment, if_stmt],
-            &[
-                // consistency error: we omit the declaration of the local variable x
-                // ast.local_var_decl("x", ast.bool_type())
-            ],
-        )
+        // consistency error: we omit the declaration of the local variable x, i.e.
+        // `ast.local_var_decl("x", ast.bool_type())`
+        ast.seqn(&[assignment, if_stmt], &[])
     });
 }
 
