@@ -1905,10 +1905,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 real_target: target,
                 ..
             }
-            // A `Drop`'s semantics (releasing the dropped place's permission
-            // via a weaken exhale) are carried by the PCG statements, so only
-            // its goto remains to be encoded here.
             | mir::TerminatorKind::Drop { target, .. } => {
+                // A `Drop`'s semantics (releasing the dropped place's
+                // permission via a weaken exhale) are carried by the PCG
+                // statements, so only its goto remains to be encoded here.
                 self.pcs_succ_to(*target)?;
                 let set_flag = self.set_from_to_flag(location.block, *target);
                 self.stmt(set_flag);
@@ -1943,8 +1943,11 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     self.collect_pcs_succ_at(otherwise_succ_idx, targets.otherwise())?;
                 otherwise_stmts.push(self.set_from_to_flag(location.block, targets.otherwise()));
 
-                let discr_ex = discr_ty
-                    .snap_to_prim(self.encode_operand_snap(discr, &None).unwrap().downcast_ty());
+                let discr_ex = discr_ty.snap_to_prim(
+                    self.encode_operand_snap(discr, &None)
+                        .unwrap()
+                        .downcast_ty(),
+                );
                 self.vcx.mk_goto_if_stmt(
                     discr_ex.as_dyn(), // self.vcx.mk_local_ex(discr_name),
                     goto_targets,
@@ -1988,6 +1991,21 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 );
 
                 let (func_def_id, caller_substs, is_pure) = self.get_call_data(func);
+                // A call whose span comes from a macro expansion (e.g. the
+                // `core::panicking::panic` call inside a failing `assert!`)
+                // was not written by the user, so reporting "precondition
+                // might not hold" at the expanded fragment is confusing: no
+                // visible call exists there. Report at the macro invocation
+                // that produced the call, naming the actually-called function.
+                let verification_error = if span.from_expansion() {
+                    let name = self.vcx.tcx().def_path_str(func_def_id);
+                    let message = format!(
+                        "precondition of `{name}` (called by this macro expansion) might not hold"
+                    );
+                    PrustiError::verification(message, span.source_callsite().into())
+                } else {
+                    PrustiError::verification("precondition might not hold", span.into())
+                };
 
                 let dest = self
                     .encode_place(Place::from(*destination))
@@ -2006,10 +2024,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                             vcx.handle_error(
                                 "application.precondition:assertion.false",
                                 move |reason_span_opt| {
-                                    let mut error = PrustiError::verification(
-                                        "precondition might not hold",
-                                        span.into(),
-                                    );
+                                    let mut error = verification_error.clone();
                                     if let Some(reason_span) = reason_span_opt {
                                         error.add_note_mut(
                                             "the failing precondition is here",
@@ -2043,10 +2058,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         vcx.handle_error(
                             "call.precondition:assertion.false",
                             move |reason_span_opt| {
-                                let mut error = PrustiError::verification(
-                                    "precondition might not hold",
-                                    span.into(),
-                                );
+                                let mut error = verification_error.clone();
                                 if let Some(reason_span) = reason_span_opt {
                                     error.add_note_mut(
                                         "the failing precondition is here",

@@ -164,7 +164,8 @@ def get_var_or(name, default):
         return default
 
 
-def run_command(args, env=None, cwd=None, on_exit=None, report_time=False):
+def run_command(args, env=None, cwd=None, on_exit=None, report_time=False,
+                capture_output=False):
     """Run a command with the given arguments.
 
     +   ``env`` – an environment in which to run.
@@ -172,17 +173,25 @@ def run_command(args, env=None, cwd=None, on_exit=None, report_time=False):
     +   ``on_exit`` – function to be executed on exit.
     +   ``report_time`` – whether to report how long it took to execute
         the command.
+    +   ``capture_output`` – whether to capture the output of the command
+        instead of letting it through to the terminal. The caller gets it
+        as bytes from the returned `CompletedProcess`.
     """
     if env is None:
         env = get_env()
     start_time = datetime.datetime.now()
-    completed = subprocess.run(args, env=env, cwd=cwd, shell=(os.name == 'nt'))
+    completed = subprocess.run(args, env=env, cwd=cwd, shell=(os.name == 'nt'),
+                               capture_output=capture_output)
     if report_time:
         print(datetime.datetime.now() - start_time)
     if on_exit is not None:
         on_exit()
     if completed.returncode != 0:
+        if capture_output:
+            sys.stdout.write(completed.stdout.decode())
+            sys.stderr.write(completed.stderr.decode())
         sys.exit(completed.returncode)
+    return completed
 
 
 def extract_test_compile_flags(test_path):

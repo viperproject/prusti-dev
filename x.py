@@ -206,8 +206,21 @@ def fmt_all():
         fmt_in(crate)
 
 def fmt_check_in(cwd):
-    """Run cargo fmt check in the given subproject."""
-    run_command(['cargo', 'fmt', '--', '--check'], cwd=cwd)
+    """Run cargo fmt check in the given subproject, failing on any error.
+
+    Errors which rustfmt reports without failing itself are how it says that
+    it could not format something, e.g. that formatting a construct would drop
+    one of its comments and that it therefore left the entire enclosing
+    expression (and thus all of the code within it) exactly as it found it.
+    """
+    completed = run_command(['cargo', 'fmt', '--', '--check'], cwd=cwd,
+                            capture_output=True)
+    stderr = completed.stderr.decode()
+    sys.stdout.write(completed.stdout.decode())
+    sys.stderr.write(stderr)
+    # e.g. `error[internal]: not formatted because a comment would be lost`
+    if any(line.startswith('error') for line in stderr.splitlines()):
+        error('rustfmt reported errors in {}, see above.', cwd)
 
 def fmt_check_all():
     """Run rustfmt check on all formatted files."""
