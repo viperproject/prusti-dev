@@ -5,7 +5,7 @@ use prusti_rustc_interface::{abi, hir, index, middle::ty, span::symbol};
 
 use super::{
     data::*,
-    generics::{GArgs, GParams},
+    generics::{GArgs, GParams, identity_params},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -414,7 +414,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             ty::TyKind::Array(..) => String::from("Array"),
             ty::TyKind::Slice(..) => String::from("Slice"),
             ty::TyKind::Dynamic(..) => String::from("Dyn"),
-            ty::TyKind::Foreign(def_id) => {
+            ty::TyKind::Foreign(def_id) | ty::TyKind::FnDef(def_id, _) => {
                 vir::with_vcx(|vcx| vcx.tcx().item_name(*def_id).to_ident_string())
             }
             other => unimplemented!("ty_name for {:?}", other),
@@ -505,6 +505,13 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
                 let identity = ty::List::identity_for_item(vcx.tcx(), did);
                 let gargs = vcx.tcx().mk_args(identity.as_closure().parent_args());
                 let args = vcx.tcx().mk_args(args.as_closure().parent_args());
+                (
+                    GParams::new(gargs, vcx.tcx().param_env(did), is_trait_extern_spec),
+                    args,
+                )
+            }),
+            ty::TyKind::FnDef(did, args) => vir::with_vcx(|vcx| {
+                let gargs = identity_params(vcx.tcx(), did);
                 (
                     GParams::new(gargs, vcx.tcx().param_env(did), is_trait_extern_spec),
                     args,
