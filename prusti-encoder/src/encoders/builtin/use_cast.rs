@@ -1,5 +1,5 @@
 use prusti_rustc_interface::middle::mir;
-use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::FunctionIdn;
 
 use crate::encoders::{
@@ -53,6 +53,11 @@ impl<'vir> MirBuiltinUseCastTask<'vir> {
 pub enum MirBuiltinUseCastOutput<'vir> {
     Simple(FunctionIdn<'vir, vir::CSnap, vir::CSnap>),
     Unsize(MirBuiltinUnsize<'vir>),
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum MirBuiltinUseCastError {
+    UnsupportedTransmute,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -112,6 +117,7 @@ impl TaskEncoder for MirBuiltinUseCastEnc {
 
     type TaskDescription<'vir> = MirBuiltinUseCastTask<'vir>;
 
+    type EncodingError = MirBuiltinUseCastError;
     type OutputFullDependency<'vir> = MirBuiltinUseCastOutput<'vir>;
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
@@ -133,6 +139,20 @@ impl TaskEncoder for MirBuiltinUseCastEnc {
             kind,
             operand_ty: operand_ty.ty,
         };
+
+        // a mismatch of the referent type when performing a raw pointer cast
+        // is essentially a transmute, which we don't support yet; we have to
+        // report the error here because we still have the generic parameters
+        // for the raw pointers here
+        if kind == mir::CastKind::PtrToPtr
+            && result_ty.args.args()[0].as_type() != operand_ty.args.args()[0].as_type()
+        {
+            return Err(EncodeFullError::EncodingError(
+                MirBuiltinUseCastError::UnsupportedTransmute,
+                None,
+            ));
+        }
+
         let cast = deps.require_dep::<MirBuiltinCastEnc>(task)?;
         match cast {
             MirBuiltinCastOutput::Simple(fn_idn) => {

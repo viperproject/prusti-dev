@@ -1270,6 +1270,15 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                             snap: None,
                         }
                     }
+                    ty::TyKind::RawPtr(..) => {
+                        let ref_snap = e_ty.ref_to_snap(expr.address).downcast_ty();
+                        let p_ty = self.ty_use_pure(place_ty.ty).expect_raw();
+                        PlaceExpr {
+                            address: p_ty.address_access(ref_snap),
+                            metadata: Some(p_ty.metadata_access(ref_snap)),
+                            snap: None,
+                        }
+                    }
                     _ => unreachable!(),
                 }
             }
