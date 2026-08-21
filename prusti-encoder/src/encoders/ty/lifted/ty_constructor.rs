@@ -20,32 +20,6 @@ pub struct TyConstructorEncOutputRef<'vir> {
     pub const_param_accessors: &'vir [vir::AdtDestructor<'vir, vir::TyVal, vir::CSnap>],
 }
 
-impl<'vir> TyConstructorEncOutputRef<'vir> {
-    /// Takes as input this type's `typeof` function (from `TypeOfEnc`) and a
-    /// snapshot encoding of a rust value, and returns the `idx`th type
-    /// parameter of its type.
-    pub fn ty_param_from_snap(
-        &self,
-        idx: usize,
-        typeof_function: vir::FunctionIdn<'vir, vir::Snap, vir::TyVal>,
-        snap: vir::ExprCSnap<'vir>,
-    ) -> vir::ExprTyVal<'vir> {
-        self.ty_param_accessors[idx].call()(typeof_function(snap.upcast_ty()))
-    }
-
-    /// Takes as input this type's `typeof` function (from `TypeOfEnc`) and a
-    /// snapshot encoding of a rust value, and returns the `idx`th const
-    /// parameter of its type.
-    pub fn const_param_from_snap(
-        &self,
-        idx: usize,
-        typeof_function: vir::FunctionIdn<'vir, vir::Snap, vir::TyVal>,
-        snap: vir::ExprCSnap<'vir>,
-    ) -> vir::ExprCSnap<'vir> {
-        self.const_param_accessors[idx].call()(typeof_function(snap.upcast_ty()))
-    }
-}
-
 impl<'vir> OutputRefAny for TyConstructorEncOutputRef<'vir> {}
 
 pub type TyConstructorEncOutput<'vir> = vir::AdtConstructor<'vir>;

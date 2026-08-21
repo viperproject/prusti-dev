@@ -30,7 +30,7 @@ use crate::encoders::{
             trait_impls::{TraitImplEnc, TraitImplItemEnc},
         },
         interpretation::bitvec::BitVecEnc,
-        lifted::{TyConstructorEnc, TypeOfEnc},
+        lifted::TyConstructorEnc,
     },
 };
 
@@ -116,7 +116,6 @@ pub fn test_entrypoint<'tcx>(
 
     program.header("type constructors");
     TyConstructorEnc::emit_outputs(&mut program);
-    TypeOfEnc::emit_outputs(&mut program);
 
     program.header("constants");
     ConstEnc::emit_outputs(&mut program);

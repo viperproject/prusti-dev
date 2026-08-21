@@ -249,10 +249,9 @@ impl TaskEncoder for TyPureEnc {
     type OutputRef<'vir> = TyPureRef<'vir>;
     type OutputFullDependency<'vir> = TyPure<'vir>;
 
-    /// A domain is not encoded here for Param types, the relevant domains are
-    /// encoded in [`GenericEnc`]. The reason we do not encode the domain for
-    /// `Param` types here is because we don't want [`GenericEnc`] to depend on
-    /// this encoder: doing so would create a cyclic dependency.
+    /// Nothing is encoded here for Param types: the `s_Param` adt is emitted
+    /// by `CastersEnc<Pure>`, which knows the variants (one per generic cast
+    /// pair encoded in the program).
     type OutputFullLocal<'vir> = Option<TyPureEncLocal<'vir>>;
 
     type EncodingError = TyPureEncError;
@@ -272,8 +271,9 @@ impl TaskEncoder for TyPureEnc {
 
             let specifics = match &task_key.specifics {
                 TySpecifics::Param(param) => {
-                    let builder = builder.set_domain_builder();
-                    TySpecifics::Param(super::kinds::param::ty_pure(param, deps, builder)?)
+                    // No domain: the `s_Param` adt is emitted by
+                    // `CastersEnc<Pure>` (one variant per generic cast pair).
+                    TySpecifics::Param(super::kinds::param::ty_pure(param, deps, &mut builder)?)
                 }
                 TySpecifics::Opaque(opaque) => {
                     let builder = builder.set_domain_builder();

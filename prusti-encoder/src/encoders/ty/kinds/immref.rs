@@ -57,8 +57,6 @@ pub(crate) fn ty_impure<'vir>(
         "",
         Some(vir::expr! {
             acc((ref_self).[ref_field])
-            // TODO: pure typeof assertions do not currently work
-            // && (([generic_typeof]([data.1.value_access]([ref_field](ref_self)))) == ([builder.params.ty_exprs()[0]]))
         }), // TODO: use generic args?
     );
 

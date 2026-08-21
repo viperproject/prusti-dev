@@ -1,14 +1,14 @@
 use crate::encoders::ty::{
     RustParam,
     impure::{PredicateBuilder, TyImpureEnc, TyImpureParam},
-    pure::{DomainBuilder, TyPureEnc, TyPureParam},
+    pure::{TyPureBuilder, TyPureEnc, TyPureParam},
 };
 use task_encoder::{EncodeFullError, TaskEncoderDependencies};
 
 pub(crate) fn ty_pure<'vir>(
     _data: &RustParam<'vir>,
     _deps: &mut TaskEncoderDependencies<'vir, TyPureEnc>,
-    _builder: &mut DomainBuilder<'vir>,
+    _builder: &mut TyPureBuilder<'vir>,
 ) -> Result<TyPureParam<'vir>, EncodeFullError<'vir, TyPureEnc>> {
     Ok(())
 }

@@ -60,14 +60,7 @@ impl<'vir> GArgCaster<'vir, Pure> {
         e: vir::ExprGenSnap<'vir, Curr, Next>,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
         self.get()
-            .map(|c| {
-                c.cast.make_concrete.call()(
-                    e.downcast_ty(),
-                    c.ty_args.get_ty(),
-                    c.ty_args.get_const(),
-                )
-                .upcast_ty()
-            })
+            .map(|c| c.cast.make_concrete.call()(e.downcast_ty()).upcast_ty())
             .unwrap_or(e)
     }
 }
