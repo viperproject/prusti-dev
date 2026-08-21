@@ -2,10 +2,6 @@ use prusti_contracts::*;
 
 /// Examples from Fabian Wolff's thesis.
 
-// ignore-test
-// TODO: move semantics
-// TODO: rewrite test to use structs with Clone (?)
-
 fn main() {
     let mut x = "x".to_owned();
     let mut y = "y".to_owned();

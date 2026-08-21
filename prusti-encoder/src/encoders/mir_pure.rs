@@ -1180,6 +1180,27 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .map(|pr| proj.ref_to_index_ref(pr, idx));
                 EncodedPlace::new(proj_app, place_ref)
             }
+            // `from_end` indexes from the runtime length of a slice; it is
+            // always false for an array, whose statically known length lets
+            // the compiler resolve the offset. Only the array form is
+            // supported (a slice is matched behind a reference and its
+            // length is not in the snapshot's type).
+            mir::ProjectionElem::ConstantIndex {
+                offset,
+                from_end: false,
+                ..
+            } => {
+                let proj = e_ty.expect_array();
+                let idx = self
+                    .vcx
+                    .mk_const_expr(vir::ConstData::Int(offset as u128))
+                    .downcast_ty();
+                let proj_app = proj.index(encoded_place.snap.downcast_ty(), idx);
+                let place_ref = encoded_place
+                    .place_ref
+                    .map(|pr| proj.ref_to_index_ref(pr, idx));
+                EncodedPlace::new(proj_app, place_ref)
+            }
             mir::ProjectionElem::Downcast(..) => encoded_place,
             _ => todo!("Unsupported ProjectionElem {:?}", elem),
         }

@@ -3,19 +3,17 @@ use prusti_contracts::*;
 /// Examples from Fabian Wolff's thesis.
 
 // ignore-test
-// TODO: return type for the nested closure cannot be written, but is required
-// in the spec entailment
-// TODO: outer keyword
-// TODO: move semantics for closures
+// TODO: spec entailment on `result`, the `outer` keyword, and move
+// semantics for closures are not supported yet
 
 fn main() {
     let hocl = closure!(
-        ensures(result |= [
+        #[ensures(result |= [
             ensures(result == outer(i))
-        ]),
+        ])]
         |i: i32| {
             closure!(
-                ensures(result == outer(i)), // ???
+                #[ensures(result == outer(i))] // ???
                 move || i
             )
         }

@@ -23,6 +23,9 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
+#[cfg(feature = "prusti")]
+use core::marker::{PhantomData, Tuple};
+
 // modules have a `_spec` suffix to avoid name conflicts with their crates.
 // this is present even when compiling outside prusti to enable (negatively) implementing traits used for better specs
 #[cfg(feature = "core")]
@@ -414,7 +417,7 @@ mod private {
     /// See <https://github.com/rust-lang/rust/issues/40090>.
     #[macro_export]
     macro_rules! closure {
-        ($condition:ident ($($args:tt)*), $($tail:tt)*) => {
+        (#[$($attr:tt)*] $($tail:tt)*) => {
             $crate::closure!($($tail)*)
         };
         ($($tail:tt)*) => {
@@ -651,6 +654,34 @@ pub fn old_start() {
 #[cfg(feature = "prusti")]
 #[doc(hidden)]
 pub fn old_end() {
+    panic!()
+}
+
+/// Prusti-internal marker emitted by the `closure!` macro; do not use. The
+/// desugaring is documented on `prusti_specs::closure`.
+#[cfg(feature = "prusti")]
+#[doc(hidden)]
+pub fn closure_spec_pre<Args: Tuple, F: Fn<Args, Output = bool>, T>(_: Args, _: F) -> T {
+    panic!()
+}
+
+/// Prusti-internal marker emitted by the `closure!` macro; do not use. The
+/// desugaring is documented on `prusti_specs::closure`.
+#[cfg(feature = "prusti")]
+#[doc(hidden)]
+pub fn closure_spec_args<ArgsR: Tuple, T>(_: ArgsR, _: PhantomData<ArgsR>) -> T {
+    panic!()
+}
+
+/// Prusti-internal marker emitted by the `closure!` macro; do not use. The
+/// desugaring is documented on `prusti_specs::closure`.
+#[cfg(feature = "prusti")]
+#[doc(hidden)]
+pub fn closure_spec_post<ArgsR: Tuple, F: Fn<ArgsR, Output = bool>, T>(
+    _: ArgsR,
+    _: PhantomData<ArgsR>,
+    _: F,
+) -> T {
     panic!()
 }
 

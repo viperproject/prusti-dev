@@ -1,5 +1,6 @@
 use std::ops::Index;
 
+use pcg::borrow_pcg::FunctionData;
 use prusti_interface::environment::body::MirBody;
 use prusti_rustc_interface::{
     index::IndexVec,
@@ -240,12 +241,16 @@ impl TaskEncoder for MirLocalDefEnc {
                 }
             } else {
                 let typing_env = ty::TypingEnv::post_analysis(vcx.tcx(), task_key.context_def_id());
+                // `identity_fn_sig` rather than the `fn_sig` query, which
+                // closures do not have: their body signature (the
+                // environment followed by the untupled parameters) is read
+                // off their type instead.
+                let sig = FunctionData::new(task_key.def_id()).identity_fn_sig(vcx.tcx());
                 let sig = vcx.tcx().instantiate_and_normalize_erasing_regions(
                     task_key.substs(vcx),
                     typing_env,
-                    vcx.tcx().fn_sig(task_key.def_id()),
+                    ty::EarlyBinder::bind(sig),
                 );
-                let sig = sig.skip_binder();
                 deps.emit_output_ref(
                     *task_key,
                     MirLocalDefEncOutputRef {

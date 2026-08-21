@@ -531,6 +531,43 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         self.fold_or_unfold(base, FoldOrUnfold::Unfold, None, label);
     }
 
+    /// The index argument for folding or unfolding an array-typed place,
+    /// if the expansion is guided by an indexing projection.
+    fn expansion_index(&mut self, guide: RepackGuide) -> Option<vir::ExprInt<'vir>> {
+        match guide {
+            RepackGuide::Index(index_local, _) => {
+                let index = self
+                    .encode_operand_snap(&mir::Operand::Copy(index_local.into()), &None)
+                    .unwrap();
+                let usize_ty_out = self.ty_use_pure(self.vcx.tcx().types.usize);
+                Some(
+                    usize_ty_out
+                        .expect_primitive()
+                        .snap_to_prim(index.downcast_ty())
+                        .downcast_ty(),
+                )
+            }
+            RepackGuide::ConstantIndex(constant_index, _) => {
+                // `from_end` indexes from the runtime length of a slice; it
+                // is always false for an array, the only supported subject.
+                let mir::PlaceElem::ConstantIndex {
+                    offset,
+                    from_end: false,
+                    ..
+                } = constant_index.into()
+                else {
+                    todo!("from-end `ConstantIndex` (into a slice)")
+                };
+                Some(
+                    self.vcx
+                        .mk_const_expr(vir::ConstData::Int(offset as u128))
+                        .downcast_ty(),
+                )
+            }
+            _ => None,
+        }
+    }
+
     pub(crate) fn fold_or_unfold(
         &mut self,
         base: MaybeLabelledPlace<'vir>,
@@ -558,24 +595,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             .maybe_apply_label(ref_p.expr.expect_predicate(), label);
         let data = self.ty_use_impure(place_ty.ty);
 
-        // TODO: use `guide` from `BorrowPcgExpansion`
-        let index = expansion.and_then(|expansion| {
-            match expansion.expansion()[0].place().projection.last() {
-                Some(&mir::ProjectionElem::Index(index_local)) => {
-                    let index = self
-                        .encode_operand_snap(&mir::Operand::Copy(index_local.into()), &None)
-                        .unwrap();
-                    let usize_ty_out = self.ty_use_pure(self.vcx.tcx().types.usize);
-                    Some(
-                        usize_ty_out
-                            .expect_primitive()
-                            .snap_to_prim(index.downcast_ty())
-                            .downcast_ty(),
-                    )
-                }
-                _ => None,
-            }
-        });
+        let index = expansion
+            .and_then(|expansion| expansion.guide())
+            .and_then(|guide| self.expansion_index(guide));
 
         let stmts = match fold_or_unfold {
             FoldOrUnfold::Unfold => data.unfold(place_ty.variant_index, ref_p, index, None, label),
@@ -946,21 +968,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     pcg::free_pcs::RepackOp::Collapse(collapse) => collapse.guide(),
                     _ => None,
                 };
-                let index = guide.and_then(|guide| match guide {
-                    RepackGuide::Index(index_local, _) => {
-                        let index = self
-                            .encode_operand_snap(&mir::Operand::Copy(index_local.into()), &None)
-                            .unwrap();
-                        let usize_ty_out = self.ty_use_pure(self.vcx.tcx().types.usize);
-                        Some(
-                            usize_ty_out
-                                .expect_primitive()
-                                .snap_to_prim(index.downcast_ty())
-                                .downcast_ty(),
-                        )
-                    }
-                    _ => None,
-                });
+                let index = guide.and_then(|guide| self.expansion_index(guide));
                 if matches!(repack_op, pcg::free_pcs::RepackOp::Expand(..)) {
                     self.stmts(data.unfold(place_ty.variant_index, place_enc, index, None, None));
                 } else if matches!(repack_op, pcg::free_pcs::RepackOp::Collapse(..)) {
@@ -1213,6 +1221,27 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 let idx = usize_ty
                     .expect_primitive()
                     .snap_to_prim(idx.1.downcast_ty())
+                    .downcast_ty();
+                PlaceExpr {
+                    address: e_ty.ref_to_index_ref(expr.address, idx),
+                    metadata: None,
+                    snap: expr.snap.map(|snap| {
+                        let e_ty = self.ty_use_pure(place_ty.ty).expect_array();
+                        e_ty.index(snap.downcast_ty(), idx)
+                    }),
+                }
+            }
+            // `from_end` indexes from the runtime length of a slice; it is
+            // always false for an array, the only supported subject.
+            mir::ProjectionElem::ConstantIndex {
+                offset,
+                from_end: false,
+                ..
+            } => {
+                let e_ty = self.ty_use_impure(place_ty.ty).expect_array();
+                let idx = self
+                    .vcx
+                    .mk_const_expr(vir::ConstData::Int(offset as u128))
                     .downcast_ty();
                 PlaceExpr {
                     address: e_ty.ref_to_index_ref(expr.address, idx),
