@@ -496,38 +496,186 @@ fn generate_expression_closure(
     }
 }
 
+/// Rejects `result` as a binding anywhere in a closure parameter pattern: it
+/// would collide with the postcondition closure's `result` parameter.
+fn check_no_result_binding(pat: &syn::Pat) -> syn::Result<()> {
+    struct FindResult(Option<Span>);
+    impl<'ast> syn::visit::Visit<'ast> for FindResult {
+        fn visit_pat_ident(&mut self, pat: &'ast syn::PatIdent) {
+            if self.0.is_none() && pat.ident == "result" {
+                self.0 = Some(pat.ident.span());
+            }
+            syn::visit::visit_pat_ident(self, pat);
+        }
+    }
+    let mut visitor = FindResult(None);
+    syn::visit::Visit::visit_pat(&mut visitor, pat);
+    match visitor.0 {
+        Some(span) => Err(syn::Error::new(
+            span,
+            "closure parameter bindings may not be named `result`",
+        )),
+        None => Ok(()),
+    }
+}
+
+/// The value of a closure parameter, rebuilt from its pattern's bindings for
+/// the `closure_spec_*` marker tuples. The value sits in dead code and only
+/// pins the spec closures' parameter types, but it must typecheck: a pattern
+/// without `..` and without `ref` bindings binds everything it matches, so
+/// its value can be rebuilt structurally (moving the bindings, which the
+/// diverging `return` permits).
+///
+/// `_` binds nothing, and nothing can mention it either, but the stand-in
+/// value must still typecheck at its position. In a structural position
+/// (a tuple slot, behind `&`, or the parameter itself) the expected type is
+/// whatever we build, so `()` serves. In a `pinned` position (the field of
+/// a struct the pattern names, or an array's element type, unified with the
+/// sibling elements) no stand-in can be right: the field's type is fixed
+/// by a definition this macro cannot see, so `()` mismatches a concrete
+/// field, while an inference variable (`None.unwrap()`) is unresolvable
+/// when `_` is all that constrains a generic one. Such a `_` is therefore
+/// rejected; binding the value instead (`_x`) is exact in both cases.
+fn reconstruct_arg(pat: &syn::Pat, pinned: bool) -> syn::Result<TokenStream> {
+    let unsupported = |span, what: &str| {
+        syn::Error::new(
+            span,
+            format!("the parameters of a closure with specifications may not contain {what}"),
+        )
+    };
+    match pat {
+        syn::Pat::Ident(pat_ident) => {
+            if let Some(by_ref) = &pat_ident.by_ref {
+                return Err(unsupported(by_ref.span(), "`ref` bindings"));
+            }
+            // An `x @ subpattern` binding names the whole value, whatever
+            // the subpattern is.
+            let ident = &pat_ident.ident;
+            Ok(quote_spanned! {ident.span()=> #ident })
+        }
+        syn::Pat::Wild(wild) if pinned => Err(unsupported(
+            wild.span(),
+            "`_` inside a struct or array pattern (bind the value instead, e.g. `_x`)",
+        )),
+        syn::Pat::Wild(wild) => Ok(quote_spanned! {wild.span()=> () }),
+        // A tuple (or reference) type is structural: if the position of the
+        // whole is pinned, so is each slot, and vice versa.
+        syn::Pat::Tuple(tuple) => {
+            let elems = tuple
+                .elems
+                .iter()
+                .map(|elem| reconstruct_arg(elem, pinned))
+                .collect::<syn::Result<Vec<_>>>()?;
+            Ok(quote_spanned! {tuple.span()=> (#(#elems,)*) })
+        }
+        syn::Pat::Reference(reference) => {
+            let mutability = &reference.mutability;
+            let value = reconstruct_arg(&reference.pat, pinned)?;
+            Ok(quote_spanned! {reference.span()=> &#mutability #value })
+        }
+        // A constructor is a nominal signature: its fields' types are fixed
+        // by the struct definition, whatever the position of the whole.
+        syn::Pat::TupleStruct(tuple_struct) => {
+            let path = &tuple_struct.path;
+            let elems = tuple_struct
+                .pat
+                .elems
+                .iter()
+                .map(|elem| reconstruct_arg(elem, true))
+                .collect::<syn::Result<Vec<_>>>()?;
+            Ok(quote_spanned! {tuple_struct.span()=> #path(#(#elems),*) })
+        }
+        syn::Pat::Struct(pat_struct) => {
+            if let Some(dot2) = &pat_struct.dot2_token {
+                return Err(unsupported(dot2.span(), "`..`"));
+            }
+            let path = &pat_struct.path;
+            let fields = pat_struct
+                .fields
+                .iter()
+                .map(|field| {
+                    let member = &field.member;
+                    let value = reconstruct_arg(&field.pat, true)?;
+                    Ok(quote_spanned! {field.span()=> #member: #value })
+                })
+                .collect::<syn::Result<Vec<_>>>()?;
+            Ok(quote_spanned! {pat_struct.span()=> #path { #(#fields),* } })
+        }
+        // A slice pattern in parameter position matches an array (on a slice
+        // it would be refutable, which rustc rejects on its own), so the
+        // value is an array literal. The elements share one type, so each
+        // slot is pinned by its siblings.
+        syn::Pat::Slice(slice) => {
+            let elems = slice
+                .elems
+                .iter()
+                .map(|elem| reconstruct_arg(elem, true))
+                .collect::<syn::Result<Vec<_>>>()?;
+            Ok(quote_spanned! {slice.span()=> [#(#elems),*] })
+        }
+        // A unit struct: the path is the value.
+        syn::Pat::Path(path) => Ok(path.to_token_stream()),
+        syn::Pat::Type(pat_type) => reconstruct_arg(&pat_type.pat, pinned),
+        syn::Pat::Rest(rest) => Err(unsupported(rest.span(), "`..`")),
+        other => Err(unsupported(other.span(), "this kind of pattern")),
+    }
+}
+
+/// Expands the `closure!` macro: returns the closure itself, with its specs
+/// embedded as `closure_spec_*` marker calls in dead `if false { return .. }`
+/// blocks inside the body (the `return` makes the argument moves diverge, so
+/// they cannot affect the body), one block per specification. For
+///
+/// ```ignore
+/// closure!(#[requires(P1)] #[requires(P2)] #[ensures(Q)] |a: A, b| body)
+/// ```
+///
+/// the macro expands to
+///
+/// ```ignore
+/// {
+///     #[prusti::closure]
+///     #[prusti::specs_version = "..."]
+///     let _prusti_closure = |a: A, b| {
+///         if false {
+///             return closure_spec_pre((a, b), #[prusti::spec_only] |a: _, b: _| -> bool { P1 });
+///         }
+///         if false {
+///             return closure_spec_pre((a, b), #[prusti::spec_only] |a: _, b: _| -> bool { P2 });
+///         }
+///         let prusti_closure_args = ::core::marker::PhantomData;    // mixed-site hygiene
+///         if false {
+///             return closure_spec_args((a, b, None.unwrap()), prusti_closure_args);
+///         }
+///         let result = body;
+///         if false {
+///             return closure_spec_post((None.unwrap(), None.unwrap(), result), prusti_closure_args, #[prusti::spec_only] |a: _, b: _, result| -> bool { Q });
+///         }
+///         result
+///     };
+///     _prusti_closure
+/// }
+/// ```
+///
+/// Each spec closure carries the span of its specification, so that
+/// diagnostics point at the violated clause.
+///
+/// The spec closures take the closure's parameters (plus `result` for
+/// postconditions) as a flat list of the parameters' own patterns; their
+/// types are deduced from the markers' `Fn<Args>` bound against the actual
+/// argument tuple, never from annotations (see [reconstruct_arg]: a `_`
+/// slot's stand-in value deliberately fakes its type, so a user annotation
+/// must not be forwarded). The argument tuple holds each parameter's value,
+/// rebuilt from the pattern's bindings for parameters that destructure.
+/// `closure_spec_args` unifies the `PhantomData` binding
+/// carrying the argument (and result) types from the closure entry to the
+/// postcondition; tuple slots whose values are unavailable at the
+/// respective marker are filled with `None.unwrap()`, which mints a fresh
+/// inference variable (a `!`-typed stand-in such as `unreachable!()` wouldn't
+/// work as it doesn't coerce at that point and would pin the slot to `!`).
 pub fn closure(tokens: TokenStream) -> TokenStream {
     let cl_spec: ClosureWithSpec = handle_result!(syn::parse(tokens.into()));
     let callsite_span = Span::call_site();
-
-    let mut rewriter = rewriter::AstRewriter::new();
-
-    let mut preconds: Vec<(SpecificationId, syn::Expr)> = vec![];
-    let mut postconds: Vec<(SpecificationId, syn::Expr)> = vec![];
-
-    let mut cl_annotations = TokenStream::new();
-
-    for r in cl_spec.pres {
-        let spec_id = rewriter.generate_spec_id();
-        let precond =
-            handle_result!(rewriter.process_closure_assertion(spec_id, r.to_token_stream(),));
-        preconds.push((spec_id, precond));
-        let spec_id_str = spec_id.to_string();
-        cl_annotations.extend(quote_spanned! {callsite_span=>
-            #[prusti::pre_spec_id_ref = #spec_id_str]
-        });
-    }
-
-    for e in cl_spec.posts {
-        let spec_id = rewriter.generate_spec_id();
-        let postcond =
-            handle_result!(rewriter.process_closure_assertion(spec_id, e.to_token_stream(),));
-        postconds.push((spec_id, postcond));
-        let spec_id_str = spec_id.to_string();
-        cl_annotations.extend(quote_spanned! {callsite_span=>
-            #[prusti::post_spec_id_ref = #spec_id_str]
-        });
-    }
 
     let syn::ExprClosure {
         attrs,
@@ -541,43 +689,137 @@ pub fn closure(tokens: TokenStream) -> TokenStream {
         body,
     } = cl_spec.cl;
 
-    let output_type: syn::Type = match output {
-        syn::ReturnType::Default => {
-            return syn::Error::new(output.span(), "closure must specify return type")
-                .to_compile_error();
-        }
-        syn::ReturnType::Type(_, ref ty) => (**ty).clone(),
-    };
-
-    let (spec_toks_pre, spec_toks_post) =
-        handle_result!(rewriter.process_closure(inputs.clone(), output_type, preconds, postconds,));
-
     let mut attrs_ts = TokenStream::new();
     for a in attrs {
-        attrs_ts.extend(a.into_token_stream());
+        match a.path.get_ident() {
+            Some(ident) if ident == "pure" => {
+                attrs_ts.extend(quote_spanned! {a.span()=> #[prusti::pure] });
+            }
+            Some(ident) if ident == "trusted" => {
+                attrs_ts.extend(quote_spanned! {a.span()=> #[prusti::trusted] });
+            }
+            // Reject other specification attributes rather than forwarding
+            // them (they would be silently ignored on the `let` binding).
+            Some(ident) if SpecAttributeKind::try_from(ident.to_string()).is_ok() => {
+                return syn::Error::new(
+                    a.span(),
+                    format!("`{ident}` is not supported on `closure!`"),
+                )
+                .to_compile_error();
+            }
+            _ => attrs_ts.extend(a.into_token_stream()),
+        }
     }
+
+    // Each specification with its span, so that the spec closure carries the
+    // span of its expression and diagnostics point at that clause.
+    let parse_specs = |exprs: Vec<syn::Expr>| -> syn::Result<Vec<(TokenStream, Span)>> {
+        exprs
+            .into_iter()
+            .map(|expr| Ok((parse_prusti(expr.to_token_stream())?, expr.span())))
+            .collect()
+    };
+    let pres = handle_result!(parse_specs(cl_spec.pres));
+    let posts = handle_result!(parse_specs(cl_spec.posts));
+
+    // The spec closures' parameters (the closure's own patterns) and the
+    // parameters' values for the marker tuples (rebuilt from the patterns'
+    // bindings). The parameter types are deliberately left to inference:
+    // each is pinned by its value, and for a pattern with `_` slots the
+    // value's type differs from the closure's (the slots hold `()`), so a
+    // user annotation must not be forwarded.
+    let mut spec_params: Vec<TokenStream> = vec![];
+    let mut arg_values: Vec<TokenStream> = vec![];
+    if !pres.is_empty() || !posts.is_empty() {
+        for input in &inputs {
+            let pat = match input {
+                syn::Pat::Type(pat_type) => &*pat_type.pat,
+                other => other,
+            };
+            handle_result!(check_no_result_binding(pat));
+            arg_values.push(handle_result!(reconstruct_arg(pat, false)));
+            spec_params.push(quote_spanned! {callsite_span=> #pat: _ });
+        }
+    }
+
+    let anys = arg_values
+        .iter()
+        .map(|_| quote_spanned! {callsite_span=> ::core::option::Option::None.unwrap() })
+        .collect::<Vec<_>>();
+    let result_param = match &output {
+        syn::ReturnType::Type(_, ty) => quote_spanned! {callsite_span=> result: #ty },
+        syn::ReturnType::Default => quote_spanned! {callsite_span=> result },
+    };
+
+    // Hygienic: user code inside the closure body cannot refer to this binding.
+    let args_ident = syn::Ident::new("prusti_closure_args", Span::mixed_site());
+
+    let pre_stmts = pres.iter().map(|(pre, span)| {
+        let spec_closure = quote_spanned! {*span=>
+            #[prusti::spec_only]
+            |#(#spec_params),*| -> bool { #pre }
+        };
+        quote_spanned! {callsite_span=>
+            #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
+            if false {
+                return ::prusti_contracts::closure_spec_pre((#(#arg_values,)*), #spec_closure);
+            }
+        }
+    });
+
+    // The `PhantomData` tie is only needed (and only typechecks, its result
+    // slot being pinned by the post markers alone) when there are
+    // postconditions.
+    let body = if posts.is_empty() {
+        body.to_token_stream()
+    } else {
+        let post_stmts = posts.iter().map(|(post, span)| {
+            let spec_closure = quote_spanned! {*span=>
+                #[prusti::spec_only]
+                |#(#spec_params,)* #result_param| -> bool { #post }
+            };
+            quote_spanned! {callsite_span=>
+                #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
+                if false {
+                    return ::prusti_contracts::closure_spec_post(
+                        (#(#anys,)* result,),
+                        #args_ident,
+                        #spec_closure,
+                    );
+                }
+            }
+        });
+        quote_spanned! {callsite_span=>
+            let #args_ident = ::core::marker::PhantomData;
+            #[allow(unused_must_use, unused_braces, unused_parens)]
+            if false {
+                return ::prusti_contracts::closure_spec_args(
+                    (#(#arg_values,)* ::core::option::Option::None.unwrap(),),
+                    #args_ident,
+                );
+            }
+            let result = #body;
+            #(#post_stmts)*
+            result
+        }
+    };
+    let new_body = quote_spanned! {callsite_span=>
+        {
+            #(#pre_stmts)*
+            #body
+        }
+    };
 
     quote_spanned! {callsite_span=>
         {
             #[allow(unused_variables, unused_braces, unused_parens)]
             #[prusti::closure]
             #[prusti::specs_version = #SPECS_VERSION]
-            #cl_annotations #attrs_ts
+            #attrs_ts
             let _prusti_closure =
                 #asyncness #movability #capture
                 #or1_token #inputs #or2_token #output
-                {
-                    #[allow(unused_must_use, unused_braces, unused_parens)]
-                    if false {
-                        #spec_toks_pre
-                    }
-                    let result = #body ;
-                    #[allow(unused_must_use, unused_braces, unused_parens)]
-                    if false {
-                        #spec_toks_post
-                    }
-                    result
-                };
+                #new_body;
             _prusti_closure
         }
     }

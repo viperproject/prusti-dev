@@ -2,6 +2,7 @@ use pcg::r#loop::{LoopAnalysis, LoopId};
 use prusti_interface::{environment::EnvQuery, utils::has_prusti_attr};
 use prusti_rustc_interface::{
     data_structures::fx::{FxHashMap, FxHashSet},
+    hir,
     middle::mir::{self, BasicBlock},
     span::{Span, def_id::DefId},
 };
@@ -120,11 +121,12 @@ fn dominated_blocks(body: &mir::Body<'_>, arm_entry: BasicBlock, out: &mut FxHas
 
 /// The specification-only arms of a MIR body, i.e. the `if false { .. }`
 /// expansions of our macros: the `spec_block(..)` arms of `prusti_assert!`
-/// and friends, and the runtime `ghost_erased()` stand-in arms of `ghost!`.
-/// The arms are invisible in the encoding: each guarding switch is encoded
-/// as an unconditional jump to the live target (the continuation, or the
-/// inline ghost body), the arm's blocks are never encoded, and neither are
-/// the [spec-only locals](Self::spec_only_locals) nor the (constant)
+/// and friends, the `return closure_spec_*(..)` marker arms of `closure!`,
+/// and the runtime `ghost_erased()` stand-in arms of `ghost!`. The arms are
+/// invisible in the encoding: each guarding switch is encoded as an
+/// unconditional jump to the live target (the continuation, or the inline
+/// ghost body), the arm's blocks are never encoded, and neither are the
+/// [spec-only locals](Self::spec_only_locals) nor the (constant)
 /// assignments to them.
 #[derive(Clone, Default)]
 pub struct SpecArms {
@@ -135,17 +137,21 @@ pub struct SpecArms {
     pub blocks: FxHashSet<BasicBlock>,
     /// The locals only serving the arms: those assigned within the arms,
     /// plus those with no encoded use at all. The latter covers the
-    /// [scaffolding](Self::scaffolding), whose stores are skipped. Neither
-    /// their declarations (and hence types) nor the assignments to them are
-    /// encoded.
+    /// [scaffolding](Self::scaffolding) (whose stores are skipped) and the
+    /// `!` temps of the `closure!` arms' `return` expressions (mentioned
+    /// nowhere). Neither their declarations (and hence types) nor the
+    /// assignments to them are encoded.
     pub spec_only_locals: FxHashSet<mir::Local>,
     /// The arms' scaffolding locals, each identified by its structural
     /// anchor: the switch discriminants (the operands of the switches
     /// encoded as gotos; their `const false` stores are their only encodable
-    /// mention) and the unit values of the arms' `if` statements (stored
+    /// mention), the unit values of the arms' `if` statements (stored
     /// `const ()` in the live continuations, kept only when nothing else
-    /// uses them: a live unit local in the same block is not scaffolding).
-    /// Stores to these locals are not encoded.
+    /// uses them — a live unit local in the same block, e.g. a unit
+    /// `result` binding, is not scaffolding) and the `PhantomData` binding
+    /// tying the `closure!` marker types together (the markers' second
+    /// argument, reaching them through an arm-local copy; read outside the
+    /// arms only by `FakeRead`). Stores to these locals are not encoded.
     scaffolding: FxHashSet<mir::Local>,
 }
 
@@ -154,6 +160,7 @@ impl SpecArms {
         body: &mir::Body<'_>,
         ghost: &GhostBlocks,
         marker_blocks: impl IntoIterator<Item = BasicBlock>,
+        phantom_operands: impl IntoIterator<Item = mir::Local>,
     ) -> Self {
         use mir::visit::Visitor;
         let mut arms = Self::default();
@@ -168,9 +175,35 @@ impl SpecArms {
             return arms;
         }
 
-        // The locals assigned within the arms. A `ghost_erased` stand-in arm
-        // writes the same destination as its (encoded) ghost arm, and the
-        // return place is of course live.
+        // The markers receive the `PhantomData` binding through an
+        // arm-local copy (`_t = copy _phantom; closure_spec_*(.., move _t)`);
+        // resolve the operand back to the binding.
+        for operand in phantom_operands {
+            let root = arms
+                .blocks
+                .iter()
+                .flat_map(|block| &body[*block].statements)
+                .find_map(|stmt| {
+                    let mir::StatementKind::Assign(box (dest, rvalue)) = &stmt.kind else {
+                        return None;
+                    };
+                    if dest.as_local() != Some(operand) {
+                        return None;
+                    }
+                    let (mir::Rvalue::Use(mir::Operand::Copy(source))
+                    | mir::Rvalue::Use(mir::Operand::Move(source))) = rvalue
+                    else {
+                        return None;
+                    };
+                    source.as_local()
+                });
+            arms.scaffolding.insert(root.unwrap_or(operand));
+        }
+
+        // The locals assigned within the arms. The `closure!` markers'
+        // `return` writes the closure's return place inside the arm, and a
+        // `ghost_erased` stand-in arm writes the same destination as its
+        // (encoded) ghost arm; both stay live.
         for block in &arms.blocks {
             for statement in &body[*block].statements {
                 if let mir::StatementKind::Assign(box (dest, _)) = &statement.kind {
@@ -239,7 +272,8 @@ impl SpecArms {
         arms
     }
 
-    /// Records the spec-only arm containing the given `spec_block` call.
+    /// Records the spec-only arm containing the given `spec_block` or
+    /// `closure_spec_*` call.
     fn visit_marker(
         &mut self,
         body: &mir::Body<'_>,
@@ -362,7 +396,14 @@ impl SpecBlocksBase {
         let mut visitor = SpecVisitor::run(def_id, body);
 
         let ghost = GhostBlocks::from_erased(body, std::mem::take(&mut visitor.erased_blocks));
-        let spec_arms = SpecArms::new(body, &ghost, visitor.spec_blocks.iter().copied());
+        let spec_arms = SpecArms::new(
+            body,
+            &ghost,
+            std::mem::take(&mut visitor.closure_marker_blocks)
+                .into_iter()
+                .chain(visitor.spec_blocks.iter().copied()),
+            std::mem::take(&mut visitor.phantom_operands),
+        );
 
         for specified_blocks in visitor.specs_for.values() {
             for spec_block in specified_blocks {
@@ -491,6 +532,8 @@ struct SpecVisitor<'enc, 'vir: 'enc> {
     specs_for: FxHashMap<BasicBlock, Vec<SpecBlock>>,
     spec_blocks: FxHashSet<BasicBlock>,
     erased_blocks: Vec<BasicBlock>,
+    closure_marker_blocks: Vec<BasicBlock>,
+    phantom_operands: Vec<mir::Local>,
 }
 
 impl<'enc, 'vir: 'enc> SpecVisitor<'enc, 'vir> {
@@ -502,6 +545,8 @@ impl<'enc, 'vir: 'enc> SpecVisitor<'enc, 'vir> {
             specs_for: Default::default(),
             spec_blocks: Default::default(),
             erased_blocks: Default::default(),
+            closure_marker_blocks: Default::default(),
+            phantom_operands: Default::default(),
         };
         visitor.visit_body(body);
         visitor
@@ -512,7 +557,7 @@ impl<'enc, 'vir: 'enc> mir::visit::Visitor<'vir> for SpecVisitor<'enc, 'vir> {
     fn visit_terminator(&mut self, terminator: &mir::Terminator<'vir>, location: mir::Location) {
         vir::with_vcx(|vcx| {
             let env_query = EnvQuery::new(vcx.tcx());
-            let mir::TerminatorKind::Call { func, .. } = &terminator.kind else {
+            let mir::TerminatorKind::Call { func, args, .. } = &terminator.kind else {
                 return;
             };
             let func_ty = func.ty(self.body, vcx.tcx());
@@ -528,6 +573,36 @@ impl<'enc, 'vir: 'enc> mir::visit::Visitor<'vir> for SpecVisitor<'enc, 'vir> {
                 // [GhostBlocks] by the callers.
                 "ghost_erased" => {
                     self.erased_blocks.push(location.block);
+                    return;
+                }
+                // The `closure!` spec marker arms are invisible in the
+                // encoding: the spec closures they reference are encoded
+                // separately as the closure's contract. Turned into
+                // [SpecArms] by the callers.
+                "closure_spec_pre" => {
+                    self.closure_marker_blocks.push(location.block);
+                    return;
+                }
+                // The second argument of args/post is the `PhantomData`
+                // binding tying the marker types together, moved from a
+                // temporary.
+                "closure_spec_args" | "closure_spec_post" => {
+                    self.closure_marker_blocks.push(location.block);
+                    let local = args[1]
+                        .node
+                        .place()
+                        .and_then(|place| place.as_local())
+                        .expect("closure spec marker: `PhantomData` argument is not a local");
+                    debug_assert!(
+                        self.body.local_decls[local]
+                            .ty
+                            .ty_adt_def()
+                            .is_some_and(|adt| vcx
+                                .tcx()
+                                .is_lang_item(adt.did(), hir::LangItem::PhantomData)),
+                        "closure spec marker: argument is not a `PhantomData`"
+                    );
+                    self.phantom_operands.push(local);
                     return;
                 }
                 _ => return,
