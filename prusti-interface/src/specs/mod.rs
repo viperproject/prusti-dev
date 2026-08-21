@@ -57,6 +57,16 @@ impl From<&ProcedureSpecRefs> for ProcedureSpecificationKind {
     }
 }
 
+/// Specs of a `closure!` closure, extracted from the `closure_spec_pre` /
+/// `closure_spec_post` marker calls the macro splices into its body.
+#[derive(Debug, Default)]
+struct ClosureSpecRefs {
+    pres: Vec<LocalDefId>,
+    posts: Vec<LocalDefId>,
+    pure: bool,
+    trusted: bool,
+}
+
 #[derive(Debug, Default)]
 struct TypeSpecRefs {
     invariants: Vec<LocalDefId>,
@@ -79,6 +89,7 @@ pub struct SpecCollector<'a, 'tcx> {
 
     /// Map from functions/loops/types to their specifications.
     procedure_specs: FxHashMap<LocalDefId, ProcedureSpecRefs>,
+    closure_specs: FxHashMap<LocalDefId, ClosureSpecRefs>,
     loop_specs: Vec<LocalDefId>,
     loop_variants: Vec<LocalDefId>,
     type_specs: FxHashMap<LocalDefId, TypeSpecRefs>,
@@ -94,6 +105,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             env,
             spec_functions: FxHashMap::default(),
             procedure_specs: FxHashMap::default(),
+            closure_specs: FxHashMap::default(),
             loop_specs: vec![],
             loop_variants: vec![],
             type_specs: FxHashMap::default(),
@@ -114,6 +126,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     pub fn build_def_specs(&mut self) -> typed::DefSpecificationMap {
         let mut def_spec = typed::DefSpecificationMap::new();
         self.determine_procedure_specs(&mut def_spec);
+        self.determine_closure_specs(&mut def_spec);
         self.determine_extern_specs(&mut def_spec);
         self.determine_loop_specs(&mut def_spec);
         self.determine_type_specs(&mut def_spec);
@@ -239,6 +252,37 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             } else {
                 def_spec.proc_specs.insert(local_id.to_def_id(), spec);
             }
+        }
+    }
+
+    fn determine_closure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
+        for (local_id, refs) in self.closure_specs.iter() {
+            // TODO: add support for referring to captured variables in closure
+            // specs. For now, we just reject it.
+            for spec in refs.pres.iter().chain(&refs.posts) {
+                if !self.env.tcx().closure_captures(*spec).is_empty() {
+                    PrustiError::incorrect(
+                        "closure specifications may only refer to the closure's \
+                         parameters and `result`, not to captured variables",
+                        MultiSpan::from_span(self.env.query.get_def_span(*spec)),
+                    )
+                    .emit(&self.env.diagnostic);
+                }
+            }
+            let mut spec = SpecGraph::new(ProcedureSpecification::empty(local_id.to_def_id()));
+            spec.set_kind(if refs.pure {
+                ProcedureSpecificationKind::Pure
+            } else {
+                ProcedureSpecificationKind::Impure
+            });
+            for pre in &refs.pres {
+                spec.add_precondition(*pre, self.env);
+            }
+            for post in &refs.posts {
+                spec.add_postcondition(*post, self.env);
+            }
+            spec.set_trusted(refs.trusted);
+            def_spec.proc_specs.insert(local_id.to_def_id(), spec);
         }
     }
 
@@ -692,14 +736,84 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             let attrs = self.env.query.get_local_attributes(local.hir_id);
             if has_prusti_attr(attrs, "closure") {
                 let init_expr = local.init.expect("closure on Local without assignment");
-                let local_id = self.env.query.as_local_def_id(init_expr.hir_id);
-                let def_id = local_id.to_def_id();
-                // Collect procedure specifications
-                if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
-                    self.procedure_specs.insert(local_id, procedure_spec_ref);
+                let hir::ExprKind::Closure(closure) = init_expr.kind else {
+                    unreachable!(
+                        "`prusti::closure` on a binding whose initializer is not a closure"
+                    );
+                };
+                let local_id = closure.def_id;
+                let mut refs = ClosureSpecRefs {
+                    pure: has_prusti_attr(attrs, "pure"),
+                    trusted: has_prusti_attr(attrs, "trusted"),
+                    ..ClosureSpecRefs::default()
+                };
+                let mut extractor = ClosureSpecExtractor {
+                    tcx: self.env.tcx(),
+                    refs: &mut refs,
+                    depth: 0,
+                };
+                intravisit::Visitor::visit_expr(&mut extractor, init_expr);
+                self.closure_specs.insert(local_id, refs);
+            }
+        }
+    }
+}
+
+/// Extracts the spec closures (the last argument) from the
+/// `closure_spec_pre(args, f)` / `closure_spec_post(args_result, phantom, f)`
+/// marker calls in a `closure!` closure's body. Does not descend into nested
+/// closures other than the `closure!` closure itself, so nested `closure!`
+/// uses (collected on their own) and user closures are not misattributed.
+struct ClosureSpecExtractor<'a, 'tcx> {
+    tcx: ty::TyCtxt<'tcx>,
+    refs: &'a mut ClosureSpecRefs,
+    depth: usize,
+}
+
+impl<'tcx> intravisit::Visitor<'tcx> for ClosureSpecExtractor<'_, 'tcx> {
+    type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::OnlyBodies;
+
+    fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
+        self.tcx
+    }
+
+    fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
+        if let hir::ExprKind::Closure(_) = expr.kind {
+            if self.depth > 0 {
+                return;
+            }
+            self.depth += 1;
+            intravisit::walk_expr(self, expr);
+            self.depth -= 1;
+            return;
+        }
+        if let hir::ExprKind::Call(callee, args) = expr.kind {
+            if let hir::ExprKind::Path(hir::QPath::Resolved(_, path)) = callee.kind {
+                if let hir::def::Res::Def(hir::def::DefKind::Fn, callee_id) = path.res {
+                    if self.tcx.crate_name(callee_id.krate).as_str() == "prusti_contracts" {
+                        let is_spec = match self.tcx.item_name(callee_id).as_str() {
+                            "closure_spec_pre" => Some(&mut self.refs.pres),
+                            "closure_spec_post" => Some(&mut self.refs.posts),
+                            _ => None,
+                        };
+                        if let Some(specs) = is_spec {
+                            // The spec closure is the last argument.
+                            let last = args
+                                .last()
+                                .expect("malformed closure spec marker: no arguments");
+                            let hir::ExprKind::Closure(spec_closure) = last.kind else {
+                                unreachable!(
+                                    "malformed closure spec marker: last argument is not a \
+                                     closure literal"
+                                );
+                            };
+                            specs.push(spec_closure.def_id);
+                        }
+                    }
                 }
             }
         }
+        intravisit::walk_expr(self, expr);
     }
 }
 

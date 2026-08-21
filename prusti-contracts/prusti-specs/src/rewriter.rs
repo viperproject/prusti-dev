@@ -8,8 +8,8 @@ use crate::{
     },
 };
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote, quote_spanned};
-use syn::{parse_quote_spanned, punctuated::Punctuated, spanned::Spanned, Pat, Token, Type};
+use quote::{quote, quote_spanned};
+use syn::{parse_quote_spanned, spanned::Spanned};
 
 pub(crate) struct AstRewriter {
     spec_id_generator: SpecificationIdGenerator,
@@ -293,74 +293,6 @@ impl AstRewriter {
                         #expr
                     }
                 ));
-            }
-        })
-    }
-
-    /// Parse a closure with specifications into a Rust expression
-    /// TODO: arguments, result (types are typically not known yet after parsing...)
-    pub fn process_closure(
-        &mut self,
-        inputs: Punctuated<Pat, Token![,]>,
-        output: Type,
-        preconds: Vec<(SpecificationId, syn::Expr)>,
-        postconds: Vec<(SpecificationId, syn::Expr)>,
-    ) -> syn::Result<(TokenStream, TokenStream)> {
-        let process_cond =
-            |is_post: bool, id: &SpecificationId, assertion: &syn::Expr| -> TokenStream {
-                let spec_id_str = id.to_string();
-                let name = format_ident!(
-                    "prusti_{}_closure_{}",
-                    if is_post { "post" } else { "pre" },
-                    spec_id_str
-                );
-                let callsite_span = Span::call_site();
-                let result = if is_post && !inputs.empty_or_trailing() {
-                    quote_spanned! {callsite_span=> , result: #output }
-                } else if is_post {
-                    quote_spanned! {callsite_span=> result: #output }
-                } else {
-                    TokenStream::new()
-                };
-                quote_spanned! {callsite_span=>
-                    #[prusti::spec_only]
-                    #[prusti::spec_id = #spec_id_str]
-                    fn #name(#inputs #result) {
-                        #assertion
-                    }
-                }
-            };
-
-        let mut pre_ts = TokenStream::new();
-        for (id, precond) in preconds {
-            pre_ts.extend(process_cond(false, &id, &precond));
-        }
-
-        let mut post_ts = TokenStream::new();
-        for (id, postcond) in postconds {
-            post_ts.extend(process_cond(true, &id, &postcond));
-        }
-
-        Ok((pre_ts, post_ts))
-    }
-
-    /// Parse an assertion into a Rust expression
-    pub fn process_closure_assertion(
-        &mut self,
-        spec_id: SpecificationId,
-        tokens: TokenStream,
-    ) -> syn::Result<syn::Expr> {
-        let expr = parse_prusti(tokens)?;
-        let spec_id_str = spec_id.to_string();
-        let callsite_span = Span::call_site();
-        Ok(parse_quote_spanned! {callsite_span=>
-            #[allow(unused_must_use, unused_variables)]
-            {
-                #[prusti::spec_only]
-                #[prusti::spec_id = #spec_id_str]
-                || -> bool {
-                    #expr
-                };
             }
         })
     }

@@ -1,4 +1,5 @@
-// ignore-test: need to investigate why this one fails
+// ignore-test
+// TODO: spec entailment and calls of specified closures are not supported yet
 
 use prusti_contracts::*;
 
@@ -16,15 +17,15 @@ fn test1<F: Fn (i32, i32) -> i32>(add: F) -> i32 {
 
 fn main() {
     let f = closure!(
-        requires(i >= 0),
-        ensures(result == i + 1),
+        #[requires(i >= 0)]
+        #[ensures(result == i + 1)]
         |i: i32| -> i32 { i + 1 }
     );
     f(0);
 
     let add = closure!(
-        requires(a >= 0 && b >= 0),
-        ensures(result == a + b),
+        #[requires(a >= 0 && b >= 0)]
+        #[ensures(result == a + b)]
         |a: i32, b: i32| -> i32 { a + b }
     );
     test1(add);
