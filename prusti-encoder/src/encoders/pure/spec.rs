@@ -344,12 +344,10 @@ impl MirSpecEnc {
             ),
         });
         spec.inspect_err(|err| {
+            let (message, err_span) = crate::encoders::mir_fn::dep_error(err);
             vcx.emit_early_error(PrustiError::unsupported(
-                format!(
-                    "cannot encode {type_}: {}",
-                    crate::encoders::mir_fn::dep_error_message(err),
-                ),
-                span.into(),
+                format!("cannot encode {type_}: {message}"),
+                err_span.unwrap_or(span).into(),
             ))
         })
         .ok()

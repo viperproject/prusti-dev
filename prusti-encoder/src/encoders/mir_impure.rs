@@ -45,7 +45,7 @@ use crate::encoders::{
     self, FunctionCallEnc, MirBuiltinUseCastEnc, MirBuiltinUseCastTask, MirPureEnc, MirPureEncTask,
     PrustiBuiltin, PureKind, TyUseImpureEnc, WandEnc, WandEncTask,
     mir_fn::{CallTaskDescription, RustSignature, SpecBlockKind, SpecBlocks},
-    mir_shared::{PureRvalueEnc, RustcIntrinsic},
+    mir_shared::{EncodeResult, PureRvalueEnc, RustcIntrinsic},
     ty::{
         RustTyDecomposition,
         generics::{GArgs, GParams},
@@ -212,8 +212,6 @@ macro_rules! comment {
         vir::vir_format!($self.vcx, $($arg)*),
     ) };
 }
-
-type EncodeResult<'vir, T, E> = Result<T, EncodeFullError<'vir, E>>;
 
 /// Snapshots of the current statement's operands, captured between the
 /// `PreOperands` and `PostOperands` repacks by
@@ -388,7 +386,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 let e_rvalue_ty = self.ty_use_pure(rvalue_ty);
                 let place_ty = place.ty(self.local_decls, self.vcx.tcx());
                 let ty = self.ty_use_impure(place_ty.ty);
-                let place_expr = self.encode_place(Place::from(*place)).expr;
+                let place_expr = self.encode_place(Place::from(*place))?.expr;
 
                 Ok(match ty
                     .get_enumlike()
@@ -422,7 +420,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
             mir::Rvalue::Ref(_reg, _kind, place) => Ok(match rvalue_ty.kind() {
                 TyKind::Ref(.., ty::Mutability::Not) => {
-                    let (address, snap, _, _) = self.encode_place_with_snap((*place).into());
+                    let (address, snap, _, _) = self.encode_place_with_snap((*place).into())?;
                     let metadata = address.expr.metadata;
                     let metadata =
                         metadata.unwrap_or_else(|| self.expect_thin_ptr_metadata(rvalue_ty));
@@ -434,7 +432,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 }
                 TyKind::Ref(.., ty::Mutability::Mut) => {
                     let p_rvalue_ty = self.ty_use_impure(rvalue_ty);
-                    let place_expr = self.encode_place(Place::from(*place));
+                    let place_expr = self.encode_place(Place::from(*place))?;
 
                     let metadata = place_expr.expr.metadata;
                     let metadata =
@@ -452,7 +450,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             }),
 
             mir::Rvalue::RawPtr(_, place) => {
-                let place_expr = self.encode_place(Place::from(*place));
+                let place_expr = self.encode_place(Place::from(*place))?;
                 let metadata = place_expr.expr.metadata;
                 let metadata = metadata.unwrap_or_else(|| self.expect_thin_ptr_metadata(rvalue_ty));
                 let raw = self.ty_use_pure(rvalue_ty).expect_raw();
@@ -472,7 +470,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         &mut self,
         cfpcs: &PcgLocation<'_, 'vir>,
         pcs: &'a PcgSuccessor<'_, 'vir>,
-    ) -> Result<Vec<vir::Stmt<'vir>>, EncodeFullError<'vir, E>> {
+    ) -> EncodeResult<'vir, Vec<vir::Stmt<'vir>>, E> {
         let current_stmts = self.current_stmts.take();
         self.current_stmts = Some(Vec::new());
         let res = self.pcs_succ(cfpcs, pcs);
@@ -485,7 +483,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     /// The succ is found by block: the target is usually the terminator's
     /// only non-unwind successor, but for a ghost switch the (second)
     /// `ghost_erased` successor is skipped.
-    fn pcs_succ_to(&mut self, target: mir::BasicBlock) -> Result<(), EncodeFullError<'vir, E>> {
+    fn pcs_succ_to(&mut self, target: mir::BasicBlock) -> EncodeResult<'vir, (), E> {
         let current_fpcs = self.current_fpcs.take().unwrap();
         let cfpcs = current_fpcs.statements.last().unwrap();
         let succ = current_fpcs
@@ -505,7 +503,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         &mut self,
         idx: usize,
         target: mir::BasicBlock,
-    ) -> Result<Vec<vir::Stmt<'vir>>, EncodeFullError<'vir, E>> {
+    ) -> EncodeResult<'vir, Vec<vir::Stmt<'vir>>, E> {
         let current_fpcs = self.current_fpcs.take().unwrap();
         let cfpcs = current_fpcs.statements.last().unwrap();
         let succ = &current_fpcs.terminator.succs[idx];
@@ -527,8 +525,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         Ok(new_stmts)
     }
 
-    pub(crate) fn unfold(&mut self, base: MaybeLabelledPlace<'vir>, label: Option<&'vir str>) {
-        self.fold_or_unfold(base, FoldOrUnfold::Unfold, None, label);
+    pub(crate) fn unfold(
+        &mut self,
+        base: MaybeLabelledPlace<'vir>,
+        label: Option<&'vir str>,
+    ) -> EncodeResult<'vir, (), E> {
+        self.fold_or_unfold(base, FoldOrUnfold::Unfold, None, label)
     }
 
     /// The index argument for folding or unfolding an array-typed place,
@@ -574,7 +576,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         fold_or_unfold: FoldOrUnfold,
         expansion: Option<&BorrowPcgExpansion>,
         label: Option<&'vir str>,
-    ) {
+    ) -> EncodeResult<'vir, (), E> {
         let place = base.place();
         let label = if let MaybeLabelledPlace::Labelled(snap) = base {
             Some(self.get_location_label(snap.at()))
@@ -584,10 +586,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
         // We don't want to unfold because for immutable refs we only use snapshot read/writes
         if place.is_shared_ref(self.pcg_ctxt()) || place.projects_shared_ref(self.pcg_ctxt()) {
-            return;
+            return Ok(());
         }
 
-        let ref_p = self.encode_place(place);
+        let ref_p = self.encode_place(place)?;
 
         let place_ty = ref_p.ty;
         let ref_p = self
@@ -604,6 +606,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             FoldOrUnfold::Fold => data.fold(place_ty.variant_index, ref_p, index, None, label),
         };
         self.stmts(stmts);
+        Ok(())
     }
 
     fn pcs_handle_edge(
@@ -674,7 +677,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 // For a borrow e.g. let x = &mut y; the capability to `y` is
                 // folded into the Rvalue `&mut y` that is stored in `x`. This
                 // reverses that effect
-                self.unfold(borrow.assigned_ref(), label);
+                self.unfold(borrow.assigned_ref(), label)?;
             }
             BorrowPcgEdgeKind::BorrowFlow(borrow_flow)
                 if let BorrowFlowEdgeKind::Assignment(assignment_data) = borrow_flow.kind()
@@ -737,7 +740,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 } else {
                     label.map(vir::OldLabel::Label)
                 };
-                let src_snap = self.encode_place_with_snap(src_place).1.downcast_ty();
+                let src_snap = self.encode_place_with_snap(src_place)?.1.downcast_ty();
                 let src_enc = self.vcx.maybe_apply_label(src_snap, src_label);
                 let undo = cast_output.undo(src_enc);
                 self.stmts(undo);
@@ -749,7 +752,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     FoldOrUnfold::for_action(edge_action),
                     None,
                     label,
-                );
+                )?;
             }
             // Ignore expansions of lifetime projections for now
             BorrowPcgEdgeKind::BorrowPcgExpansion(expansion)
@@ -760,7 +763,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     FoldOrUnfold::for_action(edge_action),
                     Some(expansion),
                     label,
-                );
+                )?;
             }
             BorrowPcgEdgeKind::Coupled(PcgCoupledEdgeKind(FunctionCallOrLoop::FunctionCall(
                 call_edge,
@@ -801,13 +804,13 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         let (_, caller_substs, _) = self.get_call_data(func);
 
                         let (_, dest_snap, _, _) =
-                            self.encode_place_with_snap((*destination).into());
+                            self.encode_place_with_snap((*destination).into())?;
                         let wand_args =
                             std::iter::once(Ok(dest_snap))
                                 .chain(args.iter().map(|operand| {
                                     self.encode_operand_snap_immediate(&operand.node)
                                 }))
-                                .collect::<Result<Vec<_>, EncodeFullError<'vir, E>>>()?;
+                                .collect::<EncodeResult<'vir, Vec<_>, E>>()?;
                         let (label_pre, label_post) = self.call_labels[&call.location().block];
                         let call_ctx = self.gargs(caller_substs);
                         wands.apply_wands(&wand_args, label_pre, label_post, call_ctx, self);
@@ -822,7 +825,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     &at.clone().into_singleton_coupled_edge(),
                     label,
                     edge_to_loop,
-                );
+                )?;
             }
             other => comment!(self, "(ignoring) {edge_action:?} {other:?}"),
         }
@@ -863,7 +866,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         for action in actions.iter() {
             match action {
                 PcgAction::Borrow(action) => self.borrow_action(pcg, action, edge_to_loop)?,
-                PcgAction::Owned(action) => self.pcg_repack(action.kind()),
+                PcgAction::Owned(action) => self.pcg_repack(action.kind())?,
             }
         }
         Ok(())
@@ -914,8 +917,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 if matches!(weaken.from_cap(), CapabilityKind::Exclusive)
                     && matches!(weaken.to_cap(), None | Some(CapabilityKind::Write)) =>
             {
-                self.pcg_weaken(weaken.place(), weaken.is_for_storage_dead());
-                Ok(())
+                self.pcg_weaken(weaken.place(), weaken.is_for_storage_dead())
             }
             //RenamePlace {
             //    old: MaybeLabelledPlace<'tcx>,
@@ -928,7 +930,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         }
     }
 
-    fn pcg_repack(&mut self, repack_op: &RepackOp<'vir>) {
+    fn pcg_repack(&mut self, repack_op: &RepackOp<'vir>) -> EncodeResult<'vir, (), E> {
         comment!(self, "[PCG] {repack_op:?}");
 
         fn should_ignore(repack_op: &RepackOp<'_>) -> bool {
@@ -956,9 +958,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     if !matches!(repack_op, RepackOp::Collapse(..)) {
                         comment!(self, "expected RepackOp::Collapse but got {repack_op:?}");
                     }
-                    return;
+                    return Ok(());
                 }
-                let place_enc = self.encode_place(place);
+                let place_enc = self.encode_place(place)?;
                 let place_ty = place_enc.ty;
                 let place_enc = place_enc.expr.expect_predicate();
                 let data = self.ty_use_impure(place_ty.ty);
@@ -976,6 +978,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 } else {
                     unreachable!()
                 }
+                Ok(())
             }
             RepackOp::Weaken(weaken)
                 if weaken.from_cap().is_exclusive() && weaken.to_cap().is_write() =>
@@ -995,11 +998,16 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     )));
                     self.stmt(self.vcx.mk_exhale_stmt(self.vcx.mk_bool::<false>()));
                 }
+                Ok(())
             }
         }
     }
 
-    fn pcg_weaken(&mut self, place: Place<'vir>, for_storage_dead: bool) {
+    fn pcg_weaken(
+        &mut self,
+        place: Place<'vir>,
+        for_storage_dead: bool,
+    ) -> EncodeResult<'vir, (), E> {
         let place_ty = place.ty(self.pcg_ctxt());
         assert!(place_ty.variant_index.is_none());
 
@@ -1013,18 +1021,19 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 "Weaken(E, W) for {:?} (skipped exhale: StorageDead)",
                 place
             );
-            return;
+            return Ok(());
         }
 
         let place_ty_out = self.ty_use_impure(place_ty.ty);
 
-        let place_enc = self.encode_place(place);
+        let place_enc = self.encode_place(place)?;
         comment!(self, "exhale due to Weaken(E, W)");
         self.stmt(self.vcx.mk_exhale_stmt(place_ty_out.ref_to_pred(
             self.vcx,
             place_enc.expr.expect_predicate(),
             None,
         )));
+        Ok(())
     }
 
     fn loop_analysis(&mut self) -> &LoopAnalysis {
@@ -1039,7 +1048,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         &mut self,
         cfpcs: &PcgLocation<'_, 'vir>,
         succ: &'a PcgSuccessor<'_, 'vir>,
-    ) -> Result<(), EncodeFullError<'vir, E>> {
+    ) -> EncodeResult<'vir, (), E> {
         // The terminator's deferred `PostMain` actions (e.g. the collapse
         // re-packing owned places for the CFG join); see
         // [Self::visit_terminator].
@@ -1058,7 +1067,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         let (encode_place_result, ty_out) = match operand {
             &mir::Operand::Move(source) => {
                 return Ok(self
-                    .encode_place(Place::from(source))
+                    .encode_place(Place::from(source))?
                     .expr
                     .expect_predicate());
             }
@@ -1082,10 +1091,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn encode_operand_snap_immediate(
         &mut self,
         operand: &mir::Operand<'vir>,
-    ) -> Result<vir::ExprSnap<'vir>, EncodeFullError<'vir, E>> {
+    ) -> EncodeResult<'vir, vir::ExprSnap<'vir>, E> {
         match operand {
             &mir::Operand::Move(source) | &mir::Operand::Copy(source) => {
-                Ok(self.encode_place_with_snap(Place::from(source)).1)
+                Ok(self.encode_place_with_snap(Place::from(source))?.1)
             }
             mir::Operand::Constant(box constant) => {
                 Ok(self.encode_constant_snap(constant)?.upcast_ty())
@@ -1102,7 +1111,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     ) -> EncodeResult<'vir, vir::ExprSnap<'vir>, E> {
         match operand {
             &mir::Operand::Copy(place) | &mir::Operand::Move(place) => {
-                let (result, snap_val, _, ty_out) = self.encode_place_with_snap(Place::from(place));
+                let (result, snap_val, _, ty_out) =
+                    self.encode_place_with_snap(Place::from(place))?;
                 let tmp = self.new_tmp(ty_out.snapshot());
                 self.stmt(self.vcx.mk_pure_assign_stmt(tmp, snap_val));
                 if matches!(operand, mir::Operand::Move(_)) {
@@ -1150,7 +1160,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         Ok(Some(snaps))
     }
 
-    pub(crate) fn encode_place(&mut self, place: Place<'vir>) -> EncodePlaceResult<'vir> {
+    pub(crate) fn encode_place(
+        &mut self,
+        place: Place<'vir>,
+    ) -> EncodeResult<'vir, EncodePlaceResult<'vir>, E> {
         let mut place_ty = mir::PlaceTy::from_ty(self.local_decls[place.local].ty);
         let mut result = PlaceExpr {
             address: self.local_defs[place.local].local_ex,
@@ -1159,34 +1172,38 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         };
         // TODO: factor this out (duplication with pure encoder)?
         for (place, elem) in place.iter_projections() {
-            result = self.encode_place_element(place.into(), elem, result);
+            result = self.encode_place_element(place.into(), elem, result)?;
             place_ty = place_ty.projection_ty(self.vcx.tcx(), elem);
         }
-        EncodePlaceResult {
+        Ok(EncodePlaceResult {
             expr: result,
             ty: place_ty,
-        }
+        })
     }
 
     pub(crate) fn encode_place_with_snap(
         &mut self,
         place: Place<'vir>,
-    ) -> (
-        EncodePlaceResult<'vir>,
-        vir::ExprSnap<'vir>,
-        mir::PlaceTy<'vir>,
-        TyUseImpure<'vir>,
-    ) {
+    ) -> EncodeResult<
+        'vir,
+        (
+            EncodePlaceResult<'vir>,
+            vir::ExprSnap<'vir>,
+            mir::PlaceTy<'vir>,
+            TyUseImpure<'vir>,
+        ),
+        E,
+    > {
         let ty = (*place).ty(self.local_decls, self.vcx.tcx());
         assert!(ty.variant_index.is_none());
 
         let ty_out = self.ty_use_impure(ty.ty);
-        let result = self.encode_place(place);
+        let result = self.encode_place(place)?;
         let snap = result
             .expr
             .snap
             .unwrap_or_else(|| ty_out.ref_to_snap(result.expr.address));
-        (result, snap, ty, ty_out)
+        Ok((result, snap, ty, ty_out))
     }
 
     fn encode_place_element(
@@ -1194,9 +1211,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         place: Place<'vir>,
         elem: mir::PlaceElem<'vir>,
         expr: PlaceExpr<'vir>,
-    ) -> PlaceExpr<'vir> {
+    ) -> EncodeResult<'vir, PlaceExpr<'vir>, E> {
         let place_ty = place.ty(self.pcg_ctxt());
-        match elem {
+        Ok(match elem {
             mir::ProjectionElem::Field(field_idx, _) => {
                 let e_ty = self.ty_use_impure(place_ty.ty);
                 let field_access = e_ty.expect_variant_opt(place_ty.variant_index);
@@ -1216,7 +1233,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
             mir::ProjectionElem::Index(idx) => {
                 let e_ty = self.ty_use_impure(place_ty.ty).expect_array();
-                let idx = self.encode_place_with_snap(mir::Place::from(idx).into());
+                let idx = self.encode_place_with_snap(mir::Place::from(idx).into())?;
                 let usize_ty = self.ty_use_pure(self.vcx.tcx().types.usize);
                 let idx = usize_ty
                     .expect_primitive()
@@ -1300,19 +1317,16 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         }
                     }
                     ty::TyKind::RawPtr(..) => {
-                        let ref_snap = e_ty.ref_to_snap(expr.address).downcast_ty();
-                        let p_ty = self.ty_use_pure(place_ty.ty).expect_raw();
-                        PlaceExpr {
-                            address: p_ty.address_access(ref_snap),
-                            metadata: Some(p_ty.metadata_access(ref_snap)),
-                            snap: None,
-                        }
+                        return Err(self.unsupported_rvalue(
+                            format!("dereference of the raw pointer `{}`", place_ty.ty),
+                            self.current_span(),
+                        ));
                     }
                     _ => unreachable!(),
                 }
             }
             _ => todo!("Unsupported ProjectionElem {:?}", elem),
-        }
+        })
     }
 
     fn get_call_data(&self, func: &mir::Operand<'vir>) -> (DefId, ty::GenericArgsRef<'vir>, bool) {
@@ -1388,7 +1402,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         self.from_to_vars.set_from_to_flag_stmt(self.vcx, from, to)
     }
 
-    pub fn visit_body(&mut self, body: &mir::Body<'vir>) -> Result<(), EncodeFullError<'vir, E>> {
+    pub fn visit_body(&mut self, body: &mir::Body<'vir>) -> EncodeResult<'vir, (), E> {
         /// A work-queue item, min-ordered by the block's reverse-postorder
         /// index (ties broken by insertion order): every non-back-edge
         /// predecessor of a block is then encoded before the block itself,
@@ -1600,7 +1614,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn encode_spec_block(
         &mut self,
         spec_block: mir::BasicBlock,
-    ) -> Result<vir::ExprBool<'vir>, EncodeFullError<'vir, E>> {
+    ) -> EncodeResult<'vir, vir::ExprBool<'vir>, E> {
         let enc_output = self.deps.require_dep::<MirPureEnc>(MirPureEncTask {
             encoding_depth: 0,
             parent_def_id: self.def_id,
@@ -1624,7 +1638,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         &mut self,
         block: mir::BasicBlock,
         data: &mir::BasicBlockData<'vir>,
-    ) -> Result<(), EncodeFullError<'vir, E>> {
+    ) -> EncodeResult<'vir, (), E> {
         let current_block_label = self.vcx.mk_block_label(
             block.as_usize(),
             self.current_block_pres.as_ref().unwrap().iter().copied(),
@@ -1694,7 +1708,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     })
                 })
                 .collect::<Result<Vec<_>, _>>()?;
-            let permissions = self.get_loop_inv(&cfpcs, &loop_place_usages, self.pcg_ctxt());
+            let permissions = self.get_loop_inv(&cfpcs, &loop_place_usages, self.pcg_ctxt())?;
             invariant = Some(
                 self.vcx.alloc_slice(
                     &permissions
@@ -1791,7 +1805,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         &mut self,
         statement: &mir::Statement<'vir>,
         location: mir::Location,
-    ) -> Result<(), EncodeFullError<'vir, E>> {
+    ) -> EncodeResult<'vir, (), E> {
         self.vcx.with_span(statement.source_info.span, |_vcx| {
             self.deps().check_cycle()?;
 
@@ -1827,7 +1841,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 mir::StatementKind::Assign(box (dest, rvalue)) => {
                     // What are we assigning to?
                     let proj_enc = self
-                        .encode_place(Place::from(*dest))
+                        .encode_place(Place::from(*dest))?
                         .expr
                         .expect_predicate();
 
@@ -1897,7 +1911,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         &mut self,
         terminator: &mir::Terminator<'vir>,
         location: mir::Location,
-    ) -> Result<(), EncodeFullError<'vir, E>> {
+    ) -> EncodeResult<'vir, (), E> {
         self.deps().check_cycle()?;
 
         self.new_before_label(location);
@@ -1971,7 +1985,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                                 self.vcx.alloc_slice(&extra_stmts),
                             ))
                         })
-                        .collect::<Result<Vec<_>, EncodeFullError<'vir, E>>>()?,
+                        .collect::<EncodeResult<'vir, Vec<_>, E>>()?,
                 );
                 let goto_otherwise =
                     self.current_block_succs.as_ref().unwrap()[&targets.otherwise()];
@@ -2046,7 +2060,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 };
 
                 let dest = self
-                    .encode_place(Place::from(*destination))
+                    .encode_place(Place::from(*destination))?
                     .expr
                     .expect_predicate();
                 self.vcx.with_span(span, |vcx| {
@@ -2281,7 +2295,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         args: &[Spanned<mir::Operand<'vir>>],
         is_pure: bool,
         span: Span,
-    ) -> Result<Option<(bool, vir::ExprSnap<'vir>)>, EncodeFullError<'vir, E>> {
+    ) -> EncodeResult<'vir, Option<(bool, vir::ExprSnap<'vir>)>, E> {
         // The bodiless `ptr_metadata` intrinsic is only lowered to
         // `UnOp::PtrMetadata` in optimized MIR; do the lowering here.
         let intrinsic = self.vcx.tcx().intrinsic(func_def_id);
@@ -2383,7 +2397,7 @@ impl<'vir, 'enc, E: TaskEncoder> PureRvalueEnc<'vir> for ImpureEncVisitor<'vir, 
         &mut self,
         operand: &mir::Operand<'vir>,
         operand_snaps: &Self::EncodePlaceCtxt,
-    ) -> Result<vir::ExprSnap<'vir>, EncodeFullError<'vir, E>> {
+    ) -> EncodeResult<'vir, vir::ExprSnap<'vir>, E> {
         // While a statement's effect is encoded, every place operand must
         // have been captured by [Self::capture_operand_snaps]. In particular,
         // `Move` operands were already consumed at capture time (snapshot
@@ -2406,7 +2420,7 @@ impl<'vir, 'enc, E: TaskEncoder> PureRvalueEnc<'vir> for ImpureEncVisitor<'vir, 
         &mut self,
         place: Place<'vir>,
         _ctxt: &Self::EncodePlaceCtxt,
-    ) -> vir::ExprGenSnap<'vir, Self::ExprCurr, Self::ExprNext> {
-        self.encode_place_with_snap(place).1
+    ) -> EncodeResult<'vir, vir::ExprSnap<'vir>, E> {
+        Ok(self.encode_place_with_snap(place)?.1)
     }
 }

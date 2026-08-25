@@ -208,13 +208,13 @@ impl TaskEncoder for FunctionEnc {
                         Some(expr)
                     }
                     Err(err) => {
+                        let (message, span) = super::dep_error(&err);
                         vcx.emit_early_error(PrustiError::unsupported(
                             format!(
-                                "cannot encode function body `{}`: {}",
+                                "cannot encode function body `{}`: {message}",
                                 vcx.tcx().def_path_str(def_id),
-                                super::dep_error_message(&err),
                             ),
-                            vcx.tcx().def_span(def_id).into(),
+                            span.unwrap_or_else(|| vcx.tcx().def_span(def_id)).into(),
                         ));
                         None
                     }

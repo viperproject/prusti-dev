@@ -19,24 +19,25 @@ use prusti_interface::specs::specifications::SpecQuery;
 use prusti_rustc_interface::{
     hir,
     middle::ty,
-    span::{DUMMY_SP, def_id::DefId},
+    span::{DUMMY_SP, Span, def_id::DefId},
 };
 use task_encoder::{EncodeFullError, TaskEncoder, TaskEncoderDependencies};
 
-/// Extracts a human-readable message from an encoding error, used when a
-/// function/method body or contract cannot be encoded (e.g. an unsupported
-/// feature) and we fall back to an abstract stub. For a dependency error we
-/// surface the root cause (the last link of the chain), which is the actual
-/// unsupported-feature message.
-pub(crate) fn dep_error_message<'vir, E: TaskEncoder + ?Sized>(
+/// Extracts a human-readable message, and the position it was raised at (if
+/// it carries one), from an encoding error; used when a function/method body
+/// or contract cannot be encoded (e.g. an unsupported feature) and we fall
+/// back to an abstract stub. For a dependency error we surface the root cause
+/// (the last link of the chain), which is the actual unsupported-feature
+/// message.
+pub(crate) fn dep_error<'vir, E: TaskEncoder + ?Sized>(
     err: &EncodeFullError<'vir, E>,
-) -> String {
+) -> (String, Option<Span>) {
     match err {
         EncodeFullError::DependencyError(chain) => chain
             .last()
-            .map(|(_, msg, _)| msg.clone())
-            .unwrap_or_else(|| "encoding dependency error".to_string()),
-        other => format!("{other:?}"),
+            .map(|(_, msg, spans)| (msg.clone(), spans.first().copied()))
+            .unwrap_or_else(|| ("encoding dependency error".to_string(), None)),
+        other => (format!("{other:?}"), None),
     }
 }
 
