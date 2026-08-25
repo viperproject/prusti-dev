@@ -24,9 +24,11 @@ use prusti_rustc_interface::{
 type ExprOutput<'vir, Enc: PureRvalueEnc<'vir>> =
     vir::ExprGenSnap<'vir, Enc::ExprCurr, Enc::ExprNext>;
 
+pub(crate) type EncodeResult<'vir, T, E> = Result<T, EncodeFullError<'vir, E>>;
+
 #[allow(type_alias_bounds)]
 type ExprResult<'vir, Enc: PureRvalueEnc<'vir>> =
-    Result<ExprOutput<'vir, Enc>, EncodeFullError<'vir, Enc::Encoder>>;
+    EncodeResult<'vir, ExprOutput<'vir, Enc>, Enc::Encoder>;
 
 #[allow(type_alias_bounds)]
 type CastSnap<'vir, Enc: PureRvalueEnc<'vir>> = (
@@ -96,6 +98,17 @@ pub(crate) trait PureRvalueEnc<'vir> {
             .upcast_ty()
     }
 
+    /// The source position currently being encoded under: the MIR statement
+    /// (or, in a pure body, the expression) whose encoding is in progress.
+    /// Falls back to the body when no span is on the stack, as when encoding
+    /// the repacks of a terminator's outgoing edges.
+    fn current_span(&self) -> Span {
+        let vcx = self.vcx();
+        vcx.top_span()
+            .and_then(|span| vcx.get_span_from_id(span.id))
+            .unwrap_or_else(|| self.body().span)
+    }
+
     /// Build an error for an unsupported feature reached during rvalue encoding.
     fn unsupported_rvalue(
         &self,
@@ -122,7 +135,7 @@ pub(crate) trait PureRvalueEnc<'vir> {
         &mut self,
         place: Place<'vir>,
         ctxt: &Self::EncodePlaceCtxt,
-    ) -> vir::ExprGenSnap<'vir, Self::ExprCurr, Self::ExprNext>;
+    ) -> ExprResult<'vir, Self>;
 
     fn encode_cast_snap(
         &mut self,
@@ -130,7 +143,7 @@ pub(crate) trait PureRvalueEnc<'vir> {
         kind: mir::CastKind,
         operand: &mir::Operand<'vir>,
         ctxt: &Self::EncodePlaceCtxt,
-    ) -> Result<CastSnap<'vir, Self>, EncodeFullError<'vir, Self::Encoder>> {
+    ) -> EncodeResult<'vir, CastSnap<'vir, Self>, Self::Encoder> {
         let encoded_operand = self.encode_operand_snap(operand, ctxt)?.downcast_ty();
         let operand_ty = operand.ty(self.body(), self.vcx().tcx());
         let rvalue_ty = RustTyDecomposition::from_ty(rvalue_ty, self.context());
@@ -172,7 +185,7 @@ pub(crate) trait PureRvalueEnc<'vir> {
     fn encode_constant_snap(
         &mut self,
         constant: &mir::ConstOperand<'vir>,
-    ) -> Result<vir::ExprCSnap<'vir>, EncodeFullError<'vir, Self::Encoder>> {
+    ) -> EncodeResult<'vir, vir::ExprCSnap<'vir>, Self::Encoder> {
         let context = self.context();
         self.deps().require_dep::<ConstEnc>(ConstEncTask::Mir {
             const_: constant.const_,
@@ -216,7 +229,7 @@ pub(crate) trait PureRvalueEnc<'vir> {
         args: &[Spanned<mir::Operand<'vir>>],
         span: Span,
         ctxt: &Self::EncodePlaceCtxt,
-    ) -> Result<Option<ExprOutput<'vir, Self>>, EncodeFullError<'vir, Self::Encoder>> {
+    ) -> EncodeResult<'vir, Option<ExprOutput<'vir, Self>>, Self::Encoder> {
         if matches!(builtin, PrustiBuiltin::Spec(_)) {
             return Ok(None);
         }
@@ -306,7 +319,7 @@ pub(crate) trait PureRvalueEnc<'vir> {
                     ));
                 };
                 let deref_place = self.vcx().tcx().mk_place_deref(place);
-                let snap = self.encode_place_snap(deref_place.into(), ctxt);
+                let snap = self.encode_place_snap(deref_place.into(), ctxt)?;
                 let e_enum_ty = self.ty_use_pure(enum_ty);
                 match e_enum_ty.get_enumlike() {
                     Some(e_enum_ty) => {
