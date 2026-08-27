@@ -90,13 +90,14 @@ impl TaskEncoder for IndirectPredicatesEnc {
             let combined = ty.ty.zip(self_ty_enc);
             let mut predicate_applications = vec![];
             // Collects (accessor, indirect_predicate) pairs for the fields of a
-            // struct-like (used for structs and enum variants).
+            // struct-like (used for structs and enum variants). Fields are
+            // recursed into at their concrete (normalized) type.
             let collect_field_predicates =
                 |struct_data: StructData<'vir, (RustTyDatas, UsePureTyDatas)>,
                  deps: &mut TaskEncoderDependencies<'vir, IndirectPredicatesEnc>| {
                     let mut result = vec![];
                     for (field_ty, accessor) in struct_data.fields {
-                        let field_ty = field_ty.decompose_context(ty.ty.params, ty.args);
+                        let field_ty = field_ty.decompose_normalize(ty.args);
                         if let Some(new_projection) =
                             LifetimeProjection::new(field_ty, task_region, None, PrustiPcgCtxt)
                         {
