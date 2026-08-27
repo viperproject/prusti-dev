@@ -175,6 +175,22 @@ impl TaskEncoder for CastersEnc<Pure> {
                 make_concrete_snap_arg_expr,
             );
 
+            let mut make_concrete_posts = vec![make_concrete_post];
+            // A zero-field struct has a single value, so `make_concrete`
+            // returns it; this merges otherwise-distinct unit terms (e.g. the
+            // thin pointer metadata read out of a reference's snapshot with
+            // the freshly constructed one).
+            if concrete
+                .get_structlike()
+                .is_some_and(|data| data.fields.is_empty())
+            {
+                let cons = deps
+                    .require_dep::<TyPureEnc>(concrete)?
+                    .expect_structlike()
+                    .field_snaps_to_snap;
+                make_concrete_posts.push(vcx.mk_eq_expr(vcx.mk_result(self_ty), cons.call()(&[])));
+            }
+
             let make_concrete = vcx.mk_function(
                 make_concrete_ident,
                 (
@@ -185,7 +201,7 @@ impl TaskEncoder for CastersEnc<Pure> {
                 // TODO: type preconditions do not currently work
                 // vcx.alloc_slice(&[make_concrete_pre]),
                 &[],
-                vcx.alloc_slice(&[make_concrete_post]),
+                vcx.alloc_slice(&make_concrete_posts),
                 None,
                 None,
             );
