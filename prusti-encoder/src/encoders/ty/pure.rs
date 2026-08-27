@@ -177,18 +177,41 @@ pub struct TyPureMutRefData<'vir> {
     pub(super) value_access: AdtDestructor<'vir, vir::CSnap, vir::PSnap>,
 }
 
+/// The hardcoded extras of a `Box`: its pointer metadata, read out of the raw
+/// pointer it stores (all take the snapshot of the box's `Unique` field, as
+/// does the `TyPureFieldRef::Dynamic` address of its value field).
+#[derive(Debug, Clone, Copy)]
+pub struct TyPureBoxData<'vir> {
+    pub(super) metadata_access: FunctionIdn<'vir, vir::CSnap, vir::PSnap>,
+    /// The `Unique` snapshot with its raw pointer replaced by the given address
+    /// and metadata.
+    pub(super) mk_unique: FunctionIdn<'vir, (vir::CSnap, vir::Ref, vir::PSnap), vir::CSnap>,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct TyPureStructData<'vir> {
     /// Construct domain from snapshots of fields or for primitive types
     /// from the single Viper primitive value.
     pub(super) field_snaps_to_snap: FunctionIdn<'vir, vir::ManySnap, vir::CSnap>,
+    /// The hardcoded extras when this struct is a `Box`.
+    pub(super) box_data: Option<TyPureBoxData<'vir>>,
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyPureFieldData<'vir> {
     pub(super) read: AdtDestructor<'vir, vir::CSnap, vir::Snap>,
-    pub(super) ref_to_field_ref:
-        FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Ref>,
+    pub(super) ref_to_field_ref: TyPureFieldRef<'vir>,
+}
+
+/// The (Ref) address of a field, see `RustFieldAddress`.
+#[derive(Debug, Clone, Copy)]
+pub enum TyPureFieldRef<'vir> {
+    /// A pure function of the struct's `Ref`.
+    Constant(FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Ref>),
+    /// A function of a snapshot (for the value of a `Box`: that of its
+    /// `Unique` field, where the pointer is stored), i.e. heap-dependent given
+    /// the `Ref` (see the impure encoder).
+    Dynamic(FunctionIdn<'vir, vir::CSnap, vir::Ref>),
 }
 
 #[derive(Debug, Clone, Copy)]

@@ -213,16 +213,23 @@ fn handle_result(
             errors
                 .into_iter()
                 .flat_map(|error| {
+                    let Some(offending_pos_id) = error
+                        .offending_pos_id
+                        .as_ref()
+                        .and_then(|id| id.parse::<usize>().ok())
+                    else {
+                        // An error without a position (e.g. inside a
+                        // specification of a generated method) cannot be
+                        // backtranslated; report it as-is.
+                        return vec![PrustiError::internal(
+                            format!("verification error without a position: {error:?}"),
+                            DUMMY_SP.into(),
+                        )]
+                        .into_iter();
+                    };
                     prusti_encoder::backtranslate_error(
                         &error.full_id,
-                        error
-                            .offending_pos_id
-                            .as_ref()
-                            .unwrap_or_else(|| {
-                                panic!("offending pos id is missing for error {error:?}")
-                            })
-                            .parse::<usize>()
-                            .unwrap(),
+                        offending_pos_id,
                         error.reason_pos_id.and_then(|id| id.parse::<usize>().ok()),
                     )
                     .into_iter()
