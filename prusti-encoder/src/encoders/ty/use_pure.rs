@@ -1,3 +1,4 @@
+use prusti_rustc_interface::abi;
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder};
 use vir::CastType;
 
@@ -13,7 +14,8 @@ use super::{
     TyUseEnc, UseTyDatas,
     data::*,
     generics::{GArgCaster, GArgsTy},
-    pure::{PureTyDatas, TyPureEnc, TyPureRef},
+    pure::{PureTyDatas, TyPureEnc, TyPureFieldRef, TyPureRef},
+    rust_ty::RustTySpecial,
 };
 
 pub(super) type UsePureTyDatas = UseTyDatas<Pure>;
@@ -113,11 +115,18 @@ pub struct TyUsePureField<'vir> {
     pure: <PureTyDatas as TyDatas<'vir>>::FieldData,
 }
 
+/// Use-side data for the hardcoded extras of a `Box`.
+#[derive(Debug, Clone, Copy)]
+pub struct TyUsePureBoxData<'vir> {
+    metadata_caster: FieldCaster<'vir>,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct TyUsePureStructData<'vir> {
     #[allow(dead_code)]
     args: GArgsTy<'vir>,
     pure: <PureTyDatas as TyDatas<'vir>>::StructData,
+    box_data: Option<TyUsePureBoxData<'vir>>,
 }
 
 /// Encodes a type into the snapshot representation. Takes an arbitrary Rust
@@ -236,7 +245,14 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
                 TySpecifics::ArrayLike(self.encode_array(data, ty.0.params)?)
             }
             TySpecifics::StructLike(data) => {
-                TySpecifics::StructLike(self.encode_structlike(data, ty.0.params)?)
+                let box_data = match ty.0.special {
+                    RustTySpecial::Box => Some(TyUsePureBoxData {
+                        metadata_caster: self
+                            .encode_normalized(ty.box_metadata_ty(), ty.0.params)?,
+                    }),
+                    RustTySpecial::None => None,
+                };
+                TySpecifics::StructLike(self.encode_structlike(data, ty.0.params, box_data)?)
             }
             TySpecifics::EnumLike(data) => {
                 TySpecifics::EnumLike(self.encode_enumlike(data, ty.0.params)?)
@@ -293,6 +309,7 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
         &mut self,
         data: &StructData<'vir, (RustTyDatas, PureTyDatas)>,
         params: GParams<'vir>,
+        box_data: Option<TyUsePureBoxData<'vir>>,
     ) -> EncResult<'vir, StructData<'vir, UsePureTyDatas>> {
         let fields = data
             .fields
@@ -309,6 +326,7 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
         let data = TyUsePureStructData {
             args: self.args_t,
             pure: *data.1,
+            box_data,
         };
         Ok(StructData::new(data, fields))
     }
@@ -322,7 +340,7 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
             .variants
             .iter()
             .map(|variant| {
-                let structlike = self.encode_structlike(&variant.inner, params)?;
+                let structlike = self.encode_structlike(&variant.inner, params, None)?;
                 Ok(VariantData::new(*variant.1, structlike))
             })
             .collect::<EncResult<'vir, Vec<_>>>()?;
@@ -413,7 +431,6 @@ impl<'vir> TyUsePureRaw<'vir> {
         self.pure.prim_to_snap.call()(ref_, metadata.downcast_ty())
     }
 
-    #[allow(dead_code)]
     pub fn address_access<Curr, Next>(
         &self,
         snap: vir::ExprGenCSnap<'vir, Curr, Next>,
@@ -521,6 +538,86 @@ impl<'vir> TyUsePureArray<'vir> {
 }
 
 impl<'vir> TyUsePureStruct<'vir> {
+    /// The `Unique` field's snapshot of a `Box`, where its pointer lives.
+    #[track_caller]
+    fn box_unique_snap<Curr, Next>(
+        &self,
+        snap: vir::ExprGenCSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenCSnap<'vir, Curr, Next> {
+        assert!(self.data.box_data.is_some(), "expected box");
+        self[abi::FieldIdx::ZERO].read(snap).downcast_ty()
+    }
+
+    /// Function to access the address of the boxed `T` (read out of the raw
+    /// pointer's snapshot).
+    #[track_caller]
+    pub fn box_address_access<Curr, Next>(
+        &self,
+        snap: vir::ExprGenCSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenRef<'vir, Curr, Next> {
+        assert!(self.data.box_data.is_some(), "expected box");
+        let TyPureFieldRef::Dynamic(address_access) =
+            self.fields.last().unwrap().pure.ref_to_field_ref
+        else {
+            unreachable!()
+        };
+        address_access.call()(self.box_unique_snap(snap))
+    }
+
+    /// Function to access the pointer metadata of a `Box`.
+    #[track_caller]
+    pub fn box_metadata_access<Curr, Next>(
+        &self,
+        snap: vir::ExprGenCSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        let box_data = self.data.pure.box_data.expect("expected box");
+        let metadata = box_data.metadata_access.call()(self.box_unique_snap(snap));
+        self.data
+            .box_data
+            .expect("expected box")
+            .metadata_caster
+            .cast_to_caller_ctx(metadata.upcast_ty())
+    }
+
+    /// Function to access the value of the boxed `T` (the box's last field).
+    #[track_caller]
+    pub fn box_value_access<Curr, Next>(
+        &self,
+        snap: vir::ExprGenCSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        assert!(self.data.box_data.is_some(), "expected box");
+        self.fields.last().unwrap().read(snap)
+    }
+
+    /// The snapshot of a `Box` (given as `snap`) with the same address and
+    /// other fields, but new pointer metadata and value; used for unsize
+    /// coercions. `metadata` and `value` are given in this box's context.
+    #[track_caller]
+    pub fn box_unsize_snap<Curr, Next>(
+        &self,
+        snap: vir::ExprGenCSnap<'vir, Curr, Next>,
+        metadata: vir::ExprGenSnap<'vir, Curr, Next>,
+        value: vir::ExprGenSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenCSnap<'vir, Curr, Next> {
+        let box_data = self.data.box_data.expect("expected box");
+        // The `Unique` around the same address with the new metadata.
+        let metadata = box_data.metadata_caster.cast_to_callee_ctx(metadata);
+        let unique = self.data.pure.box_data.unwrap().mk_unique.call()(
+            self.box_unique_snap(snap),
+            self.box_address_access(snap),
+            metadata.downcast_ty(),
+        );
+        // The box itself: the new `Unique`, the other fields, the new value.
+        let mut snaps = vec![unique.upcast_ty()];
+        snaps.extend(
+            self.fields[1..self.fields.len() - 1]
+                .iter()
+                .map(|f| f.read(snap)),
+        );
+        snaps.push(value);
+        self.field_snaps_to_snap(snaps)
+    }
+
     pub fn field_snaps_to_snap<Curr, Next>(
         &self,
         mut snaps: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
@@ -544,11 +641,19 @@ impl<'vir> TyUsePureField<'vir> {
 
     /// Get the (Ref) address of a field. Identical to the function one would
     /// call in `use_impure`.
+    #[track_caller]
     pub fn field_ref<Curr, Next>(
         &self,
         self_ref: vir::ExprGenRef<'vir, Curr, Next>,
     ) -> vir::ExprGenRef<'vir, Curr, Next> {
-        self.pure.ref_to_field_ref.call()(self_ref, self.args.get_ty(), self.args.get_const())
+        match self.pure.ref_to_field_ref {
+            TyPureFieldRef::Constant(ref_to_field_ref) => {
+                ref_to_field_ref.call()(self_ref, self.args.get_ty(), self.args.get_const())
+            }
+            TyPureFieldRef::Dynamic(_) => {
+                panic!("field without a pure address (the value of a box)")
+            }
+        }
     }
 }
 

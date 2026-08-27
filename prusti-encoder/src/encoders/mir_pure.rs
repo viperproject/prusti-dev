@@ -12,7 +12,6 @@ use crate::encoders::{
 use itertools::Itertools;
 use pcg::utils::Place;
 use prusti_rustc_interface::{
-    abi,
     data_structures::graph::{self, Successors},
     index::IndexVec,
     middle::{
@@ -1097,11 +1096,14 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 assert!(place_ty.variant_index.is_none());
                 match place_ty.ty.kind() {
                     TyKind::Adt(adt, _) if adt.is_box() => {
-                        let proj =
-                            e_ty.expect_variant_opt(place_ty.variant_index)[abi::FieldIdx::ZERO];
-                        let proj_app = proj.read(encoded_place.snap.downcast_ty());
-                        let place_ref = encoded_place.place_ref.map(|pr| proj.field_ref(pr));
-                        EncodedPlace::new(proj_app, place_ref)
+                        // The boxed value, its address and its pointer metadata
+                        // are all read out of the snapshot.
+                        let data = e_ty.expect_structlike();
+                        let snap = encoded_place.snap.downcast_ty();
+                        let val_expr = data.box_value_access(snap);
+                        let place_ref = Some(data.box_address_access(snap));
+                        let metadata = data.box_metadata_access(snap);
+                        EncodedPlace::new(val_expr, place_ref).with_metadata(metadata)
                     }
                     TyKind::Ref(.., ty::Mutability::Not) => {
                         let e_ty = e_ty.expect_immref();

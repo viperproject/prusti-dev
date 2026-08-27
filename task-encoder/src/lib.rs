@@ -224,6 +224,7 @@ pub trait TaskEncoder {
     //  //Self::cache()
     //}
 
+    /*
     fn enqueue<'vir>(task: Self::TaskDescription<'vir>)
     where
         Self: 'vir,
@@ -243,6 +244,7 @@ pub trait TaskEncoder {
         });
         assert!(old.is_none());
     }
+    */
 
     fn encode_ref<'vir>(
         task: Self::TaskDescription<'vir>,
@@ -257,7 +259,8 @@ pub trait TaskEncoder {
         let task_key_clone = task_key.clone();
         if let Some(output_ref) =
             Self::with_cache(move |cache| match cache.borrow().get(&task_key_clone) {
-                Some(TaskEncoderCacheState::Started { output_ref, .. })
+                Some(TaskEncoderCacheState::Started { output_ref })
+                | Some(TaskEncoderCacheState::Restarted { output_ref })
                 | Some(TaskEncoderCacheState::Encoded { output_ref, .. })
                 | Some(TaskEncoderCacheState::ErrorEncode { output_ref, .. }) => {
                     Some(output_ref.clone())
@@ -269,11 +272,10 @@ pub trait TaskEncoder {
         }
 
         // Otherwise, we need to start the encoding. Note that this is done
-        // even if the encoding was started previously, i.e. if the cache
-        // contains a `Enqueued` entry for this task. This can happen if the
-        // same task was (recursively) requested from the same encoder, before
-        // its first invocation reached a call to `emit_output_ref`.
-        // TODO: we should still make sure that *some* progress is done, because an actual cyclic dependency could cause a stack overflow?
+        // even if the encoding was started previously, i.e. if the same task
+        // was (recursively) requested from the same encoder before its first
+        // invocation reached a call to `emit_output_ref` (see
+        // `TaskEncoderCacheState::Encoding`).
         let encode_res = Self::encode(task, false, span);
         match encode_res {
             Ok(_) | Err(TaskEncoderError::DependencyError(..)) => (), // pass, check for output ref
@@ -283,7 +285,8 @@ pub trait TaskEncoder {
         let task_key_clone = task_key.clone();
         if let Some(output_ref) =
             Self::with_cache(move |cache| match cache.borrow().get(&task_key_clone) {
-                Some(TaskEncoderCacheState::Started { output_ref, .. })
+                Some(TaskEncoderCacheState::Started { output_ref })
+                | Some(TaskEncoderCacheState::Restarted { output_ref })
                 | Some(TaskEncoderCacheState::Encoded { output_ref, .. })
                 | Some(TaskEncoderCacheState::ErrorEncode { output_ref, .. }) => {
                     Some(output_ref.clone())
@@ -310,36 +313,48 @@ pub trait TaskEncoder {
         let in_cache = Self::with_cache(|cache| {
             let mut cache = cache.borrow_mut();
 
-            match cache.get(&task_key) {
-                Some(e) => match e {
+            let new_state = match cache.get(&task_key) {
+                Some(
                     TaskEncoderCacheState::ErrorEnqueue { error, .. }
-                    | TaskEncoderCacheState::ErrorEncode { error, .. } => Some(Err(error.clone())),
-                    TaskEncoderCacheState::Encoded {
-                        output_ref,
-                        output_local,
-                        output_dep,
-                        ..
-                    } => {
-                        if need_output {
-                            Some(Ok(Some((
-                                output_ref.clone(),
-                                output_local.clone(),
-                                output_dep.clone(),
-                            ))))
-                        } else {
-                            Some(Ok(None))
-                        }
-                    }
-                    // TODO: should we return Some(Ok(None)) for `Started`, if `!need_output` ?
-                    TaskEncoderCacheState::Enqueued | TaskEncoderCacheState::Started { .. } => None,
-                },
-                None => {
-                    // enqueue
-                    triggers::fire_watchers::<Self>(&task_key);
-                    cache.insert(task_key.clone(), TaskEncoderCacheState::Enqueued);
-                    None
+                    | TaskEncoderCacheState::ErrorEncode { error, .. },
+                ) => return Some(Err(error.clone())),
+                Some(TaskEncoderCacheState::Encoded {
+                    output_ref,
+                    output_local,
+                    output_dep,
+                    ..
+                }) => {
+                    return if need_output {
+                        Some(Ok(Some((
+                            output_ref.clone(),
+                            output_local.clone(),
+                            output_dep.clone(),
+                        ))))
+                    } else {
+                        Some(Ok(None))
+                    };
                 }
-            }
+                // A re-run is already in progress; another one could not make
+                // progress over it (see `TaskEncoderCacheState`).
+                Some(
+                    TaskEncoderCacheState::ReEncoding | TaskEncoderCacheState::Restarted { .. },
+                ) => return Some(Err(TaskEncoderError::CyclicError)),
+                // Start the first run.
+                None => {
+                    triggers::fire_watchers::<Self>(&task_key);
+                    TaskEncoderCacheState::Encoding
+                }
+                // In progress: re-run the encoding (see
+                // `TaskEncoderCacheState::Started`).
+                Some(TaskEncoderCacheState::Encoding) => TaskEncoderCacheState::ReEncoding,
+                Some(TaskEncoderCacheState::Started { output_ref }) => {
+                    TaskEncoderCacheState::Restarted {
+                        output_ref: output_ref.clone(),
+                    }
+                }
+            };
+            cache.insert(task_key.clone(), new_state);
+            None
         });
         if let Some(in_cache) = in_cache {
             return in_cache;
@@ -373,7 +388,10 @@ pub trait TaskEncoder {
             Self::with_cache(|cache| {
                 let mut cache = cache.borrow_mut();
                 match cache.get(&task_key) {
-                    Some(TaskEncoderCacheState::Started { output_ref }) => {
+                    Some(
+                        TaskEncoderCacheState::Started { output_ref }
+                        | TaskEncoderCacheState::Restarted { output_ref },
+                    ) => {
                         let output_ref = output_ref.clone();
                         cache.insert(
                             task_key.clone(),
@@ -400,10 +418,14 @@ pub trait TaskEncoder {
             error
         })?;
 
+        // `ErrorEncode`: a suspended run whose re-run failed (moving the task
+        // to that state) finds its own error here.
         let output_ref = Self::with_cache(|cache| match cache.borrow().get(&task_key) {
             Some(
                 TaskEncoderCacheState::Started { output_ref }
-                | TaskEncoderCacheState::Encoded { output_ref, .. },
+                | TaskEncoderCacheState::Restarted { output_ref }
+                | TaskEncoderCacheState::Encoded { output_ref, .. }
+                | TaskEncoderCacheState::ErrorEncode { output_ref, .. },
             ) => output_ref.clone(),
             _ => panic!("encoder did not provide output ref for task {task_key:?}"),
         });
@@ -460,7 +482,10 @@ pub trait TaskEncoder {
                     }
                     TaskEncoderCacheState::ErrorEnqueue { error, .. }
                     | TaskEncoderCacheState::ErrorEncode { error, .. } => Err(error.clone()),
-                    TaskEncoderCacheState::Started { .. } | TaskEncoderCacheState::Enqueued => {
+                    TaskEncoderCacheState::Encoding
+                    | TaskEncoderCacheState::ReEncoding
+                    | TaskEncoderCacheState::Started { .. }
+                    | TaskEncoderCacheState::Restarted { .. } => {
                         panic!("encoder did not finish for task {task_key:?}")
                     }
                 })

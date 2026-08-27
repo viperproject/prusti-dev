@@ -15,6 +15,7 @@ use super::{
     data::*,
     generics::{GArgCaster, GArgsTy},
     impure::{ImpureTyDatas, TyImpureEnc},
+    rust_ty::RustTySpecial,
 };
 
 pub(super) type UseImpureTyDatas = UseTyDatas<Impure>;
@@ -93,8 +94,9 @@ pub struct TyUseImpureArrayData<'vir> {
 pub struct TyUseImpureStructData<'vir> {
     args: GArgsTy<'vir>,
     ref_to_pred: PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>,
-    #[allow(dead_code)]
     impure: <ImpureTyDatas as TyDatas<'vir>>::StructData,
+    /// The pointer metadata caster when this struct is a `Box`.
+    box_metadata_caster: Option<GArgCaster<'vir, crate::encoders::Pure>>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -209,11 +211,20 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
             TySpecifics::ArrayLike(data) => {
                 TySpecifics::ArrayLike(self.encode_array(data, ty.1.ref_to_pred, ty.0.params)?)
             }
-            TySpecifics::StructLike(data) => TySpecifics::StructLike(self.encode_structlike(
-                data,
-                ty.1.ref_to_pred,
-                ty.0.params,
-            )?),
+            TySpecifics::StructLike(data) => {
+                let box_metadata_caster = match ty.0.special {
+                    RustTySpecial::Box => {
+                        Some(self.encode_normalized_pure(ty.box_metadata_ty(), ty.0.params)?)
+                    }
+                    RustTySpecial::None => None,
+                };
+                TySpecifics::StructLike(self.encode_structlike(
+                    data,
+                    ty.1.ref_to_pred,
+                    ty.0.params,
+                    box_metadata_caster,
+                )?)
+            }
             TySpecifics::EnumLike(data) => {
                 TySpecifics::EnumLike(self.encode_enumlike(data, ty.0.params)?)
             }
@@ -267,6 +278,7 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
         data: &StructData<'vir, (RustTyDatas, ImpureTyDatas)>,
         ref_to_pred: PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>,
         params: GParams<'vir>,
+        box_metadata_caster: Option<GArgCaster<'vir, crate::encoders::Pure>>,
     ) -> EncResult<'vir, StructData<'vir, UseImpureTyDatas>> {
         let fields = data
             .fields
@@ -284,6 +296,7 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
             args: self.args_t,
             ref_to_pred,
             impure: *data.1,
+            box_metadata_caster,
         };
         Ok(StructData::new(data, fields))
     }
@@ -298,7 +311,7 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
             .iter()
             .map(|variant| {
                 let structlike =
-                    self.encode_structlike(&variant.inner, variant.1.predicate, params)?;
+                    self.encode_structlike(&variant.inner, variant.1.predicate, params, None)?;
                 Ok(VariantData::new((), structlike))
             })
             .collect::<EncResult<'vir, Vec<_>>>()?;
@@ -478,6 +491,30 @@ impl<'vir> TyUseImpureArray<'vir> {
 }
 
 impl<'vir> TyUseImpureStruct<'vir> {
+    /// The pointer metadata of a `Box`, read out of the (folded) `Unique`
+    /// field's predicate.
+    #[track_caller]
+    pub fn box_metadata(&self, self_ref: vir::ExprRef<'vir>) -> vir::ExprSnap<'vir> {
+        let box_data = self.data.impure.box_data.expect("expected box");
+        let metadata = box_data.metadata.call()(
+            self_ref,
+            self.data.args.get_ty(),
+            self.data.args.get_const(),
+        );
+        self.data
+            .box_metadata_caster
+            .expect("expected box")
+            .cast_to_caller_ctx(metadata.upcast_ty())
+    }
+
+    /// The (Ref) address of the boxed `T` (the box's last field), read out of
+    /// the (folded) `Unique` field's predicate.
+    #[track_caller]
+    pub fn box_address(&self, self_ref: vir::ExprRef<'vir>) -> vir::ExprRef<'vir> {
+        assert!(self.data.impure.box_data.is_some(), "expected box");
+        self.fields.last().unwrap().field_ref(self_ref)
+    }
+
     fn ref_to_pred_app(
         &self,
         self_ref: vir::ExprRef<'vir>,

@@ -176,12 +176,19 @@ impl<'vir, E: TaskEncoder + 'vir + ?Sized> TaskEncoderDependencies<'vir, E> {
             "output ref already set for task key {task_key:?}"
         );
         self.check_cycle()?;
-        assert!(E::with_cache(move |cache| matches!(
-            cache
-                .borrow_mut()
-                .insert(task_key, TaskEncoderCacheState::Started { output_ref },),
-            Some(TaskEncoderCacheState::Enqueued | TaskEncoderCacheState::Started { .. })
-        )));
+        E::with_cache(move |cache| {
+            let mut cache = cache.borrow_mut();
+            let new_state = match cache.get(&task_key) {
+                Some(TaskEncoderCacheState::Encoding) => {
+                    TaskEncoderCacheState::Started { output_ref }
+                }
+                Some(
+                    TaskEncoderCacheState::ReEncoding | TaskEncoderCacheState::Restarted { .. },
+                ) => TaskEncoderCacheState::Restarted { output_ref },
+                _ => std::panic!("output ref emitted for task not being encoded: {task_key:?}"),
+            };
+            cache.insert(task_key, new_state);
+        });
         Ok(())
     }
 }

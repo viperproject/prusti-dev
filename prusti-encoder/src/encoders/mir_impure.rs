@@ -27,7 +27,6 @@ use pcg::{
 };
 use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
-    abi,
     data_structures::graph::Successors,
     index::Idx,
     middle::{
@@ -1279,22 +1278,31 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 assert!(place_ty.variant_index.is_none());
                 let e_ty = self.ty_use_impure(place_ty.ty);
                 match place_ty.ty.kind() {
-                    ty::TyKind::Adt(adt, _) if adt.is_box() => {
-                        let field_access = e_ty.expect_variant_opt(None);
-                        PlaceExpr {
-                            // TODO: this is unsound: a Box should be modelled
-                            // with a Ref field rather than a field_access
-                            // function.
-                            address: field_access[abi::FieldIdx::ZERO].field_ref(expr.address),
-                            // TODO: also should have metadata
-                            metadata: None,
-                            snap: expr.snap.map(|snap| {
-                                let e_ty = self.ty_use_pure(place_ty.ty);
-                                let field_access = e_ty.expect_variant_opt(None);
-                                field_access[abi::FieldIdx::ZERO].read(snap.downcast_ty())
-                            }),
+                    ty::TyKind::Adt(adt, _) if adt.is_box() => match expr.snap {
+                        // With a snapshot at hand (e.g. behind a shared
+                        // reference, where no permission to the box's fields
+                        // is held), everything is read out of it.
+                        Some(snap) => {
+                            let data = self.ty_use_pure(place_ty.ty).expect_structlike();
+                            let snap = snap.downcast_ty();
+                            PlaceExpr {
+                                address: data.box_address_access(snap),
+                                metadata: Some(data.box_metadata_access(snap)),
+                                snap: Some(data.box_value_access(snap)),
+                            }
                         }
-                    }
+                        // Otherwise the address and metadata are read out of
+                        // the (folded) `Unique` field's predicate; the box
+                        // itself is already unfolded here.
+                        None => {
+                            let data = e_ty.expect_structlike();
+                            PlaceExpr {
+                                address: data.box_address(expr.address),
+                                metadata: Some(data.box_metadata(expr.address)),
+                                snap: None,
+                            }
+                        }
+                    },
                     ty::TyKind::Ref(_, _, ty::Mutability::Not) => {
                         let snap = expr
                             .snap

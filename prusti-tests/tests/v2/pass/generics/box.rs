@@ -1,12 +1,3 @@
-use prusti_contracts::*;
-
-#[extern_spec]
-impl<T> Box<T> {
-    #[trusted]
-    #[ensures(*result === value)]
-    fn new(value: T) -> Box<T>;
-}
-
 fn main() {
     let x = Box::new(42);
     assert!(*x == 42);
