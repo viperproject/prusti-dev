@@ -287,6 +287,21 @@ impl<'vir, Curr: 'vir, Next: 'vir, T: CompType> ExprGenData<'vir, Curr, Next, T>
             ty,
         }
     }
+
+    /// Create a copy of this expression, but with its span set to the current
+    /// top span. This allows error handlers to be attached to an expression
+    /// that was constructed elsewhere (by calling `realloc_span` within a
+    /// `with_span` closure).
+    pub fn realloc_span(&'vir self) -> ExprGen<'vir, Curr, Next, T> {
+        with_vcx(|vcx| {
+            vcx.alloc(Self {
+                kind: self.kind,
+                debug_info: self.debug_info,
+                span: vcx.top_span(),
+                ty: self.ty,
+            })
+        })
+    }
 }
 
 impl<'tcx> crate::VirCtxt<'tcx> {
