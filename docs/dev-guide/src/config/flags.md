@@ -15,7 +15,6 @@
 | [`CHECK_TIMEOUT`](#check_timeout) | `Option<u32>` | `None` | A |
 | [`COUNTEREXAMPLE`](#counterexample) | `bool` | `false` | A |
 | [`DELETE_BASIC_BLOCKS`](#delete_basic_blocks) | `Vec<String>` | `vec![]` | A |
-| [`DISABLE_NAME_MANGLING`](#disable_name_mangling) | `bool` | `false` | A |
 | [`DUMP_BORROWCK_INFO`](#dump_borrowck_info) | `bool` | `false` | A |
 | [`DUMP_DEBUG_INFO`](#dump_debug_info) | `bool` | `false` | A |
 | [`DUMP_DEBUG_INFO_DURING_FOLD`](#dump_debug_info_during_fold) | `bool` | `false` | A |
@@ -62,6 +61,7 @@
 | [`SERVER_ADDRESS`](#server_address) | `Option<String>` | `None` | A |
 | [`SERVER_MAX_CONCURRENCY`](#server_max_concurrency) | `Option<usize>` | `None` | A |
 | [`SERVER_MAX_STORED_VERIFIERS`](#server_max_stored_verifiers) | `Option<usize>` | `None` | A |
+| [`SHORT_VIPER_NAMES`](#short_viper_names) | `bool` | `false` | A |
 | [`SHOW_IDE_INFO`](#show_ide_info) | `bool` | `false` | A |
 | [`SIMPLIFY_ENCODING`](#simplify_encoding) | `bool` | `true` | A |
 | [`SKIP_UNSUPPORTED_FEATURES`](#skip_unsupported_features) | `bool` | `false` | A |
@@ -153,12 +153,6 @@ When enabled, Prusti will try to find and print a counterexample for any failed 
 ## `DELETE_BASIC_BLOCKS`
 
 The given basic blocks will be replaced with `assume false`.
-
-## `DISABLE_NAME_MANGLING`
-
-When enabled, Viper name mangling will be disabled.
-
-> **Note:** This is very likely to result in invalid programs being generated because of name collisions.
 
 ## `DUMP_BORROWCK_INFO`
 
@@ -375,7 +369,7 @@ When enabled for both server and client, certain supported Viper messages will b
 
 ## `REPORT_BLOCK_MESSAGES`
 
-When enabled for both server and client, messages for individual basic blocks will be reported to the user. Does nothing if [`REPORT_VIPER_MESSAGES`](#report_viper_messages) is not enabled. Intended for usage with the Prusti Assistant (IDE). 
+When enabled for both server and client, messages for individual basic blocks will be reported to the user. Does nothing if [`REPORT_VIPER_MESSAGES`](#report_viper_messages) is not enabled. Intended for usage with the Prusti Assistant (IDE).
 
 ## `SERVER_ADDRESS`
 
@@ -393,6 +387,11 @@ Maximum amount of instantiated Viper verifiers the server will keep around for r
 
 > **Note:** This does _not_ limit how many verification requests the server handles concurrently, only the size of what is essentially its verifier cache.
 
+## `SHORT_VIPER_NAMES`
+
+When enabled, Viper identifiers derived from Rust items use the item's short name (e.g. `Foo`) instead of its full definition path (e.g. `my_crate::module::Foo`).
+This is useful for debugging but may result in name collisions (in which case the generated Viper programs will fail to compile).
+
 ## `SHOW_IDE_INFO`
 
 When enabled, we emit various json data structures containing information about the program, its encoding, and the results of the verification. This flag intended for prusti-assistant (IDE).
@@ -407,7 +406,7 @@ When enabled, features not supported by Prusti will be reported as warnings rath
 
 ## `SKIP_VERIFICATION`
 
-When enabled, verification will be skipped. Opposed to `NO_VERIFY`, this flag will cause fake errors to stop the compiler from caching the result. 
+When enabled, verification will be skipped. Opposed to `NO_VERIFY`, this flag will cause fake errors to stop the compiler from caching the result.
 
 ## `SMT_QI_BOUND_GLOBAL`
 

@@ -6,7 +6,7 @@ use prusti_rustc_interface::{
     span::def_id::DefId,
 };
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CastType, Domain, Method, MethodIdn, vir_format_identifier};
+use vir::{CastType, Domain, Method, MethodIdn, ViperIdent, vir_format_identifier};
 
 use crate::{
     encoders::{
@@ -76,7 +76,7 @@ impl TaskEncoder for TraitImplEnc {
                 let trait_item_def_id = impl_item.trait_item_def_id.unwrap();
                 let impl_item_def_id = impl_item.def_id;
                 let impl_span = vcx.tcx().def_span(impl_item_def_id);
-                let item_name = tcx.item_name(impl_item_def_id);
+                let item_name = ViperIdent::from_def_id(vcx, impl_item_def_id);
 
                 let impl_item_context = GParams::from(impl_item_def_id);
                 let impl_item_params = deps.require_dep::<GenericParamsEnc>(impl_item_context)?;
@@ -579,7 +579,7 @@ fn impl_name<'vir>(vcx: &'vir vir::VirCtxt<'vir>, impl_did: DefId) -> &'vir str 
     let idx = all_impls.iter().position(|did| *did == impl_did).unwrap();
     let krate = tcx.crate_name(impl_did.krate);
     let trait_did = tcx.impl_trait_ref(impl_did).unwrap().skip_binder().def_id;
-    let trait_name = tcx.item_name(trait_did);
+    let trait_name = ViperIdent::from_def_id(vcx, trait_did);
     let implementing_ty = tcx.type_of(impl_did).instantiate_identity();
     let implementing_ty = RustTyDecomposition::from_ty(implementing_ty, GParams::from(impl_did));
     let implementing_ty = implementing_ty.ty.name();
@@ -661,7 +661,7 @@ impl TaskEncoder for TraitImplItemEnc {
             let impl_item = tcx.associated_item(impl_item_def_id);
             let trait_item_def_id = impl_item.trait_item_def_id.unwrap();
             let impl_span = tcx.def_span(impl_item_def_id);
-            let item_name = tcx.item_name(impl_item_def_id);
+            let item_name = ViperIdent::from_def_id(vcx, impl_item_def_id);
             let impl_name = impl_name(vcx, impl_did);
 
             let impl_context = GParams::from(impl_did);
