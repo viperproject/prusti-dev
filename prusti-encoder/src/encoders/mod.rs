@@ -36,6 +36,7 @@ pub use spec::{
     report_kind_refinement_error, spec_is_trusted,
 };
 pub use ty::{
+    TyInhabitedEnc,
     use_impure::TyUseImpureEnc,
     use_pure::TyUsePureEnc,
     viper_tuple::{ViperTupleEnc, ViperTupleEncOutput},
