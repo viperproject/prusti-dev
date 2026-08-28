@@ -7,6 +7,15 @@ use std::{cell::RefCell, fmt::Debug};
 
 use crate::{data::*, refs::*};
 
+/// How a Rust item's `DefId` is rendered into a Viper identifier.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum IdentStyle {
+    /// The item's full definition path.
+    DefPath,
+    /// The item's short name. For debugging: name collisions are possible.
+    ItemName,
+}
+
 /// The VIR context is a data structure used throughout the encoding process.
 pub struct VirCtxt<'tcx> {
     /// The arena used for bump allocating all VIR AST data. Anything allocated
@@ -28,16 +37,25 @@ pub struct VirCtxt<'tcx> {
     pub body: Option<RefCell<EnvBody<'tcx>>>,
 
     pub specs: Option<RefCell<Specifications<'tcx>>>,
+
+    /// How `ViperIdent::from_def_id` renders a `DefId`.
+    pub ident_style: IdentStyle,
 }
 
 impl<'tcx> VirCtxt<'tcx> {
-    pub fn new(tcx: ty::TyCtxt<'tcx>, body: EnvBody<'tcx>, spec_map: DefSpecificationMap) -> Self {
+    pub fn new(
+        tcx: ty::TyCtxt<'tcx>,
+        body: EnvBody<'tcx>,
+        spec_map: DefSpecificationMap,
+        ident_style: IdentStyle,
+    ) -> Self {
         Self {
             arena: bumpalo::Bump::new(),
             spans: RefCell::new(Default::default()),
             tcx: Some(tcx),
             body: Some(RefCell::new(body)),
             specs: Some(RefCell::new(Specifications::new(spec_map))),
+            ident_style,
         }
     }
 
@@ -48,6 +66,7 @@ impl<'tcx> VirCtxt<'tcx> {
             tcx: None,
             body: None,
             specs: None,
+            ident_style: IdentStyle::DefPath,
         }
     }
 

@@ -12,20 +12,12 @@ use super::{
 pub struct RustTyDecomposition<'tcx> {
     pub ty: RustTy<'tcx>,
     pub args: GArgs<'tcx>,
-    /// Whether this (concrete) type might be inhabited. `None` when this was
-    /// created in `RustTyDecomposition::identity` from a `RustTy` where we
-    /// cannot know the value.
-    pub maybe_inhabited: Option<bool>,
 }
 
 impl<'tcx> RustTyDecomposition<'tcx> {
-    fn new(ty: RustTy<'tcx>, args: GArgs<'tcx>, maybe_inhabited: Option<bool>) -> Self {
+    fn new(ty: RustTy<'tcx>, args: GArgs<'tcx>) -> Self {
         ty.params.check(args.args());
-        RustTyDecomposition {
-            ty,
-            args,
-            maybe_inhabited,
-        }
+        RustTyDecomposition { ty, args }
     }
 
     /// Decomposes a rustc `ty::Ty` into the core type used to generate a Viper
@@ -69,13 +61,11 @@ impl<'tcx> RustTyDecomposition<'tcx> {
         TyData::<'tcx, RustTyDatas>::from_prim_ty(ty)
     }
 
-    /// When you only have a `RustTy<'tcx>` but you want to use the
-    /// `TyUsePureEnc`. We cannot determine `maybe_inhabited` so it
-    /// is left `None`; the pure encoder never reads it, and passing
-    /// this decomposition to `TyUseImpureEnc` will panic.
+    /// When you only have a `RustTy<'tcx>` but you want to use one of the
+    /// type-use encoders.
     pub fn identity(ty: RustTy<'tcx>) -> Self {
         let args = GArgs::new(ty.params, ty.params.rust_params());
-        Self::new(ty, args, None)
+        Self::new(ty, args)
     }
 
     pub fn param() -> RustTy<'tcx> {
@@ -378,39 +368,12 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         let (params, args) = Self::identity_for_ty(ty, context.is_trait_extern_spec());
         let args = GArgs::new(context, args);
         let specifics = TySpecifics::from_ty(ty);
-        // Whether the type might be inhabited. This is independent of
-        // lifetimes, but `is_privately_uninhabited` ICEs on types that still
-        // carry region artifacts (inference vars like `'?21` from the
-        // panic/format machinery, or escaping bound/placeholder regions like
-        // `'^2`). So first make the type lifetime-free: erase free & inference
-        // regions, then replace any escaping bound regions with `'erased`. Only
-        // genuinely non-ground, *non-lifetime* features (type/const params or
-        // inference vars) can then still block the query, in which case we
-        // answer conservatively (possibly-inhabited).
-        let maybe_inhabited = vir::with_vcx(|vcx| {
-            use prusti_rustc_interface::middle::ty::{FnMutDelegate, TypeVisitableExt};
-            let tcx = vcx.tcx();
-            let layout_ty = tcx.replace_escaping_bound_vars_uncached(
-                tcx.erase_regions(ty),
-                FnMutDelegate {
-                    regions: &mut |_| tcx.lifetimes.re_erased,
-                    types: &mut |_| ty::Ty::new_misc_error(tcx),
-                    consts: &mut |_| ty::Const::new_misc_error(tcx),
-                },
-            );
-            let groundish = !layout_ty.has_infer() && !layout_ty.has_param();
-            !groundish || !layout_ty.is_privately_uninhabited(tcx, context.typing_env())
-        });
         let data = RustTyData {
             name: symbol::Symbol::intern(&name),
             params,
             special: RustTySpecial::from_ty(ty),
         };
-        RustTyDecomposition::new(
-            Self::new(data, specifics).alloc(),
-            args,
-            Some(maybe_inhabited),
-        )
+        RustTyDecomposition::new(Self::new(data, specifics).alloc(), args)
     }
 
     fn from_prim_ty(ty: ty::Ty<'tcx>) -> RustTyDecomposition<'tcx> {
@@ -423,16 +386,21 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             special: RustTySpecial::None,
         };
         let specifics = TySpecifics::from_prim_ty(ty);
-        RustTyDecomposition::new(Self::new(data, specifics).alloc(), args, Some(true))
+        RustTyDecomposition::new(Self::new(data, specifics).alloc(), args)
     }
 
     fn ty_name(ty: ty::Ty<'tcx>) -> String {
+        let def_id_name = |def_id| {
+            vir::with_vcx(|vcx| {
+                vir::ViperIdent::from_def_id(vcx, def_id)
+                    .to_str()
+                    .to_owned()
+            })
+        };
         match ty.kind() {
             _ if ty.is_primitive() => Self::prim_ty_name(ty),
             ty::TyKind::Str => String::from("Str"),
-            ty::TyKind::Adt(adt, _) => {
-                vir::with_vcx(|vcx| vcx.tcx().item_name(adt.did()).to_ident_string())
-            }
+            ty::TyKind::Adt(adt, _) => def_id_name(adt.did()),
             ty::TyKind::Tuple(params) => format!("{}_Tuple", params.len()),
             ty::TyKind::Never => String::from("Never"),
             ty::TyKind::Ref(_, _, ty::Mutability::Not) => String::from("Ref_immutable"),
@@ -440,28 +408,12 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             ty::TyKind::RawPtr(_, ty::Mutability::Not) => String::from("RawPtr_immutable"),
             ty::TyKind::RawPtr(_, ty::Mutability::Mut) => String::from("RawPtr_mutable"),
             ty::TyKind::Param(_) | ty::TyKind::Alias(..) => String::from("Param"),
-            ty::TyKind::Closure(def_id, _) => vir::with_vcx(|vcx| {
-                // Asking for the item_name of a closure triggers an ICE in
-                // the compiler, so name it after its nearest non-closure
-                // ancestor (closures can nest, e.g. a quantifier's closure
-                // inside an assertion's closure).
-                let mut def_id = *def_id;
-                let mut key = vcx.tcx().def_key(def_id);
-                let mut name = String::new();
-                while let hir::definitions::DefPathData::Closure = key.disambiguated_data.data {
-                    name = format!("_Closure_{}{name}", key.disambiguated_data.disambiguator);
-                    def_id.index = key.parent.unwrap();
-                    key = vcx.tcx().def_key(def_id);
-                }
-                format!("{}{name}", vcx.tcx().item_name(def_id).to_ident_string())
-            }),
+            ty::TyKind::Closure(def_id, _) => def_id_name(*def_id),
             ty::TyKind::FnPtr(..) => String::from("FnPtr"),
             ty::TyKind::Array(..) => String::from("Array"),
             ty::TyKind::Slice(..) => String::from("Slice"),
             ty::TyKind::Dynamic(..) => String::from("Dyn"),
-            ty::TyKind::Foreign(def_id) | ty::TyKind::FnDef(def_id, _) => {
-                vir::with_vcx(|vcx| vcx.tcx().item_name(*def_id).to_ident_string())
-            }
+            ty::TyKind::Foreign(def_id) | ty::TyKind::FnDef(def_id, _) => def_id_name(*def_id),
             other => unimplemented!("ty_name for {:?}", other),
         }
     }

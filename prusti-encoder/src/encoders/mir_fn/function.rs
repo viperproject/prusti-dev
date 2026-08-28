@@ -155,10 +155,9 @@ impl TaskEncoder for FunctionEnc {
 
             tracing::debug!("encoding {def_id:?}");
 
-            let caller_ident =
-                vir::vir_format_identifier!(vcx, "cf_{}", vcx.tcx().def_path_str(def_id));
-            let function_ident =
-                vir::vir_format_identifier!(vcx, "f_{}", vcx.tcx().def_path_str(def_id));
+            let name = vir::ViperIdent::from_def_id(vcx, def_id);
+            let caller_ident = vir::vir_format_identifier!(vcx, "cf_{name}");
+            let function_ident = vir::vir_format_identifier!(vcx, "f_{name}");
             let arg_types = vcx.alloc_slice(&local_defs.snap_ty_args().collect::<Vec<_>>());
             let return_type = local_defs.snap_ty_return();
             let params = GParams::from(def_id);

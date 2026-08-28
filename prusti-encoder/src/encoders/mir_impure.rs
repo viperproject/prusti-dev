@@ -2081,9 +2081,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     if let Some((can_fail, pure)) = pure {
                         self.wandless_calls.insert(self.current_block.unwrap());
                         let return_ty = destination.ty(self.local_decls, self.vcx.tcx()).ty;
-                        let assign_stmt = self
-                            .ty_use_impure(return_ty)
-                            .apply_method_assign(self.vcx, dest, pure);
+                        let return_ty_use = self.ty_use_impure(return_ty);
+                        let assign_stmt = return_ty_use.apply_method_assign(self.vcx, dest, pure);
                         if can_fail {
                             vcx.handle_error(
                                 "application.precondition:assertion.false",
@@ -2100,6 +2099,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                             );
                         }
                         self.stmt(assign_stmt);
+                        // The call returned a value of the return type, therefore
+                        // it is inhabited.
+                        self.stmt(vcx.mk_inhale_stmt(return_ty_use.inhabited()));
                     } else {
                         let Ok(func_out) = self.deps.require_dep::<encoders::MethodCallEnc>(
                             CallTaskDescription::new(self.def_id, caller_substs, func_def_id),

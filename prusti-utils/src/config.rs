@@ -167,7 +167,7 @@ lazy_static::lazy_static! {
         settings.set_default("log_smt_wrapper_interaction", false).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
-        settings.set_default("disable_name_mangling", false).unwrap();
+        settings.set_default("short_viper_names", false).unwrap();
         settings.set_default("verify_only_preamble", false).unwrap();
         settings.set_default("enable_verify_only_basic_block_path", false).unwrap();
         settings.set_default::<Vec<String>>("verify_only_basic_block_path", vec![]).unwrap();
@@ -689,12 +689,16 @@ pub fn json_communication() -> bool {
     read_setting("json_communication")
 }
 
-/// When enabled, Viper name mangling will be disabled.
+/// When enabled, Viper identifiers derived from Rust items use the item's
+/// short name (e.g. `Foo`) instead of its full definition path (e.g.
+/// `my_crate::module::Foo`).
 ///
-/// **Note:** This is very likely to result in invalid programs being generated
-/// because of name collisions.
-pub fn disable_name_mangling() -> bool {
-    read_setting("disable_name_mangling")
+/// **Note:** Short names are not unique across modules and crates, so this is
+/// may result in invalid programs being generated because of name
+/// collisions. It exists to make generated Viper code readable while debugging
+/// the encoder.
+pub fn short_viper_names() -> bool {
+    read_setting("short_viper_names")
 }
 
 /// When enabled, only the preamble will be verified: domains, functions,

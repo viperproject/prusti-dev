@@ -1,40 +1,50 @@
 # Name mangling
 
-To ensure there are no duplicate names in the generated Viper code, name mangling is employed. Name mangling can be disabled with the [`DISABLE_NAME_MANGLING`](../config/flags.md#disable_name_mangling) flag, although this may result in errors due to name collisions.
+Viper identifiers derived from Rust items are built from the item's full definition path,
+so that items with the same name in different modules do not collide. The path is then
+sanitized, since Viper identifiers may not contain most of the punctuation a Rust path
+does.
 
-For example, to encode the type [std::ops::Range](https://doc.rust-lang.org/std/ops/struct.Range.html), rather than generating the predicate:
+For example, the predicate encoding [std::ops::Range](https://doc.rust-lang.org/std/ops/struct.Range.html) is named:
 
 ```viper
-predicate Range(self) {
+predicate p_std$col$$col$ops$col$$col$Range(self) {
   ...
 }
 ```
 
-Prusti generates:
+which is the sanitized form of `p_std::ops::Range`.
 
-```viper
-predicate m_core$$ops$opensqu$0$closesqu$$$range$opensqu$0$closesqu$$$Range$opensqu$0$closesqu$$_beg_$i32$_end_(self) {
-  ...
-}
-```
+The [`SHORT_VIPER_NAMES`](../config/flags.md#short_viper_names) flag replaces the
+definition path with the item's short name (here, `p_Range`), which is more readable
+when inspecting generated Viper by hand. Sanitization still applies. Short names are not
+unique, so enabling the flag may result in errors due to name collisions.
 
-This is the encoded form of `m_core::ops[0]::range[0]::Range[0]$_beg_$i32$_end_`.
+## Sanitization rules
 
-## Mangling rules
+The following replacements are performed (see `sanitize_char` in `vir/src/viper_ident.rs`):
 
-The following replacements are performed during name mangling:
-
-| Original characters | Replacement |
+| Original character | Replacement |
 | --- | --- |
-| `::` | `$$` |
-| `<` | `$openang$` |
-| `>` | `$closeang$` |
-| `(` | `$openrou$` |
-| `)` | `$closerou$` |
-| `[` | `$opensqu$` |
-| `]` | `$closesqu$` |
-| `{` | `$opencur$` |
-| `}` | `$closecur$` |
-| `,` | `$comma$` |
-| `;` | `$semic$` |
-| ` ` | `$space$` |
+| `<` | `$lt$` |
+| `>` | `$gt$` |
+| ` ` | `$sp$` |
+| `,` | `$com$` |
+| `:` | `$col$` |
+| `'` | `$sq$` |
+| `&` | `$amp$` |
+| `-` | `$hyp$` |
+| `(` | `$lp$` |
+| `)` | `$rp$` |
+| `[` | `$lb$` |
+| `]` | `$rb$` |
+| `{` | `$lc$` |
+| `}` | `$rc$` |
+| `?` | `$qm$` |
+| `;` | `$sc$` |
+| `#` | `$oc$` |
+| `/` | `$fs$` |
+| `*` | `$as$` |
+| `=` | `$eq$` |
+| `+` | `$pl$` |
+| `!` | `$ex$` |
