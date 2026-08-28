@@ -1698,6 +1698,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 .clone()
                 .into_iter()
                 .map(|(spec_block, span)| {
+                    let expr = self.encode_spec_block(spec_block)?;
                     self.vcx.with_span(span, |vcx| {
                         let error_msg = "loop invariant might not be preserved";
                         vcx.handle_error("invariant.not.preserved:assertion.false", move |_| {
@@ -1711,7 +1712,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                                     Some(vec![PrustiError::verification(error_msg, span.into())])
                                 },
                             );
-                            self.encode_spec_block(spec_block)
+                            Ok(expr.realloc_span())
                         })
                     })
                 })
@@ -1772,6 +1773,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
         if let Some(specs) = self.spec_blocks.specs_for.get(&block).cloned() {
             for spec in specs {
+                if matches!(spec.kind, SpecBlockKind::LoopInvariant) {
+                    continue;
+                }
                 let spec_expr = self.encode_spec_block(spec.block)?;
                 let span = spec.span;
                 match spec.kind {

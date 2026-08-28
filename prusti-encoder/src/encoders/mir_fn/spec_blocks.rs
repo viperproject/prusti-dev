@@ -1,7 +1,12 @@
+use std::collections::VecDeque;
+
 use pcg::r#loop::{LoopAnalysis, LoopId};
-use prusti_interface::{environment::EnvQuery, utils::has_prusti_attr};
+use prusti_interface::{PrustiError, environment::EnvQuery, utils::has_prusti_attr};
 use prusti_rustc_interface::{
-    data_structures::fx::{FxHashMap, FxHashSet},
+    data_structures::{
+        fx::{FxHashMap, FxHashSet},
+        graph::dominators::Dominators,
+    },
     hir,
     middle::mir::{self, BasicBlock},
     span::{Span, def_id::DefId},
@@ -10,7 +15,7 @@ use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 
 use crate::encoders::mir_fn::RustSignature;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum SpecBlockKind {
     LoopInvariant,
     Assert,
@@ -336,7 +341,6 @@ impl SpecArms {
 
 #[derive(Debug)]
 pub struct LoopSpec {
-    has_body_invariant: bool,
     pub loop_id: LoopId,
 
     /// Loop head as identified by the PCG.
@@ -350,7 +354,7 @@ pub struct LoopSpec {
     pub invariants: Vec<(BasicBlock, Span)>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct SpecBlock {
     pub attached_to: BasicBlock,
     pub block: BasicBlock,
@@ -455,58 +459,66 @@ impl TaskEncoder for SpecBlocksEnc {
 impl SpecBlocks {
     /// Associates the specs of `base` with the loops of the body.
     pub fn new(base: SpecBlocksBase, body: &mir::Body<'_>, loop_analysis: &LoopAnalysis) -> Self {
-        // Associate specs and determine loop heads (at body invariants) for loops
-        let mut loop_specs: FxHashMap<LoopId, LoopSpec> = Default::default();
-
-        // For any loop that is not specified with a body invariant (determined
-        // above), we default to the loop head being at the loop head identified
-        // by the PCG, with no specs.
-        for (block, _) in body.basic_blocks.iter_enumerated() {
-            let Some(loop_id) = loop_analysis.loop_head_of(block) else {
-                continue;
-            };
-
-            loop_specs.insert(
-                loop_id,
-                LoopSpec {
-                    has_body_invariant: false,
-                    loop_id,
-                    head_block: block,
-                    original_head_block: block,
-                    invariants: Vec::new(),
-                },
-            );
-        }
-
+        // Associate loop invariants with loop IDs (or report errors for ones
+        // that are outside of loops).
+        let mut loop_invariant_blocks: FxHashMap<LoopId, Vec<&SpecBlock>> = Default::default();
         for specified_blocks in base.specs_for.values() {
             for spec_block in specified_blocks {
                 let SpecBlockKind::LoopInvariant = spec_block.kind else {
                     continue;
                 };
-                let loop_id = loop_analysis
-                    .innermost_loop(spec_block.block)
-                    .expect("malformed spec-only block: body invariant not in a loop");
-                let loop_spec = loop_specs.get_mut(&loop_id).unwrap();
-                if loop_spec.has_body_invariant {
-                    panic!(
-                        "multiple body invariant annotations are not supported yet (at {:?})",
-                        spec_block.span
-                    );
-                }
-                loop_spec.has_body_invariant = true;
-                // TODO: is the iteration order of blocks well defined here?
-                //   do we always consider the first or last body invariant's
-                //   predecessor to be the loop head?
-                // The loop head (for our encoding and for querying the PCG) of
-                // the loop is the non-spec block preceding the body invariant.
-                // It's not the invariant block itself since that block is
-                // spec-only and guarded in `if false`.
-                loop_spec.head_block = spec_block.attached_to;
-                loop_spec
-                    .invariants
-                    .push((spec_block.block, spec_block.span));
+
+                // Body invariants must only be placed inside loops.
+                let Some(loop_id) = loop_analysis.innermost_loop(spec_block.block) else {
+                    vir::with_vcx(|vcx| {
+                        vcx.emit_early_error(PrustiError::incorrect(
+                            "`body_invariant!` annotations must be placed inside loop bodies"
+                                .to_string(),
+                            spec_block.span.into(),
+                        ));
+                    });
+                    continue;
+                };
+
+                loop_invariant_blocks
+                    .entry(loop_id)
+                    .or_default()
+                    .push(spec_block);
             }
         }
+
+        let doms = body.basic_blocks.dominators();
+        let loop_specs: FxHashMap<LoopId, LoopSpec> = loop_analysis
+            .all_loops()
+            .map(|loop_id| {
+                let original_head_block = loop_analysis[loop_id];
+                if let Some(spec_blocks) = loop_invariant_blocks.remove(&loop_id) {
+                    match Self::body_invariant_analysis(
+                        &base,
+                        body,
+                        doms,
+                        loop_analysis,
+                        loop_id,
+                        original_head_block,
+                        spec_blocks,
+                    ) {
+                        Ok(spec) => return spec,
+                        Err(error) => vir::with_vcx(|vcx| vcx.emit_early_error(error)),
+                    }
+                }
+                // For any loop that is not specified with a body invariant (or
+                // where the body invariants are invalid), we default to the
+                // loop head being at the loop head identified by the PCG, with
+                // no specs.
+                LoopSpec {
+                    loop_id,
+                    head_block: original_head_block,
+                    original_head_block,
+                    invariants: Vec::new(),
+                }
+            })
+            .map(|spec| (spec.loop_id, spec))
+            .collect();
 
         let loop_head_at = loop_specs
             .iter()
@@ -523,6 +535,206 @@ impl SpecBlocks {
             ghost: base.ghost,
             spec_arms: base.spec_arms,
         }
+    }
+
+    /// Determine the loop specs (body invariants and invariant block) for the
+    /// given loop; an error is returned if the invariants are not well-formed:
+    /// they must be reachable unconditionally within a loop iteration, and if
+    /// there are multiple, they must be consecutive and not interrupted by
+    /// (non-spec) statements.
+    fn body_invariant_analysis(
+        base: &SpecBlocksBase,
+        body: &mir::Body<'_>,
+        doms: &Dominators<mir::BasicBlock>,
+        loop_analysis: &LoopAnalysis,
+        loop_id: LoopId,
+        original_head_block: mir::BasicBlock,
+        mut spec_blocks: Vec<&SpecBlock>,
+    ) -> Result<LoopSpec, PrustiError> {
+        assert!(!spec_blocks.is_empty());
+
+        // Sort by domination, if possible.
+        let mut can_sort = true;
+        spec_blocks.sort_by(|a, b| {
+            if doms.dominates(a.attached_to, b.attached_to) {
+                std::cmp::Ordering::Less
+            } else if doms.dominates(b.attached_to, a.attached_to) {
+                std::cmp::Ordering::Greater
+            } else {
+                can_sort = false;
+                std::cmp::Ordering::Equal
+            }
+        });
+
+        // If we cannot sort by domination, then there are some body invariants
+        // that are not on the same control-flow path; report an error (with
+        // all the body invariant spans).
+        // TODO: should be redundant because of the more specific checks later
+        if !can_sort {
+            return Err(PrustiError::incorrect(
+                "multiple `body_invariant!` annotations must be placed consecutively".to_string(),
+                spec_blocks
+                    .iter()
+                    .map(|spec_block| spec_block.span)
+                    .collect::<Vec<_>>()
+                    .into(),
+            ));
+        }
+
+        // Next, we walk the blocks of the loop, starting from the loop head,
+        // to find which body invariant blocks are reachable from the head.
+        let mut queue = VecDeque::new();
+        let mut explored: FxHashSet<BasicBlock> = Default::default();
+        let mut invariants_reached: Vec<&SpecBlock> = Default::default();
+
+        queue.push_back(original_head_block);
+        while let Some(block) = queue.pop_front() {
+            // stop exploring if we already saw this block, if we stepped out
+            // of the current loop, or if the block is a cleanup block
+            if !explored.insert(block)
+                || !loop_analysis.in_loop(block, loop_id)
+                || body[block].is_cleanup
+            {
+                continue;
+            }
+
+            // is this a loop invariant?
+            // (this only considers loop invariants of the current loop)
+            if let Some(spec_block) = spec_blocks
+                .iter()
+                .find(|spec_block| spec_block.attached_to == block)
+            {
+                invariants_reached.push(spec_block);
+                continue;
+            }
+
+            match body[block].terminator().kind {
+                // keep walking
+                mir::TerminatorKind::Goto { target }
+                | mir::TerminatorKind::Drop { target, .. }
+                | mir::TerminatorKind::Call {
+                    target: Some(target),
+                    ..
+                }
+                | mir::TerminatorKind::Assert { target, .. }
+                | mir::TerminatorKind::FalseEdge {
+                    real_target: target,
+                    ..
+                }
+                | mir::TerminatorKind::FalseUnwind {
+                    real_target: target,
+                    ..
+                } => {
+                    queue.push_back(target);
+                }
+                mir::TerminatorKind::SwitchInt { ref targets, .. } => {
+                    queue.extend(targets.all_targets());
+                }
+
+                // stop walking
+                _ => (),
+            }
+        }
+
+        // We should have reached exactly one body invariant block. If not,
+        // report an error.
+        match invariants_reached.len() {
+            0 => return Err(PrustiError::incorrect(
+                "a `body_invariant!` annotation must be reached unconditionally in every loop iteration".to_string(),
+                spec_blocks.iter().map(|b| b.span).collect::<Vec<_>>().into(),
+            )),
+            1 => (),
+            _ => return Err(PrustiError::incorrect(
+                "the same `body_invariant!` annotation must be reached unconditionally in every loop iteration".to_string(),
+                invariants_reached.iter().map(|b| b.span).collect::<Vec<_>>().into(),
+            )),
+        }
+        assert_eq!(invariants_reached.len(), 1);
+
+        // Finally, we walk the CFG one more time from the one invariant block
+        // we reached, this time to find additional consecutive body invariants,
+        // not separated by unrelated (non-spec) statements or other blocks.
+        let first_invariant = *invariants_reached.first().unwrap();
+        let mut queue = VecDeque::new();
+        queue.push_back(first_invariant.attached_to);
+        let mut consecutive_invariants = Vec::new();
+
+        while let Some(block) = queue.pop_front() {
+            // check statements for non-spec local usage
+            let block_data = &body[block];
+            let mut non_spec_statements = false;
+            for stmt in &block_data.statements {
+                match stmt.kind {
+                    mir::StatementKind::Assign(box (dest, _))
+                        if dest.as_local().is_some_and(|local| {
+                            !base.spec_arms.spec_only_locals.contains(&local)
+                        }) =>
+                    {
+                        non_spec_statements = true;
+                        break;
+                    }
+                    _ => (),
+                }
+            }
+
+            // the first invariant block may have non-spec statements (the
+            // invariant is only enforced at the terminator)
+            if non_spec_statements && block != first_invariant.attached_to {
+                continue;
+            }
+
+            if let Some(spec_block) = spec_blocks
+                .iter()
+                .find(|spec_block| spec_block.attached_to == block)
+            {
+                consecutive_invariants.push(spec_block);
+                // add live target to queue
+                queue.push_back(base.spec_arms.switches[&spec_block.attached_to]);
+                continue;
+            }
+
+            // only walk down goto terminators (if we ever find spurious body
+            // invariant interruptions, it may be because other terminators
+            // appear here)
+            if let mir::TerminatorKind::Goto { target } = block_data.terminator().kind {
+                queue.push_back(target);
+            }
+        }
+
+        // Any invariants we did not pick up are placed wrong, report error.
+        let unreachable_invariants = spec_blocks
+            .iter()
+            .filter(|spec_block| !consecutive_invariants.contains(spec_block))
+            .collect::<Vec<_>>();
+        if !unreachable_invariants.is_empty() {
+            return Err(PrustiError::incorrect(
+                "`body_invariant!` annotation may not be reached in every loop iteration"
+                    .to_string(),
+                unreachable_invariants
+                    .iter()
+                    .map(|spec_block| spec_block.span)
+                    .collect::<Vec<_>>()
+                    .into(),
+            ));
+        }
+
+        // Otherwise, the body invariants for this loop are correct.
+        Ok(LoopSpec {
+            loop_id,
+            // The loop head (for our encoding and for querying the PCG) of the
+            // loop is the live target of the switch preceding the body
+            // invariant. It is not the invariant block itself since that block
+            // is spec-only and guarded in `if false`. It is also not the block
+            // that the invariant is attached to, because we need the invariant
+            // to be attached at the label, and the `attached_to` block may
+            // contain statements which mutate the state.
+            head_block: base.spec_arms.switches[&first_invariant.attached_to],
+            original_head_block,
+            invariants: consecutive_invariants
+                .into_iter()
+                .map(|spec_block| (spec_block.block, spec_block.span))
+                .collect(),
+        })
     }
 }
 
