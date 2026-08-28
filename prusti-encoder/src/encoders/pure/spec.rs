@@ -266,6 +266,7 @@ impl TaskEncoder for MirSpecEnc {
                         });
                         let expr = spec.expr.downcast_ty::<vir::Bool>();
                         let expr = expr.reify(vcx, (*spec_def_id, post_args));
+                        let expr = expr.realloc_span();
                         Some((expr, span))
                     })
                 })

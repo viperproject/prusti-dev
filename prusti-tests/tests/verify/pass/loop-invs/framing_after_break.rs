@@ -15,6 +15,7 @@ fn test() {
 
         random() < 345
     } {
+        body_invariant!(x == 123); // TODO: loop framing should guarantee this
         if random() < 456 {
             break;
         }
