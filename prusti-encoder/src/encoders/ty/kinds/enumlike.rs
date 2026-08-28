@@ -10,6 +10,7 @@ use crate::encoders::{
             ImpureTyDatas, PredicateBuilder, TyImpureEnc, TyImpureEnumData, TyImpureVariantData,
         },
         pure::{AdtBuilder, PureTyDatas, TyPureEnc, TyPureEnumData, TyPureVariantData},
+        use_inhabited::TyUseInhabitedEnc,
     },
 };
 
@@ -90,21 +91,32 @@ pub(crate) fn ty_impure<'vir>(
         .map(|variant| {
             let var_idx_num = variant.0.vid.as_u32();
 
-            let (
-                inner,
-                variant_pred,
-                variant_snap_expr,
-            ) = super::structlike::ty_impure_variant(
+            let (inner, variant_pred, variant_snap_expr) =
+                super::structlike::ty_impure_variant(
                 &format!("{var_idx_num}_"),
                 task_key,
                 &variant.inner,
                 deps,
                 builder,
             )?;
+            let variant_inhabited = builder.vcx.mk_conj(
+                &variant
+                    .inner
+                    .fields
+                    .iter()
+                    .map(|field| {
+                        let ty = field.0.ty().decompose(task_key.0.params);
+                        Ok(deps
+                            .require_ref::<TyUseInhabitedEnc>(ty)?
+                            .inhabited())
+                    })
+                    .collect::<Result<Vec<_>, EncodeFullError<'vir, TyImpureEnc>>>()?,
+            );
 
             let variant_pred_expr = vir::expr! {
                 (([snap_disc])
-                    == ([variant.1.discr])) ==> ([variant_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]))
+                    == ([variant.1.discr])) ==> (([variant_inhabited])
+                        && ([variant_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])))
             };
             let variant_snap_expr = vir::expr! {
                 unfolding ([variant_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) in (variant_snap_expr)

@@ -1,7 +1,7 @@
 use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use rustc_hash::FxHashMap;
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies};
-use vir::{FunctionIdn, vir_format_identifier};
+use vir::{FunctionIdn, ViperIdent, vir_format_identifier};
 
 use crate::encoders::{
     TyUsePureEnc,
@@ -19,7 +19,7 @@ pub struct TraitEnc;
 
 #[derive(Debug, Clone)]
 pub struct TraitEncOutputRef<'vir> {
-    pub trait_name: &'vir str,
+    pub trait_name: ViperIdent<'vir>,
     pub assoc_types:
         FxHashMap<DefId, FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::TyVal>>,
     pub assoc_consts:
@@ -99,7 +99,7 @@ impl TaskEncoder for TraitEnc {
 
             let trait_args = (trait_generics.ty_args(), trait_generics.const_args());
 
-            let trait_name = vcx.alloc_str(tcx.item_name(task_key).as_str());
+            let trait_name = ViperIdent::from_def_id(vcx, *task_key);
 
             let mut dom_funcs = Vec::new();
             let mut assoc_types = FxHashMap::default();
@@ -111,7 +111,7 @@ impl TaskEncoder for TraitEnc {
                 // item_generics also includes parameters of trait itself
                 let item_params = GParams::from(item_did);
                 let item_generics = deps.require_dep::<GenericParamsEnc>(item_params)?;
-                let item_name = tcx.item_name(item_did);
+                let item_name = ViperIdent::from_def_id(vcx, item_did);
 
                 let args = (item_generics.ty_args(), item_generics.const_args());
                 match item.kind {
