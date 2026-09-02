@@ -11,7 +11,10 @@ use crate::encoders::{
     ty::{
         LazyRustTy, RustTy, RustTyDecomposition, RustTySpecial, TySpecifics,
         generics::{GParams, GenericParamsEnc},
-        interpretation::int_real_cast::IntRealCastEnc,
+        interpretation::{
+            bitvec::{BitVecEnc, BitVecSize},
+            int_real_cast::IntRealCastEnc,
+        },
         use_pure::TyUsePureEnc,
     },
 };
@@ -201,20 +204,20 @@ impl TaskEncoder for MirBuiltinCastEnc {
                     let e_res_ty = res_ty.expect_primitive();
                     let result_kind = result_ty.expect_primitive().kind();
 
-                    let (bits, to_signed) = vir::VirCtxt::get_int_data(result_kind);
+                    let (_bits, to_signed) = vir::VirCtxt::get_int_data(result_kind);
                     let bitvec = deps.require_dep::<BitVecEnc>(
                         match operand_ty.expect_primitive().kind() {
-                            ty::Float(F16) => BitVec16,
-                            ty::Float(F32) => BitVec32,
-                            ty::Float(F64) => BitVec64,
-                            ty::Float(F128) => BitVec128,
-                            _ => unreachable!()
-                        }
+                            ty::Float(F16) => BitVecSize::BitVec16,
+                            ty::Float(F32) => BitVecSize::BitVec32,
+                            ty::Float(F64) => BitVecSize::BitVec64,
+                            ty::Float(F128) => BitVecSize::BitVec128,
+                            _ => unreachable!(),
+                        },
                     )?;
 
-                    let (min_bound, max_bound) = match (bits, to_signed) {
-                        (8, true) => ()
-                    }
+                    // let (min_bound, max_bound) = match (bits, to_signed) {
+                    //     (8, true) => ()
+                    // };
 
                     // real to int will always round down (also for negative numbers) - truncate first
                     // let arg_ex_trunc = (e_op_ty.fp_trunc)(arg_ex);
@@ -223,7 +226,11 @@ impl TaskEncoder for MirBuiltinCastEnc {
                     // let int_real_cast_domain = deps.require_dep::<IntRealCastEnc>(())?;
                     // let expr = (int_real_cast_domain.to_int)(real_op);
 
-                    let (bv_fun, int_fun) = if to_signed { (e_op_ty.fp_to_sbv, bitvec.sbv_to_int) } else { (e_op_ty.fp_to_ubv, bitvec.ubv_to_int) };
+                    let (bv_fun, int_fun) = if to_signed {
+                        (e_op_ty.fp_to_sbv, bitvec.sbv_to_int)
+                    } else {
+                        (e_op_ty.fp_to_ubv, bitvec.ubv_to_int)
+                    };
                     let bv_op = (bv_fun)(arg_ex);
                     let expr = (int_fun)(bv_op);
 
