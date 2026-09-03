@@ -15,7 +15,8 @@ pub struct FloatDomainData<'vir> {
     pub prim_to_snap: FunctionIdn<'vir, vir::Prim, vir::CSnap>,
     #[allow(unused)]
     pub from_bv: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
-    pub from_real: FunctionIdn<'vir, vir::Perm, vir::CSnap>,
+    pub from_int_bv: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
+    pub from_uint_bv: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
     pub fp_eq: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::Bool>,
     pub fp_add: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::CSnap>,
     pub fp_sub: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::CSnap>,
@@ -195,6 +196,8 @@ pub(crate) fn ty_pure_float<'vir>(
         ty::FloatTy::F128 => BitVecSize::BitVec128,
     })?;
 
+    let bit_vec_128 = deps.require_dep::<BitVecEnc>(BitVecSize::BitVec128)?;
+
     let from_bv_name = match float {
         ty::FloatTy::F16 => "(_ to_fp 5 11)",
         ty::FloatTy::F32 => "(_ to_fp 8 24)",
@@ -207,12 +210,25 @@ pub(crate) fn ty_pure_float<'vir>(
         builder.self_type(),
         Some(from_bv_name),
     );
-    let from_real_name = vir_format!(vcx, "{from_bv_name} RNE");
-    let from_real = builder.backend_func(
-        "from_real",
-        vir::TYPE_PERM,
+    let to_fp_name = vir_format!(vcx, "{from_bv_name} RNE");
+    let from_int_bv = builder.backend_func(
+        "from_int_bv",
+        (bit_vec_128.domain)(),
         builder.self_type(),
-        Some(from_real_name),
+        Some(to_fp_name),
+    );
+
+    let to_fp_unsigned_name = match float {
+        ty::FloatTy::F16 => "(_ to_fp_unsigned 5 11) RNE",
+        ty::FloatTy::F32 => "(_ to_fp_unsigned 8 24) RNE",
+        ty::FloatTy::F64 => "(_ to_fp_unsigned 11 53) RNE",
+        ty::FloatTy::F128 => "(_ to_fp_unsigned 15 113) RNE",
+    };
+    let from_uint_bv = builder.backend_func(
+        "from_uint_bv",
+        (bit_vec_128.domain)(),
+        builder.self_type(),
+        Some(to_fp_unsigned_name),
     );
 
     let fp_to_real = builder.backend_func(
@@ -250,7 +266,8 @@ pub(crate) fn ty_pure_float<'vir>(
     Ok(FloatDomainData {
         prim_to_snap,
         from_bv,
-        from_real,
+        from_int_bv,
+        from_uint_bv,
         fp_eq,
         fp_add,
         fp_sub,

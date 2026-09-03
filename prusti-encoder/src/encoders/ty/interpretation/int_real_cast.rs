@@ -4,7 +4,6 @@ use vir::{DomainGenData, FunctionIdn, ViperIdent};
 #[derive(Debug, Clone, Copy)]
 pub struct IntRealCastDomain<'vir> {
     pub from_int: FunctionIdn<'vir, vir::Int, vir::Perm>,
-    pub to_int: FunctionIdn<'vir, vir::Perm, vir::Int>,
 }
 
 pub struct IntRealCastEnc;
@@ -45,22 +44,15 @@ impl TaskEncoder for IntRealCastEnc {
 
             let from_int_data = vcx.mk_domain_function(from_int, false, Some("to_real"));
 
-            let to_int_name = vir::vir_format!(vcx, "{domain_name}_to_int");
-
-            let to_int =
-                FunctionIdn::new(ViperIdent::new(to_int_name), vir::TYPE_PERM, vir::TYPE_INT);
-
-            let to_int_data = vcx.mk_domain_function(to_int, false, Some("to_int"));
-
             let domain_data = vcx.mk_domain::<(), !>(
                 domain_ident,
                 &[],
                 &[],
-                vcx.alloc_slice(&[from_int_data, to_int_data]),
+                vcx.alloc_slice(&[from_int_data]),
                 None,
             );
 
-            Ok((domain_data, IntRealCastDomain { from_int, to_int }))
+            Ok((domain_data, IntRealCastDomain { from_int }))
         })
     }
 
