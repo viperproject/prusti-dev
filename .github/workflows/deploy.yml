@@ -2,12 +2,13 @@ name: Deploy
 
 on:
   push:
-    branches: ['master']
+    branches: ['master', 'pre-release']
     paths-ignore: 'docs/**'
 
 env:
   RUST_BACKTRACE: 1
   PRUSTI_ASSERT_TIMEOUT: 60000
+  ARTIFACT_PREFIX: ${{ github.ref_name == 'pre-release' && 'prusti-prerelease' || 'prusti-release' }}
 
 jobs:
   # Build and test in release mode
@@ -49,6 +50,7 @@ jobs:
         run: python x.py build --release --all
 
       - name: Run cargo tests --release
+        if: github.ref_name != 'pre-release'
         run: python x.py test --release --all
 
       - name: Package Prusti artifact
@@ -60,7 +62,7 @@ jobs:
       - name: Upload Prusti artifact
         uses: actions/upload-artifact@v4
         with:
-          name: prusti-release-${{ matrix.label }}
+          name: ${{ env.ARTIFACT_PREFIX }}-${{ matrix.label }}
           if-no-files-found: error
           path: prusti_artifact/**
 
@@ -78,7 +80,7 @@ jobs:
           for artifact in ubuntu-22.04-x64 windows-latest-x64 windows-latest-arm64 macos-latest-arm64
           do
             echo "Package Prusti artifact for $artifact"
-            cd prusti-release-$artifact
+            cd ${{ env.ARTIFACT_PREFIX }}-$artifact
             zip -r prusti.zip *
             cd ..
           done
@@ -103,8 +105,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./prusti-release-ubuntu-22.04-x64/prusti.zip
-          asset_name: prusti-release-ubuntu-22.04.zip
+          asset_path: ./${{ env.ARTIFACT_PREFIX }}-ubuntu-22.04-x64/prusti.zip
+          asset_name: ${{ env.ARTIFACT_PREFIX }}-ubuntu-22.04.zip
           asset_content_type: application/zip
 
       - name: Upload release asset for Windows x64
@@ -113,8 +115,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./prusti-release-windows-latest-x64/prusti.zip
-          asset_name: prusti-release-windows-x64.zip
+          asset_path: ./${{ env.ARTIFACT_PREFIX }}-windows-latest-x64/prusti.zip
+          asset_name: ${{ env.ARTIFACT_PREFIX }}-windows-x64.zip
           asset_content_type: application/zip
 
       - name: Upload release asset for Windows ARM64
@@ -123,8 +125,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./prusti-release-windows-latest-arm64/prusti.zip
-          asset_name: prusti-release-windows-arm64.zip
+          asset_path: ./${{ env.ARTIFACT_PREFIX }}-windows-latest-arm64/prusti.zip
+          asset_name: ${{ env.ARTIFACT_PREFIX }}-windows-arm64.zip
           asset_content_type: application/zip
 
       - name: Upload release asset for MacOS
@@ -133,6 +135,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./prusti-release-macos-latest-arm64/prusti.zip
-          asset_name: prusti-release-macos.zip
+          asset_path: ./${{ env.ARTIFACT_PREFIX }}-macos-latest-arm64/prusti.zip
+          asset_name: ${{ env.ARTIFACT_PREFIX }}-macos.zip
           asset_content_type: application/zip
