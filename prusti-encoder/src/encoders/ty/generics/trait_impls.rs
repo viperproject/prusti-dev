@@ -432,6 +432,11 @@ impl TraitImplEnc {
             generic_map.entry(p.index).or_insert(expr.upcast_ty());
             return Ok(());
         }
+        if matches!(ty.kind(), ty::TyKind::Alias(..)) {
+            // An unresolved associated-type projection whose self-type is
+            // still generic
+            return Ok(());
+        }
 
         let decomp = RustTyDecomposition::from_ty(ty, ctx);
         let ty_enc = deps.require_ref::<TyConstructorEnc>(decomp.ty)?;

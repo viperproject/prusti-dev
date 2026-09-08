@@ -154,24 +154,30 @@ impl<'tcx> GParams<'tcx> {
     pub fn try_normalize(self, ty: ty::Ty<'tcx>) -> Option<ty::Ty<'tcx>> {
         use prusti_rustc_interface::{
             middle::{ty, ty::Unnormalized},
+            span::DUMMY_SP,
             trait_selection::{
-                infer::{InferCtxt, TyCtxtInferExt},
+                infer::{InferCtxt, RegionVariableOrigin, TyCtxtInferExt},
                 traits::{FulfillmentEngine, FulfillmentError, NormalizeExt, ObligationCause},
             },
         };
         vir::with_vcx(|vcx| {
-            // Erase ReVars before normalizing with a fresh InferCtxt that
+            // Normalize associated types, using a fresh InferCtxt that
             // doesn't know about ReVars from the original type-checking
             // context.
-            let ty = ty::fold_regions(vcx.tcx(), ty, |r, _| {
-                if r.is_var() {
-                    vcx.tcx().lifetimes.re_erased
-                } else {
-                    r
-                }
-            });
-            // Normalize associated types
             let ifctxt: InferCtxt = vcx.tcx().infer_ctxt().build(ty::TypingMode::PostAnalysis);
+            let mut revars: Vec<(ty::RegionVid, ty::Region<'tcx>)> = Vec::new();
+            let ty = ty::fold_regions(vcx.tcx(), ty, |r, _| match r.kind() {
+                ty::RegionKind::ReVar(vid) => revars
+                    .iter()
+                    .find(|(v, _)| *v == vid)
+                    .map(|(_, fresh)| *fresh)
+                    .unwrap_or_else(|| {
+                        let fresh = ifctxt.next_region_var(RegionVariableOrigin::Misc(DUMMY_SP));
+                        revars.push((vid, fresh));
+                        fresh
+                    }),
+                _ => r,
+            });
             let mut fulfill_cx: FulfillmentEngine<'tcx, FulfillmentError<'tcx>> =
                 FulfillmentEngine::new(&ifctxt);
             // TODO: is this correct?
