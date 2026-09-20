@@ -1310,7 +1310,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                             .downcast_ty();
                         let p_ty = self.ty_use_pure(place_ty.ty).expect_immref();
                         PlaceExpr {
-                            address: p_ty.deref_access(snap),
+                            address: p_ty.addr_access(snap),
                             metadata: Some(p_ty.metadata_access(snap)),
                             snap: Some(p_ty.value_access(snap)),
                         }

@@ -5,9 +5,13 @@ use vir::{FunctionIdn, Reify};
 
 use crate::encoders::{
     MirLocalDefEnc, MirLocalDefEncTask, MirPureEnc, MirPureEncTask, MirSpecEnc, Pure, PureKind,
+    TyUsePureEnc,
     mir_fn::{CallTaskDescription, RustSignature},
     pure::spec::MirSpecEncMode,
-    ty::generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
+    ty::{
+        generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
+        use_pure::TyUsePure,
+    },
 };
 
 // Function wrapper
@@ -18,6 +22,7 @@ pub struct FunctionCallEnc;
 pub struct FunctionCallEncOutput<'vir> {
     function: FunctionEncOutputRef<'vir>,
     ty_args: GArgsTy<'vir>,
+    arg_tys: Vec<TyUsePure<'vir>>,
     inputs: Vec<GArgCaster<'vir, Pure>>,
     output: GArgCaster<'vir, Pure>,
 }
@@ -45,8 +50,12 @@ impl<'vir> FunctionCallEncOutput<'vir> {
         mut args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
         assert_eq!(self.inputs.len(), args.len());
-        for (arg, caster) in args.iter_mut().zip(self.inputs.iter()) {
-            *arg = caster.cast_to_callee_ctx(*arg);
+        for ((arg, caster), ty) in args
+            .iter_mut()
+            .zip(self.inputs.iter())
+            .zip(self.arg_tys.iter())
+        {
+            *arg = caster.cast_to_callee_ctx(ty.dummy_ref_address(*arg));
         }
         let call = function.call()(&args, self.ty_args.get_ty(), self.ty_args.get_const());
         self.output.cast_to_caller_ctx(call)
@@ -91,6 +100,14 @@ impl TaskEncoder for FunctionCallEnc {
             .output
             .decompose_compare_normalize(signature.gparams, task_key.gargs);
         let output = deps.require_dep::<GArgsCastEnc<Pure>>(normalized)?;
+        let arg_tys = signature
+            .inputs
+            .iter()
+            .map(|ty| {
+                let ty_task = ty.decompose_normalize(task_key.gargs);
+                deps.require_dep::<TyUsePureEnc>(ty_task)
+            })
+            .collect::<Result<Vec<_>, _>>()?;
         Ok((
             (),
             FunctionCallEncOutput {
@@ -98,6 +115,7 @@ impl TaskEncoder for FunctionCallEnc {
                 ty_args,
                 inputs,
                 output,
+                arg_tys,
             },
         ))
     }
