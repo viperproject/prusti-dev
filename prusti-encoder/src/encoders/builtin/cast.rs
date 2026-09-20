@@ -218,7 +218,7 @@ impl TaskEncoder for MirBuiltinCastEnc {
                         TySpecifics::ImmRef(data) => {
                             let res_data = res_ty.expect_immref();
                             let expr = res_data.prim_to_snap(
-                                data.deref_access(arg_ex),
+                                data.addr_access(arg_ex),
                                 metadata_cast(data.metadata_access(arg_ex).downcast_ty())
                                     .upcast_ty(),
                                 value_cast(data.value_access(arg_ex).downcast_ty()).upcast_ty(),
