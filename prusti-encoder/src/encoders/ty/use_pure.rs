@@ -380,6 +380,20 @@ impl<'vir> TyData<'vir, UsePureTyDatas> {
             _ => unreachable!("metadata_access called on non-ref type"),
         }
     }
+
+    /// Replaces the address of a shared reference snapshot with a dummy value,
+    /// leaving any other snapshot unchanged. Applied to the arguments of a
+    /// pure function call so that the result cannot depend on the identity of
+    /// a shared reference, only on the value it points to.
+    pub fn dummy_ref_address<Curr, Next>(
+        &self,
+        snap: vir::ExprGenSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        match &self.specifics {
+            TySpecifics::ImmRef(data) => data.value_snap_of(snap.downcast_ty()).upcast_ty(),
+            _ => snap,
+        }
+    }
 }
 
 impl<'vir> TyUsePureImmRef<'vir> {
@@ -394,7 +408,7 @@ impl<'vir> TyUsePureImmRef<'vir> {
         self.pure.prim_to_snap.call()(ref_, metadata.downcast_ty(), inner.downcast_ty())
     }
 
-    pub fn deref_access<Curr, Next>(
+    pub fn addr_access<Curr, Next>(
         &self,
         snap: vir::ExprGenCSnap<'vir, Curr, Next>,
     ) -> vir::ExprGenRef<'vir, Curr, Next> {
@@ -408,6 +422,13 @@ impl<'vir> TyUsePureImmRef<'vir> {
         let metadata = self.pure.metadata_access.call()(snap);
         self.metadata_caster
             .cast_to_caller_ctx(metadata.upcast_ty())
+    }
+
+    pub fn value_snap_of<Curr, Next>(
+        &self,
+        snap: vir::ExprGenCSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenCSnap<'vir, Curr, Next> {
+        self.pure.value_snap_fn.call()(snap)
     }
 
     pub fn value_access<Curr, Next>(

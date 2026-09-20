@@ -1004,10 +1004,6 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 // field projections of `null` which is also `null`.
                 let place_ref = encoded_place
                     .place_ref
-                    // TODO: this is a bit of a hack to use `null` if one does
-                    // e.g. `#[requires(x == y)]`, which creates a borrow of the
-                    // arguments which weren't borrows in the first place.
-                    .filter(|_| place.is_indirect())
                     .unwrap_or_else(|| self.vcx.mk_null().lazy());
                 let metadata = encoded_place
                     .metadata
@@ -1067,7 +1063,6 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 // place of an impure `&mut` argument.
                 let place_ref = encoded_place
                     .place_ref
-                    .filter(|_| place.is_indirect())
                     .unwrap_or_else(|| self.vcx.mk_null().lazy());
                 let metadata = encoded_place
                     .metadata
@@ -1110,7 +1105,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         let snap = encoded_place.snap.downcast_ty();
                         let metadata = e_ty.metadata_access(snap);
                         let val_expr = e_ty.value_access(snap);
-                        EncodedPlace::new(val_expr, encoded_place.place_ref).with_metadata(metadata)
+                        let ref_expr = e_ty.addr_access(snap);
+                        EncodedPlace::new(val_expr, Some(ref_expr)).with_metadata(metadata)
                     }
                     TyKind::Ref(.., ty::Mutability::Mut) => {
                         let e_ty = e_ty.expect_mutref();
@@ -1146,7 +1142,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             // read the value directly from the snapshot itself
                             e_ty.value_access(snap)
                         };
-                        EncodedPlace::new(val_expr, encoded_place.place_ref).with_metadata(metadata)
+                        EncodedPlace::new(val_expr, Some(ref_expr)).with_metadata(metadata)
                     }
                     TyKind::RawPtr(..) => {
                         return Err(self.unsupported_rvalue(

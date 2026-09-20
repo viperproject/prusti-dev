@@ -161,6 +161,8 @@ pub struct TyPureImmRefData<'vir> {
     pub(super) deref_access: AdtDestructor<'vir, vir::CSnap, vir::Ref>,
     /// Function to access the reference metadata (fat pointer).
     pub(super) metadata_access: AdtDestructor<'vir, vir::CSnap, vir::PSnap>,
+    /// Function to make a immref snapshot independent of address.
+    pub(super) value_snap_fn: vir::FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
     /// Function to access the snapshot value.
     pub(super) value_access: AdtDestructor<'vir, vir::CSnap, vir::PSnap>,
 }

@@ -25,10 +25,28 @@ pub(crate) fn ty_pure<'vir>(
     let (field_snaps_to_snap, field_access) =
         builder.constructor("", (vir::TYPE_REF, metadata, referent), None);
 
+    let immref_snap_decl = builder
+        .vcx
+        .mk_local_decl("immref_snap", field_snaps_to_snap.result());
+    let value_snap_fn: vir::FunctionIdn<vir::CSnap, vir::CSnap> = builder.function(
+        "value_snap_of",
+        field_snaps_to_snap.result(),
+        field_snaps_to_snap.result(),
+        (immref_snap_decl,),
+        &[],
+        &[],
+        Some(field_snaps_to_snap.call()(
+            builder.vcx.mk_null(),
+            field_access[1].downcast_ty().call()(builder.vcx.mk_local_ex(immref_snap_decl)),
+            field_access[2].downcast_ty().call()(builder.vcx.mk_local_ex(immref_snap_decl)),
+        )),
+    );
+
     Ok(TyPureImmRefData {
         prim_to_snap: field_snaps_to_snap,
         deref_access: field_access[0].downcast_ty(),
         metadata_access: field_access[1].downcast_ty(),
+        value_snap_fn,
         value_access: field_access[2].downcast_ty(),
     })
 }
