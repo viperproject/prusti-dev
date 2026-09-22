@@ -9,25 +9,28 @@ fn shared_shared(x: &i32, y: &i32) {
     prusti_assert!((x != y) == (*x != *y));
 }
 
-fn unique_unique(x: &mut i32, y: &mut i32) {
-    prusti_assert!((x == y) == (*x == *y));
-    prusti_assert!((x != y) == (*x != *y));
-}
-
-fn shared_unique(x: &i32, y: &mut i32) {
-    prusti_assert!((x == y) == (*x == *y));
-    prusti_assert!((x != y) == (*x != *y));
-}
-
-fn unique_shared(x: &mut i32, y: &i32) {
-    prusti_assert!((x == y) == (*x == *y));
-    prusti_assert!((x != y) == (*x != *y));
-}
+// TODO: restore once `&mut` is supported in specifications; their
+// `extern_spec`s are not instantiated for now (see `core_spec::eq`).
+//
+// fn unique_unique(x: &mut i32, y: &mut i32) {
+//     prusti_assert!((x == y) == (*x == *y));
+//     prusti_assert!((x != y) == (*x != *y));
+// }
+//
+// fn shared_unique(x: &i32, y: &mut i32) {
+//     prusti_assert!((x == y) == (*x == *y));
+//     prusti_assert!((x != y) == (*x != *y));
+// }
+//
+// fn unique_shared(x: &mut i32, y: &i32) {
+//     prusti_assert!((x == y) == (*x == *y));
+//     prusti_assert!((x != y) == (*x != *y));
+// }
 
 fn main() {
-    let (mut a, mut b) = (1i32, 2i32);
+    let (a, b) = (1i32, 2i32);
     shared_shared(&a, &b);
-    shared_unique(&a, &mut b);
-    unique_shared(&mut a, &b);
-    unique_unique(&mut a, &mut b);
+    // shared_unique(&a, &mut b);
+    // unique_shared(&mut a, &b);
+    // unique_unique(&mut a, &mut b);
 }

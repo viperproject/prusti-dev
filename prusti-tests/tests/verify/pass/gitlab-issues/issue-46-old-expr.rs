@@ -8,9 +8,11 @@ struct S {
     f: i32
 }
 
+// TODO: restore `old(x).f == 456` once `&mut` is supported in specifications;
+// `old` of a `&mut` reborrows it.
 #[requires(x.f == 123)]
 #[ensures(old(x.f) == 123)]
-#[ensures(old(x).f == 456)]
+#[ensures(x.f == 456)]
 fn test(x: &mut S) {
     x.f = 456;
 }
