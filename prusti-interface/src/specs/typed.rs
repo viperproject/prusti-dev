@@ -585,6 +585,16 @@ impl<T> SpecificationItem<T> {
         matches!(self, SpecificationItem::Empty)
     }
 
+    /// Applies `f` to each contained value, keeping the variant.
+    pub fn map<U>(&self, mut f: impl FnMut(&T) -> U) -> SpecificationItem<U> {
+        match self {
+            SpecificationItem::Empty => SpecificationItem::Empty,
+            SpecificationItem::Inherent(val) => SpecificationItem::Inherent(f(val)),
+            SpecificationItem::Inherited(val) => SpecificationItem::Inherited(f(val)),
+            SpecificationItem::Refined(from, to) => SpecificationItem::Refined(f(from), f(to)),
+        }
+    }
+
     /// Returns the contained value of this item
     fn get(&self) -> Option<(Option<&T>, &T)> {
         // TODO(tymap): this API is not good: it must be possible to tell that
