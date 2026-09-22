@@ -9,7 +9,6 @@ use prusti_interface::specs::{
 };
 use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::VirCtxt;
 
 use crate::encoders::ty::generics::GArgs;
 
@@ -20,9 +19,9 @@ pub type SpecEncError = ();
 #[derive(Clone, Debug)]
 pub struct SpecEncOutput<'vir> {
     pub extern_spec: Option<ExternSpecKind>,
-    pub pres: &'vir [DefId],
-    pub posts: &'vir [DefId],
-    pub pledges: &'vir [Pledge],
+    pub pres: SpecificationItem<&'vir [DefId]>,
+    pub posts: SpecificationItem<&'vir [DefId]>,
+    pub pledges: SpecificationItem<&'vir [Pledge]>,
 }
 
 thread_local! {
@@ -198,19 +197,18 @@ impl TaskEncoder for SpecEnc {
                 ),
                 |specs| {
                     // TODO: handle specs other than `empty_or_inherent`
-                    let pres = get_spec_items(vcx, &specs.pres);
-                    let posts = get_spec_items(vcx, &specs.posts);
-                    let pledges = get_spec_items(vcx, &specs.pledges);
+                    let pres = specs.pres.map(|items| vcx.alloc_slice(items));
+                    let posts = specs.posts.map(|items| vcx.alloc_slice(items));
+                    let pledges = specs.pledges.map(|items| vcx.alloc_slice(items));
                     (specs.extern_spec, pres, posts, pledges)
                 },
             )
-            .unwrap_or((None, &[], &[], &[]));
-            let pledges = vcx.alloc_slice(
-                &pledges
-                    .iter()
-                    .map(|pledge| Pledge::new(pledge.lhs, pledge.rhs))
-                    .collect::<Vec<_>>(),
-            );
+            .unwrap_or((
+                None,
+                SpecificationItem::Empty,
+                SpecificationItem::Empty,
+                SpecificationItem::Empty,
+            ));
             Ok((
                 (),
                 SpecEncOutput {
@@ -224,15 +222,14 @@ impl TaskEncoder for SpecEnc {
     }
 }
 
-fn get_spec_items<'vir, T: Copy>(
-    vcx: &'vir VirCtxt<'_>,
-    spec: &SpecificationItem<Vec<T>>,
-) -> &'vir [T] {
+/// The items to encode for one kind of specification, and whether they are
+/// expressed in the generics of the item they were inherited from rather than
+/// those of the item being encoded.
+pub fn spec_items<'vir, T>(spec: &SpecificationItem<&'vir [T]>) -> (&'vir [T], bool) {
     match spec {
-        SpecificationItem::Inherent(items) | SpecificationItem::Inherited(items) => {
-            vcx.alloc_slice(items)
-        }
-        SpecificationItem::Empty => &[],
+        SpecificationItem::Empty => (&[], false),
+        SpecificationItem::Inherent(items) => (items, false),
+        SpecificationItem::Inherited(items) => (items, true),
         SpecificationItem::Refined(_from, to) => {
             // Here we ignore the original specs: to get to this branch, the
             // task key given to `SpecEnc` was the `DefId` of an trait method
@@ -242,7 +239,7 @@ fn get_spec_items<'vir, T: Copy>(
             // At callsites, `MethodCallEnc` will direct the call to the stub
             // method, which uses the `DefId` of the trait item for emitting
             // its specifications.
-            vcx.alloc_slice(to)
+            (to, false)
         }
     }
 }
