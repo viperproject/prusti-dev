@@ -793,7 +793,11 @@ impl TaskEncoder for TraitImplItemEnc {
                             )
                             .resolve_trait_calls(false),
                         )?;
-                        let pure_func_app = pure_func.call_pure(casted_args);
+                        let raw_args = func_args
+                            .iter()
+                            .map(|arg| vcx.mk_local_ex(arg))
+                            .collect::<Vec<_>>();
+                        let pure_func_app = pure_func.call_pure(raw_args);
                         posts.push(vir::expr! {
                             ([func_ret]) == ([pure_func_app])
                         });
