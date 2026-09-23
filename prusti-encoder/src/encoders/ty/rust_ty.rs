@@ -1,7 +1,11 @@
 use std::ops::Deref;
 
 use prusti_interface::environment::EnvQuery;
-use prusti_rustc_interface::{abi, hir, index, middle::ty, span::symbol};
+use prusti_rustc_interface::{
+    abi, hir, index,
+    middle::ty,
+    span::{def_id::DefId, symbol},
+};
 
 use super::{
     data::*,
@@ -74,6 +78,7 @@ impl<'tcx> RustTyDecomposition<'tcx> {
             name: symbol::Symbol::intern("Param"),
             params: GParams::empty_env(gty),
             special: RustTySpecial::None,
+            interior_mut: &[],
         };
         let specifics = TySpecifics::Param(RustParamData::Generic);
         TyData::<RustTyDatas>::new(data, specifics).alloc()
@@ -260,6 +265,8 @@ pub struct RustTyData<'tcx> {
     pub name: symbol::Symbol,
     pub params: GParams<'tcx>,
     pub special: RustTySpecial,
+    /// The type's `#[interior_mut]` accessors (from its extern type spec).
+    pub interior_mut: &'tcx [DefId],
 }
 
 /// Marks types with extra hardcoded treatment on top of their regular encoding.
@@ -368,10 +375,12 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
         let (params, args) = Self::identity_for_ty(ty, context.is_trait_extern_spec());
         let args = GArgs::new(context, args);
         let specifics = TySpecifics::from_ty(ty);
+        let interior_mut = crate::encoders::get_type_interior_mut(ty);
         let data = RustTyData {
             name: symbol::Symbol::intern(&name),
             params,
             special: RustTySpecial::from_ty(ty),
+            interior_mut: vir::with_vcx(|vcx| vcx.alloc_slice(&interior_mut)),
         };
         RustTyDecomposition::new(Self::new(data, specifics).alloc(), args)
     }
@@ -384,6 +393,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             name: symbol::Symbol::intern(&name),
             params,
             special: RustTySpecial::None,
+            interior_mut: &[],
         };
         let specifics = TySpecifics::from_prim_ty(ty);
         RustTyDecomposition::new(Self::new(data, specifics).alloc(), args)

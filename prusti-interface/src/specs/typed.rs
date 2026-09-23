@@ -80,6 +80,16 @@ impl DefSpecificationMap {
                 if let Some(Some(term)) = spec.terminates.extract_with_selective_replacement() {
                     specs.push(term.to_def_id());
                 }
+                // The permission item of an `#[interior_mut(EXPR)]` accessor
+                // is encoded as a pure function. (A level-1 item is
+                // `#[pure_unstable]`-marked and hence exported already.)
+                if let Some(Some(perm)) =
+                    spec.interior_mut_perm.extract_with_selective_replacement()
+                {
+                    if !self.proc_specs.contains_key(perm) {
+                        pure_fns.push(*perm);
+                    }
+                }
                 if let Some(pledges) = spec.pledges.extract_with_selective_replacement() {
                     specs.extend(pledges.iter().filter_map(|pledge| pledge.lhs));
                     specs.extend(pledges.iter().map(|pledge| pledge.rhs));
@@ -212,6 +222,14 @@ pub struct ProcedureSpecification {
     pub trusted: SpecificationItem<bool>,
     pub terminates: SpecificationItem<Option<LocalDefId>>,
     pub purity: SpecificationItem<Option<DefId>>, // for type-conditional spec refinements
+    /// The `Real`-returning permission-amount function of an
+    /// `#[interior_mut(EXPR)]` annotation (on the `as_ptr`-style function).
+    pub interior_mut_perm: SpecificationItem<Option<DefId>>,
+    /// `Some(inner_only)` if this function is `#[pure_unstable]`. `inner_only`
+    /// is `true` for `#[pure_unstable(true)]` (only the level-0 value map is
+    /// passed) and `false` otherwise (the level-0 and level-1 values are
+    /// passed).
+    pub pure_unstable: SpecificationItem<Option<bool>>,
 }
 
 impl ProcedureSpecification {
@@ -228,6 +246,8 @@ impl ProcedureSpecification {
             trusted: SpecificationItem::Inherent(false),
             terminates: SpecificationItem::Inherent(None),
             purity: SpecificationItem::Inherent(None),
+            interior_mut_perm: SpecificationItem::Inherent(None),
+            pure_unstable: SpecificationItem::Inherent(None),
         }
     }
 
@@ -247,6 +267,8 @@ impl ProcedureSpecification {
             trusted: SpecificationItem::Empty,
             terminates: SpecificationItem::Empty,
             purity: SpecificationItem::Empty,
+            interior_mut_perm: SpecificationItem::Empty,
+            pure_unstable: SpecificationItem::Empty,
         }
     }
 }
@@ -297,6 +319,7 @@ pub struct TypeSpecification {
     pub trusted: SpecificationItem<bool>,
     pub model: Option<(String, LocalDefId)>,
     pub counterexample_print: Vec<(Option<String>, LocalDefId)>,
+    pub interior_mut: SpecificationItem<Vec<DefId>>,
     /// The function carrying the contract of dropping a value of this type
     /// (from `#[extern_spec] impl Drop for X`).
     pub drop_spec: Option<DefId>,
@@ -310,6 +333,7 @@ impl TypeSpecification {
             trusted: SpecificationItem::Inherent(false),
             model: None,
             counterexample_print: vec![],
+            interior_mut: SpecificationItem::Empty,
             drop_spec: None,
         }
     }
@@ -327,6 +351,7 @@ impl TypeSpecification {
             trusted: SpecificationItem::Inherent(refs.trusted),
             model: refs.model.clone(),
             counterexample_print: refs.countexample_print.clone(),
+            interior_mut: SpecificationItem::Inherent(refs.interior_mut.clone()),
             drop_spec: refs.drop_spec,
         }
     }
@@ -513,6 +538,24 @@ impl SpecGraph<ProcedureSpecification> {
         self.specs_with_constraints
             .values_mut()
             .for_each(|s| s.trusted.set(trusted));
+    }
+
+    /// Sets the `#[interior_mut(EXPR)]` permission function for the base spec
+    /// and all constrained specs.
+    pub fn set_interior_mut_perm(&mut self, perm: DefId) {
+        self.base_spec.interior_mut_perm.set(Some(perm));
+        self.specs_with_constraints
+            .values_mut()
+            .for_each(|s| s.interior_mut_perm.set(Some(perm)));
+    }
+
+    /// Sets the `#[pure_unstable]` flag (and its `inner_only` bool) for the base
+    /// spec and all constrained specs.
+    pub fn set_pure_unstable(&mut self, inner_only: bool) {
+        self.base_spec.pure_unstable.set(Some(inner_only));
+        self.specs_with_constraints
+            .values_mut()
+            .for_each(|s| s.pure_unstable.set(Some(inner_only)));
     }
 
     /// Sets the termination flag for the base spec and all constrained specs.
@@ -852,6 +895,8 @@ impl Refinable for ProcedureSpecification {
             trusted: self.trusted,
             terminates: self.terminates.refine(&other.terminates),
             purity: self.purity.refine(&other.purity),
+            interior_mut_perm: self.interior_mut_perm.refine(&other.interior_mut_perm),
+            pure_unstable: self.pure_unstable.refine(&other.pure_unstable),
         }
     }
 }

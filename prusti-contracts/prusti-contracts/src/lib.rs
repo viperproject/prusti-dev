@@ -58,12 +58,28 @@ pub use prusti_contracts_proc_macros::assert_on_expiry;
 /// A macro for marking a function as pure.
 pub use prusti_contracts_proc_macros::pure;
 
+/// `#[interior_mut]` or `#[interior_mut(AMOUNT)]` on a `#[pure]` (or
+/// `#[pure_unstable(true)]`) method returning a raw pointer into `self`:
+/// marks the pointee as an interior-mutable object of the type, which Prusti
+/// tracks in a separate heap keyed by the object's identity. Holding the type
+/// grants `AMOUNT` (a `Real` in `[0, 1]`, by default the full permission) to
+/// the object, so its contents may change through shared references.
+pub use prusti_contracts_proc_macros::interior_mut;
+
 /// `#[field_projection(a.b)]` on a body-less `#[pure] #[trusted]` spec
 /// function: Prusti defines the function as the projection of the (possibly
 /// private) field path `a.b` of its first argument's referent. The return
 /// type is either the field's type (the field is copied out) or a reference
 /// to it (the result points at the field in place).
 pub use prusti_contracts_proc_macros::field_projection;
+
+/// A macro for marking a function as pure but with a result that additionally
+/// depends on the current values of the interior-mutable objects reachable
+/// from its arguments (so it may change between two calls with equal
+/// arguments). `#[pure_unstable]` reads objects of both levels;
+/// `#[pure_unstable(true)]` reads level-0 objects only, which is what a
+/// function used in a level-1 `#[interior_mut(AMOUNT)]` expression must be.
+pub use prusti_contracts_proc_macros::pure_unstable;
 
 /// A macro for marking a function as trusted.
 pub use prusti_contracts_proc_macros::trusted;

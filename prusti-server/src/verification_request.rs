@@ -174,6 +174,9 @@ impl ViperBackendConfig {
                 if config::use_more_complete_exhale() {
                     verifier_args.push("--enableMoreCompleteExhale".to_string());
                 }
+                if config::assume_injectivity_on_inhale() {
+                    verifier_args.push("--assumeInjectivityOnInhale".to_string());
+                }
                 if config::counterexample() {
                     verifier_args.push("--counterexample".to_string());
                     verifier_args.push("mapped".to_string());

@@ -10,7 +10,7 @@ use prusti_interface::{
         },
     },
 };
-use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
+use prusti_rustc_interface::{hir, middle::ty, span::def_id::DefId};
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 
 use crate::encoders::ty::generics::GArgs;
@@ -173,6 +173,40 @@ pub fn get_type_drop_spec(ty: ty::Ty) -> Option<DefId> {
     }
 }
 
+pub fn get_type_interior_mut(ty: ty::Ty) -> Vec<DefId> {
+    match ty.kind() {
+        prusti_rustc_interface::middle::ty::TyKind::Adt(adt_def, _) => with_type_spec(|def_spec| {
+            def_spec
+                .get_type_spec(&adt_def.did())
+                .map(|type_spec| {
+                    type_spec
+                        .interior_mut
+                        .expect_empty_or_inherent()
+                        .cloned()
+                        .unwrap_or_default()
+                })
+                .unwrap_or_default()
+        }),
+        _ => Vec::new(),
+    }
+}
+
+/// For an `#[interior_mut(EXPR)]`-annotated function (an `as_ptr`-style
+/// function in a type's interior-mut list), returns the `DefId` of the
+/// `Real`-returning permission-amount function, or `None` for a plain
+/// `#[interior_mut]` (always full permission, e.g. `Cell`).
+pub fn get_interior_mut_perm(def_id: DefId) -> Option<DefId> {
+    let substs = ty::GenericArgs::identity_for_item(vir::with_vcx(|vcx| vcx.tcx()), def_id);
+    with_proc_spec(SpecQuery::GetProcKind(def_id, substs), |proc_spec| {
+        proc_spec
+            .interior_mut_perm
+            .extract_with_selective_replacement()
+            .copied()
+            .flatten()
+    })
+    .flatten()
+}
+
 /// The field path of a `#[field_projection(a.b)]` spec function.
 pub fn get_field_projection(def_id: DefId) -> Option<Vec<String>> {
     vir::with_vcx(|vcx| {
@@ -182,10 +216,68 @@ pub fn get_field_projection(def_id: DefId) -> Option<Vec<String>> {
     })
 }
 
+/// Whether `def_id` is an `#[interior_mut]`-annotated accessor (with or
+/// without a permission expression).
+pub fn is_interior_mut_accessor(def_id: DefId) -> bool {
+    vir::with_vcx(|vcx| {
+        if prusti_interface::environment::EnvQuery::new(vcx.tcx())
+            .has_prusti_attribute(def_id, "interior_mut")
+        {
+            return true;
+        }
+        // An extern-spec'd accessor (e.g. `Cell::as_ptr`) carries the
+        // attribute on its spec item, not on itself: it is an accessor iff
+        // its holder type (the referent of its first argument) lists it.
+        if !matches!(
+            vcx.tcx().def_kind(def_id),
+            hir::def::DefKind::Fn | hir::def::DefKind::AssocFn
+        ) {
+            return false;
+        }
+        let sig = vcx.tcx().fn_sig(def_id).skip_binder().skip_binder();
+        sig.inputs()
+            .first()
+            .is_some_and(|holder| get_type_interior_mut(holder.peel_refs()).contains(&def_id))
+    })
+}
+
+/// The `#[pure_unstable]` marking used for the Viper *encoding* of `def_id`:
+/// like [`get_pure_unstable`], except that `#[interior_mut]` accessors are
+/// `None`. On an accessor the marking only declares the IM *level* of its
+/// objects; the accessor's value is map-independent (it identifies a stable
+/// address), so it is encoded as a plain pure function. This keeps the IM-QP
+/// keys built from accessors stable across differently-phrased maps.
+///
+/// NOTE: the map argument makes the solver instantiate Viper's built-in
+/// `Map_values` axioms on every domain-membership term, whose documented
+/// matching loop makes Z3 grind for minutes per assertion. The patched
+/// Silicon preamble in `viper/preamble_override` (gating those axioms'
+/// triggers on an actual `Map_values` term) is therefore REQUIRED for this
+/// encoding to perform.
+pub fn get_pure_unstable_encoding(def_id: DefId) -> Option<bool> {
+    get_pure_unstable(def_id).filter(|_| !is_interior_mut_accessor(def_id))
+}
+
+/// `Some(inner_only)` if `def_id` is a `#[pure_unstable]` function: `inner_only`
+/// is `true` for `#[pure_unstable(true)]` (only the level-0 value map is
+/// passed) and `false` otherwise (the level-0 and level-1 values are passed).
+pub fn get_pure_unstable(def_id: DefId) -> Option<bool> {
+    let substs = ty::GenericArgs::identity_for_item(vir::with_vcx(|vcx| vcx.tcx()), def_id);
+    with_proc_spec(SpecQuery::GetProcKind(def_id, substs), |proc_spec| {
+        proc_spec
+            .pure_unstable
+            .extract_with_selective_replacement()
+            .copied()
+            .flatten()
+    })
+    .flatten()
+}
+
 /// A call to a trait method whose statically known impl carries its own
-/// specification (an `extern_spec`) goes directly to the impl: such a
-/// contract may read the heap (pledges of a `&mut` result), so it cannot be
-/// stated by the axioms of the trait method's stub.
+/// specification (an `extern_spec`, or a `#[pure_unstable]` function) goes
+/// directly to the impl: such a contract reads the heap (interior-mutable
+/// state, pledges of a `&mut` result), so it cannot be stated by the axioms
+/// of the trait method's stub.
 pub fn resolve_specced_trait_call<'tcx>(
     caller_def_id: DefId,
     def_id: DefId,
@@ -205,7 +297,7 @@ pub fn resolve_specced_trait_call<'tcx>(
         |proc_spec| proc_spec.extern_spec.is_some(),
     )
     .unwrap_or(false);
-    if has_extern_spec {
+    if has_extern_spec || get_pure_unstable_encoding(resolved).is_some() {
         (resolved, resolved_substs)
     } else {
         (def_id, substs)

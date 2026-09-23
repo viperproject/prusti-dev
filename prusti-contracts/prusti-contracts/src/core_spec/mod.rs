@@ -8,6 +8,20 @@ pub mod slice;
 
 pub use eq::PureEq;
 
+/// The current value of the interior-mutable object `ptr` points to (the
+/// pointer returned by an `#[interior_mut]` accessor). This is the one
+/// primitive read of interior-mutable state: Prusti defines it as the lookup
+/// of the object in the interior-mutability snapshot of the enclosing
+/// `#[pure_unstable]` function, so accessors that alias the same object read
+/// the same value. Only meaningful inside `#[pure_unstable]` functions whose
+/// arguments reach the object.
+#[trusted]
+#[pure_unstable]
+#[cfg_attr(feature = "prusti", prusti::im_deref)]
+pub fn im_deref<'a, T: ?Sized>(_ptr: *const T) -> &'a T {
+    unimplemented!()
+}
+
 pub(super) mod type_eq {
     /// A trait which can be used as a bound to say that two types are the same. For
     /// example `Self: TypeEq<Rhs>` can be used as a condition in `PartialEq`.

@@ -22,6 +22,15 @@ pub enum SpecItemType {
     Pledge,
     Predicate(TokenStream),
     Termination,
+    /// The permission-amount expression of an `#[interior_mut(EXPR)]`
+    /// annotation. The spec item returns a `Real`. `level1` is `true` when the
+    /// annotated accessor is `#[pure_unstable(true)]` (a level-1 accessor,
+    /// collected by `_IM_1`), in which case the expression may read level-0
+    /// interior-mutable state and the spec item is marked
+    /// `#[pure_unstable(true)]` itself.
+    InteriorMutPerm {
+        level1: bool,
+    },
 }
 
 impl std::fmt::Display for SpecItemType {
@@ -32,6 +41,7 @@ impl std::fmt::Display for SpecItemType {
             SpecItemType::Pledge => write!(f, "pledge"),
             SpecItemType::Predicate(_) => write!(f, "pred"),
             SpecItemType::Termination => write!(f, "term"),
+            SpecItemType::InteriorMutPerm { .. } => write!(f, "interior_mut_perm"),
         }
     }
 }
@@ -119,6 +129,9 @@ impl AstRewriter {
                 quote_spanned! {item_span => Int::from(0) + },
             ),
             SpecItemType::Predicate(return_type) => (return_type.clone(), TokenStream::new()),
+            SpecItemType::InteriorMutPerm { .. } => {
+                (quote_spanned! {item_span => Real}, TokenStream::new())
+            }
             _ => (
                 quote_spanned! {item_span => bool},
                 quote_spanned! {item_span => !!},
@@ -149,6 +162,24 @@ impl AstRewriter {
             SpecItemType::Postcondition | SpecItemType::Pledge => {
                 let fn_arg = self.generate_result_arg(item);
                 spec_item.sig.inputs.push(fn_arg);
+            }
+            // The permission closure of a level-1 accessor may read level-0
+            // interior-mutable state (e.g. a borrow count via a
+            // `#[pure_unstable(true)]` function), so it is itself
+            // `#[pure_unstable(true)]`: its Viper encoding takes the level-0
+            // IM-QP `Map` snapshot, which it forwards to such callees. The
+            // permission closure of a level-0 accessor must be plain pure.
+            // `#[pure]` also ensures the spec closure gets a procedure
+            // specification collected.
+            SpecItemType::InteriorMutPerm { level1 } => {
+                spec_item.attrs.push(parse_quote_spanned! {item_span=>
+                    #[prusti::pure]
+                });
+                if level1 {
+                    spec_item.attrs.push(parse_quote_spanned! {item_span=>
+                        #[prusti::pure_unstable = "true"]
+                    });
+                }
             }
             _ => (),
         }
