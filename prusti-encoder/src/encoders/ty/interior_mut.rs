@@ -906,18 +906,20 @@ pub(crate) fn im0_snap_sources<'vir, Curr: 'vir, Next: 'vir, E: TaskEncoder>(
         .unwrap_or_else(|| vir::with_vcx(|vcx| vcx.mk_map_empty_expr(tys.key.ty, vir::TYPE_PSNAP))))
 }
 
-/// The values of the level-0 objects in the shared component of the given
-/// sources are as in the `old` state. Stated per object over the generic
-/// snapshot function (not as an equality of two value maps): a later read of
-/// such an object mentions its membership in the returned permission map,
-/// which is what triggers this.
-pub(crate) fn im_shared_frame<'vir, E: TaskEncoder>(
+/// The values of the level-0 objects in the shared component (and, with
+/// `owned_too`, the owned component) of the given sources are as in the
+/// `old` state. Stated per object over the generic snapshot function (not as
+/// an equality of two value maps): a later read of such an object mentions
+/// its membership in the returned permission map, which is what triggers
+/// this.
+pub(crate) fn im_frame<'vir, E: TaskEncoder>(
     deps: &mut task_encoder::TaskEncoderDependencies<'vir, E>,
-    shared_sources: &[(
+    sources: &[(
         RustTyDecomposition<'vir>,
         vir::ExprRef<'vir>,
         vir::ExprSnap<'vir>,
     )],
+    owned_too: bool,
 ) -> Result<vir::ExprBool<'vir>, EncodeFullError<'vir, E>> {
     let tys = ImTys::new(deps);
     let param_im = deps.require_ref::<TyInteriorMutEnc>(RustTyDecomposition::param())?;
@@ -925,38 +927,44 @@ pub(crate) fn im_shared_frame<'vir, E: TaskEncoder>(
         .require_dep::<TyImpureEnc>(RustTyDecomposition::param())?
         .data
         .ref_to_snap;
-    let mut frames = Vec::with_capacity(shared_sources.len());
-    for (ty, addr, snap) in shared_sources {
+    let mut frames = Vec::with_capacity(sources.len());
+    for (ty, addr, snap) in sources {
         let (r, s, t) = im0_source_triple(deps, *ty, *addr, *snap)?;
-        frames.push(vir::with_vcx(|vcx| {
+        vir::with_vcx(|vcx| {
             let ts = vcx.alloc_slice(&[t]);
-            let (_, shared) = tys.split(param_im.l0.call()(r, s.upcast_ty(), ts, &[]));
-            let k = vcx.mk_local_decl("k", tys.key.ty);
-            let k_ex = vcx.mk_local_ex(k);
-            let obj = tys.key.destructors[0].call()(k_ex).downcast_ty::<vir::Ref>();
-            let tyval = tys.key.destructors[1].call()(k_ex).downcast_ty::<vir::TyVal>();
-            let in_dom = vcx.mk_set_in_expr(k_ex, vcx.mk_map_domain_expr(shared));
-            let amount = vcx
-                .mk_map_lookup_expr(shared, k_ex)
-                .downcast_ty::<vir::Perm>();
-            let amount_pos = vcx
-                .mk_unary_op_expr(
-                    vir::UnOpKind::Not,
-                    vcx.mk_bin_op_expr(vir::BinOpKind::PermGeCmp, no_perm(vcx), amount),
+            let (owned, shared) = tys.split(param_im.l0.call()(r, s.upcast_ty(), ts, &[]));
+            let frame = |perms: vir::ExprMap<'vir>| {
+                let k = vcx.mk_local_decl("k", tys.key.ty);
+                let k_ex = vcx.mk_local_ex(k);
+                let obj = tys.key.destructors[0].call()(k_ex).downcast_ty::<vir::Ref>();
+                let tyval = tys.key.destructors[1].call()(k_ex).downcast_ty::<vir::TyVal>();
+                let in_dom = vcx.mk_set_in_expr(k_ex, vcx.mk_map_domain_expr(perms));
+                let amount = vcx
+                    .mk_map_lookup_expr(perms, k_ex)
+                    .downcast_ty::<vir::Perm>();
+                let amount_pos = vcx
+                    .mk_unary_op_expr(
+                        vir::UnOpKind::Not,
+                        vcx.mk_bin_op_expr(vir::BinOpKind::PermGeCmp, no_perm(vcx), amount),
+                    )
+                    .downcast_ty();
+                let value = generic_snap.call()(obj, &[tyval], &[]);
+                vcx.mk_forall_expr(
+                    vcx.alloc_slice(&[k]),
+                    vcx.alloc_slice(&[vcx.mk_trigger(&[in_dom])]),
+                    vcx.mk_bin_op_expr(
+                        vir::BinOpKind::Implies,
+                        vcx.mk_conj(&[in_dom, amount_pos]),
+                        vcx.mk_eq_expr(value, vcx.mk_old_expr(value)),
+                    )
+                    .downcast_ty(),
                 )
-                .downcast_ty();
-            let value = generic_snap.call()(obj, &[tyval], &[]);
-            vcx.mk_forall_expr(
-                vcx.alloc_slice(&[k]),
-                vcx.alloc_slice(&[vcx.mk_trigger(&[in_dom])]),
-                vcx.mk_bin_op_expr(
-                    vir::BinOpKind::Implies,
-                    vcx.mk_conj(&[in_dom, amount_pos]),
-                    vcx.mk_eq_expr(value, vcx.mk_old_expr(value)),
-                )
-                .downcast_ty(),
-            )
-        }));
+            };
+            frames.push(frame(shared));
+            if owned_too {
+                frames.push(frame(owned));
+            }
+        });
     }
     Ok(vir::with_vcx(|vcx| vcx.mk_conj(&frames)))
 }

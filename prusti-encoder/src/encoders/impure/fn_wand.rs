@@ -5,12 +5,16 @@ use crate::encoders::{
         RustTyDecomposition,
         generics::{GArgs, GArgsTyEnc, GParams, GenericParamsEnc},
         indirect::{IndirectPredicatesEnc, projection_for_generalized_idx},
+        interior_mut::{
+            BOUNDARY_IM0_MAP, IM_LEVELS, ImTys, MapUnionEnc, TyInteriorMutUseEnc, im_boundary_maps,
+            im0_snap_sources, merge_pairs,
+        },
     },
 };
 use pcg::borrow_pcg::{
-    FunctionData, FunctionShape, FunctionShapeInput, FunctionShapeNode, FunctionShapeOutput,
-    MakeFunctionShapeError, region_projection::Generalized, state::BorrowsState,
-    unblock_graph::UnblockGraph,
+    ArgIdxOrResult, FunctionData, FunctionShape, FunctionShapeInput, FunctionShapeNode,
+    FunctionShapeOutput, MakeFunctionShapeError, region_projection::Generalized,
+    state::BorrowsState, unblock_graph::UnblockGraph,
 };
 use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
@@ -44,10 +48,10 @@ impl<'vir, E: TaskEncoder> ImpureEncVisitor<'vir, '_, E> {
             .map(|a| self.vcx.mk_old_expr(a.impure_snap));
         let args = PledgeExpr::pledge_args(result, args);
 
-        for wand_data in self.wands.viper_wands() {
-            let Some(wand) = self
-                .wands
-                .mk_wand(&wand_data, args, None, None, self.vcx, self.deps)
+        for (idx, wand_data) in self.wands.viper_wands().into_iter().enumerate() {
+            let Some(wand) =
+                self.wands
+                    .mk_wand(&wand_data, args, None, None, idx == 0, self.vcx, self.deps)
             else {
                 continue;
             };
@@ -219,6 +223,133 @@ impl<'vir> WandEncOutput<'vir> {
         )
     }
 
+    /// The `(owned, shared)` permission-map pairs of the interior-mutable
+    /// objects reachable through references in a single function shape node
+    /// (collected by the `_IM_N` functions of the types behind those
+    /// references), per IM level. Mirrors
+    /// [`Self::encode_predicates_for_function_shape_node`], but returns the
+    /// `_IM_N` pairs instead of the predicate applications.
+    fn interior_mut_pairs_for_function_shape_node(
+        &self,
+        vcx: &'vir vir::VirCtxt<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, impl TaskEncoder>,
+        g: impl Into<FunctionShapeNode<Generalized>>,
+        call_ctx: WandCallContext<'vir>,
+        snap: vir::ExprSnap<'vir>,
+    ) -> [Vec<vir::Expr<'vir, vir::Pair>>; IM_LEVELS] {
+        use vir::Reify;
+        let g = g.into();
+        let fn_sig = self.fn_sig(vcx, call_ctx);
+        let arg_ty = g.ty(fn_sig);
+        let decomp = RustTyDecomposition::from_ty(arg_ty, self.g_params(vcx, call_ctx));
+        let Some(region_proj) =
+            projection_for_generalized_idx(arg_ty, g.region_idx(), decomp, vcx.tcx())
+        else {
+            return [vec![], vec![]];
+        };
+        let out = deps
+            .require_dep::<IndirectPredicatesEnc>(region_proj)
+            .unwrap();
+        out.interior_mut_pairs
+            .map(|ps| ps.iter().map(|p| p.reify(vcx, snap)).collect())
+    }
+
+    /// The `(owned, shared)` pairs of the interior-mutable objects reachable
+    /// through references in the function's arguments, per IM level, in the
+    /// `old` state (i.e. for use in the postcondition). Note that this does
+    /// not include the interior-mutable objects owned by the arguments
+    /// directly: those are consumed by the function and are not returned to
+    /// the caller.
+    /// Also returns the `(type, address, snapshot)` sources of the type-level
+    /// entries, for the canonical `im0_snap` map of the postcondition
+    /// (expanded function-shape entries contribute no source: their objects'
+    /// level-0 values are then read as `im_snap_default` — an accepted
+    /// incompleteness for partially-blocked reference arguments).
+    pub fn interior_mut_post_pairs<E: TaskEncoder>(
+        &self,
+        vcx: &'vir vir::VirCtxt<'vir>,
+        local_defs: &MirLocalDefEncOutput<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, E>,
+    ) -> (
+        [Vec<vir::Expr<'vir, vir::Pair>>; IM_LEVELS],
+        Vec<(
+            RustTyDecomposition<'vir>,
+            vir::ExprRef<'vir>,
+            vir::ExprSnap<'vir>,
+        )>,
+    ) {
+        let mut pairs: [Vec<vir::Expr<'vir, vir::Pair>>; IM_LEVELS] = [vec![], vec![]];
+        let mut sources = Vec::new();
+        // As in `indirect_posts`, inputs blocked by a result lifetime
+        // projection are skipped: their permission sits behind the wand until
+        // expiry (so their maps cannot even be evaluated here), and their
+        // interior-mutable objects are reachable through the result's maps.
+        let blocked = self.blocked_inputs();
+        // A reference-typed argument none of whose lifetime projections are
+        // blocked contributes the pair of its own type's `_IM_N` functions
+        // (over the `old` snapshot) instead of the expanded function-shape
+        // pairs: this is the exact term shape of the precondition QPs, so the
+        // postcondition exhale matches the inhaled maps (near-)syntactically.
+        // The expanded pairs express the same set, but proving that requires
+        // walking the union/pair structure, which the solver often cannot do
+        // within its limits. (This does not apply to by-value arguments:
+        // their type-level pair also contains their owned objects, which are
+        // consumed by the function.)
+        let mut type_level = FxHashSet::default();
+        let mut has_blocked = FxHashSet::default();
+        for g in self.inputs() {
+            if blocked.contains(&g) {
+                has_blocked.insert(g.mir_local());
+            }
+        }
+        let fn_sig = self.fn_sig(vcx, None);
+        for g in self.inputs() {
+            let local = g.mir_local();
+            let arg = &local_defs[local];
+            let arg_ty = FunctionShapeNode::from(g).ty(fn_sig);
+            let shared_ref = matches!(arg_ty.kind(), ty::TyKind::Ref(_, _, ty::Mutability::Not));
+            // A blocked input's interior-mutable objects sit behind the wand
+            // until expiry — EXCEPT behind a shared reference: sharing is
+            // what interior mutability is for, so the caller keeps access
+            // while the borrow is live (e.g. reading a `RefCell`'s borrow
+            // flag with a guard outstanding). The expiry wand still routes
+            // such objects through both of its sides so their values can
+            // change at expiry (the count decrement).
+            if blocked.contains(&g) && !shared_ref {
+                continue;
+            }
+            // Provably interior-mut-free arguments contribute nothing; they
+            // are also skipped in the precondition QPs (see the method
+            // encoder), keeping the map terms of both sides aligned.
+            if crate::encoders::ty::interior_mut::provably_no_interior_mut(
+                vcx.tcx(),
+                arg_ty,
+                &mut Default::default(),
+            ) {
+                continue;
+            }
+            if matches!(arg_ty.kind(), ty::TyKind::Ref(..))
+                && (shared_ref || !has_blocked.contains(&local))
+            {
+                if type_level.insert(local) {
+                    // Contributes through the canonical triple form (see
+                    // `im_boundary_maps` in the method encoder), not as a
+                    // type-level pair expression.
+                    deps.require_dep::<TyInteriorMutUseEnc>(arg.ty).unwrap();
+                    let snap = vcx.mk_old_expr(arg.impure_snap);
+                    sources.push((arg.ty, arg.local_ex, snap));
+                }
+                continue;
+            }
+            let snap = vcx.mk_old_expr(arg.impure_snap);
+            let ps = self.interior_mut_pairs_for_function_shape_node(vcx, deps, g, None, snap);
+            for (level, p) in ps.into_iter().enumerate() {
+                pairs[level].extend(p);
+            }
+        }
+        (pairs, sources)
+    }
+
     pub fn indirect_pres<'a, E: TaskEncoder>(
         &'a self,
         vcx: &'vir vir::VirCtxt<'vir>,
@@ -277,14 +408,17 @@ impl<'vir> WandEncOutput<'vir> {
         let args = PledgeExpr::pledge_args(wand_result_expr, args);
 
         // TODO: wands for late-bound regions
-        self.viper_wands().into_iter().filter_map(move |wand_data| {
-            let wand = self.mk_wand(&wand_data, args, None, None, vcx, deps)?;
-            Some(vcx.mk_let_expr(
-                wand_result,
-                local_defs[mir::RETURN_PLACE].impure_snap,
-                vcx.mk_wand_expr(wand),
-            ))
-        })
+        self.viper_wands()
+            .into_iter()
+            .enumerate()
+            .filter_map(move |(idx, wand_data)| {
+                let wand = self.mk_wand(&wand_data, args, None, None, idx == 0, vcx, deps)?;
+                Some(vcx.mk_let_expr(
+                    wand_result,
+                    local_defs[mir::RETURN_PLACE].impure_snap,
+                    vcx.mk_wand_expr(wand),
+                ))
+            })
     }
 
     pub fn apply_wands<E: TaskEncoder>(
@@ -304,12 +438,13 @@ impl<'vir> WandEncOutput<'vir> {
                 .mk_local_labelled_old_expr(arguments[l], label_pre)
         });
         let args = PledgeExpr::pledge_args(result, args);
-        for wand_data in self.viper_wands() {
+        for (idx, wand_data) in self.viper_wands().into_iter().enumerate() {
             let Some(wand) = self.mk_wand(
                 &wand_data,
                 args,
                 Some(label_pre),
                 Some(call_ctx),
+                idx == 0,
                 visitor.vcx,
                 visitor.deps,
             ) else {
@@ -319,12 +454,126 @@ impl<'vir> WandEncOutput<'vir> {
         }
     }
 
+    /// The interior-mutability QPs (level 0, then level 1 under its
+    /// `let`-bound level-0 snapshot) over the given function shape nodes,
+    /// for use in a wand side: the pre- and postcondition boundary QPs cover
+    /// only the unblocked projections, so the blocked ones' interior-mutable
+    /// objects travel through the wand — the caller regains them at expiry,
+    /// and an expiry pledge reading interior-mutable state (through a
+    /// `#[pure_unstable]` call, whose materialized map requires the QP) can
+    /// be evaluated on the right-hand side. The level-1 amounts read the
+    /// level-0 state through heap-dependent terms, which Silicon evaluates
+    /// when the wand is applied (in conjunct order, so after the level-0 QP
+    /// has been produced), not when it is inhaled: they reflect the
+    /// post-expiry state, e.g. a `RefCell`'s value share at the count the
+    /// pledge re-establishes. This conjunct order also packages.
+    fn interior_mut_wand_qp<E: TaskEncoder>(
+        &self,
+        vcx: &'vir vir::VirCtxt<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, E>,
+        nodes: impl Iterator<Item = FunctionShapeNode<Generalized>>,
+        call_ctx: WandCallContext<'vir>,
+        pledge_args: PledgeArgs<'vir>,
+        referents_held: bool,
+    ) -> Option<vir::ExprBool<'vir>> {
+        // All shape DECISIONS (which nodes contribute) are made on the
+        // identity signature: the wand in the callee's postcondition and the
+        // one reconstructed at a call site must be structurally identical
+        // after Viper's substitution, so a node skipped at a concrete
+        // instantiation but kept generically (or vice versa) would make the
+        // apply fail with `wand.not.found`.
+        let identity_sig = self.fn_sig(vcx, None);
+        let ctx_sig = self.fn_sig(vcx, call_ctx);
+        let identity_params = self.g_params(vcx, None);
+        let ctx_params = self.g_params(vcx, call_ctx);
+        let mut pairs: [Vec<vir::Expr<'vir, vir::Pair>>; IM_LEVELS] = [vec![], vec![]];
+        let mut sources = Vec::new();
+        // Whether the sources' level-1 QP is emitted, decided on the
+        // identity types (see `im_boundary_maps`).
+        let mut level1 = false;
+        for g in nodes {
+            let snap = pledge_args[g.mir_local()];
+            let node_ty = g.ty(identity_sig);
+            if crate::encoders::ty::interior_mut::provably_no_interior_mut(
+                vcx.tcx(),
+                node_ty,
+                &mut Default::default(),
+            ) {
+                continue;
+            }
+            // A reference node contributes through the canonical `im0_snap`
+            // triple (see `im_boundary_maps` in the method encoder), matching
+            // the term shape of the boundary QPs that put its permissions in
+            // the caller's state. A mutable reference's referent value is
+            // read from the heap, which keys the referent's objects: only
+            // where the referent is held when the side is evaluated (the
+            // right-hand side, inhaled at apply). The path decision is on
+            // the identity signature; the expression on the call-context one
+            // (its terms substitute cleanly: the reference triples involve
+            // no generic casts).
+            let heap_read = match node_ty.kind() {
+                ty::TyKind::Ref(_, _, ty::Mutability::Not) => true,
+                ty::TyKind::Ref(_, _, ty::Mutability::Mut) => referents_held,
+                _ => false,
+            };
+            if heap_read {
+                let decomp = RustTyDecomposition::from_ty(g.ty(ctx_sig), ctx_params);
+                sources.push((decomp, vcx.mk_null(), snap));
+                level1 |= !crate::encoders::ty::interior_mut::provably_no_level1_interior_mut(
+                    RustTyDecomposition::from_ty(node_ty, identity_params),
+                    &mut Default::default(),
+                );
+                continue;
+            }
+            // Other nodes keep the function-shape (generic, `s_Param`-form)
+            // pairs: the wand emitted in the callee's postcondition and the
+            // wand reconstructed at the caller's apply must be structurally
+            // identical after Viper's substitution, which the generic-first
+            // shape guarantees (a type-level pair built from the substituted
+            // signature encodes concrete-specialized casts and no longer
+            // matches — the same lesson as the pledges).
+            let ps = self.interior_mut_pairs_for_function_shape_node(vcx, deps, g, call_ctx, snap);
+            for (level, ps) in ps.into_iter().enumerate() {
+                pairs[level].extend(ps);
+            }
+        }
+        if pairs.iter().all(|ps| ps.is_empty()) && sources.is_empty() {
+            return None;
+        }
+        let tys = ImTys::new(deps);
+        let unions = deps.require_dep::<MapUnionEnc>(()).unwrap();
+        let maps = im_boundary_maps(deps, &sources, &[], level1).unwrap();
+        let [pairs_0, pairs_1] = pairs;
+        let extra_0 = (!pairs_0.is_empty()).then(|| merge_pairs(&tys, &unions, pairs_0));
+        let has_pairs_1 = !pairs_1.is_empty();
+        let extra_1 = has_pairs_1.then(|| merge_pairs(&tys, &unions, pairs_1));
+        let mut qps = vec![maps.qp0(vcx, deps, extra_0).unwrap()];
+        if let Some(mut qp1) = maps.qp1(vcx, deps, extra_1).unwrap() {
+            // The expanded function-shape pair expressions reference the
+            // fixed `BOUNDARY_IM0_MAP` name (as in the method contracts).
+            if has_pairs_1 {
+                let l0_map_decl = vcx.mk_local_decl(BOUNDARY_IM0_MAP, tys.snap_map);
+                let l0_map = im0_snap_sources(deps, &sources, &[]).unwrap();
+                qp1 = vcx.mk_let_expr(l0_map_decl, l0_map, qp1);
+            }
+            qps.push(qp1);
+        }
+        Some(vcx.mk_conj(&qps))
+    }
+
+    /// `primary` marks the ONE wand per function that carries the
+    /// interior-mutability QPs (they are function-level, so they are
+    /// exchanged exactly once per expiry rather than once per coupled edge):
+    /// the first of the selected wands (see `select_wands`), so the callee's
+    /// postcondition, the package, and every apply site agree on it.
+    #[allow(clippy::too_many_arguments)]
     fn mk_wand<E: TaskEncoder>(
         &self,
         wand_data: &WandData<'vir>,
         pledge_args: PledgeArgs<'vir>,
         pledge_old_label: Option<&'vir str>,
         call_ctx: WandCallContext<'vir>,
+        primary: bool,
         vcx: &'vir vir::VirCtxt<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, E>,
     ) -> Option<vir::Wand<'vir>> {
@@ -336,12 +585,76 @@ impl<'vir> WandEncOutput<'vir> {
             }
             None => pledge.expr(pledge_args),
         };
-        let rhs = wand_data.rhs.iter().filter_map(|g| {
-            self.encode_predicates_for_function_shape_node(vcx, deps, *g, call_ctx, |i| {
-                pledge_args[i]
+        let rhs = wand_data
+            .rhs
+            .iter()
+            .filter_map(|g| {
+                self.encode_predicates_for_function_shape_node(vcx, deps, *g, call_ctx, |i| {
+                    pledge_args[i]
+                })
             })
-        });
+            .collect::<Vec<_>>();
+        // A wand is a pure transfer of permissions. Only the
+        // interior-mutable objects of genuinely BLOCKED inputs travel
+        // through it: those behind a mutable reference. The objects behind a
+        // shared-reference input are not blocked at all (sharing is what
+        // interior mutability is for): the postcondition leaves them with
+        // the caller, who keeps them across the apply, so routing them
+        // through the wand would let an expiry pledge contradict a value the
+        // caller provably still holds. The node selection uses the identity
+        // signature (see `interior_mut_wand_qp`).
+        let identity_sig = self.fn_sig(vcx, None);
+        let shared_ref = |node: FunctionShapeNode<Generalized>| {
+            matches!(
+                node.ty(identity_sig).kind(),
+                ty::TyKind::Ref(_, _, ty::Mutability::Not)
+            )
+        };
+        let rhs_im = primary
+            .then(|| {
+                self.interior_mut_wand_qp(
+                    vcx,
+                    deps,
+                    wand_data
+                        .rhs
+                        .iter()
+                        .map(|g| FunctionShapeNode::from(*g))
+                        .filter(|node| !shared_ref(*node)),
+                    call_ctx,
+                    pledge_args,
+                    true,
+                )
+            })
+            .flatten();
+        // The left-hand side carries the interior-mutable objects of the
+        // reference-typed results (which the caller reached through the
+        // borrow). Non-reference results (e.g. guard structs) are skipped:
+        // what they hold stays with the caller. So are the outputs that are
+        // nested lifetimes of the inputs (the `'b` of a `&'a mut RefMut<'b,
+        // T>` argument): their objects sit behind the blocked referent,
+        // which the wand's right-hand side returns.
+        let lhs_im_nodes = wand_data
+            .lhs
+            .iter()
+            .copied()
+            .filter(|g| matches!(g.base(), ArgIdxOrResult::Result))
+            .filter(|g| matches!(g.ty(identity_sig).kind(), ty::TyKind::Ref(..)))
+            .collect::<Vec<_>>();
+        let lhs_im = primary
+            .then(|| {
+                self.interior_mut_wand_qp(
+                    vcx,
+                    deps,
+                    lhs_im_nodes.into_iter(),
+                    call_ctx,
+                    pledge_args,
+                    false,
+                )
+            })
+            .flatten();
         let rhs = rhs
+            .into_iter()
+            .chain(rhs_im)
             .chain(
                 wand_data
                     .pledges
@@ -356,12 +669,18 @@ impl<'vir> WandEncOutput<'vir> {
             return None;
         }
         let rhs = vcx.mk_conj(&rhs);
-        let lhs = wand_data.lhs.iter().filter_map(|g| {
-            self.encode_predicates_for_function_shape_node(vcx, deps, *g, call_ctx, |i| {
-                pledge_args[i]
+        let lhs = wand_data
+            .lhs
+            .iter()
+            .filter_map(|g| {
+                self.encode_predicates_for_function_shape_node(vcx, deps, *g, call_ctx, |i| {
+                    pledge_args[i]
+                })
             })
-        });
+            .collect::<Vec<_>>();
         let lhs = lhs
+            .into_iter()
+            .chain(lhs_im)
             .chain(
                 wand_data
                     .pledges

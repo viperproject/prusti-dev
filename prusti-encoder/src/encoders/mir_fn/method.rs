@@ -1,6 +1,9 @@
 use pcg::borrow_pcg::FunctionData;
 use prusti_interface::PrustiError;
-use prusti_rustc_interface::{middle::mir, span::def_id::DefId};
+use prusti_rustc_interface::{
+    middle::{mir, ty},
+    span::{def_id::DefId, symbol},
+};
 use task_encoder::{
     EncodeFullError, EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies,
 };
@@ -11,8 +14,14 @@ use crate::encoders::{
     WandEnc, WandEncTask,
     mir_fn::{CallTaskDescription, RustSignature, SpecBlocks, SpecBlocksEnc},
     pure::spec::MirSpecEncMode,
-    ty::generics::{
-        GArgCaster, GArgs, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc,
+    ty::{
+        generics::{
+            GArgCaster, GArgs, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc,
+        },
+        interior_mut::{
+            BOUNDARY_IM0_MAP, ImTys, MapUnionEnc, TyInteriorMutUseEnc, im_boundary_maps, im_frame,
+            im0_snap_sources, merge_pairs,
+        },
     },
 };
 
@@ -251,9 +260,9 @@ impl TaskEncoder for MethodEnc {
             // impure code learns the result's value from the method call. The
             // callee proves nothing for it: the function's body is this
             // method's body by construction. Closures have no `f_`.
-            if crate::encoders::is_function_pure(def_id, GArgs::new(params, params.rust_params()))
-                && !vcx.tcx().is_closure_like(def_id)
-            {
+            let is_pure =
+                crate::encoders::is_function_pure(def_id, GArgs::new(params, params.rust_params()));
+            if is_pure && !vcx.tcx().is_closure_like(def_id) {
                 let pure_func = deps.require_dep_spanned::<FunctionCallEnc>(
                     CallTaskDescription::new(def_id, params.rust_params(), def_id)
                         .resolve_trait_calls(false),
@@ -287,6 +296,284 @@ impl TaskEncoder for MethodEnc {
                     vcx.mk_bool::<true>(),
                 ));
             }
+
+            // Write permission to all interior-mutable objects reachable from
+            // the arguments (collected by the `_IM` functions of their types).
+            // We emit a single quantified permission over the union of all
+            // these sets, since arguments may alias (e.g. two shared
+            // references to the same `Cell`), in which case the shared
+            // interior-mutable objects must be counted only once.
+            //
+            // The precondition requires the full set of each argument (owned
+            // interior-mutable objects as well as those behind references).
+            // The postcondition returns only the objects reachable through
+            // references in the arguments (in the `old` state; the owned ones
+            // are consumed by the function) plus the full set of the result.
+            // The union again ensures that objects returned to the caller
+            // through both a reference argument and the result (e.g. when a
+            // function returns one of its arguments) are not counted twice.
+            //
+            // Arguments that provably reach no interior-mutable objects are
+            // skipped entirely: their maps are empty, and leaving them out
+            // keeps the pre- and postcondition map terms of the remaining
+            // sources aligned (an extra empty union changes the term, and
+            // opaque map consumers such as `s_Param_IM_1` need term-equal
+            // arguments to compare equal).
+            let fn_sig = vcx
+                .tcx()
+                .fn_sig(def_id)
+                .instantiate_identity()
+                .skip_binder();
+            let mut arg_ims = Vec::with_capacity(arg_count - 1);
+            for arg_idx in (1..arg_count).map(mir::Local::from) {
+                let arg = &arg_defs[arg_idx];
+                if crate::encoders::ty::interior_mut::provably_no_interior_mut(
+                    vcx.tcx(),
+                    fn_sig.inputs()[arg_idx.index() - 1],
+                    &mut Default::default(),
+                ) {
+                    continue;
+                }
+                // Encode the argument type's IM functions (dispatch axioms).
+                deps.require_dep::<TyInteriorMutUseEnc>(arg.ty)?;
+                arg_ims.push((
+                    arg_idx,
+                    fn_sig.inputs()[arg_idx.index() - 1],
+                    arg.ty,
+                    arg.local_ex,
+                    arg.impure_snap,
+                ));
+            }
+
+            let tys = ImTys::new(deps);
+            let unions = deps.require_dep::<MapUnionEnc>(())?;
+
+            // Emits the level-0 and level-1 QPs over the arguments, evaluating
+            // each argument's snapshot via `snap_of`. The maps of all
+            // arguments are merged into one per level (arguments may alias, in
+            // which case the shared maps' overlaps are assumed to agree), and
+            // the level-1 functions take the level-0 IM-QP `Map` snapshot,
+            // materialized once from the merged level-0 map (this matches the
+            // level-0 QP exactly, so `qp_to_map`'s precondition is
+            // discharged).
+            let mk_qps =
+                |deps: &mut TaskEncoderDependencies<'vir, _>,
+                 snap_of: &dyn Fn(vir::ExprSnap<'vir>) -> vir::ExprSnap<'vir>,
+                 prefix: &str|
+                 -> Result<vir::ExprBool<'vir>, EncodeFullError<'vir, MethodEnc>> {
+                    // Bind each argument's snapshot once with a `let` and use the
+                    // bound variable in every map expression. The snapshot
+                    // functions are heap-dependent (framed by a `wildcard`
+                    // permission), and Silicon fails to match `qp_to_map`'s
+                    // precondition against the just-inhaled level-0 QP when the
+                    // two map expressions evaluate the snapshots separately.
+                    let mut lets = Vec::with_capacity(arg_ims.len());
+                    let mut im0_sources = Vec::with_capacity(arg_ims.len());
+                    for (idx, (_, _, ty, addr, snap)) in arg_ims.iter().enumerate() {
+                        let val = snap_of(*snap);
+                        let decl = vcx.mk_local_decl(
+                            vir::vir_format!(vcx, "{prefix}_im_snap_{idx}"),
+                            val.ty(),
+                        );
+                        lets.push((decl, val));
+                        im0_sources.push((*ty, *addr, vcx.mk_local_ex(decl)));
+                    }
+                    // Each level-1 source reads through its own canonical
+                    // `im0_snap` map (see `im_boundary_maps`).
+                    let maps = im_boundary_maps(deps, &im0_sources, &[], false)?;
+                    let mut qps = vec![maps.qp0(vcx, deps, None)?];
+                    if let Some(qp1) = maps.qp1(vcx, deps, None)? {
+                        qps.push(qp1);
+                    }
+                    // Self-framing order: the level-0 QP grants what the level-1
+                    // map reads need (on exhale those reads are evaluated in the
+                    // pre-exhale heap, so the same order works in both
+                    // directions).
+                    let mut expr = vcx.mk_conj(&qps);
+                    for (decl, val) in lets.into_iter().rev() {
+                        expr = vcx.mk_let_expr(decl, val, expr);
+                    }
+                    Ok(expr)
+                };
+
+            // The boundary QPs are created under the function's span (they
+            // have no user-written source), with handlers for the permission
+            // failures that can arise from them, so that such failures are
+            // reported at the function instead of being position-less. A
+            // permission failure on safe code is always a Prusti encoding
+            // bug, never an error in the user's program (the amounts flow
+            // deterministically; every user-provable state is guarded by the
+            // value-level preconditions, which fail first) — so these are
+            // INTERNAL errors, kept only to carry a usable position. The one
+            // user-facing case is a negative amount: `#[interior_mut(EXPR)]`
+            // permission expressions are user-written.
+            let mut im_qp_pre: Option<vir::ExprBool<'vir>> = None;
+            let mut im_qp_post: Option<vir::ExprBool<'vir>> = None;
+            let mut im_frame_post: Option<vir::ExprBool<'vir>> = None;
+            vcx.with_span(
+                span,
+                |vcx| -> Result<(), EncodeFullError<'vir, MethodEnc>> {
+                    vcx.handle_error("call.precondition:insufficient.permission", move |_| {
+                        Some(vec![PrustiError::internal(
+                            "a call to this function failed to provide the interior-mutability \
+                            permissions its precondition requires; this indicates a bug in \
+                            Prusti's interior-mutability encoding",
+                            span.into(),
+                        )])
+                    });
+                    vcx.handle_error(
+                    "postcondition.violated:insufficient.permission",
+                    move |_| {
+                        Some(vec![PrustiError::internal(
+                            "this function failed to return the interior-mutability permissions \
+                            its postcondition promises; this indicates a bug in Prusti's \
+                            interior-mutability encoding",
+                            span.into(),
+                        )])
+                    },
+                );
+                    vcx.handle_error(
+                    "application.precondition:insufficient.permission",
+                    move |_| {
+                        Some(vec![PrustiError::internal(
+                            "the interior-mutability contract of this function reads state whose \
+                            permission is not available; this indicates a bug in Prusti's \
+                            interior-mutability encoding",
+                            span.into(),
+                        )])
+                    },
+                );
+                    vcx.handle_error("not.wellformed:negative.permission", move |_| {
+                        Some(vec![PrustiError::verification(
+                            "a permission amount in this function's interior-mutability contract \
+                        might be negative",
+                            span.into(),
+                        )])
+                    });
+                    if !arg_ims.is_empty() {
+                        im_qp_pre = Some(mk_qps(deps, &|s| s, "pre")?);
+                    }
+
+                    // In the postcondition we return only the interior-mutable objects
+                    // reachable *behind a reference* (computed by the indirect encoder,
+                    // i.e. the data behind the `&` as a `Param`), in the `old` state —
+                    // NOT the arguments' own `s_Ref_immutable_IM_N` maps. The owned IM
+                    // objects of the arguments are consumed by the function. The
+                    // result's own IM objects are created by the function and returned
+                    // to the caller: its pairs (in the post state) are added, with the
+                    // result's snapshot bound once with a `let` shared by all its map
+                    // expressions.
+                    let (post_pairs, mut post_im0_sources) =
+                        wands.interior_mut_post_pairs(vcx, &arg_defs, deps);
+                    // By-value arguments without function-shape nodes contribute
+                    // their SHARED component in the `old` state: their owned
+                    // interior-mutable objects are consumed by the function, but the
+                    // objects behind references inside them (e.g. a guard's borrow
+                    // flag) belong to others and must return to the caller — else a
+                    // call like `drop(guard)` takes them to the grave and the expiry
+                    // wand has nothing to apply against. Arguments WITH shape nodes
+                    // are covered by `interior_mut_post_pairs` (type-level sources,
+                    // expanded pairs, or the wand for blocked projections).
+                    let shape_locals: Vec<mir::Local> =
+                        wands.inputs().map(|g| g.mir_local()).collect();
+                    let mut post_shared_sources = Vec::new();
+                    for (local, rust_ty, ty, local_ex, impure_snap) in &arg_ims {
+                        // A type parameter's shape nodes cannot be expanded into
+                        // pairs, so `mem::drop`'s argument is a shared source like
+                        // shape-less arguments.
+                        // TODO: this holds for every by-value type parameter, but
+                        // the extra postcondition map read makes the contracts of
+                        // e.g. `Cell::set` fail to check reliably.
+                        if matches!(rust_ty.kind(), ty::TyKind::Ref(..))
+                            || (shape_locals.contains(local)
+                                && !vcx.tcx().is_diagnostic_item(symbol::sym::mem_drop, def_id))
+                        {
+                            continue;
+                        }
+                        post_shared_sources.push((*ty, *local_ex, vcx.mk_old_expr(*impure_snap)));
+                    }
+                    // `mem::drop` is modeled as a pure discard: its argument's guard
+                    // effects (a `RefCell` count decrement) are attributed to the
+                    // expiry pledges, which fire at the borrow's expiry right after
+                    // the call. The shared interior-mutable state it returns is
+                    // therefore framed; without this, the fresh chunks from its
+                    // postcondition leave e.g. the borrow count unconstrained, and
+                    // the expiry's level-1 amounts become underivable.
+                    if vcx.tcx().is_diagnostic_item(symbol::sym::mem_drop, def_id)
+                        && !post_shared_sources.is_empty()
+                    {
+                        im_frame_post = Some(im_frame(deps, &post_shared_sources, false)?);
+                    }
+                    // A pure function leaves every interior-mutable object as it
+                    // found it: the objects reachable from all its arguments (both
+                    // components) are framed, so a call in impure code (a method
+                    // call, see above) does not lose their values.
+                    if is_pure && !arg_ims.is_empty() {
+                        let all_sources = arg_ims
+                            .iter()
+                            .map(|(_, _, ty, local_ex, impure_snap)| {
+                                (*ty, *local_ex, vcx.mk_old_expr(*impure_snap))
+                            })
+                            .collect::<Vec<_>>();
+                        im_frame_post = Some(im_frame(deps, &all_sources, true)?);
+                    }
+                    let result = &arg_defs[mir::RETURN_PLACE];
+                    let result_snap_decl =
+                        vcx.mk_local_decl("post_im_snap_result", result.impure_snap.ty());
+                    let result_snap_var = vcx.mk_local_ex(result_snap_decl);
+                    // The expanded function-shape pair expressions reference the
+                    // fixed `BOUNDARY_IM0_MAP` name; the canonical sources read
+                    // through their own `im0_snap` maps instead.
+                    let l0_map_post_decl = vcx.mk_local_decl(BOUNDARY_IM0_MAP, tys.snap_map);
+                    // A provably interior-mut-free result is skipped like the
+                    // arguments above, keeping the post map terms aligned with the
+                    // precondition's.
+                    if !crate::encoders::ty::interior_mut::provably_no_interior_mut(
+                        vcx.tcx(),
+                        fn_sig.output(),
+                        &mut Default::default(),
+                    ) {
+                        post_im0_sources.push((result.ty, result.local_ex, result_snap_var));
+                    }
+                    if !post_im0_sources.is_empty()
+                        || !post_shared_sources.is_empty()
+                        || post_pairs.iter().any(|ps| !ps.is_empty())
+                    {
+                        // The sources' maps in the canonical triple form (see
+                        // `im_boundary_maps`); the expanded function-shape pairs of
+                        // partially-blocked arguments keep their own shape and are
+                        // merged on top.
+                        let post_maps =
+                            im_boundary_maps(deps, &post_im0_sources, &post_shared_sources, false)?;
+                        let [post_pairs_0, post_pairs_1] = post_pairs;
+                        let extra_0 = (!post_pairs_0.is_empty())
+                            .then(|| merge_pairs(&tys, &unions, post_pairs_0));
+                        let has_pairs_1 = !post_pairs_1.is_empty();
+                        let extra_1 = has_pairs_1.then(|| merge_pairs(&tys, &unions, post_pairs_1));
+                        let mut post_qps = vec![post_maps.qp0(vcx, deps, extra_0)?];
+                        if let Some(mut post_qp1) = post_maps.qp1(vcx, deps, extra_1)? {
+                            // The joined map for the expanded pair expressions, which
+                            // reference the fixed `BOUNDARY_IM0_MAP` name.
+                            if has_pairs_1 {
+                                let l0_map_post = im0_snap_sources(
+                                    deps,
+                                    &post_im0_sources,
+                                    &post_shared_sources,
+                                )?;
+                                post_qp1 = vcx.mk_let_expr(l0_map_post_decl, l0_map_post, post_qp1);
+                            }
+                            post_qps.push(post_qp1);
+                        }
+                        // Self-framing order (see `mk_qps`).
+                        im_qp_post = Some(vcx.mk_let_expr(
+                            result_snap_decl,
+                            result.impure_snap,
+                            vcx.mk_conj(&post_qps),
+                        ));
+                    }
+                    Ok(())
+                },
+            )?;
 
             // Trusted functions, call stubs, external functions and trait
             // functions without a default implementation have no body to
@@ -414,9 +701,14 @@ impl TaskEncoder for MethodEnc {
                 None
             };
 
-            // Add functional specification as the last pre- and postconditions.
+            // Add the functional specification as the last pre- and
+            // postconditions, after the IM QPs that grant the permissions
+            // its interior-mutable reads need.
+            pres.extend(im_qp_pre);
             pres.extend(spec.pre_exprs());
+            posts.extend(im_qp_post);
             posts.extend(spec.post_exprs());
+            posts.extend(im_frame_post);
 
             Ok((
                 MethodEncOutput {
