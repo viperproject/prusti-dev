@@ -76,6 +76,9 @@ def get_linux_env():
         viper_home = os.path.abspath('viper_tools/backends')
     if os.path.exists(viper_home):
         variables.append(('VIPER_HOME', viper_home))
+    preamble_override = os.path.abspath(os.path.join('viper', 'preamble_override'))
+    if os.path.exists(preamble_override):
+        variables.append(('VIPER_PREAMBLE_OVERRIDE_DIR', preamble_override))
     z3_exe = os.path.abspath(os.path.join(viper_home, '../z3/bin/z3'))
     if os.path.exists(z3_exe):
         variables.append(('Z3_EXE', z3_exe))
@@ -112,6 +115,9 @@ def get_mac_env():
         viper_home = os.path.abspath('viper_tools/backends')
     if os.path.exists(viper_home):
         variables.append(('VIPER_HOME', viper_home))
+    preamble_override = os.path.abspath(os.path.join('viper', 'preamble_override'))
+    if os.path.exists(preamble_override):
+        variables.append(('VIPER_PREAMBLE_OVERRIDE_DIR', preamble_override))
     z3_exe = os.path.abspath(os.path.join(viper_home, '../z3/bin/z3'))
     if os.path.exists(z3_exe):
         variables.append(('Z3_EXE', z3_exe))
@@ -145,6 +151,9 @@ def get_win_env():
         viper_home = get_var_or('VIPER_HOME', os.path.abspath(os.path.join('viper_tools', 'backends')))
     if os.path.exists(viper_home):
         variables.append(('VIPER_HOME', viper_home))
+    preamble_override = os.path.abspath(os.path.join('viper', 'preamble_override'))
+    if os.path.exists(preamble_override):
+        variables.append(('VIPER_PREAMBLE_OVERRIDE_DIR', preamble_override))
     else:
         report("could not find VIPER_HOME in {}", viper_home)
     z3_exe = os.path.abspath(os.path.join(viper_home, os.path.join('..', 'z3', 'bin', 'z3.exe')))

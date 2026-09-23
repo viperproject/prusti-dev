@@ -35,10 +35,19 @@ impl Viper {
             "The VIPER_HOME environment variable ({viper_home:?}) does not point to a valid folder."
         );
 
-        let jar_paths: Vec<String> = fs::read_dir(viper_home)
+        let mut jar_paths: Vec<String> = fs::read_dir(viper_home)
             .unwrap_or_else(|_| panic!("failed to open {viper_home:?}"))
             .map(|x| x.unwrap().path().to_str().unwrap().to_string())
             .collect();
+
+        // A directory of resources to take precedence over the Viper jars'
+        // (e.g. a patched Silicon preamble): earlier classpath entries win
+        // resource lookups.
+        if let Ok(dir) = env::var("VIPER_PREAMBLE_OVERRIDE_DIR") {
+            if Path::new(&dir).is_dir() {
+                jar_paths.insert(0, dir);
+            }
+        }
 
         debug!("Java classpath: {}", jar_paths.join(":"));
 

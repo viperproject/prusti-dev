@@ -1,0 +1,121 @@
+domain $Map[K, V] {
+  function Map_apply(m : $Map[K, V], k : K) : V
+  function Map_card(m : $Map[K, V]) : Int
+  function Map_disjoint(m1 : $Map[K, V], m2 : $Map[K, V]) : Bool
+  function Map_domain(m : $Map[K, V]) : Set[K]
+  function Map_empty() : $Map[K, V]
+  function Map_equal(m1 : $Map[K, V], m2 : $Map[K, V]) : Bool
+  function Map_update(m : $Map[K, V], k : K, v : V) : $Map[K, V]
+  function Map_values(m : $Map[K, V]) : Set[V]
+
+  function Map_range_domain_skolem(m : $Map[K, V], v : V) : K
+
+  /* ** Cardinality */
+
+  axiom Map_card_nonneg {
+    forall m : $Map[K, V] :: { Map_card(m) } 0 <= Map_card(m)
+  }
+
+  /* added second trigger set */
+  axiom Map_domain_card {
+    forall m : $Map[K, V] :: { |Map_domain(m)| } {Map_card(m)} |Map_domain(m)| == Map_card(m)
+  }
+
+  /* ** Disjointness */
+
+  /* split in both directions */
+  axiom Map_disjoint_def1 {
+    forall m1 : $Map[K, V], m2 : $Map[K, V] :: { Map_disjoint(m1, m2) }
+      Map_disjoint(m1, m2) ==>
+        (forall k : K :: { k in Map_domain(m1) } {k in Map_domain(m2) }
+          !(k in Map_domain(m1)) || !(k in Map_domain(m2)))
+  }
+
+  axiom Map_disjoint_def2 {
+    forall m1 : $Map[K, V], m2 : $Map[K, V] :: { Map_disjoint(m1, m2) }
+      !Map_disjoint(m1, m2) ==>
+        (exists k : K :: (k in Map_domain(m1)) && (k in Map_domain(m2)))
+  }
+
+  /* ** Empty */
+  axiom Map_empty_domain {
+    forall k : K :: { k in Map_domain((Map_empty() : $Map[K, V])) }
+      !(k in Map_domain((Map_empty() : $Map[K, V])))
+  }
+
+  /* split last part in both directions */
+  axiom Map_card_zero {
+    forall m : $Map[K, V] :: { Map_card(m) }
+      (Map_card(m) == 0 <==> m == Map_empty()) &&
+      (Map_card(m) != 0 ==> exists u : K :: u in Map_domain(m)) &&
+      (forall u : K :: {u in Map_domain(m)} u in Map_domain(m) ==> Map_card(m) != 0)
+  }
+
+  /* Equality */
+  // this axiom is only needed in one direction; the other is implied by the next axiom
+    axiom Map_equal_def {
+      forall m1 : $Map[K, V], m2 : $Map[K, V] :: { Map_equal(m1, m2) }
+          ((forall k : K :: { k in Map_domain(m1) } { k in Map_domain(m2) } k in Map_domain(m1) <==> k in Map_domain(m2)) &&
+           (forall k : K :: { Map_apply(m1, k) } { Map_apply(m2, k) } k in Map_domain(m1) ==> Map_apply(m1, k) == Map_apply(m2, k)))
+             ==>  Map_equal(m1, m2)
+    }
+
+  axiom Map_equal_ext {
+    forall m1 : $Map[K, V], m2 : $Map[K, V] :: { Map_equal(m1, m2) }
+      Map_equal(m1, m2) ==> m1 == m2
+  }
+
+  /* ** Update */
+
+/* added second trigger set (cf. example3 test case, test3)
+/* could also add {Map_update(m,k1,v), Map_apply(m,k1)} as another alternative trigger, but seems subsumed given that we need to know k2 is in a domain */
+  axiom Map_update_domain {
+    forall m : $Map[K, V], k1 : K, k2 : K, v : V ::
+      { k2 in Map_domain(Map_update(m, k1, v)) } {k2 in Map_domain(m), Map_update(m, k1, v)} { Map_apply(Map_update(m, k1, v), k2) }
+        (k1 == k2 ==> k2 in Map_domain(Map_update(m, k1, v)) && Map_apply(Map_update(m, k1, v), k2) == v) &&
+        (k1 != k2 ==> (k2 in Map_domain(Map_update(m, k1, v)) <==> k2 in Map_domain(m)) && (k2 in Map_domain(m) ==> Map_apply(Map_update(m, k1, v), k2) == Map_apply(m, k2)))
+  }
+
+/* added second trigger set (not sure of a test case needing it, though) */
+  axiom Map_update_card {
+    forall m : $Map[K, V], k : K, v : V :: { Map_card(Map_update(m, k, v)) } { Map_card(m), Map_update(m, k, v)}
+      (k in Map_domain(m) ==> Map_card(Map_update(m, k, v)) == Map_card(m)) &&
+      (!(k in Map_domain(m)) ==> Map_card(Map_update(m, k, v)) == Map_card(m) + 1)
+  }
+
+  /* PRUSTI PATCH: replaces the trigger-bridging side effect of the original
+   * `Map_values_nonempty` triggers without mentioning `Map_values`: an
+   * instantiation on a lookup term materializes the corresponding
+   * domain-membership term (which other axioms trigger on), and vice versa,
+   * at the cost of one cheap cardinality fact. */
+  axiom Map_apply_domain_bridge {
+    forall m : $Map[K, V], k : K :: { Map_apply(m, k) } { k in Map_domain(m) }
+      (k in Map_domain(m) ==> Map_card(m) > 0)
+  }
+
+  /* ** Values */
+  /* PRUSTI PATCH: every `values` axiom's trigger set is gated on a
+   * `Map_values(m)` term, so the axioms stay silent unless the program
+   * actually mentions the map's value set. The original triggers fired on
+   * every `Map_apply`/`in Map_domain` term, and together the three axioms
+   * form the matching loop described at the end of this file; programs
+   * with many quantified-permission maps (which constantly produce
+   * domain-membership terms but never use `values`) made Z3 grind. */
+  axiom Map_values_contains_skolem {
+    forall m : $Map[K, V], v : V :: { v in Map_values(m) }
+      v in Map_values(m) ==>
+          Map_range_domain_skolem(m,v) in Map_domain(m) && v == Map_apply(m, Map_range_domain_skolem(m,v))
+  }
+
+  axiom Map_values_nonempty {
+    forall m : $Map[K, V], k : K :: { Map_apply(m, k), Map_values(m) } { k in Map_domain(m), Map_values(m) }
+       (k in Map_domain(m)
+          ==> |Map_values(m)| > 0)
+  }
+
+  axiom Map_values_contains {
+    forall m : $Map[K, V], k : K :: { Map_apply(m, k), Map_values(m) }
+       (k in Map_domain(m)
+          ==> Map_apply(m, k) in Map_values(m))
+  }
+}
