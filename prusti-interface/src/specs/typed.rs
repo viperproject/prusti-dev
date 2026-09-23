@@ -1,6 +1,8 @@
 use crate::{
-    environment::Environment, specs::external::ExternSpecDeclaration,
-    utils::has_trait_bounds_type_cond_spec, PrustiError,
+    environment::Environment,
+    specs::{external::ExternSpecDeclaration, TypeSpecRefs},
+    utils::has_trait_bounds_type_cond_spec,
+    PrustiError,
 };
 pub use common::{SpecIdRef, SpecType, SpecificationId};
 use prusti_rustc_interface::{
@@ -295,6 +297,9 @@ pub struct TypeSpecification {
     pub trusted: SpecificationItem<bool>,
     pub model: Option<(String, LocalDefId)>,
     pub counterexample_print: Vec<(Option<String>, LocalDefId)>,
+    /// The function carrying the contract of dropping a value of this type
+    /// (from `#[extern_spec] impl Drop for X`).
+    pub drop_spec: Option<DefId>,
 }
 
 impl TypeSpecification {
@@ -305,6 +310,24 @@ impl TypeSpecification {
             trusted: SpecificationItem::Inherent(false),
             model: None,
             counterexample_print: vec![],
+            drop_spec: None,
+        }
+    }
+
+    pub(super) fn from_ref(source: DefId, refs: &TypeSpecRefs) -> Self {
+        Self {
+            source,
+            invariant: SpecificationItem::Inherent(
+                refs.invariants
+                    .clone()
+                    .into_iter()
+                    .map(LocalDefId::to_def_id)
+                    .collect(),
+            ),
+            trusted: SpecificationItem::Inherent(refs.trusted),
+            model: refs.model.clone(),
+            counterexample_print: refs.countexample_print.clone(),
+            drop_spec: refs.drop_spec,
         }
     }
 }

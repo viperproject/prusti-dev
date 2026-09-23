@@ -33,7 +33,7 @@ use typed::SpecIdRef;
 
 use crate::specs::{
     external::ExternSpecResolver,
-    typed::{ProcedureSpecification, ProcedureSpecificationKind, SpecGraph, SpecificationItem},
+    typed::{ProcedureSpecification, ProcedureSpecificationKind, SpecGraph},
 };
 use prusti_specs::specifications::common::SpecificationId;
 
@@ -73,6 +73,7 @@ struct TypeSpecRefs {
     trusted: bool,
     model: Option<(String, LocalDefId)>,
     countexample_print: Vec<(Option<String>, LocalDefId)>,
+    drop_spec: Option<DefId>,
 }
 
 /// Specification collector, applied as a visitor over the crate HIR.
@@ -127,9 +128,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         let mut def_spec = typed::DefSpecificationMap::new();
         self.determine_procedure_specs(&mut def_spec);
         self.determine_closure_specs(&mut def_spec);
-        self.determine_extern_specs(&mut def_spec);
         self.determine_loop_specs(&mut def_spec);
         self.determine_type_specs(&mut def_spec);
+        self.determine_extern_specs(&mut def_spec);
         self.determine_prusti_assertions(&mut def_spec);
         self.determine_prusti_assumptions(&mut def_spec);
         self.determine_prusti_refutations(&mut def_spec);
@@ -358,6 +359,21 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             spec.set_extern_spec(extern_spec_decl.into());
             def_spec.proc_specs.insert(target_def_id, spec);
         }
+        for (extern_ty, specs) in self.extern_resolver.extern_ty_map.iter() {
+            if def_spec.type_specs.contains_key(extern_ty) {
+                PrustiError::incorrect(
+                    format!(
+                        "external specification provided for {}, which already has a specification",
+                        self.env.name.get_item_name(*extern_ty)
+                    ),
+                    MultiSpan::from_span(self.env.query.tcx().def_span(*extern_ty)),
+                )
+                .emit(&self.env.diagnostic);
+            }
+
+            let spec = typed::TypeSpecification::from_ref(*extern_ty, specs);
+            def_spec.type_specs.insert(*extern_ty, spec);
+        }
     }
 
     fn determine_loop_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
@@ -388,19 +404,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
             def_spec.type_specs.insert(
                 type_id.to_def_id(),
-                typed::TypeSpecification {
-                    source: type_id.to_def_id(),
-                    invariant: SpecificationItem::Inherent(
-                        refs.invariants
-                            .clone()
-                            .into_iter()
-                            .map(LocalDefId::to_def_id)
-                            .collect(),
-                    ),
-                    trusted: SpecificationItem::Inherent(refs.trusted),
-                    model: refs.model.clone(),
-                    counterexample_print: refs.countexample_print.clone(),
-                },
+                typed::TypeSpecification::from_ref(type_id.to_def_id(), refs),
             );
         }
     }
@@ -689,13 +693,42 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             }
         } else {
             // Don't collect specs "for" spec items
+            let mut fn_id = def_id;
 
             // Collect external function specifications
             if has_extern_spec_attr(attrs) {
                 let attr = read_prusti_attr("extern_spec", attrs).unwrap_or_default();
                 let kind = prusti_specs::ExternSpecKind::try_from(attr).unwrap();
-                self.extern_resolver
-                    .add_extern_fn(fn_kind, fn_decl, body_id, span, local_id, kind);
+                if let Some(source) = self
+                    .extern_resolver
+                    .add_extern_fn(fn_kind, fn_decl, body_id, span, local_id, kind)
+                {
+                    fn_id = source;
+                }
+            }
+
+            if has_prusti_attr(attrs, "drop_spec") {
+                // The contract of dropping a value of type `X`, declared as
+                // `#[extern_spec] impl Drop for X`: a never-called function
+                // `fn drop(_self: &mut X)`, registered on `X`.
+                let tcx = self.env.query.tcx();
+                let adt = tcx.fn_sig(fn_id).skip_binder().inputs().skip_binder()[0]
+                    .builtin_deref(true)
+                    .and_then(|ty| ty.ty_adt_def());
+                match adt {
+                    Some(adt) => {
+                        self.extern_resolver
+                            .extern_ty_map
+                            .entry(adt.did())
+                            .or_default()
+                            .drop_spec = Some(fn_id);
+                    }
+                    None => PrustiError::incorrect(
+                        "a `Drop` specification must be for a struct, enum or union".to_string(),
+                        MultiSpan::from_span(span),
+                    )
+                    .emit(&self.env.diagnostic),
+                }
             }
 
             // Collect procedure specifications

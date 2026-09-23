@@ -119,6 +119,12 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
     Ok(())
 }
 
+/// Whether `attr` is the `#[prusti::extern_spec = ..]` marker.
+fn is_extern_spec_attr(attr: &syn::Attribute) -> bool {
+    let segments = &attr.path.segments;
+    segments.len() == 2 && segments[0].ident == "prusti" && segments[1].ident == "extern_spec"
+}
+
 fn rewrite_trait_impl(
     impl_item: syn::ItemImpl,
     new_ty: Box<syn::Type>,
@@ -134,6 +140,10 @@ fn rewrite_trait_impl(
     let item_trait_path = impl_item.trait_.as_ref().unwrap().1.clone();
     let item_trait_typath: syn::TypePath =
         parse_quote_spanned! {item_trait_path.span()=> #item_trait_path };
+    let is_drop = item_trait_path
+        .segments
+        .last()
+        .is_some_and(|segment| segment.ident == "Drop");
 
     // TODO: reduce duplication with rewrite_plain_impl
     for item in impl_item.items.into_iter() {
@@ -147,12 +157,33 @@ fn rewrite_trait_impl(
             syn::ImplItem::Method(method) => {
                 check_is_stub(&method.block)?;
 
-                let (rewritten_method, spec_items) = generate_extern_spec_method_stub(
+                let (mut rewritten_method, spec_items) = generate_extern_spec_method_stub(
                     &method,
                     &item_ty,
                     Some(&item_trait_typath),
                     ExternSpecKind::TraitImpl,
                 )?;
+                if is_drop {
+                    // `impl Drop for X`: the contract of dropping an `X` (its
+                    // whole drop glue). The stub cannot resolve its target
+                    // the usual way: `Drop::drop` may not be mentioned
+                    // explicitly (E0040), and `X` need not implement `Drop`
+                    // itself (the glue may come from private fields). It
+                    // becomes a trusted, never-called function carrying the
+                    // contract, which Prusti looks up by `X`.
+                    rewritten_method
+                        .attrs
+                        .retain(|attr| !is_extern_spec_attr(attr));
+                    rewritten_method
+                        .attrs
+                        .push(parse_quote_spanned! {method.span()=> #[prusti::drop_spec]});
+                    rewritten_method
+                        .attrs
+                        .push(parse_quote_spanned! {method.span()=> #[prusti::trusted]});
+                    rewritten_method.block = parse_quote_spanned! {method.span()=>
+                        { unimplemented!() }
+                    };
+                }
 
                 new_impl
                     .items

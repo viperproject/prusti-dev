@@ -157,6 +157,19 @@ pub fn is_type_trusted(ty: ty::Ty) -> bool {
     }
 }
 
+/// The function carrying the contract of dropping a value of type `ty`
+/// (from `#[extern_spec] impl Drop for X`), if one was declared.
+pub fn get_type_drop_spec(ty: ty::Ty) -> Option<DefId> {
+    match ty.kind() {
+        prusti_rustc_interface::middle::ty::TyKind::Adt(adt_def, _) => with_type_spec(|def_spec| {
+            def_spec
+                .get_type_spec(&adt_def.did())
+                .and_then(|type_spec| type_spec.drop_spec)
+        }),
+        _ => None,
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct SpecEncTask {
     pub def_id: DefId, // ID of the function

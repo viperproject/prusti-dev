@@ -1379,6 +1379,75 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         self.vcx.mk_local_ex(local)
     }
 
+    /// Whether `place` holds exclusive capability when the current block's
+    /// terminator is reached.
+    fn terminator_holds_exclusive(&self, place: mir::Place<'vir>) -> bool {
+        let cfpcs = self
+            .current_fpcs
+            .as_ref()
+            .unwrap()
+            .statements
+            .last()
+            .unwrap();
+        cfpcs.states[EvalStmtPhase::PreOperands]
+            .places_with_capapability(CapabilityKind::Exclusive)
+            .contains(&Place::from(place))
+    }
+
+    /// Applies the drop contract of `place`'s type, if one was declared
+    /// (`#[extern_spec] impl Drop for X`): the drop of the value is a call to
+    /// the contract's `fn drop(&mut self)` through a temporary mutable
+    /// reference to the place. The reference's lifetime ends with the call
+    /// (the contract returns nothing), so the referent's permission simply
+    /// comes back through the contract's postcondition; afterwards the place
+    /// is released as for any other drop.
+    fn apply_drop_contract(&mut self, place: mir::Place<'vir>) -> EncodeResult<'vir, (), E> {
+        let tcx = self.vcx.tcx();
+        let ty = place.ty(self.local_decls, tcx).ty;
+        let Some(drop_spec) = crate::encoders::get_type_drop_spec(ty) else {
+            return Ok(());
+        };
+        let ty::TyKind::Adt(_, adt_args) = *ty.kind() else {
+            unreachable!("drop contracts are registered on ADTs")
+        };
+        // The contract's generics mirror the type's type and const
+        // parameters, in order (its lifetimes are its own).
+        let mut types = adt_args.types();
+        let mut consts = adt_args.consts();
+        let substs = ty::GenericArgs::for_item(tcx, drop_spec, |param, _| match param.kind {
+            ty::GenericParamDefKind::Lifetime => tcx.lifetimes.re_erased.into(),
+            ty::GenericParamDefKind::Type { .. } => types.next().unwrap().into(),
+            ty::GenericParamDefKind::Const { .. } => consts.next().unwrap().into(),
+        });
+        let contract =
+            self.deps
+                .require_dep::<encoders::MethodCallEnc>(CallTaskDescription::new(
+                    self.def_id,
+                    substs,
+                    drop_spec,
+                ))?;
+
+        let ref_ty = ty::Ty::new_mut_ref(tcx, tcx.lifetimes.re_erased, ty);
+        let p_ref_ty = self.ty_use_impure(ref_ty);
+        let place_expr = self.encode_place(Place::from(place))?;
+        let metadata = place_expr
+            .expr
+            .metadata
+            .unwrap_or_else(|| self.expect_thin_ptr_metadata(ref_ty));
+        let reference = p_ref_ty
+            .expect_mutref()
+            .prim_to_snap_assign(place_expr.expr.expect_predicate(), metadata)
+            .upcast_ty();
+        let tmp: vir::ExprRef<'vir> = self.new_tmp(vir::TYPE_REF);
+        self.stmt(p_ref_ty.apply_method_assign(self.vcx, tmp, reference));
+        self.stmts(p_ref_ty.fold(None, tmp, None, None, None));
+        let borrowed = self.new_label("drop");
+        let dest: vir::ExprRef<'vir> = self.new_tmp(vir::TYPE_REF);
+        self.stmts(contract.call(vec![tmp], dest));
+        self.stmts(p_ref_ty.unfold(None, tmp, None, None, Some(vir::OldLabel::Label(borrowed))));
+        Ok(())
+    }
+
     pub(crate) fn new_label(&mut self, base: &str) -> &'vir str {
         let name = vir::vir_format!(self.vcx, "{base}{}", self.label_ctr);
         self.label_ctr += 1;
@@ -2034,8 +2103,17 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             }
             | mir::TerminatorKind::Drop { target, .. } => {
                 // A `Drop`'s semantics (releasing the dropped place's
-                // permission via a weaken exhale) are carried by the PCG
-                // statements, so only its goto remains to be encoded here.
+                // permission via a weaken exhale, possibly deferred to its
+                // `StorageDead`) are carried by the PCG statements, so only
+                // its goto remains to be encoded here, preceded by the
+                // effects of the type's drop contract. The MIR is not
+                // drop-elaborated: a place already moved out holds nothing
+                // and has nothing to drop.
+                if let mir::TerminatorKind::Drop { place, .. } = &terminator.kind
+                    && self.terminator_holds_exclusive(*place)
+                {
+                    self.apply_drop_contract(*place)?;
+                }
                 self.goto_single_succ(location, *target)?
             }
             mir::TerminatorKind::SwitchInt { discr, targets } => {
@@ -2115,6 +2193,16 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 );
 
                 let (func_def_id, caller_substs, is_pure) = self.get_call_data(func);
+                // `mem::drop(x)` drops `x`: the effects of its type's drop
+                // contract happen here, before the value moves into the call
+                // (whose own encoding is a pure discard).
+                if self.vcx.tcx().is_diagnostic_item(
+                    prusti_rustc_interface::span::symbol::sym::mem_drop,
+                    func_def_id,
+                ) && let Some(mir::Operand::Move(place)) = args.first().map(|arg| &arg.node)
+                {
+                    self.apply_drop_contract(*place)?;
+                }
                 // A call whose span comes from a macro expansion (e.g. the
                 // `core::panicking::panic` call inside a failing `assert!`)
                 // was not written by the user, so reporting "precondition

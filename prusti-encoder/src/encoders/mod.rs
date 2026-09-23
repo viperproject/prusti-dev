@@ -32,8 +32,8 @@ pub(crate) use mir_shared::EncodeResult;
 pub use pure::spec::MirSpecEnc;
 pub(super) use spec::with_proc_spec;
 pub use spec::{
-    SpecEnc, SpecEncTask, is_function_pure, is_function_trusted, is_type_trusted, kind_is_pure,
-    report_kind_refinement_error, spec_is_trusted, spec_items,
+    SpecEnc, SpecEncTask, get_type_drop_spec, is_function_pure, is_function_trusted,
+    is_type_trusted, kind_is_pure, report_kind_refinement_error, spec_is_trusted, spec_items,
 };
 pub use ty::{
     TyInhabitedEnc,
