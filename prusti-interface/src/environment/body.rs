@@ -293,6 +293,21 @@ impl<'tcx> EnvBody<'tcx> {
         self.set_monomorphised(def_id, substs, caller_def_id, body)
     }
 
+    /// Get the MIR body of a named constant item, monomorphised with the
+    /// given type substitutions.
+    pub fn get_const_body(
+        &self,
+        def_id: DefId,
+        substs: GenericArgsRef<'tcx>,
+        caller_def_id: Option<DefId>,
+    ) -> MirBody<'tcx> {
+        if let Some(body) = self.get_monomorphised(def_id, substs, caller_def_id) {
+            return body;
+        }
+        let body = MirBody(Rc::new(self.tcx.mir_for_ctfe(def_id).clone()));
+        self.set_monomorphised(def_id, substs, caller_def_id, body)
+    }
+
     pub fn get_promoted_constant_body(
         &self,
         def_id: DefId,

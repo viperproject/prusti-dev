@@ -20,7 +20,7 @@ use crate::encoders::{
     addr::RefDataEnc,
     ty::{
         RustTyDecomposition,
-        generics::{GParams, GenericParamsEnc},
+        generics::{GArgs, GParams, GenericParamsEnc},
         use_pure::{TyUsePure, TyUsePureEnc},
     },
 };
@@ -38,6 +38,14 @@ pub enum ConstEncTask<'vir> {
         context: GParams<'vir>, // generic context of the body the constant is in
         span: Span,
     },
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum ConstEncError {
+    /// The constant's evaluated value contains a builtin type (e.g. `Real`),
+    /// whose Rust value is a dummy carrying no information: the constant must
+    /// be encoded from its MIR body instead.
+    LossyBuiltin,
 }
 
 /// Encodes constants into snapshot expressions. The evaluation of a constant
@@ -201,6 +209,12 @@ impl<'enc, 'vir: 'enc> Enc<'enc, 'vir> {
                         .inner
                         .field_snaps_to_snap(snaps)
                 }
+                super::ty::TySpecifics::Builtin(_) => {
+                    return Err(EncodeFullError::EncodingError(
+                        ConstEncError::LossyBuiltin,
+                        None,
+                    ));
+                }
                 _ => unreachable!(),
             })
         })
@@ -324,9 +338,17 @@ impl TaskEncoder for ConstEnc {
     const ENCODER_NAME: &'static str = "const encoder";
 
     type TaskDescription<'vir> = ConstEncTask<'vir>;
+
+    fn describe_error(error: Self::EncodingError) -> String {
+        match error {
+            ConstEncError::LossyBuiltin => "the value of a builtin-typed (e.g. `Real`) constant \
+                carries no information and no MIR body is available to encode it from"
+                .to_string(),
+        }
+    }
     type OutputFullDependency<'vir> = vir::ExprCSnap<'vir>;
     type OutputFullLocal<'vir> = Vec<vir::Function<'vir>>;
-    type EncodingError = ();
+    type EncodingError = ConstEncError;
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task
@@ -365,29 +387,40 @@ impl TaskEncoder for ConstEnc {
                         .tcx()
                         .const_eval_resolve(context.typing_env(), uneval, span);
                     if let Ok(val) = resolved {
-                        Self::encode_const_val(deps, val, ty, context, Some(span))
-                    } else if let Some(promoted) = uneval.promoted {
+                        match Self::encode_const_val(deps, val, ty, context, Some(span)) {
+                            // The evaluated value is a dummy carrying no
+                            // information; fall through to encoding the
+                            // constant's MIR body instead.
+                            Err(EncodeFullError::EncodingError(ConstEncError::LossyBuiltin, _)) => {
+                            }
+                            res => return res,
+                        }
+                    }
+                    let (kind, gargs) = match uneval.promoted {
                         // The promoted MIR is encoded at identity substs, so
                         // its types live in the generic context of the body it
                         // was promoted out of (`uneval.def`): no caller
                         // context is needed.
-                        let task = MirPureEncTask {
-                            encoding_depth: encoding_depth + 1,
-                            parent_def_id: uneval.def,
-                            gargs: GParams::from(uneval.def).identity_args(),
-                            kind: PureKind::Constant(promoted),
-                        };
-                        let expr = deps.require_dep::<MirPureEnc>(task)?.expr;
-                        use vir::Reify;
-                        let args = Default::default();
-                        Ok((
-                            Vec::new(),
-                            expr.reify(vcx, (uneval.def, vcx.alloc(args), vir::OldLabel::None))
-                                .downcast_ty(),
-                        ))
-                    } else {
-                        todo!("const too generic")
-                    }
+                        Some(promoted) => (
+                            PureKind::Constant(promoted),
+                            GParams::from(uneval.def).identity_args(),
+                        ),
+                        None => (PureKind::NamedConstant, GArgs::new(context, uneval.args)),
+                    };
+                    let task = MirPureEncTask {
+                        encoding_depth: encoding_depth + 1,
+                        parent_def_id: uneval.def,
+                        gargs,
+                        kind,
+                    };
+                    let expr = deps.require_dep::<MirPureEnc>(task)?.expr;
+                    use vir::Reify;
+                    let args = Default::default();
+                    Ok((
+                        Vec::new(),
+                        expr.reify(vcx, (uneval.def, vcx.alloc(args), vir::OldLabel::None))
+                            .downcast_ty(),
+                    ))
                 })?,
                 mir::Const::Ty(ty, const_) => Self::encode_ty_const(deps, const_, ty, context)?,
             },

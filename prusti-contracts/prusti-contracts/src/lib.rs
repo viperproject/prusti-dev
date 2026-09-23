@@ -1,8 +1,10 @@
 #![no_std]
 #![allow(internal_features)]
 #![cfg_attr(feature = "prusti", feature(unboxed_closures, tuple_trait))]
-#![feature(core_intrinsics)]
 #![feature(auto_traits)]
+#![feature(const_convert)]
+#![feature(const_trait_impl)]
+#![feature(core_intrinsics)]
 #![feature(negative_impls)]
 #![feature(try_trait_v2)]
 #![feature(cfg_version)]
@@ -115,7 +117,7 @@ mod private_shared {
 
     macro_rules! __dummy_from_impls__ {
         ($ty:ident: $($src:ty),*) => {$(
-            impl From<$src> for $ty {
+            impl const From<$src> for $ty {
                 fn from(_: $src) -> Self {
                     $ty(())
                 }
@@ -158,7 +160,7 @@ mod private_shared {
     #[derive(Clone, Copy)]
     pub struct Real(());
 
-    __dummy_from_impls__!(Real: f16, f32, f64, f128);
+    __dummy_from_impls__!(Real: isize, f16, f32, f64, f128);
     __dummy_trait_impls__!(Real: Add add, Sub sub, Mul mul, Div div);
 
     impl Neg for Real {
