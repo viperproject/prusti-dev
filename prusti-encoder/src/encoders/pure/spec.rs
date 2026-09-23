@@ -8,6 +8,7 @@ use prusti_interface::{
     },
 };
 use prusti_rustc_interface::{
+    hir::def::DefKind,
     middle::{mir, ty},
     span::{Span, def_id::DefId},
 };
@@ -129,7 +130,52 @@ struct SpecEncCtx<'vir> {
     extern_spec: Option<ExternSpecKind>,
     enc_mode: MirSpecEncMode,
     context_def_id: DefId,
+    /// The substs of the context as the TRAIT method it implements (its own
+    /// identity if it implements none), see `closure_substs`.
     substs: ty::GenericArgsRef<'vir>,
+}
+
+/// The substs instantiating the generics of the spec closure `closure` in
+/// the context `ctx`. A closure declared on a trait method (the context's
+/// own trait, or the stub of a trait-level extern spec) has the trait
+/// method's generics (`Self` first): it is instantiated with the trait
+/// method's substs of the context. A closure declared on the context itself
+/// has its generics. Otherwise it was declared on an extern-spec item
+/// mirroring the context's signature: its generics correspond to the
+/// context's own, kind by kind (the mirror may lack the impl's lifetimes).
+fn closure_substs<'vir>(
+    vcx: &'vir vir::VirCtxt<'vir>,
+    ctx: SpecEncCtx<'vir>,
+    closure: DefId,
+) -> ty::GenericArgsRef<'vir> {
+    let Some(parent) = vcx.tcx().generics_of(closure).parent else {
+        return ctx.substs;
+    };
+    if vcx.tcx().trait_of_assoc(parent).is_some()
+        || matches!(vcx.tcx().def_kind(parent), DefKind::Trait)
+        || matches!(ctx.extern_spec, Some(ExternSpecKind::Trait))
+    {
+        return ctx.substs;
+    }
+    if parent == ctx.context_def_id {
+        return ty::GenericArgs::identity_for_item(vcx.tcx(), ctx.context_def_id);
+    }
+    let context_identity = ty::GenericArgs::identity_for_item(vcx.tcx(), ctx.context_def_id);
+    let mut tys = context_identity
+        .iter()
+        .filter(|arg| arg.as_type().is_some());
+    let mut consts = context_identity
+        .iter()
+        .filter(|arg| arg.as_const().is_some());
+    ty::GenericArgs::for_item(vcx.tcx(), parent, |param, _| match param.kind {
+        ty::GenericParamDefKind::Lifetime => vcx.tcx().lifetimes.re_erased.into(),
+        ty::GenericParamDefKind::Type { .. } => tys
+            .next()
+            .expect("extern spec item with more type parameters than the specified item"),
+        ty::GenericParamDefKind::Const { .. } => consts
+            .next()
+            .expect("extern spec item with more const parameters than the specified item"),
+    })
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -385,7 +431,7 @@ impl MirSpecEnc {
             parent_def_id: def_id,
             gargs: GArgs::new(
                 GParams::new_maybe_extern(ctx.context_def_id, ctx.extern_spec),
-                ctx.substs,
+                closure_substs(vcx, ctx, def_id),
             ),
         });
         spec.inspect_err(|err| {
