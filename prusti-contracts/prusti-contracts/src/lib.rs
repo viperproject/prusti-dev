@@ -183,6 +183,13 @@ mod private_shared {
     #[derive(Clone, Copy)]
     pub struct Real(());
 
+    impl Real {
+        /// Write (full) permission amount, i.e. Viper `write` (`1/1`).
+        pub const WRITE: Real = Real::from(1isize);
+        /// No permission, i.e. Viper `none` (`0/1`).
+        pub const NONE: Real = Real::from(0isize);
+    }
+
     __dummy_from_impls__!(Real: isize, f16, f32, f64, f128);
     __dummy_trait_impls__!(Real: Add add, Sub sub, Mul mul, Div div);
 
