@@ -416,10 +416,19 @@ impl TaskEncoder for ConstEnc {
                     let expr = deps.require_dep::<MirPureEnc>(task)?.expr;
                     use vir::Reify;
                     let args = Default::default();
+                    let addrs = Default::default();
                     Ok((
                         Vec::new(),
-                        expr.reify(vcx, (uneval.def, vcx.alloc(args), vir::OldLabel::None))
-                            .downcast_ty(),
+                        expr.reify(
+                            vcx,
+                            (
+                                uneval.def,
+                                vcx.alloc(args),
+                                vir::OldLabel::None,
+                                vcx.alloc(addrs),
+                            ),
+                        )
+                        .downcast_ty(),
                     ))
                 })?,
                 mir::Const::Ty(ty, const_) => Self::encode_ty_const(deps, const_, ty, context)?,

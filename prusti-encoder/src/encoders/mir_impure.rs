@@ -1771,11 +1771,21 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             .iter()
             .map(|local| (*local, self.local_defs[*local].impure_snap))
             .collect();
+        let addrs: FxHashMap<mir::Local, _> = enc_output
+            .inputs
+            .iter()
+            .map(|local| (*local, self.local_defs[*local].local_ex))
+            .collect();
         let expr = enc_output
             .expr
             .reify(
                 self.vcx,
-                (self.def_id, self.vcx.alloc(locals), vir::OldLabel::None),
+                (
+                    self.def_id,
+                    self.vcx.alloc(locals),
+                    vir::OldLabel::None,
+                    self.vcx.alloc(addrs),
+                ),
             )
             .downcast_ty();
         Ok(expr)

@@ -72,15 +72,29 @@ impl<'vir> PledgeExpr<'vir> {
 
     pub fn expr(&self, args: PledgeArgs<'vir>) -> vir::ExprBool<'vir> {
         vir::with_vcx(|vcx| {
-            self.expr
-                .reify(vcx, (self.did, args.0, vir::OldLabel::None))
+            self.expr.reify(
+                vcx,
+                (
+                    self.did,
+                    args.0,
+                    vir::OldLabel::None,
+                    vcx.alloc(FxHashMap::default()),
+                ),
+            )
         })
     }
 
     pub fn expr_at_label(&self, args: PledgeArgs<'vir>, label: &'vir str) -> vir::ExprBool<'vir> {
         vir::with_vcx(|vcx| {
-            self.expr
-                .reify(vcx, (self.did, args.0, vir::OldLabel::Label(label)))
+            self.expr.reify(
+                vcx,
+                (
+                    self.did,
+                    args.0,
+                    vir::OldLabel::Label(label),
+                    vcx.alloc(FxHashMap::default()),
+                ),
+            )
         })
     }
 
@@ -302,6 +316,20 @@ impl TaskEncoder for MirSpecEnc {
             let all_args = vcx.alloc(all_args);
             let pre_args = all_args; // it should be ok to provide more keys than required
 
+            // The addresses of the method locals the spec parameters
+            // correspond to, for `Impure` mode (where args and result live in
+            // `Ref`-typed locals). Pure modes have snapshot-only arguments.
+            let arg_addrs: FxHashMap<mir::Local, vir::ExprRef<'vir>> = match enc_mode {
+                MirSpecEncMode::Impure => (1..=local_defs.arg_count)
+                    .map(mir::Local::from)
+                    .map(|local| (local, local_defs[local].local_ex))
+                    .collect(),
+                MirSpecEncMode::PureWithResult | MirSpecEncMode::PureWithoutResult => {
+                    FxHashMap::default()
+                }
+            };
+            let pre_addrs = vcx.alloc(arg_addrs);
+
             // Encode each functional precondition; if one cannot be encoded (e.g.
             // it uses an unsupported feature), report the error at *that spec's*
             // span and skip only it, keeping the permission contract and the other
@@ -317,7 +345,10 @@ impl TaskEncoder for MirSpecEnc {
                     // positions inside this precondition point at the spec.
                     let expr = vcx.with_span(span, |vcx| {
                         handle_spec_permission_errors(vcx, span);
-                        expr.reify(vcx, (*spec_def_id, pre_args, vir::OldLabel::None))
+                        expr.reify(
+                            vcx,
+                            (*spec_def_id, pre_args, vir::OldLabel::None, pre_addrs),
+                        )
                     });
                     Some((expr, span))
                 })
@@ -337,6 +368,22 @@ impl TaskEncoder for MirSpecEnc {
                 }
                 MirSpecEncMode::PureWithResult | MirSpecEncMode::PureWithoutResult => all_args,
             };
+            let post_addrs = match enc_mode {
+                // Addresses are not `old`-wrapped: locals do not move. The
+                // result's address is added under the result parameter.
+                MirSpecEncMode::Impure => {
+                    let post_addrs: FxHashMap<mir::Local, vir::ExprRef<'vir>> = pre_addrs
+                        .iter()
+                        .map(|(local, addr)| (*local, *addr))
+                        .chain([(
+                            (local_defs.arg_count + 1).into(),
+                            local_defs[mir::RETURN_PLACE].local_ex,
+                        )])
+                        .collect();
+                    vcx.alloc(post_addrs)
+                }
+                MirSpecEncMode::PureWithResult | MirSpecEncMode::PureWithoutResult => pre_addrs,
+            };
             let posts: Vec<(vir::ExprBool<'_>, Span)> = posts
                 .iter()
                 .filter_map(|spec_def_id| {
@@ -352,7 +399,10 @@ impl TaskEncoder for MirSpecEnc {
                         });
                         handle_spec_permission_errors(vcx, span);
                         let expr = spec.expr.downcast_ty::<vir::Bool>();
-                        let expr = expr.reify(vcx, (*spec_def_id, post_args, vir::OldLabel::None));
+                        let expr = expr.reify(
+                            vcx,
+                            (*spec_def_id, post_args, vir::OldLabel::None, post_addrs),
+                        );
                         let expr = expr.realloc_span();
                         Some((expr, span))
                     })

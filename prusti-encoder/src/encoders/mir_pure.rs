@@ -33,10 +33,17 @@ pub enum MirPureEncError {
     // UnsupportedTerminator,
 }
 
+/// The reify context of pure/spec expressions: the function whose body is
+/// encoded, the snapshot of each of its parameters, the label `old` refers
+/// to, and (for specs of impure contexts) the address of the method local
+/// each parameter corresponds to. The address map may be empty (e.g. for the
+/// specs of pure functions, whose arguments are snapshot-only); references to
+/// locals without an address are encoded with a `null` address.
 pub type ExprInput<'vir> = (
     DefId,
     &'vir FxHashMap<mir::Local, vir::ExprSnap<'vir>>,
     vir::OldLabel<'vir>,
+    &'vir FxHashMap<mir::Local, vir::ExprRef<'vir>>,
 );
 type ExprRet<'vir> = vir::ExprGenSnap<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
 type ExprRetRef<'vir> = vir::ExprGenRef<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
@@ -1094,15 +1101,12 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     ));
                 }
                 let encoded_place = self.encode_place_with_ref(curr_ver, (*place).into())?;
-                // We want to distinguish if `place` is a value that lives
-                // in pure code or not. If it lives in impure (the only way
-                // that this can happen is that we have a `&mut` argument)
-                // then we want to return the actual address in the
-                // snapshot. Otherwise we want to use `null` as this value
-                // should never escape pure code anyway. Thus `place_ref`
-                // will return `None` if this isn't a re-borrow, and if it's
-                // a re-borrow of created-in-pure reference then it will be
-                // field projections of `null` which is also `null`.
+                // The place's address: seeded from the reify context's
+                // address map for spec parameters (and overridden by the
+                // referent address at a `Deref`), see
+                // `encode_place_with_ref`. A place that genuinely lives only
+                // in pure code has no address and gets `null`: such a
+                // reference never escapes pure code.
                 let place_ref = encoded_place
                     .place_ref
                     .unwrap_or_else(|| self.vcx.mk_null().lazy());
@@ -1347,7 +1351,28 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         } else {
             self.mk_local_ex(place.local, curr_ver[&place.local])
         };
-        let mut encoded_place = EncodedPlace::new(expr, None);
+        // Seed the place address for spec locals bound to method locals: the
+        // reify context maps them to the caller-side addresses (`lctx.3`),
+        // which is what keys the interior-mutable objects of by-value places
+        // (e.g. `&result.count` in a postcondition, or
+        // `old(cell_value(&self))` for a by-value `self`). Field projections
+        // then build the real field-address chain; a `Deref` overrides it
+        // with the referent address from the snapshot. A local without a
+        // mapped address (a spec-internal temporary, or any local of a pure
+        // function's spec) falls back to `null`: such a reference never
+        // escapes pure code.
+        let local = place.local;
+        let place_ref = Some(self.vcx.mk_lazy_expr(
+            vir::vir_format!(self.vcx, "addr of _{}", local.index()),
+            vir::TYPE_REF,
+            Box::new(move |vcx, lctx: ExprInput<'vir>| {
+                lctx.3
+                    .get(&local)
+                    .map(|addr| addr.kind)
+                    .unwrap_or_else(|| vcx.mk_null().kind)
+            }),
+        ));
+        let mut encoded_place = EncodedPlace::new(expr, place_ref);
         // TODO: factor this out (duplication with impure encoder)?
         for elem in place.projection {
             // The snapshots of the arguments and the result are pinned to a
@@ -1469,11 +1494,13 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             })?
             .expr;
         let reify_args = self.vcx.alloc(reify_args);
+        let no_addrs = self.vcx.alloc(FxHashMap::default());
         let body = self.vcx.mk_lazy_expr(
             vir::vir_format!(self.vcx, "spec closure body ({name})"),
             body.ty(),
             Box::new(move |vcx, lctx: ExprInput<'vir>| {
-                body.reify(vcx, (cl_def_id, reify_args, lctx.2)).kind
+                body.reify(vcx, (cl_def_id, reify_args, lctx.2, no_addrs))
+                    .kind
             }),
         );
         Ok((qvars, body.downcast_ty::<vir::Bool>()))
