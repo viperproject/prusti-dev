@@ -890,6 +890,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
 
                 let func_ty = func.ty(self.body, self.vcx.tcx());
                 let (def_id, arg_tys) = RustSignature::get_def_id_and_caller_substs(func_ty);
+                let (def_id, arg_tys) =
+                    crate::encoders::resolve_specced_trait_call(self.def_id, def_id, arg_tys);
                 let expr = {
                     // A fn call in pure can only be one of two kinds: a
                     // call to another pure function, or a call to a prusti

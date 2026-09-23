@@ -781,9 +781,6 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 //   function call; instead we should figure out which
                 //   wand it is based on the edge info.
                 // TODO: closures
-                let wands = self.deps.require_dep::<WandEnc>(WandEncTask {
-                    data: call.function_data().unwrap(),
-                })?;
                 let bb = &self.body[call.location().block];
                 let terminator = bb.terminator.as_ref().unwrap();
                 match &terminator.kind {
@@ -798,7 +795,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         if self.wandless_calls.contains(&call.location().block) {
                             return Ok(());
                         }
-                        let (_, caller_substs, _) = self.get_call_data(func);
+                        // The wands of the function actually called (a trait
+                        // method call may have been resolved to its impl).
+                        let (func_def_id, caller_substs, _) = self.get_call_data(func);
+                        let wands = self.deps.require_dep::<WandEnc>(WandEncTask {
+                            data: pcg::borrow_pcg::FunctionData::new(func_def_id),
+                        })?;
 
                         let (_, dest_snap, _, _) =
                             self.encode_place_with_snap((*destination).into())?;
@@ -1366,6 +1368,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn get_call_data(&self, func: &mir::Operand<'vir>) -> (DefId, ty::GenericArgsRef<'vir>, bool) {
         let func_ty = func.ty(self.body, self.vcx.tcx());
         let (func_def_id, caller_substs) = RustSignature::get_def_id_and_caller_substs(func_ty);
+        let (func_def_id, caller_substs) =
+            crate::encoders::resolve_specced_trait_call(self.def_id, func_def_id, caller_substs);
         let is_pure =
             crate::encoders::is_function_pure(func_def_id, GArgs::new(self.def_id, caller_substs));
         (func_def_id, caller_substs, is_pure)
