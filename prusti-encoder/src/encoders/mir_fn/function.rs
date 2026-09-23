@@ -1,7 +1,7 @@
 use prusti_interface::PrustiError;
-use prusti_rustc_interface::span::def_id::DefId;
+use prusti_rustc_interface::{middle::ty, span::def_id::DefId};
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder, TaskEncoderDependencies};
-use vir::{FunctionIdn, Reify};
+use vir::{CastType, FunctionIdn, Reify};
 
 use crate::encoders::{
     MirLocalDefEnc, MirLocalDefEncTask, MirPureEnc, MirPureEncTask, MirSpecEnc, Pure, PureKind,
@@ -9,10 +9,81 @@ use crate::encoders::{
     mir_fn::{CallTaskDescription, RustSignature},
     pure::spec::MirSpecEncMode,
     ty::{
+        RustTyDecomposition,
         generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
         use_pure::TyUsePure,
     },
 };
+
+/// The body of a `#[field_projection(a.b)]` spec function: the projection of
+/// the field path `a.b` (which may name private fields: nothing here is
+/// type-checked by rustc) from the referent of the function's first argument,
+/// which must be a shared reference. The result is the field itself when the
+/// return type is the field's type, or a reference pointing at the field in
+/// place when it is a shared reference to the field's type. The outer error
+/// is an encoding failure, the inner one a malformed projection.
+fn field_projection_body<'vir>(
+    vcx: &'vir vir::VirCtxt<'vir>,
+    deps: &mut TaskEncoderDependencies<'vir, FunctionEnc>,
+    def_id: DefId,
+    params: GParams<'vir>,
+    path: &[String],
+    arg: vir::ExprSnap<'vir>,
+) -> Result<Result<vir::ExprSnap<'vir>, String>, task_encoder::EncodeFullError<'vir, FunctionEnc>> {
+    let sig = vcx
+        .tcx()
+        .fn_sig(def_id)
+        .instantiate_identity()
+        .skip_binder();
+    let Some(ref_ty) = sig.inputs().first().copied() else {
+        return Ok(Err("the function takes no argument".to_string()));
+    };
+    let ty::TyKind::Ref(_, self_ty, ty::Mutability::Not) = *ref_ty.kind() else {
+        return Ok(Err(
+            "the first argument must be a shared reference".to_string()
+        ));
+    };
+    let ref_use = deps.require_dep::<TyUsePureEnc>(RustTyDecomposition::from_ty(ref_ty, params))?;
+    let ref_data = ref_use.expect_immref();
+    let (cur_ty, snap, addr) = match crate::encoders::ty::use_pure::project_field_path(
+        vcx,
+        deps,
+        params,
+        path,
+        self_ty,
+        ref_data.value_access(arg.downcast_ty()),
+        ref_data.addr_access(arg.downcast_ty()),
+    )? {
+        Ok(projected) => projected,
+        Err(message) => return Ok(Err(message)),
+    };
+    let ret_ty = sig.output();
+    let same =
+        |a: ty::Ty<'vir>, b: ty::Ty<'vir>| vcx.tcx().erase_regions(a) == vcx.tcx().erase_regions(b);
+    if same(ret_ty, cur_ty) {
+        return Ok(Ok(snap));
+    }
+    if let ty::TyKind::Ref(_, inner, ty::Mutability::Not) = *ret_ty.kind()
+        && same(inner, cur_ty)
+    {
+        let ret_use =
+            deps.require_dep::<TyUsePureEnc>(RustTyDecomposition::from_ty(ret_ty, params))?;
+        let unit = RustTyDecomposition::from_ty(vcx.tcx().types.unit, params);
+        let metadata = deps
+            .require_dep::<TyUsePureEnc>(unit)?
+            .zst_to_snap()
+            .unwrap()
+            .upcast_ty();
+        return Ok(Ok(ret_use
+            .expect_immref()
+            .prim_to_snap(addr, metadata, snap)
+            .upcast_ty()));
+    }
+    Ok(Err(format!(
+        "the return type `{ret_ty}` is neither the field's type `{cur_ty}` nor a shared \
+        reference to it"
+    )))
+}
 
 // Function wrapper
 
@@ -173,7 +244,19 @@ impl TaskEncoder for FunctionEnc {
             let spec =
                 deps.require_dep::<MirSpecEnc>((def_id, def_id, MirSpecEncMode::PureWithResult))?;
 
-            let expr = if !crate::encoders::encodes_body(def_id) {
+            let expr = if let Some(path) = crate::encoders::get_field_projection(def_id) {
+                let arg = vcx.mk_local_ex(local_defs.local_decl_args().next().unwrap());
+                match field_projection_body(vcx, deps, def_id, params, &path, arg)? {
+                    Ok(expr) => Some(expr),
+                    Err(message) => {
+                        vcx.emit_early_error(PrustiError::incorrect(
+                            format!("invalid `#[field_projection]`: {message}"),
+                            vcx.tcx().def_span(def_id).into(),
+                        ));
+                        None
+                    }
+                }
+            } else if !crate::encoders::encodes_body(def_id) {
                 None
             } else {
                 // Encode the body of the function. If it cannot be encoded (e.g. it

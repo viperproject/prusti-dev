@@ -915,6 +915,24 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     }
 }
 
+/// `#[field_projection(a.b)]`: marks a body-less spec function as the
+/// projection of the (possibly private) field path `a.b` of its first
+/// argument's referent.
+pub fn field_projection(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    let path: String = attr.to_string().split_whitespace().collect();
+    if path.is_empty() {
+        return syn::Error::new(
+            attr.span(),
+            "the `#[field_projection]` attribute takes a field path such as `a.b`",
+        )
+        .to_compile_error();
+    }
+    quote_spanned! {tokens.span()=>
+        #[prusti::field_projection = #path]
+        #tokens
+    }
+}
+
 pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     if !attr.is_empty() {
         return syn::Error::new(

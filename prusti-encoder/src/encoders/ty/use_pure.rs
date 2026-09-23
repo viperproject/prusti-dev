@@ -1,4 +1,4 @@
-use prusti_rustc_interface::abi;
+use prusti_rustc_interface::{abi, middle::ty};
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder};
 use vir::CastType;
 
@@ -685,4 +685,44 @@ impl<'vir> TyUsePureEnum<'vir> {
     ) -> vir::ExprGenCSnap<'vir, Curr, Next> {
         self.snap_to_discr_snap.call()(snap)
     }
+}
+
+/// Walks the (possibly private) field path `path` from a value of type `ty`
+/// with snapshot `snap` at address `addr`: the type, snapshot and address of
+/// the final field. The inner error describes a malformed path.
+pub(crate) fn project_field_path<'vir, E: TaskEncoder>(
+    vcx: &'vir vir::VirCtxt<'vir>,
+    deps: &mut task_encoder::TaskEncoderDependencies<'vir, E>,
+    params: GParams<'vir>,
+    path: &[String],
+    mut ty: ty::Ty<'vir>,
+    mut snap: vir::ExprSnap<'vir>,
+    mut addr: vir::ExprRef<'vir>,
+) -> Result<
+    Result<(ty::Ty<'vir>, vir::ExprSnap<'vir>, vir::ExprRef<'vir>), String>,
+    EncodeFullError<'vir, E>,
+> {
+    for name in path {
+        let ty::TyKind::Adt(adt, substs) = *ty.kind() else {
+            return Ok(Err(format!("`{ty}` has no field `{name}`")));
+        };
+        if !adt.is_struct() {
+            return Ok(Err(format!("`{ty}` is not a struct")));
+        }
+        let Some((idx, field)) = adt
+            .non_enum_variant()
+            .fields
+            .iter_enumerated()
+            .find(|(_, field)| field.name.as_str() == name)
+        else {
+            return Ok(Err(format!("`{ty}` has no field `{name}`")));
+        };
+        let ty_use =
+            deps.require_dep::<TyUsePureEnc>(super::RustTyDecomposition::from_ty(ty, params))?;
+        let proj = ty_use.expect_variant_opt(None)[idx];
+        snap = proj.read(snap.downcast_ty());
+        addr = proj.field_ref(addr);
+        ty = field.ty(vcx.tcx(), substs);
+    }
+    Ok(Ok((ty, snap, addr)))
 }

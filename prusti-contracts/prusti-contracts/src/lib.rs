@@ -58,6 +58,13 @@ pub use prusti_contracts_proc_macros::assert_on_expiry;
 /// A macro for marking a function as pure.
 pub use prusti_contracts_proc_macros::pure;
 
+/// `#[field_projection(a.b)]` on a body-less `#[pure] #[trusted]` spec
+/// function: Prusti defines the function as the projection of the (possibly
+/// private) field path `a.b` of its first argument's referent. The return
+/// type is either the field's type (the field is copied out) or a reference
+/// to it (the result points at the field in place).
+pub use prusti_contracts_proc_macros::field_projection;
+
 /// A macro for marking a function as trusted.
 pub use prusti_contracts_proc_macros::trusted;
 

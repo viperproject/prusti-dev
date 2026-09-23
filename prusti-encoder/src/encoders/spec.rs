@@ -170,6 +170,15 @@ pub fn get_type_drop_spec(ty: ty::Ty) -> Option<DefId> {
     }
 }
 
+/// The field path of a `#[field_projection(a.b)]` spec function.
+pub fn get_field_projection(def_id: DefId) -> Option<Vec<String>> {
+    vir::with_vcx(|vcx| {
+        let attrs = prusti_interface::environment::EnvQuery::new(vcx.tcx()).get_attributes(def_id);
+        prusti_interface::utils::read_prusti_attr("field_projection", attrs)
+            .map(|path| path.split('.').map(str::to_string).collect())
+    })
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct SpecEncTask {
     pub def_id: DefId, // ID of the function
