@@ -88,6 +88,59 @@ fn err<T>(span: Span, msg: &str) -> syn::Result<T> {
     Err(error(span, msg))
 }
 
+/// The identifiers a quantifier argument pattern binds.
+fn pat_idents(pat: &syn::Pat) -> Vec<syn::Ident> {
+    match pat {
+        syn::Pat::Ident(pat) => vec![pat.ident.clone()],
+        syn::Pat::Tuple(pat) => pat.elems.iter().flat_map(pat_idents).collect(),
+        _ => vec![],
+    }
+}
+
+/// The identifiers appearing anywhere in a token stream.
+fn idents_in(tokens: &TokenStream) -> Vec<syn::Ident> {
+    tokens
+        .clone()
+        .into_iter()
+        .flat_map(|token| match token {
+            TokenTree::Ident(ident) => vec![ident],
+            TokenTree::Group(group) => idents_in(&group.stream()),
+            _ => vec![],
+        })
+        .collect()
+}
+
+/// Checks the trigger sets of a quantifier against what Viper requires of them:
+/// every trigger mentions a bound variable, and every trigger set mentions all
+/// of them. Violating either is rejected by the Viper consistency check, with a
+/// message that does not point back at the offending trigger.
+fn check_triggers(triggers: &[Vec<TokenStream>], bound_vars: &[syn::Ident]) -> syn::Result<()> {
+    for set in triggers {
+        let mut mentioned = Vec::new();
+        for trigger in set {
+            let bound = idents_in(trigger)
+                .into_iter()
+                .filter(|ident| bound_vars.contains(ident))
+                .collect::<Vec<_>>();
+            if bound.is_empty() {
+                return err(
+                    trigger.span(),
+                    "a trigger must mention at least one bound variable",
+                );
+            }
+            mentioned.extend(bound);
+        }
+        if !bound_vars.iter().all(|var| mentioned.contains(var)) {
+            let span = set.first().map(|trigger| trigger.span());
+            return err(
+                span.unwrap_or_else(Span::call_site),
+                "a trigger set must mention all bound variables",
+            );
+        }
+    }
+    Ok(())
+}
+
 #[derive(Debug, Clone)]
 struct PrustiTokenStream {
     tokens: VecDeque<PrustiToken>,
@@ -316,16 +369,17 @@ impl PrustiTokenStream {
                     .pop_closure_args()
                     .ok_or_else(|| error(span, "expected quantifier body"))?;
 
-                {
+                let bound_vars = {
                     // for quantifiers, argument types must be explicit
                     // here we parse the closure with syn and check each
                     // argument has a type annotation
                     let cl_args = args.clone().parse_rust_only()?;
                     let check_cl = quote! { | #cl_args | 0 };
                     let parsed_cl = syn::parse2::<syn::ExprClosure>(check_cl)?;
+                    let mut bound_vars = Vec::new();
                     for pat in parsed_cl.inputs {
                         match pat {
-                            syn::Pat::Type(_) => {}
+                            syn::Pat::Type(pat) => bound_vars.extend(pat_idents(&pat.pat)),
                             _ => {
                                 return err(
                                     pat.span(),
@@ -334,12 +388,14 @@ impl PrustiTokenStream {
                             }
                         }
                     }
+                    bound_vars
                 };
 
                 let triggers = stream.extract_triggers()?;
                 if args.is_empty() {
                     return err(span, "a quantifier must have at least one argument");
                 }
+                check_triggers(&triggers, &bound_vars)?;
                 let args = args.parse()?;
                 let body = stream.parse()?;
                 kind.translate(span, triggers, args, body)
@@ -824,9 +880,11 @@ impl Quantifier {
         let trigger_sets = triggers
             .into_iter()
             .map(|set| {
+                // Each trigger closure is passed by reference, like the body
+                // closure: the encoder relies on the two being encoded alike.
                 let triggers = TokenStream::from_iter(set.into_iter().map(|trigger| {
                     quote_spanned! { trigger.span() =>
-                    #[prusti::spec_only] | #args | ( #trigger ), }
+                    &( #[prusti::spec_only] | #args | ( #trigger ) ), }
                 }));
                 quote_spanned! { full_span => ( #triggers ) }
             })
@@ -1175,8 +1233,8 @@ mod tests {
             ":: prusti_contracts :: exists (() , & (# [prusti :: spec_only] | x : i32 | -> bool { (:: prusti_contracts :: Ghost :: new_ref (& (a)) == :: prusti_contracts :: Ghost :: new_ref (& (b))) }) ,)",
         );
         assert_eq!(
-            parse_prusti("forall(|x: i32| a ==> b, triggers = [(c,), (d, e)])".parse().unwrap()).unwrap().to_string(),
-            ":: prusti_contracts :: forall (((# [prusti :: spec_only] | x : i32 | (c) ,) , (# [prusti :: spec_only] | x : i32 | (d) , # [prusti :: spec_only] | x : i32 | (e) ,) ,) , & (# [prusti :: spec_only] | x : i32 | -> bool { ! (a) || (b) }) ,)",
+            parse_prusti("forall(|x: i32| a ==> b, triggers = [(c(x),), (d(x), e(x))])".parse().unwrap()).unwrap().to_string(),
+            ":: prusti_contracts :: forall (((& (# [prusti :: spec_only] | x : i32 | (c (x))) ,) , (& (# [prusti :: spec_only] | x : i32 | (d (x))) , & (# [prusti :: spec_only] | x : i32 | (e (x))) ,) ,) , & (# [prusti :: spec_only] | x : i32 | -> bool { ! (a) || (b) }) ,)",
         );
         assert_eq!(
             parse_prusti("assert!(a === b ==> b)".parse().unwrap())
