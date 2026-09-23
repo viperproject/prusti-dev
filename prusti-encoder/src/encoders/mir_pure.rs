@@ -298,6 +298,12 @@ struct Enc<'vir: 'enc, 'enc> {
     rel1_mode: bool,
     before_expiry_mode: bool,
     impure_context: bool,
+    /// If the function being encoded is `#[pure_unstable]`, a reference to its
+    /// interior-mutability value-map parameter, forwarded to nested
+    /// `#[pure_unstable]` callees (e.g. the `#[interior_mut(EXPR)]` perm
+    /// closure forwarding it to `refcell_count`). `None` for ordinary
+    /// functions.
+    inner_map: Option<vir::ExprGenMap<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>>,
 }
 
 struct EncodedPlace<'vir> {
@@ -380,6 +386,24 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         deps: &'enc mut TaskEncoderDependencies<'vir, MirPureEnc>,
     ) -> Self {
         let rev_doms = rev_doms::ReverseDominators::new(&body.basic_blocks);
+        // A `#[pure_unstable]` function takes the IM-QP `Map` snapshot as an
+        // extra Viper parameter (added by `FunctionEnc`); reference it here so
+        // the body can forward it to `#[pure_unstable]` callees. The SPEC of
+        // such a function is spliced into its contract, where the same
+        // parameter is in scope: forward it there too (materializing a fresh
+        // heap-dependent map inside a heap-independent function's contract
+        // would fail `qp_to_map`'s permission precondition). The contract of
+        // the function's METHOD has no such parameter and reads the heap.
+        let pure_unstable = crate::encoders::get_pure_unstable_encoding(def_id).or(match kind {
+            PureKind::Spec { context, mode } if mode != MirSpecEncMode::Impure => {
+                crate::encoders::get_pure_unstable_encoding(context)
+            }
+            _ => None,
+        });
+        let inner_map = pure_unstable.map(|_| {
+            let decl = crate::encoders::ty::interior_mut::pure_unstable_map_decl(deps).unwrap();
+            vcx.mk_local_ex(decl)
+        });
         Self {
             vcx,
             encoding_depth,
@@ -408,6 +432,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     ..
                 } | PureKind::SpecBlock(..)
             ),
+            inner_map,
         }
     }
 
@@ -940,7 +965,57 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                             .iter()
                             .map(|arg| self.encode_operand_snap(&arg.node, &new_curr_ver))
                             .collect::<Result<Vec<_>, _>>()?;
-                        Ok(pure_func.call_pure(snap_args))
+                        if pure_func.is_pure_unstable() {
+                            // The callee expects the value `Map`. Forward
+                            // the one this (`#[pure_unstable]`) function
+                            // received, or, when encoding a spec/assertion of
+                            // an impure context, materialize it from the heap
+                            // at this position.
+                            let arg_tys = args
+                                .iter()
+                                .map(|arg| {
+                                    let ty = arg.node.ty(self.body, self.vcx.tcx());
+                                    RustTyDecomposition::from_ty(ty, self.context)
+                                })
+                                .collect::<Vec<_>>();
+                            let inner_map = match self.inner_map {
+                                Some(map) => map,
+                                None => {
+                                    let arg_data = arg_tys
+                                        .iter()
+                                        .zip(snap_args.iter())
+                                        .map(|(ty, snap)| (*ty, self.vcx.mk_null().lazy(), *snap))
+                                        .collect::<Vec<_>>();
+                                    let mut map =
+                                        crate::encoders::ty::interior_mut::pure_unstable_call_map(
+                                            self.deps,
+                                            &arg_data,
+                                            pure_func.pure_unstable_inner_only(),
+                                        )?;
+                                    // The materialized map is heap-dependent
+                                    // (`qp_to_map`): evaluate it in the same
+                                    // state as the call it feeds, mirroring
+                                    // the snapshot wrapping in
+                                    // `encode_place_with_ref`.
+                                    if self.old_mode {
+                                        map = self.vcx.mk_old_expr(map);
+                                    }
+                                    if self.rel0_mode {
+                                        map = self.vcx.mk_rel_expr(map, 0);
+                                    }
+                                    if self.rel1_mode {
+                                        map = self.vcx.mk_rel_expr(map, 1);
+                                    }
+                                    if self.before_expiry_mode {
+                                        map = self.vcx.mk_old_lhs_expr(map);
+                                    }
+                                    map
+                                }
+                            };
+                            Ok(pure_func.call_pure_unstable(snap_args, inner_map))
+                        } else {
+                            Ok(pure_func.call_pure(snap_args))
+                        }
                     } else {
                         panic!("call to unknown non-pure function in pure code ({def_id:?})");
                     }

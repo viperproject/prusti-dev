@@ -13,6 +13,7 @@ pub mod generics;
 mod data;
 mod rust_ty;
 pub mod interpretation;
+pub mod interior_mut;
 
 pub use data::TySpecifics;
 pub use inhabited::TyInhabitedEnc;

@@ -64,6 +64,8 @@ pub enum BinOpKind {
     PermSub,
     PermMul,
     PermPermDiv,
+    /// `Perm` comparison `left >= right` (Viper `PermGeCmp`).
+    PermGeCmp,
     /// Fractional permission `left/right` (Viper `fractional_perm`): `Int`,
     /// `Int` -> `Perm`. Used to convert an integer to a permission amount.
     FracPerm,

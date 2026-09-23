@@ -81,6 +81,7 @@ pub type MirLocalDefEncError = ();
 
 #[derive(Clone, Copy)]
 pub struct LocalDef<'vir> {
+    pub ty: RustTyDecomposition<'vir>,
     pub local: vir::LocalDeclRef<'vir>,
     pub local_snap: vir::LocalDeclSnap<'vir>,
     pub local_ex: vir::ExprRef<'vir>,
@@ -178,6 +179,7 @@ impl TaskEncoder for MirLocalDefEnc {
         fn mk_local_def<'vir>(
             vcx: &'vir vir::VirCtxt<'vir>,
             local: mir::Local,
+            rust_ty: RustTyDecomposition<'vir>,
             ty: TyUseImpure<'vir>,
         ) -> LocalDef<'vir> {
             let ref_local = vir::vir_format!(vcx, "_{}p", local.index());
@@ -188,6 +190,7 @@ impl TaskEncoder for MirLocalDefEnc {
             let impure_snap = ty.ref_to_snap(local_ex);
             let impure_pred = ty.ref_to_pred(vcx, local_ex, None);
             LocalDef {
+                ty: rust_ty,
                 local,
                 local_snap,
                 local_ex,
@@ -226,7 +229,7 @@ impl TaskEncoder for MirLocalDefEnc {
                         let rust_ty = body.local_decls[local].ty;
                         let rust_ty_task = RustTyDecomposition::from_ty(rust_ty, task_key.def_id());
                         let ty = deps.require_dep::<TyUseImpureEnc>(rust_ty_task).unwrap();
-                        Some(mk_local_def(vcx, local, ty))
+                        Some(mk_local_def(vcx, local, rust_ty_task, ty))
                     },
                     if task_key.all_locals() {
                         body.local_decls.len()
@@ -269,7 +272,7 @@ impl TaskEncoder for MirLocalDefEnc {
                         let rust_ty_task =
                             RustTyDecomposition::from_ty(rust_ty, task_key.context_def_id());
                         let ty = deps.require_dep::<TyUseImpureEnc>(rust_ty_task)?;
-                        Ok(Some(mk_local_def(vcx, local, ty)))
+                        Ok(Some(mk_local_def(vcx, local, rust_ty_task, ty)))
                     })
                     .collect::<Result<IndexVec<_, _>, _>>()?;
 

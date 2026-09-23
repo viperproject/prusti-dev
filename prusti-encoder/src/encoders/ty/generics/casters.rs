@@ -105,6 +105,8 @@ impl TaskEncoder for CastersEnc<Pure> {
                     make_concrete: make_concrete_destr,
                 },
             )?;
+            let _: () =
+                deps.require_dep::<super::interior_mut::InteriorMutGenericsEnc>(*task_key)?;
 
             // The variant's fields: the concrete value (whose destructor is
             // `make_concrete`), then the type and const arguments. The latter

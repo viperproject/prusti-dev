@@ -29,6 +29,7 @@ use crate::encoders::{
             trait_fn::TraitFnEnc,
             trait_impls::{TraitImplEnc, TraitImplItemEnc},
         },
+        interior_mut::TyInteriorMutUseEnc,
         interpretation::bitvec::BitVecEnc,
         lifted::TyConstructorEnc,
     },
@@ -136,6 +137,9 @@ pub fn test_entrypoint<'tcx>(
     TraitFnEnc::emit_outputs(&mut program);
     TraitImplEnc::emit_outputs(&mut program);
     TraitImplItemEnc::emit_outputs(&mut program);
+
+    program.header("interior mutability");
+    TyInteriorMutUseEnc::emit_outputs(&mut program);
 
     if std::env::var("LOCAL_TESTING").is_ok() {
         std::fs::write("local-testing/simple.vpr", program.code()).unwrap();

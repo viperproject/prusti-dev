@@ -330,6 +330,21 @@ impl<'vir> PredicateBuilder<'vir> {
         inner: Option<vir::ExprCSnap<'vir>>,
         posts: &[vir::ExprBool<'vir>],
     ) {
+        self.mk_snap_function_amount(inner, posts, None)
+    }
+
+    /// Like [`Self::mk_snap_function`], with an explicit permission amount
+    /// for the precondition (`None` = `write`). Bodyless (abstract) snapshot
+    /// functions can require only `wildcard`: reading needs any positive
+    /// amount, and the weaker precondition lets heap-dependent consumers
+    /// (e.g. the interior-mutability value-snapshot function) mention them
+    /// under wildcard permissions.
+    pub(crate) fn mk_snap_function_amount(
+        &mut self,
+        inner: Option<vir::ExprCSnap<'vir>>,
+        posts: &[vir::ExprBool<'vir>],
+        amount: Option<vir::ExprPerm<'vir>>,
+    ) {
         let ref_self_decl = self.ref_self_decl();
         let ref_self = self.vcx.mk_local_ex(ref_self_decl);
         let params = (
@@ -337,9 +352,11 @@ impl<'vir> PredicateBuilder<'vir> {
             self.params.ty_decls(),
             self.params.const_decls(),
         );
-        let pred = vir::expr! {
-            acc([self.ref_to_pred](ref_self, [..[self.params.ty_exprs()]], [..[self.params.const_exprs()]]))
-        };
+        let pred = self.vcx.mk_predicate_app_expr((self.ref_to_pred)(
+            ref_self,
+            self.params.ty_exprs(),
+            self.params.const_exprs(),
+        )(amount));
         let expr = inner.map(|e| vir::expr! {
             unfolding ([self.ref_to_pred](ref_self, [..[self.params.ty_exprs()]], [..[self.params.const_exprs()]])) in (e)
         }.upcast_ty());

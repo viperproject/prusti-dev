@@ -7,6 +7,7 @@ use crate::encoders::{
     ty::{
         LazyRustTy, RustTyDatas, RustTyDecomposition,
         generics::{GArgs, GArgsCastEnc, GArgsTyEnc, GParams},
+        interior_mut::TyInteriorMutUseEnc,
         pure::TyPureEnc,
         use_inhabited::{TyUseInhabitedEnc, TyUseInhabitedRef},
     },
@@ -141,6 +142,7 @@ impl TaskEncoder for TyUseImpureEnc {
         task_key: &Self::TaskKey<'vir>,
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
+        deps.require_dep::<TyInteriorMutUseEnc>(*task_key)?;
         deps.emit_output_ref(*task_key, ())?;
 
         let ty_impure = deps.require_dep::<TyImpureEnc>(task_key.ty)?;
@@ -222,7 +224,7 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
                     RustTySpecial::Box => {
                         Some(self.encode_normalized_pure(ty.box_metadata_ty(), ty.0.params)?)
                     }
-                    RustTySpecial::None => None,
+                    RustTySpecial::None | RustTySpecial::UnsafeCell => None,
                 };
                 TySpecifics::StructLike(self.encode_structlike(
                     data,

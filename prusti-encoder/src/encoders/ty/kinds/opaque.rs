@@ -24,5 +24,8 @@ pub(crate) fn ty_impure<'vir>(
 
 pub(super) fn set_opaque<'vir>(builder: &mut PredicateBuilder<'vir>) {
     builder.mk_predicate("", None);
-    builder.mk_snap_function(None, &[]);
+    // Abstract snapshot functions require only `wildcard`: reading needs any
+    // positive amount (see `mk_snap_function_amount`).
+    let wildcard = vir::with_vcx(|vcx| vcx.mk_wildcard());
+    builder.mk_snap_function_amount(None, &[], Some(wildcard));
 }

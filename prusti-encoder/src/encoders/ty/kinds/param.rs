@@ -38,12 +38,14 @@ pub(crate) fn ty_impure<'vir>(
     // This is assumed rather than checked: a param nested in a struct, enum
     // or reference has its snapshot set by that type's assign method, so
     // constraining `p_Param_assign` alone would not cover the producers.
-    builder.mk_snap_function(
+    // Bodyless: requires only `wildcard` (see `mk_snap_function_amount`).
+    builder.mk_snap_function_amount(
         None,
         &[builder.vcx.mk_eq_expr(
             typ(builder.vcx.mk_result(vir::TYPE_PSNAP)),
             builder.params.ty_exprs()[0],
         )],
+        Some(builder.vcx.mk_wildcard()),
     );
     Ok(())
 }

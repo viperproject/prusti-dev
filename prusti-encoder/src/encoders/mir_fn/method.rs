@@ -263,11 +263,27 @@ impl TaskEncoder for MethodEnc {
                     .map(mir::Local::from)
                     .map(|arg_idx| vcx.mk_old_expr(arg_defs[arg_idx].impure_snap))
                     .collect::<Vec<_>>();
+                let app = if pure_func.is_pure_unstable() {
+                    // The callee reads the interior-mutability value `Map`:
+                    // materialize it from the arguments in the pre-state.
+                    let arg_data = (1..arg_count)
+                        .map(mir::Local::from)
+                        .map(|arg_idx| {
+                            let arg_def = &arg_defs[arg_idx];
+                            (arg_def.ty, vcx.mk_null(), arg_def.impure_snap)
+                        })
+                        .collect::<Vec<_>>();
+                    let map = crate::encoders::ty::interior_mut::pure_unstable_call_map(
+                        deps,
+                        &arg_data,
+                        pure_func.pure_unstable_inner_only(),
+                    )?;
+                    pure_func.call_pure_unstable(arg_snaps, vcx.mk_old_expr(map))
+                } else {
+                    pure_func.call_pure(arg_snaps)
+                };
                 posts.push(vcx.mk_inhale_exhale_expr(
-                    vcx.mk_eq_expr(
-                        arg_defs[mir::RETURN_PLACE].impure_snap,
-                        pure_func.call_pure(arg_snaps),
-                    ),
+                    vcx.mk_eq_expr(arg_defs[mir::RETURN_PLACE].impure_snap, app),
                     vcx.mk_bool::<true>(),
                 ));
             }

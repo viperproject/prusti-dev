@@ -314,7 +314,7 @@ impl<'vir> GenericParams<'vir> {
         result
     }
 
-    pub(super) fn ty_expr<E: TaskEncoder + 'vir + ?Sized>(
+    pub(crate) fn ty_expr<E: TaskEncoder + 'vir + ?Sized>(
         &self,
         deps: &mut TaskEncoderDependencies<'vir, E>,
         ty: RustTyDecomposition<'vir>,

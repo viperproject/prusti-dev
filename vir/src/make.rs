@@ -192,7 +192,8 @@ cfg_if! {
                     check_expr_bindings(m, lhs.as_dyn());
                     check_expr_bindings(m, rhs.as_dyn());
                 },
-                other@(ExprKindGenData::Result(_) | ExprKindGenData::Todo(_)) =>  todo!("{other:?}"),
+                ExprKindGenData::Result(_) => {}
+                other@ExprKindGenData::Todo(_) =>  todo!("{other:?}"),
             }
         }
     }

@@ -23,6 +23,7 @@ macro_rules! typed_wrapper {
 typed_wrapper!(Many; Bool => ManyBool, Int => ManyInt, Ref => ManyRef, Perm => ManyPerm);
 typed_wrapper!(Many; CSnap => ManyCSnap, PSnap => ManyPSnap, TyVal => ManyTyVal);
 typed_wrapper!(Many; Prim => ManyPrim, Snap => ManySnap, Dyn => ManyDyn);
+typed_wrapper!(Many; Map => ManyMap);
 
 // A domain identifier
 

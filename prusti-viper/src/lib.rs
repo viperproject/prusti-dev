@@ -96,7 +96,10 @@ impl<'vir> ToViperContext<'vir, '_> {
         let vir::TypeKind::Domain(adt_name, ty_args) = *ty else {
             panic!("expected adt type, got {:?}", ty);
         };
-        let adt = self.adts.get(adt_name).expect("no adt found for adt type");
+        let adt = self
+            .adts
+            .get(adt_name)
+            .unwrap_or_else(|| panic!("no adt found for adt type {adt_name}"));
         assert_eq!(adt.typarams.len(), ty_args.len());
         let type_map = adt.typarams.iter().zip(ty_args);
         type_map
@@ -231,6 +234,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::BinOp<'vir> {
             vir::BinOpKind::PermSub => ctx.ast.perm_sub_with_pos(lhs, rhs, pos),
             vir::BinOpKind::PermMul => ctx.ast.perm_mul_with_pos(lhs, rhs, pos),
             vir::BinOpKind::PermPermDiv => ctx.ast.perm_perm_div_with_pos(lhs, rhs, pos),
+            vir::BinOpKind::PermGeCmp => ctx.ast.perm_ge_cmp(lhs, rhs),
             vir::BinOpKind::FracPerm => ctx.ast.fractional_perm(lhs, rhs),
             vir::BinOpKind::Mod => ctx.ast.mod_with_pos(lhs, rhs, pos),
             vir::BinOpKind::Implies => ctx.ast.implies_with_pos(lhs, rhs, pos),
@@ -508,6 +512,14 @@ impl<'vir, 'v, T: vir::CompType> ToViper<'vir, 'v> for vir::Expr<'vir, T> {
             vir::ExprKindData::InhaleExhale(v) => v.to_viper_with_span(ctx, self.span),
 
             vir::ExprKindData::AdtDestructor(recv, field) => {
+                if let vir::TypeKind::Domain(name, _) = *recv.ty().kind() {
+                    if !ctx.adts.contains_key(name) {
+                        panic!(
+                            "adt destructor `{}` on a non-adt receiver of type {name}: {recv:?}",
+                            field.name
+                        );
+                    }
+                }
                 let type_map = ctx.adt_type_map(recv.ty().kind());
                 ctx.ast.adt_destructor(
                     field.name,

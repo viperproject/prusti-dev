@@ -99,14 +99,47 @@ pub struct FunctionCallEncOutput<'vir> {
 }
 
 impl<'vir> FunctionCallEncOutput<'vir> {
+    /// `true` if the callee is `#[pure_unstable]` and therefore expects the
+    /// interior-mutability value `Map` argument (callers must use
+    /// [`Self::call_pure_unstable`]).
+    pub fn is_pure_unstable(&self) -> bool {
+        self.function.pure_unstable.is_some()
+    }
+
+    /// The `inner_only` flag of a `#[pure_unstable]` callee: `true` means it
+    /// takes the level-0 map only, `false` the combined level-0/level-1 map.
+    pub fn pure_unstable_inner_only(&self) -> bool {
+        self.function
+            .pure_unstable
+            .expect("not a pure_unstable function")
+    }
+
     /// Calls the definitional function `f_`. In impure code a pure function
     /// is called as a method (its `MethodEnc`), whose postcondition ties the
     /// result to this application.
     pub fn call_pure<Curr, Next>(
         &self,
-        mut args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
+        args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
-        let function = self.function.function_ref;
+        self.call_casted(self.function.function_ref, args, &[])
+    }
+
+    /// Call a `#[pure_unstable]` callee, passing the interior-mutability value
+    /// `Map` as the extra Viper argument.
+    pub fn call_pure_unstable<Curr, Next>(
+        &self,
+        args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
+        inner_map: vir::ExprGenMap<'vir, Curr, Next>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        self.call_casted(self.function.function_ref, args, &[inner_map])
+    }
+
+    fn call_casted<Curr, Next>(
+        &self,
+        function: FnSig<'vir>,
+        mut args: Vec<vir::ExprGenSnap<'vir, Curr, Next>>,
+        maps: &[vir::ExprGenMap<'vir, Curr, Next>],
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
         assert_eq!(self.inputs.len(), args.len());
         for ((arg, caster), ty) in args
             .iter_mut()
@@ -115,7 +148,7 @@ impl<'vir> FunctionCallEncOutput<'vir> {
         {
             *arg = caster.cast_to_callee_ctx(ty.dummy_ref_address(*arg));
         }
-        let call = function.call()(&args, self.ty_args.get_ty(), self.ty_args.get_const());
+        let call = function.call()(&args, maps, self.ty_args.get_ty(), self.ty_args.get_const());
         self.output.cast_to_caller_ctx(call)
     }
 }
@@ -139,6 +172,8 @@ impl TaskEncoder for FunctionCallEnc {
         let function_ref = if let Some(assoc_enc) = assoc_enc {
             FunctionEncOutputRef {
                 function_ref: assoc_enc.call_stub_pure_function.unwrap(),
+                // Trait-call stubs do not (yet) carry the value `Map`.
+                pure_unstable: None,
             }
         } else {
             deps.require_ref::<FunctionEnc>(task_key.callee)?
@@ -186,9 +221,20 @@ impl TaskEncoder for FunctionCallEnc {
 
 struct FunctionEnc;
 
+/// The function signature carries a `ManyMap` slot (between the snapshot args
+/// and the type/const generics) for the interior-mutability value `Map` of
+/// `#[pure_unstable]` functions. It is empty (length 0) for all other
+/// functions, so their emitted Viper signature is unchanged.
+type FnSig<'vir> =
+    FunctionIdn<'vir, (vir::ManySnap, vir::ManyMap, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>;
+
 #[derive(Debug, Clone)]
 struct FunctionEncOutputRef<'vir> {
-    function_ref: FunctionIdn<'vir, (vir::ManySnap, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
+    function_ref: FnSig<'vir>,
+    /// `Some` if this is a `#[pure_unstable]` function (so its signature has a
+    /// non-empty `ManyMap` slot that callers must fill); the `bool` is the
+    /// `inner_only` flag.
+    pure_unstable: Option<bool>,
 }
 
 impl<'vir> OutputRefAny for FunctionEncOutputRef<'vir> {}
@@ -234,12 +280,37 @@ impl TaskEncoder for FunctionEnc {
             let return_type = local_defs.snap_ty_return();
             let params = GParams::from(def_id);
             let generics = deps.require_dep::<GenericParamsEnc>(params)?;
+            // `#[pure_unstable]` functions take the interior-mutability value
+            // `Map` as an extra argument (so e.g. a borrow-count function can
+            // read the current state). Non-pure-unstable functions and
+            // `#[interior_mut]` accessors (whose marking only declares a level)
+            // have an empty `ManyMap` slot, leaving their signature unchanged.
+            let pure_unstable = crate::encoders::get_pure_unstable_encoding(def_id);
+            let map_decls: &[vir::LocalDeclMap<'vir>] = if pure_unstable.is_some() {
+                vcx.alloc_slice(&[crate::encoders::ty::interior_mut::pure_unstable_map_decl(
+                    deps,
+                )?])
+            } else {
+                &[]
+            };
+            let map_types = vcx.alloc_slice(&map_decls.iter().map(|d| d.ty).collect::<Vec<_>>());
             let function_ref = FunctionIdn::new(
                 function_ident,
-                (arg_types, generics.ty_args(), generics.const_args()),
+                (
+                    arg_types,
+                    map_types,
+                    generics.ty_args(),
+                    generics.const_args(),
+                ),
                 return_type,
             );
-            deps.emit_output_ref(def_id, FunctionEncOutputRef { function_ref })?;
+            deps.emit_output_ref(
+                def_id,
+                FunctionEncOutputRef {
+                    function_ref,
+                    pure_unstable,
+                },
+            )?;
 
             let spec =
                 deps.require_dep::<MirSpecEnc>((def_id, def_id, MirSpecEncMode::PureWithResult))?;
@@ -297,7 +368,7 @@ impl TaskEncoder for FunctionEnc {
 
             tracing::debug!("finished {def_id:?}");
 
-            let posts = spec
+            let mut posts = spec
                 .posts
                 .iter()
                 .map(|(post, _)| {
@@ -307,12 +378,104 @@ impl TaskEncoder for FunctionEnc {
                     vcx.mk_inhale_exhale_expr(*post, vcx.mk_bool::<true>())
                 })
                 .collect::<Vec<_>>();
+            let func_args = local_defs.local_decl_args().collect::<Vec<_>>();
+            // An inline `#[interior_mut]` accessor returns a pointer to its
+            // object: the pointer's address IS the identity that keys the
+            // object (`im_id_*`). Stating this lets pointer equalities in
+            // specs (`a.as_ptr() == b.as_ptr()`) imply key equalities, i.e.
+            // aliasing of the interior-mutable objects.
+            if crate::encoders::spec::is_interior_mut_accessor(def_id)
+                && crate::encoders::get_field_projection(def_id).is_none()
+            {
+                let sig = vcx
+                    .tcx()
+                    .fn_sig(def_id)
+                    .instantiate_identity()
+                    .skip_binder();
+                let ref_ty = sig.inputs()[0];
+                if let ty::TyKind::Ref(_, self_ty, _) = *ref_ty.kind()
+                    && sig.output().is_raw_ptr()
+                {
+                    let self_decomp = RustTyDecomposition::from_ty(self_ty, params);
+                    // Encodes the type's IM functions, which emit `im_id_*`.
+                    deps.require_dep::<crate::encoders::ty::interior_mut::TyInteriorMutUseEnc>(
+                        self_decomp,
+                    )?;
+                    let holder_snap = deps.require_dep::<TyUsePureEnc>(self_decomp)?.snapshot;
+                    let ref_use = deps.require_dep::<TyUsePureEnc>(
+                        RustTyDecomposition::from_ty(ref_ty, params),
+                    )?;
+                    let self_value = ref_use
+                        .expect_immref()
+                        .value_access(vcx.mk_local_ex(func_args[0]).downcast_ty());
+                    let ret_use = deps.require_dep::<TyUsePureEnc>(
+                        RustTyDecomposition::from_ty(sig.output(), params),
+                    )?;
+                    let result: vir::ExprSnap<'vir> = vcx.mk_result(return_type);
+                    let ptr_addr = ret_use.expect_raw().address_access(result.downcast_ty());
+                    let im_id = crate::encoders::ty::interior_mut::im_id_function(
+                        vcx,
+                        def_id,
+                        holder_snap,
+                        &generics,
+                    );
+                    posts.push(vcx.mk_eq_expr(
+                        ptr_addr,
+                        im_id.call()(self_value, generics.ty_exprs(), generics.const_exprs()),
+                    ));
+                }
+            }
+            // `im_deref(ptr)`: the primitive read of interior-mutable state,
+            // defined as the lookup of the object `(address(ptr), T)` in the
+            // function's interior-mutability snapshot.
+            if prusti_interface::environment::EnvQuery::new(vcx.tcx())
+                .has_prusti_attribute(def_id, "im_deref")
+            {
+                let sig = vcx
+                    .tcx()
+                    .fn_sig(def_id)
+                    .instantiate_identity()
+                    .skip_binder();
+                let ptr_use = deps.require_dep::<TyUsePureEnc>(RustTyDecomposition::from_ty(
+                    sig.inputs()[0],
+                    params,
+                ))?;
+                let ret_use = deps.require_dep::<TyUsePureEnc>(RustTyDecomposition::from_ty(
+                    sig.output(),
+                    params,
+                ))?;
+                let ptr_addr = ptr_use
+                    .expect_raw()
+                    .address_access(vcx.mk_local_ex(func_args[0]).downcast_ty());
+                let result: vir::ExprSnap<'vir> = vcx.mk_result(return_type);
+                let ret_data = ret_use.expect_immref();
+                let tys = crate::encoders::ty::interior_mut::ImTys::new(deps);
+                let key =
+                    (tys.key.constructor)(&[ptr_addr.as_dyn(), generics.ty_exprs()[0].as_dyn()]);
+                let map = vcx.mk_local_ex(map_decls[0]);
+                posts.push(vcx.mk_eq_expr(ret_data.addr_access(result.downcast_ty()), ptr_addr));
+                posts.push(
+                    vcx.mk_bin_op_expr(
+                        vir::BinOpKind::Implies,
+                        vcx.mk_set_in_expr(key, vcx.mk_map_domain_expr(map)),
+                        vcx.mk_eq_expr(
+                            ret_data.value_access_generic(result.downcast_ty()),
+                            vcx.mk_map_lookup_expr(map, key).downcast_ty::<vir::PSnap>(),
+                        ),
+                    )
+                    .downcast_ty(),
+                );
+            }
             let posts = vcx.alloc_slice(&posts);
 
-            let func_args = local_defs.local_decl_args().collect::<Vec<_>>();
             let function = vcx.mk_function(
                 function_ref,
-                (&func_args, generics.ty_decls(), generics.const_decls()),
+                (
+                    &func_args,
+                    map_decls,
+                    generics.ty_decls(),
+                    generics.const_decls(),
+                ),
                 &[],
                 posts,
                 expr.is_none().then_some(&vir::DecreasesGenData::Star),

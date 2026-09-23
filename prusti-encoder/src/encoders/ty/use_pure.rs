@@ -250,7 +250,7 @@ impl<'a, 'vir> TyUsePureWalker<'a, 'vir> {
                         metadata_caster: self
                             .encode_normalized(ty.box_metadata_ty(), ty.0.params)?,
                     }),
-                    RustTySpecial::None => None,
+                    RustTySpecial::None | RustTySpecial::UnsafeCell => None,
                 };
                 TySpecifics::StructLike(self.encode_structlike(data, ty.0.params, box_data)?)
             }
@@ -352,6 +352,10 @@ impl<'vir> TyUsePureRef<'vir> {
     pub fn unreachable_to_snap<Curr, Next>(&self) -> vir::ExprGenSnap<'vir, Curr, Next> {
         self.ty_pure_ref.unreachable_to_snap.call()(self.args.get_ty(), self.args.get_const())
     }
+
+    pub fn arbitrary_to_snap<Curr, Next>(&self) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        self.ty_pure_ref.arbitrary_to_snap.call()(self.args.get_ty(), self.args.get_const())
+    }
 }
 
 impl<'vir> TyData<'vir, UsePureTyDatas> {
@@ -437,6 +441,16 @@ impl<'vir> TyUsePureImmRef<'vir> {
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
         let value = self.pure.value_access.call()(snap);
         self.referent_caster.cast_to_caller_ctx(value.upcast_ty())
+    }
+
+    /// The raw, generic (`s_Param`) value behind the reference, *without*
+    /// casting to the caller (concrete) context. Used to compute the
+    /// interior-mutability sets of the referent generically (as a `Param`).
+    pub fn value_access_generic<Curr, Next>(
+        &self,
+        snap: vir::ExprGenCSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenPSnap<'vir, Curr, Next> {
+        self.pure.value_access.call()(snap)
     }
 }
 

@@ -276,6 +276,9 @@ pub enum RustTySpecial {
     /// `alloc::boxed::Box`: its snapshot also carries the value of the boxed
     /// `T` and its predicate permission to it (see the structlike encoder).
     Box,
+    /// `core::cell::UnsafeCell`: encoded as an empty struct; its contents are
+    /// only reachable through the interior-mutability machinery.
+    UnsafeCell,
 }
 
 impl<'tcx> RustTyData<'tcx> {
@@ -564,6 +567,7 @@ impl RustTySpecial {
     fn from_ty(ty: ty::Ty<'_>) -> Self {
         match ty.kind() {
             ty::TyKind::Adt(adt, _) if adt.is_box() => RustTySpecial::Box,
+            ty::TyKind::Adt(adt, _) if adt.is_unsafe_cell() => RustTySpecial::UnsafeCell,
             _ => RustTySpecial::None,
         }
     }
@@ -579,6 +583,24 @@ impl<'tcx> TySpecifics<'tcx, RustTyDatas> {
         }
 
         match ty.kind() {
+            ty::TyKind::Adt(adt, _) if adt.is_unsafe_cell() => {
+                // The contents live in the interior-mutability heap; the
+                // snapshot holds only a ghost identity (a thin pointer), by
+                // which the interior-mutable objects of holders (`Cell`,
+                // `RefCell`, ...) are keyed. It is copied by moves, so the
+                // keys are stable under moves.
+                let id_ty =
+                    vir::with_vcx(|vcx| ty::Ty::new_imm_ptr(vcx.tcx(), vcx.tcx().types.unit));
+                TySpecifics::mk_structlike(
+                    (),
+                    vec![RustFieldData {
+                        name: symbol::Symbol::intern("id"),
+                        fid: abi::FieldIdx::from_usize(0),
+                        ty: LazyRustTy(id_ty),
+                        address: RustFieldAddress::Constant,
+                    }],
+                )
+            }
             ty::TyKind::Adt(adt, _) => Self::from_adt(*adt),
             ty::TyKind::Tuple(args) => {
                 let fields = args
