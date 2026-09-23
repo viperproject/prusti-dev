@@ -161,6 +161,23 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
     stub_method.attrs.extend(generated_attributes);
     stub_method.rewrite_self_type(self_type, self_type_trait);
     stub_method.rewrite_receiver(self_type);
+    // The self type parameter of a trait stub is `?Sized`; a method taking
+    // `self` by value needs it `Sized` (a trait may declare such a method
+    // for an unsized `Self`, a free function cannot).
+    let by_value_receiver = matches!(extern_spec_kind, ExternSpecKind::Trait)
+        && matches!(
+            method_sig.receiver(),
+            Some(syn::FnArg::Receiver(receiver)) if receiver.reference.is_none()
+        );
+    let require_sized = |sig: &mut syn::Signature| {
+        if by_value_receiver {
+            sig.generics
+                .make_where_clause()
+                .predicates
+                .push(parse_quote_spanned! {method_sig_span=> #self_type: Sized });
+        }
+    };
+    require_sized(&mut stub_method.sig);
 
     // Set span of generated method to externally specified method for better error reporting
     syn::visit_mut::visit_impl_item_method_mut(
@@ -176,6 +193,7 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
                 };
                 spec_item_fn.rewrite_self_type(self_type, self_type_trait);
                 spec_item_fn.rewrite_receiver(self_type);
+                require_sized(&mut spec_item_fn.sig);
 
                 spec_item_fn
             }

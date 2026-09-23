@@ -11,7 +11,10 @@ use crate::{
     environment::{EnvDiagnostic, EnvName, EnvQuery, Environment},
     PrustiError,
 };
-use prusti_rustc_interface::{data_structures::fx::FxHashMap, middle::ty::GenericArgsRef};
+use prusti_rustc_interface::{
+    data_structures::fx::{FxHashMap, FxHashSet},
+    middle::ty::GenericArgsRef,
+};
 use prusti_specs::ExternSpecKind;
 use std::cmp::{Eq, PartialEq};
 
@@ -37,6 +40,14 @@ pub enum ExternSpecResolverError {
 
     /// Occurs when a trait impl extern spec resolves to the trait method.
     ResolvedToDefault(DefId, Span),
+
+    /// Occurs when the extern spec declares different trait bounds than the
+    /// target definition. The spec would otherwise be applied at every use of
+    /// the target, including instantiations where the extra bounds do not hold
+    /// (and the spec expressions are not even well-formed); conversely, weaker
+    /// bounds would let the spec assume less than the target guarantees. The
+    /// strings render the (sorted) mismatching bound sets: declared, target.
+    MismatchedBounds(DefId, Span, String, String),
 }
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone)]
@@ -197,6 +208,15 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                             resolved_def_id,
                             span,
                         ));
+                    } else if let Some((declared, target)) =
+                        self.bounds_mismatch(current_def_id, resolved_def_id)
+                    {
+                        self.errors.push(ExternSpecResolverError::MismatchedBounds(
+                            resolved_def_id,
+                            span,
+                            declared,
+                            target,
+                        ));
                     }
                 }
             }
@@ -209,6 +229,104 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                     .insert(extern_spec_decl.clone(), current_def_id);
             }
         }
+    }
+
+    /// Compares the trait bounds declared by the extern spec (`spec_def_id`,
+    /// including its impl block's bounds) with the target definition's,
+    /// positionally instantiating the target's predicates with the spec's own
+    /// generic parameters (so parameter names do not matter). The spec is
+    /// applied at every use of the target, so it may not assume a bound the
+    /// target lacks; it may leave out bounds of the target (some cannot even
+    /// be named, e.g. a private sealing supertrait). Returns the rendered
+    /// `(declared, target)` bound sets if the declared ones are not a subset.
+    ///
+    /// Only trait, projection and const-argument clauses are compared:
+    /// lifetime/outlives and well-formedness clauses carry erased or implied
+    /// information that differs structurally between the generated spec item
+    /// and the target without changing which specs are meaningful. The
+    /// `Sized` bound a trait stub declares for a by-value `self` receiver is
+    /// implied at every use of such a method and not compared either.
+    fn bounds_mismatch(
+        &self,
+        spec_def_id: DefId,
+        target_def_id: DefId,
+    ) -> Option<(String, String)> {
+        use prusti_rustc_interface::{
+            hir::LangItem,
+            middle::ty::{self, ClauseKind},
+        };
+        let tcx = self.env_query.tcx();
+        let spec_args = ty::GenericArgs::identity_for_item(tcx, spec_def_id);
+        // The target's generics may interleave lifetime parameters with the
+        // type/const parameters (shifting their indices relative to the spec
+        // item's), so its predicates cannot be instantiated with the spec's
+        // identity args directly. Build args of the target's own shape,
+        // mapping its type/const parameters positionally to the spec's and
+        // erasing its lifetimes (regions are erased for the comparison
+        // anyway).
+        let mut spec_non_region = spec_args.iter().filter(|arg| arg.as_region().is_none());
+        let target_args =
+            ty::GenericArgs::for_item(tcx, target_def_id, |param, _| match param.kind {
+                ty::GenericParamDefKind::Lifetime => tcx.lifetimes.re_erased.into(),
+                _ => spec_non_region
+                    .next()
+                    .expect("target/spec generics arity mismatch"),
+            });
+        let relevant = |clauses: ty::GenericPredicates<'tcx>, args: ty::GenericArgsRef<'tcx>| {
+            clauses
+                .instantiate(tcx, args)
+                .into_iter()
+                .map(|(clause, _)| tcx.erase_regions(clause))
+                .filter(|clause| match clause.kind().skip_binder() {
+                    // The sizedness hierarchy below `Sized` is not comparable:
+                    // surface `?Sized` means `MetaSized`, while std traits may
+                    // use the unstable `PointeeSized` (which leaves no clause
+                    // at all). Only the `Sized` line matters for whether spec
+                    // expressions are well-formed at all instantiations.
+                    ClauseKind::Trait(pred) => !matches!(
+                        tcx.as_lang_item(pred.def_id()),
+                        Some(LangItem::MetaSized | LangItem::PointeeSized)
+                    ),
+                    ClauseKind::Projection(_) | ClauseKind::ConstArgHasType(..) => true,
+                    _ => false,
+                })
+                .collect::<FxHashSet<_>>()
+        };
+        let mut declared = relevant(tcx.predicates_of(spec_def_id), spec_args);
+        let target = relevant(tcx.predicates_of(target_def_id), target_args);
+        let by_value_self = tcx
+            .opt_associated_item(target_def_id)
+            .is_some_and(|item| item.is_method())
+            .then(|| {
+                let self_ty = tcx
+                    .fn_sig(target_def_id)
+                    .skip_binder()
+                    .skip_binder()
+                    .inputs()[0];
+                ty::EarlyBinder::bind(self_ty).instantiate(tcx, target_args)
+            })
+            .filter(|self_ty| matches!(self_ty.kind(), ty::TyKind::Param(_)));
+        if let Some(self_ty) = by_value_self {
+            declared.retain(|clause| match clause.kind().skip_binder() {
+                ClauseKind::Trait(pred) => {
+                    pred.self_ty() != self_ty
+                        || !matches!(tcx.as_lang_item(pred.def_id()), Some(LangItem::Sized))
+                }
+                _ => true,
+            });
+        }
+        if declared.is_subset(&target) {
+            return None;
+        }
+        let render = |clauses: &FxHashSet<ty::Clause<'tcx>>| {
+            let mut strs = clauses
+                .iter()
+                .map(|clause| clause.to_string())
+                .collect::<Vec<_>>();
+            strs.sort();
+            strs.join(", ")
+        };
+        Some((render(&declared), render(&target)))
     }
 
     fn register_duplicate_spec(&mut self, decl_def_id: DefId, dup_spec_def_id: DefId, span: Span) {
@@ -268,6 +386,20 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                 ExternSpecResolverError::ResolvedToDefault(def_id, span) => {
                     let function_name = self.env_name.get_item_name(*def_id);
                     let err_note = format!("Specified method ('{function_name}') resolved to the trait's implementation. Add specification to the trait instead.");
+                    PrustiError::incorrect(
+                        "Invalid external specification",
+                        MultiSpan::from_span(*span),
+                    )
+                    .add_note(err_note, None)
+                    .emit(env_diagnostic);
+                }
+                ExternSpecResolverError::MismatchedBounds(def_id, span, declared, target) => {
+                    let function_name = self.env_name.get_item_name(*def_id);
+                    let err_note = format!(
+                        "The external spec for '{function_name}' may not declare trait bounds \
+                        beyond the target definition's, since the spec is applied at every use \
+                        of the target. Declared bounds: [{declared}]; target bounds: [{target}]."
+                    );
                     PrustiError::incorrect(
                         "Invalid external specification",
                         MultiSpan::from_span(*span),

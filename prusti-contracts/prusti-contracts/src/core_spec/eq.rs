@@ -3,7 +3,7 @@ use crate::*;
 use core::{cmp::PartialEq, marker::PointeeSized};
 
 #[extern_spec]
-trait PartialEq<Rhs> {
+trait PartialEq<Rhs: ?Sized> {
     #[trusted]
     #[pure]
     // #[refine_spec(where Self: PureEq, [pure])]
