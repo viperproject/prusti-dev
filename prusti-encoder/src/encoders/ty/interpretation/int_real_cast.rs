@@ -1,16 +1,15 @@
 use task_encoder::TaskEncoder;
 use vir::{DomainGenData, FunctionIdn, ViperIdent};
 
-/// We reuse Viper's `perm` type to encode Reals. However, for
-/// converting an Int to a Real, we need an additional SMT operation
-/// that is not exposed by Viper. Therefore, this encoder adds a
-/// backend domain that lets us use this conversion.
-
 #[derive(Debug, Clone, Copy)]
 pub struct IntRealCastDomain<'vir> {
     pub from_int: FunctionIdn<'vir, vir::Int, vir::Perm>,
 }
 
+/// We reuse Viper's `perm` type to encode Reals. However, for
+/// converting an Int to a Real, we need an additional SMT operation
+/// that is not exposed by Viper. Therefore, this encoder adds a
+/// backend domain that lets us use this conversion.
 pub struct IntRealCastEnc;
 
 impl TaskEncoder for IntRealCastEnc {
