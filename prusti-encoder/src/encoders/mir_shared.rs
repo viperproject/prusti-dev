@@ -90,7 +90,8 @@ pub(crate) trait PureRvalueEnc<'vir> {
         let metadata_ty = self.context().normalize(metadata_ty);
         assert!(
             metadata_ty.is_unit(),
-            "expected metadata type {metadata_ty:?} to be unit for a sized referent"
+            "expected metadata type {metadata_ty:?} to be unit for a sized referent type {ref_ty:?} in context {:?}",
+            self.context()
         );
         self.ty_use_pure(metadata_ty)
             .zst_to_snap()
