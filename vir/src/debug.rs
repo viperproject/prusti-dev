@@ -371,7 +371,7 @@ impl<'vir, Curr, Next> Debug for OldGenData<'vir, Curr, Next> {
         match &self.label {
             OldLabel::None => (),
             OldLabel::Lhs => write!(f, "[lhs]")?,
-            OldLabel::Block(block) => block.fmt(f)?,
+            OldLabel::Block(block) => write!(f, "[{block:?}]")?,
             OldLabel::Label(l) => write!(f, "[{l}]")?,
         }
         write!(f, "(")?;
@@ -621,5 +621,22 @@ impl<'vir, Curr, Next> Debug for UnfoldingGenData<'vir, Curr, Next> {
 impl<'vir, Curr, Next> Debug for WandGenData<'vir, Curr, Next> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "({:?}) --* ({:?})", self.lhs, self.rhs)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn old_block_label_has_brackets() {
+        crate::init_vcx(crate::VirCtxt::new_without_tcx());
+        let expr = ExprData::new(&ExprKindData::Const(&ConstData::Int(42)));
+        let old = OldData {
+            expr: &expr,
+            label: OldLabel::Block(CfgBlockLabelData::BasicBlock(5)),
+        };
+
+        assert_eq!(format!("{old:?}"), "old[bb_5](42)");
     }
 }
