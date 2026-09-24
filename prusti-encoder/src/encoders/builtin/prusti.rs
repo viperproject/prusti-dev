@@ -11,6 +11,7 @@ use crate::encoders::ty::{
     RustTyDecomposition,
     generics::GArgs,
     interpretation::float::FloatDomain,
+    pure::TyPurePrimDataKind,
     use_pure::{TyUsePure, TyUsePureEnc, TyUsePureImmRef},
 };
 
@@ -395,6 +396,9 @@ type PrustiBuiltinOperands<'vir> = &'vir [vir::ExprSnap<'vir>];
 #[derive(Clone, Copy, Debug)]
 pub struct PrustiBuiltinExpr<'vir>(
     vir::ExprGenSnap<'vir, PrustiBuiltinOperands<'vir>, vir::ExprKind<'vir>>,
+    /// For `Real::from(n)` with an integer `n`: the name of the integer
+    /// type's snapshot constructor (see [`PrustiBuiltinExpr::apply`]).
+    Option<&'vir str>,
 );
 
 impl<'vir> PrustiBuiltinExpr<'vir> {
@@ -405,6 +409,21 @@ impl<'vir> PrustiBuiltinExpr<'vir> {
         vcx: &'vir vir::VirCtxt<'vir>,
         operands: &[vir::ExprGenSnap<'vir, Curr, Next>],
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        // `Real::from(cons(c))` is `c / 1`, not `value(cons(c)) / 1`: the
+        // solver only sees a `Real` constant if it is one syntactically, and
+        // a division by anything else (`x / Real::from(isize::MAX)`) is
+        // nonlinear arithmetic, which is slow and incomplete.
+        if let Some(cons) = self.1
+            && let vir::ExprKindGenData::FuncApp(app) = operands[0].kind
+            && app.target == cons
+            && let [n] = app.args
+        {
+            let one = vcx.mk_const_expr(vir::ConstData::Int(1));
+            return vcx
+                .mk_bin_op_expr(vir::BinOpKind::FracPerm, *n, one.upcast_ty())
+                .downcast_ty::<vir::Perm>()
+                .upcast_ty();
+        }
         // SAFETY: reinterpret the kind of the operand holes (and thus of the
         // expression itself) from hole-free operands to operands in the
         // caller's domain: the `Lazy` operand holes only index into the
@@ -507,6 +526,7 @@ impl PrustiBuiltinEnc {
             operands,
             span,
         };
+        let mut int_cons = None;
         let res: ExprRet<'vir, vir::Snap> = match builtin {
             PrustiBuiltin::Spec(_) => {
                 unreachable!("pure-only builtin in `PrustiBuiltinEnc`: {builtin:?}")
@@ -539,6 +559,9 @@ impl PrustiBuiltinEnc {
                     // fractional permission `n / 1` (Viper `Int -> Perm`),
                     // avoiding any intermediate float cast.
                     let prim = *ctxt.e_input(0)?.expect_primitive();
+                    if let TyPurePrimDataKind::Int(int) = prim.kind {
+                        int_cons = Some(vir::CallableIdn::name(&int.prim_to_snap).to_str());
+                    }
                     let n = prim.snap_to_prim(ctxt.operands[0].downcast_ty());
                     let one = vcx.mk_const_expr(vir::ConstData::Int(1));
                     vcx.mk_bin_op_expr(vir::BinOpKind::FracPerm, n, one)
@@ -560,7 +583,7 @@ impl PrustiBuiltinEnc {
                 }
             }
         };
-        Ok(((), PrustiBuiltinExpr(res)))
+        Ok(((), PrustiBuiltinExpr(res, int_cons)))
     }
 }
 
