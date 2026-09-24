@@ -316,6 +316,7 @@ impl TaskEncoder for MirSpecEnc {
                     // reification pick up the ambient span, which makes error
                     // positions inside this precondition point at the spec.
                     let expr = vcx.with_span(span, |vcx| {
+                        handle_spec_permission_errors(vcx, span);
                         expr.reify(vcx, (*spec_def_id, pre_args, vir::OldLabel::None))
                     });
                     Some((expr, span))
@@ -349,6 +350,7 @@ impl TaskEncoder for MirSpecEnc {
                                 span.into(),
                             )])
                         });
+                        handle_spec_permission_errors(vcx, span);
                         let expr = spec.expr.downcast_ty::<vir::Bool>();
                         let expr = expr.reify(vcx, (*spec_def_id, post_args, vir::OldLabel::None));
                         let expr = expr.realloc_span();
@@ -443,4 +445,36 @@ impl MirSpecEnc {
         })
         .ok()
     }
+}
+
+/// Registers handlers for permission failures of heap-dependent function
+/// applications inside a specification (e.g. a spec dereferencing memory that
+/// is not accessible in the state it is evaluated in, such as reading through
+/// a reference whose permission is blocked by a reborrow).
+fn handle_spec_permission_errors(vcx: &vir::VirCtxt<'_>, span: prusti_rustc_interface::span::Span) {
+    vcx.handle_error(
+        "application.precondition:insufficient.permission",
+        move |reason_span_opt| {
+            let mut error = PrustiError::verification(
+                "this specification requires memory permissions that are not available \
+                at the point where it is evaluated",
+                span.into(),
+            );
+            if let Some(reason_span) = reason_span_opt {
+                error.add_note_mut(
+                    "the inaccessible memory is read here",
+                    Some(reason_span.into()),
+                );
+            }
+            // A permission failure is a user error only for a spec that
+            // reads through a blocked borrow (e.g. `old(*t)` on a reborrowed
+            // `&mut`); anywhere else it indicates a Prusti encoding bug.
+            error.add_note_mut(
+                "if this specification does not read through a blocked borrow, this is \
+                likely a bug in Prusti's encoding",
+                None,
+            );
+            Some(vec![error])
+        },
+    );
 }
