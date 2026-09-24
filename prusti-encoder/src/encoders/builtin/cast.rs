@@ -3,7 +3,7 @@ use prusti_rustc_interface::{
     span::symbol,
 };
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CastType, FunctionIdn, MethodIdn};
+use vir::{BinOpKind, CastType, ConstData, FunctionIdn, MethodIdn};
 
 use crate::encoders::{
     TyUseImpureEnc,
@@ -11,10 +11,7 @@ use crate::encoders::{
     ty::{
         LazyRustTy, RustTy, RustTyDecomposition, RustTySpecial, TySpecifics,
         generics::{GParams, GenericParamsEnc},
-        interpretation::{
-            bitvec::{BitVecEnc, BitVecSize},
-            int_real_cast::IntRealCastEnc,
-        },
+        interpretation::bitvec::{BitVecEnc, BitVecSize},
         use_pure::TyUsePureEnc,
     },
 };
@@ -226,9 +223,20 @@ impl TaskEncoder for MirBuiltinCastEnc {
                     // real to int will always round down (also for negative numbers) - truncate
                     let arg_ex = (e_op_ty.fp_trunc)(arg_ex);
 
-                    let real_domain = deps.require_dep::<IntRealCastEnc>(())?;
-                    let min_bound_real = (real_domain.from_int)(min_bound_int.downcast_ty());
-                    let max_bound_real = (real_domain.from_int)(max_bound_int.downcast_ty());
+                    let min_bound_real = vcx
+                        .mk_bin_op_expr(
+                            BinOpKind::FractionalPerm,
+                            min_bound_int,
+                            vcx.mk_const_expr(ConstData::Int(1)).downcast_ty(),
+                        )
+                        .downcast_ty();
+                    let max_bound_real = vcx
+                        .mk_bin_op_expr(
+                            BinOpKind::FractionalPerm,
+                            max_bound_int,
+                            vcx.mk_const_expr(ConstData::Int(1)).downcast_ty(),
+                        )
+                        .downcast_ty();
                     let arg_ex_real = (e_op_ty.fp_to_real)(arg_ex);
 
                     let (bv_fun, int_fun) = if to_signed {
@@ -260,7 +268,7 @@ impl TaskEncoder for MirBuiltinCastEnc {
                         ),
                         vcx.mk_ternary_expr(
                             (e_op_ty.fp_is_nan)(arg_ex),
-                            e_res_ty.prim_to_snap(vcx.mk_const_expr(vir::ConstData::Int(0))),
+                            e_res_ty.prim_to_snap(vcx.mk_const_expr(ConstData::Int(0))),
                             expr.upcast_ty(),
                         ),
                     );

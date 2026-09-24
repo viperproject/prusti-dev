@@ -227,6 +227,7 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::BinOp<'vir> {
             vir::BinOpKind::Sub => ctx.ast.sub_with_pos(lhs, rhs, pos),
             vir::BinOpKind::Mul => ctx.ast.mul_with_pos(lhs, rhs, pos),
             vir::BinOpKind::Div => ctx.ast.div_with_pos(lhs, rhs, pos),
+            vir::BinOpKind::FractionalPerm => ctx.ast.fractional_perm_with_pos(lhs, rhs, pos),
             vir::BinOpKind::PermAdd => ctx.ast.perm_add_with_pos(lhs, rhs, pos),
             vir::BinOpKind::PermSub => ctx.ast.perm_sub_with_pos(lhs, rhs, pos),
             vir::BinOpKind::PermMul => ctx.ast.perm_mul_with_pos(lhs, rhs, pos),

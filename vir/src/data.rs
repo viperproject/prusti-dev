@@ -60,6 +60,7 @@ pub enum BinOpKind {
     Mul,
     Div,
     // Arithmetic on `Perm` (real) values.
+    FractionalPerm,
     PermAdd,
     PermSub,
     PermMul,
