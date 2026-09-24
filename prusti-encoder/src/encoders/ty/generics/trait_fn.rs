@@ -28,9 +28,7 @@ pub struct TraitFnEncOutputRef<'vir> {
     pub pre_func: FunctionIdn<'vir, (vir::ManySnap, vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
     pub post_func:
         FunctionIdn<'vir, (vir::Snap, vir::ManySnap, vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
-    pub call_stub_impure: Option<MethodIdn<'vir, (vir::ManyRef, vir::ManyTyVal, vir::ManyCSnap)>>,
-    pub call_stub_pure_caller:
-        Option<FunctionIdn<'vir, (vir::ManySnap, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>>,
+    pub call_stub_impure: MethodIdn<'vir, (vir::ManyRef, vir::ManyTyVal, vir::ManyCSnap)>,
     pub call_stub_pure_function:
         Option<FunctionIdn<'vir, (vir::ManySnap, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>>,
 }
@@ -139,27 +137,14 @@ impl TaskEncoder for TraitFnEnc {
             );
             // TODO: spec functions for each pledge
 
-            let call_stub_impure = (!is_pure).then(|| {
-                MethodIdn::new(
-                    vir_format_identifier!(vcx, "{trait_name}_fn_stub_{item_name}"),
-                    (
-                        ref_args,
-                        item_generics.ty_args(),
-                        item_generics.const_args(),
-                    ),
-                )
-            });
-            let call_stub_pure_caller = is_pure.then(|| {
-                FunctionIdn::new(
-                    vir_format_identifier!(vcx, "{trait_name}_cfn_stub_{item_name}"),
-                    (
-                        arg_types,
-                        item_generics.ty_args(),
-                        item_generics.const_args(),
-                    ),
-                    return_type,
-                )
-            });
+            let call_stub_impure = MethodIdn::new(
+                vir_format_identifier!(vcx, "{trait_name}_m_stub_{item_name}"),
+                (
+                    ref_args,
+                    item_generics.ty_args(),
+                    item_generics.const_args(),
+                ),
+            );
             let call_stub_pure_function = is_pure.then(|| {
                 FunctionIdn::new(
                     vir_format_identifier!(vcx, "{trait_name}_fn_stub_{item_name}"),
@@ -177,7 +162,6 @@ impl TaskEncoder for TraitFnEnc {
                     pre_func,
                     post_func,
                     call_stub_impure,
-                    call_stub_pure_caller,
                     call_stub_pure_function,
                 },
             )?;
@@ -269,18 +253,7 @@ impl TaskEncoder for TraitFnEnc {
             ));
 
             if is_pure {
-                let mut stub_pres = Vec::new();
                 let mut stub_posts = Vec::new();
-                stub_pres.push(pre_func.call()(
-                    vcx.alloc_slice(
-                        &local_defs
-                            .args()
-                            .map(|arg| vcx.mk_local_ex(arg.local_snap))
-                            .collect::<Vec<_>>(),
-                    ),
-                    item_generics.ty_exprs(),
-                    item_generics.const_exprs(),
-                ));
                 stub_posts.push(post_func.call()(
                     vcx.mk_result(local_defs.snap_ty_return()),
                     vcx.alloc_slice(
@@ -294,7 +267,6 @@ impl TaskEncoder for TraitFnEnc {
                 ));
 
                 // If the call succeeds, then its return type is definitely inhabited
-                // We need this postcondition to generate impure wrapper fns
                 // See tests/verify/pass/extern-spec/module-arg.rs
                 let ret_ty = tcx
                     .instantiate_and_normalize_erasing_regions(
@@ -308,23 +280,6 @@ impl TaskEncoder for TraitFnEnc {
                 stub_posts.push(deps.require_ref::<TyUseInhabitedEnc>(ret_ty)?.inhabited());
                 // stub_posts.push(local_defs.ret().inhabited);
 
-                let wrapped_call = call_stub_pure_function.unwrap().call()(
-                    func_arg_exprs,
-                    item_generics.ty_exprs(),
-                    item_generics.const_exprs(),
-                );
-                funcs.push(vcx.mk_function(
-                    call_stub_pure_caller.unwrap(),
-                    (
-                        &func_args,
-                        item_generics.ty_decls(),
-                        item_generics.const_decls(),
-                    ),
-                    vcx.alloc_slice(&stub_pres),
-                    vcx.alloc_slice(&stub_posts),
-                    Some(&vir::DecreasesGenData::Star),
-                    Some(wrapped_call),
-                ));
                 funcs.push(vcx.mk_function(
                     call_stub_pure_function.unwrap(),
                     (
@@ -337,7 +292,10 @@ impl TaskEncoder for TraitFnEnc {
                     None,
                     None,
                 ));
-            } else {
+            }
+
+            // The method stub, for calls in impure code.
+            {
                 let mut stub_pres = Vec::new();
                 let mut stub_posts = Vec::new();
                 let mut args = Vec::with_capacity(arg_count + item_params.count());
@@ -374,8 +332,31 @@ impl TaskEncoder for TraitFnEnc {
                     item_generics.const_exprs(),
                 ));
 
+                if let Some(pure_function) = call_stub_pure_function {
+                    // The result of a pure trait method is the pure stub's
+                    // application (cf. the same tie in `MethodEnc`).
+                    stub_posts.push(
+                        vcx.mk_inhale_exhale_expr(
+                            vcx.mk_eq_expr(
+                                local_defs.ret().impure_snap,
+                                pure_function.call()(
+                                    vcx.alloc_slice(
+                                        &local_defs
+                                            .args()
+                                            .map(|arg| vcx.mk_old_expr(arg.impure_snap))
+                                            .collect::<Vec<_>>(),
+                                    ),
+                                    item_generics.ty_exprs(),
+                                    item_generics.const_exprs(),
+                                ),
+                            ),
+                            vcx.mk_bool::<true>(),
+                        ),
+                    );
+                }
+
                 methods.push(vcx.mk_method(
-                    call_stub_impure.unwrap(),
+                    call_stub_impure,
                     (
                         args.as_slice(),
                         item_generics.ty_decls(),

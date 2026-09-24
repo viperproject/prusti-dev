@@ -7,10 +7,13 @@ use task_encoder::{
 use vir::MethodIdn;
 
 use crate::encoders::{
-    Impure, ImpureEncVisitor, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc, WandEnc, WandEncTask,
+    FunctionCallEnc, Impure, ImpureEncVisitor, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc,
+    WandEnc, WandEncTask,
     mir_fn::{CallTaskDescription, RustSignature, SpecBlocks, SpecBlocksEnc},
     pure::spec::MirSpecEncMode,
-    ty::generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
+    ty::generics::{
+        GArgCaster, GArgs, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc,
+    },
 };
 
 // Method wrapper
@@ -69,7 +72,7 @@ impl TaskEncoder for MethodCallEnc {
         let (callee_def_id, assoc_enc) = task_key.trait_call(deps)?;
         let method_ref = if let Some(assoc_enc) = assoc_enc {
             MethodEncOutputRef {
-                method_ref: assoc_enc.call_stub_impure.unwrap(),
+                method_ref: assoc_enc.call_stub_impure,
             }
         } else {
             deps.require_ref::<MethodEnc>(task_key.callee)?
@@ -242,6 +245,32 @@ impl TaskEncoder for MethodEnc {
             pres.extend(wands.indirect_pres(vcx, &arg_defs, deps));
             posts.extend(wands.indirect_posts(vcx, &arg_defs, deps));
             posts.extend(wands.wand_posts(vcx, &arg_defs, deps));
+
+            // The method of a pure function ties its result to the
+            // definitional function `f_` (see `FunctionEnc`), so a caller in
+            // impure code learns the result's value from the method call. The
+            // callee proves nothing for it: the function's body is this
+            // method's body by construction. Closures have no `f_`.
+            if crate::encoders::is_function_pure(def_id, GArgs::new(params, params.rust_params()))
+                && !vcx.tcx().is_closure_like(def_id)
+            {
+                let pure_func = deps.require_dep_spanned::<FunctionCallEnc>(
+                    CallTaskDescription::new(def_id, params.rust_params(), def_id)
+                        .resolve_trait_calls(false),
+                    span,
+                )?;
+                let arg_snaps = (1..arg_count)
+                    .map(mir::Local::from)
+                    .map(|arg_idx| vcx.mk_old_expr(arg_defs[arg_idx].impure_snap))
+                    .collect::<Vec<_>>();
+                posts.push(vcx.mk_inhale_exhale_expr(
+                    vcx.mk_eq_expr(
+                        arg_defs[mir::RETURN_PLACE].impure_snap,
+                        pure_func.call_pure(arg_snaps),
+                    ),
+                    vcx.mk_bool::<true>(),
+                ));
+            }
 
             // Trusted functions, call stubs, external functions and trait
             // functions without a default implementation have no body to
