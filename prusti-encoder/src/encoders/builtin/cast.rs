@@ -175,6 +175,25 @@ impl TaskEncoder for MirBuiltinCastEnc {
                         MirBuiltinCastOutput::Simple(fn_idn),
                     )
                 }
+                mir::CastKind::PtrToPtr => {
+                    let e_op_ty = op_ty.expect_raw();
+                    let e_res_ty = res_ty.expect_raw();
+                    let expr = e_res_ty.prim_to_snap(
+                        e_op_ty.address_access(arg_ex),
+                        e_op_ty.metadata_access(arg_ex),
+                    );
+
+                    let fn_idn = FunctionIdn::new(name, op_ty_snap, res_ty_snap);
+                    let function = vcx.mk_function(fn_idn, (arg_decl,), &[], &[], None, Some(expr));
+                    (
+                        MirBuiltinCastLocal {
+                            cast: function,
+                            unsize: None,
+                            undo: None,
+                        },
+                        MirBuiltinCastOutput::Simple(fn_idn),
+                    )
+                }
                 mir::CastKind::IntToFloat => {
                     let e_op_ty = op_ty.expect_primitive();
                     let e_res_ty = res_ty.expect_float();
