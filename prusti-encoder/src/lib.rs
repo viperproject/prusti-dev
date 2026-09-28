@@ -21,7 +21,7 @@ use task_encoder::TaskEncoder;
 use crate::encoders::{
     ConstEnc, Impure, Pure,
     addr::RefDataEnc,
-    custom::PairUseEnc,
+    custom::{PairUseEnc, ReadPermEnc},
     ty::{
         generics::{
             GArgsCastEnc,
@@ -30,7 +30,7 @@ use crate::encoders::{
             trait_impls::{TraitImplEnc, TraitImplItemEnc},
         },
         interpretation::bitvec::BitVecEnc,
-        lifted::{TyConstructorEnc, TypeOfEnc},
+        lifted::TyConstructorEnc,
     },
 };
 
@@ -121,7 +121,6 @@ pub fn test_entrypoint<'tcx>(
 
     program.header("type constructors");
     TyConstructorEnc::emit_outputs(&mut program);
-    TypeOfEnc::emit_outputs(&mut program);
     crate::encoders::TyInhabitedEnc::emit_outputs(&mut program);
 
     program.header("constants");
@@ -129,6 +128,7 @@ pub fn test_entrypoint<'tcx>(
 
     program.header("custom");
     PairUseEnc::emit_outputs(&mut program);
+    ReadPermEnc::emit_outputs(&mut program);
     RefDataEnc::emit_outputs(&mut program);
 
     program.header("traits");

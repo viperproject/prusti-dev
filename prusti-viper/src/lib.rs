@@ -312,6 +312,8 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Const<'vir> {
             }
             vir::ConstData::Int(v) => ctx.ast.int_lit_from_ref_with_pos(v, pos),
             vir::ConstData::Wildcard => ctx.ast.wildcard_perm(),
+            vir::ConstData::NoPerm => ctx.ast.no_perm(),
+            vir::ConstData::FullPerm => ctx.ast.full_perm(),
             vir::ConstData::Null => ctx.ast.null_lit_with_pos(pos),
         }
     }

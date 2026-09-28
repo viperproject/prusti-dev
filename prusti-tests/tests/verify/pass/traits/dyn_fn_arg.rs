@@ -39,3 +39,11 @@ fn function2() -> i32 {
     consume3(&s);
     s.x
 }
+
+trait WithMethod { fn get(&self) -> i32; }
+
+impl WithMethod for S { fn get(&self) -> i32 { self.x } }
+
+fn call_through_dyn(v: &dyn WithMethod) -> i32 {
+    v.get()
+}

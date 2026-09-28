@@ -142,6 +142,8 @@ pub enum ConstData {
     Bool(bool),
     Int(u128), // TODO: what about negative numbers? larger numbers?
     Wildcard,
+    NoPerm,
+    FullPerm,
     Null,
 }
 
@@ -150,7 +152,9 @@ impl ConstData {
         match self {
             ConstData::Bool(_) => crate::TYPE_BOOL.upcast_ty(),
             ConstData::Int(_) => crate::TYPE_INT.upcast_ty(),
-            ConstData::Wildcard => crate::TYPE_PERM.upcast_ty(),
+            ConstData::Wildcard | ConstData::NoPerm | ConstData::FullPerm => {
+                crate::TYPE_PERM.upcast_ty()
+            }
             ConstData::Null => crate::TYPE_REF.upcast_ty(),
         }
     }
