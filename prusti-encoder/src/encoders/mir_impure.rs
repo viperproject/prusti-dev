@@ -1751,8 +1751,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             let loop_place_usages = self
                 .fpcs_analysis
                 .analysis()
-                .loop_place_usages(loop_spec.loop_id)
-                .clone();
+                .loop_invariant_place_usages_at(loop_spec.loop_id, loop_spec.head_block);
             let functional = loop_spec
                 .invariants
                 .clone()
