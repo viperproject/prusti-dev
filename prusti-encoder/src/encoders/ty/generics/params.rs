@@ -314,20 +314,6 @@ impl<'vir> GenericParams<'vir> {
         result
     }
 
-    // TODO: type preconditions do not currently work
-    /*
-    /// Creates a pure assertion representing e.g. `arg: List<T>` -> `typeof(arg) == List_ty(T)`
-    pub fn ty_assertion<E: TaskEncoder + 'vir + ?Sized>(&self, deps: &mut TaskEncoderDependencies<'vir, E>, snap: vir::ExprSnap<'vir>, ty: RustTyDecomposition<'vir>) -> vir::ExprBool<'vir> {
-        let vcx = vir::with_vcx(|vcx| vcx);
-        let ty_expr = self.ty_expr(deps, vcx, ty);
-        let typeof_ref = deps
-            .require_ref::<TypeOfEnc>(ty.ty)
-            .unwrap();
-        let typeof_call = typeof_ref.typeof_function.call()(snap);
-        vcx.mk_eq_expr(typeof_call, ty_expr)
-    }
-    */
-
     pub(super) fn ty_expr<E: TaskEncoder + 'vir + ?Sized>(
         &self,
         deps: &mut TaskEncoderDependencies<'vir, E>,

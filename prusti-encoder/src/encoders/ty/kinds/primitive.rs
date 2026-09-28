@@ -100,5 +100,5 @@ pub(super) fn set_primitive<'vir>(builder: &mut PredicateBuilder<'vir>) {
     builder.mk_predicate("", Some(vir::expr! { acc((ref_self).[prim_field]) }));
 
     // Ref-to-snap
-    builder.mk_snap_function(Some(vir::expr! { [prim_field](ref_self) }));
+    builder.mk_snap_function(Some(vir::expr! { [prim_field](ref_self) }), &[]);
 }

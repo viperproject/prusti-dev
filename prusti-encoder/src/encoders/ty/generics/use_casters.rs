@@ -6,7 +6,7 @@ use vir::CastType;
 use crate::encoders::{Impure, Pure, Purity, ty::RustTyNormalized};
 
 use super::{
-    GArgsTy, GArgsTyEnc,
+    GArgsTy, GArgsTyEnc, ParamTypEnc,
     casters::{CastersEnc, GArgCasters, PurityCasters},
 };
 
@@ -60,14 +60,7 @@ impl<'vir> GArgCaster<'vir, Pure> {
         e: vir::ExprGenSnap<'vir, Curr, Next>,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
         self.get()
-            .map(|c| {
-                c.cast.make_concrete.call()(
-                    e.downcast_ty(),
-                    c.ty_args.get_ty(),
-                    c.ty_args.get_const(),
-                )
-                .upcast_ty()
-            })
+            .map(|c| c.cast.make_concrete.call()(e.downcast_ty()).upcast_ty())
             .unwrap_or(e)
     }
 }
@@ -110,6 +103,7 @@ impl TaskEncoder for GArgsCastEnc<Pure> {
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
+        ParamTypEnc::emit_outputs(program);
         CastersEnc::<Pure>::emit_outputs(program);
     }
 }
