@@ -32,7 +32,7 @@ impl<'vir> ViperIdent<'vir> {
     /// `vir_format_identifier!(vcx, "m_{}", ViperIdent::from_def_id(vcx, def_id))`.
     pub fn from_def_id(vcx: &'vir VirCtxt<'_>, def_id: DefId) -> ViperIdent<'vir> {
         let name = match vcx.ident_style {
-            IdentStyle::DefPath => vcx.tcx().def_path_str(def_id),
+            IdentStyle::DefPath => def_path_name(vcx, def_id),
             IdentStyle::ItemName => short_name(vcx, def_id),
         };
         Self::sanitize(vcx, &name)
@@ -41,6 +41,27 @@ impl<'vir> ViperIdent<'vir> {
     pub fn to_str(&self) -> &'vir str {
         self.0
     }
+}
+
+/// The def path of `def_id`, unique per item. `def_path_str` alone is not:
+/// it omits the disambiguators that tell apart same-named items, e.g. types
+/// defined in two `const _: () = { .. };` blocks of one module (as
+/// `bitflags!` generates), which would then share one Viper identity. Those
+/// disambiguators are appended (closures and impls already print theirs, or
+/// are told apart by what they print).
+fn def_path_name(vcx: &VirCtxt<'_>, def_id: DefId) -> String {
+    let mut name = vcx.tcx().def_path_str(def_id);
+    for (idx, component) in vcx.tcx().def_path(def_id).data.iter().enumerate() {
+        if component.disambiguator != 0
+            && matches!(
+                component.data,
+                DefPathData::TypeNs(_) | DefPathData::ValueNs(_) | DefPathData::MacroNs(_)
+            )
+        {
+            name.push_str(&format!("#{idx}_{}", component.disambiguator));
+        }
+    }
+    name
 }
 
 /// Asking for the `item_name` of a closure triggers an ICE in the compiler, so
