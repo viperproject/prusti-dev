@@ -11,6 +11,7 @@ use crate::encoders::{
     ty::{
         RustRaw, RustTyDatas,
         data::TyData,
+        generics::{ParamTypEnc, TyExprEnc},
         impure::{PredicateBuilder, TyImpureEnc, TyImpureRaw, TyImpureRawData},
         pure::{AdtBuilder, PureTyDatas, TyPureEnc, TyPureRaw, TyPureRawData},
     },
@@ -44,23 +45,48 @@ pub(crate) fn ty_impure<'vir>(
     deps: &mut TaskEncoderDependencies<'vir, TyImpureEnc>,
     builder: &mut PredicateBuilder<'vir>,
 ) -> Result<TyImpureRaw<'vir>, EncodeFullError<'vir, TyImpureEnc>> {
-    let snap_type = builder.csnap_type();
-
     let metadata_type = data.0.metadata.decompose(task_key.0.params);
     deps.require_dep::<TyUseImpureEnc>(metadata_type)?;
     // The pointee is opaque; we deliberately do not require its encoding.
 
     let ref_self_decl = builder.ref_self_decl();
     let ref_self = builder.vcx.mk_local_ex(ref_self_decl);
+    let vcx = builder.vcx;
 
-    // fields
-    let ref_field = builder.field("val", snap_type);
+    let metadata_snap = deps
+        .require_ref::<TyUsePureEnc>(metadata_type)?
+        .snapshot
+        .downcast_ty();
+
+    // fields: the address and the pointer metadata, which is all a raw
+    // pointer's snapshot holds.
+    let addr_field = builder.field("addr", vir::TYPE_REF);
+    let metadata_field = builder.field("metadata", metadata_snap);
+
+    let metadata_ty = deps.require_dep::<TyExprEnc>(metadata_type)?;
+    let typ = deps.require_dep::<ParamTypEnc>(())?.typ;
+    let metadata_typ = |metadata| vcx.mk_eq_expr(typ(metadata), metadata_ty);
 
     // main predicate
-    builder.mk_predicate("", Some(vir::expr! { acc((ref_self).[ref_field]) }));
+    builder.mk_predicate(
+        "",
+        Some(vcx.mk_conj(&[
+            vir::expr! { acc((ref_self).[addr_field]) },
+            vir::expr! { acc((ref_self).[metadata_field]) },
+            metadata_typ(vir::expr! { [metadata_field](ref_self) }),
+        ])),
+    );
 
     // Ref-to-snap
-    builder.mk_snap_function(Some(vir::expr! { [ref_field](ref_self) }));
+    builder.mk_snap_function(
+        Some(data.1.prim_to_snap.call()(
+            vir::expr! { [addr_field](ref_self) },
+            vir::expr! { [metadata_field](ref_self) },
+        )),
+        &[metadata_typ(data.1.metadata_access.call()(
+            vcx.mk_result(builder.csnap_type()),
+        ))],
+    );
 
     Ok(TyImpureRawData {})
 }

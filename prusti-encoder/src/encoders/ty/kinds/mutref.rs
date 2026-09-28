@@ -3,6 +3,7 @@ use crate::encoders::{
     ty::{
         RustMutRef, RustTyDatas,
         data::TyData,
+        generics::{ParamTypEnc, TyExprEnc},
         impure::{PredicateBuilder, TyImpureEnc, TyImpureMutRef, TyImpureMutRefData},
         pure::{AdtBuilder, PureTyDatas, TyPureEnc, TyPureMutRef, TyPureMutRefData},
     },
@@ -43,13 +44,13 @@ pub(crate) fn ty_impure<'vir>(
     let ref_param = builder.vcx.mk_local_decl("r", vir::TYPE_REF);
     let ref_ex = builder.vcx.mk_local_ex(ref_param);
 
-    let metadata_type = data.0.metadata.decompose(task_key.0.params);
-    deps.require_dep::<TyUseImpureEnc>(metadata_type)?;
+    let metadata_decomp = data.0.metadata.decompose(task_key.0.params);
+    deps.require_dep::<TyUseImpureEnc>(metadata_decomp)?;
     let inner_type = data.0.referent.decompose(task_key.0.params);
     deps.require_dep::<TyUseImpureEnc>(inner_type)?;
 
     let metadata_type = deps
-        .require_ref::<TyUsePureEnc>(metadata_type)?
+        .require_ref::<TyUsePureEnc>(metadata_decomp)?
         .snapshot
         .downcast_ty();
     let metadata_param = builder.vcx.mk_local_decl("metadata", metadata_type);
@@ -83,15 +84,41 @@ pub(crate) fn ty_impure<'vir>(
 
     let ref_self_decl = builder.ref_self_decl();
     let ref_self = builder.vcx.mk_local_ex(ref_self_decl);
+    let vcx = builder.vcx;
 
-    // fields
-    let ref_field = builder.field("val", snap_type);
+    // fields: the referent's address and the pointer metadata. Unlike a
+    // shared reference, no permission to the referent is held, so its value
+    // stays unconstrained -- `arbitrary_value` supplies it, keyed on the
+    // address so that it is at least stable across reborrows.
+    let addr_field = builder.field("addr", vir::TYPE_REF);
+    let metadata_field = builder.field("metadata", metadata_type);
+
+    let metadata_ty = deps.require_dep::<TyExprEnc>(metadata_decomp)?;
+    let typ = deps.require_dep::<ParamTypEnc>(())?.typ;
+    let metadata_typ = |metadata| vcx.mk_eq_expr(typ(metadata), metadata_ty);
 
     // main predicate
-    builder.mk_predicate("", Some(vir::expr! { acc((ref_self).[ref_field]) }));
+    builder.mk_predicate(
+        "",
+        Some(vcx.mk_conj(&[
+            vir::expr! { acc((ref_self).[addr_field]) },
+            vir::expr! { acc((ref_self).[metadata_field]) },
+            metadata_typ(vir::expr! { [metadata_field](ref_self) }),
+        ])),
+    );
 
     // Ref-to-snap
-    builder.mk_snap_function(Some(vir::expr! { [ref_field](ref_self) }));
+    builder.mk_snap_function(
+        Some(arbitrary_value(
+            vir::expr! { [addr_field](ref_self) },
+            vir::expr! { [metadata_field](ref_self) },
+            builder.params.ty_exprs(),
+            builder.params.const_exprs(),
+        )),
+        &[metadata_typ(data.1.metadata_access.call()(
+            vcx.mk_result(snap_type),
+        ))],
+    );
 
     Ok(TyImpureMutRefData {
         pure: *data.1,

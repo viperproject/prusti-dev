@@ -325,7 +325,11 @@ impl<'vir> PredicateBuilder<'vir> {
     /// `acc(ref_to_pred(self, ...))`, and the body as
     /// `unfolding acc(ref_to_pred(self, ...)) in inner`. Note that the `inner`
     /// will be wrapped in an unfolding and should not include it.
-    pub(crate) fn mk_snap_function(&mut self, inner: Option<vir::ExprCSnap<'vir>>) {
+    pub(crate) fn mk_snap_function(
+        &mut self,
+        inner: Option<vir::ExprCSnap<'vir>>,
+        posts: &[vir::ExprBool<'vir>],
+    ) {
         let ref_self_decl = self.ref_self_decl();
         let ref_self = self.vcx.mk_local_ex(ref_self_decl);
         let params = (
@@ -341,7 +345,7 @@ impl<'vir> PredicateBuilder<'vir> {
         }.upcast_ty());
         let function = self
             .inner
-            .mk_function(self.ref_to_snap, params, &[pred], &[], expr);
+            .mk_function(self.ref_to_snap, params, &[pred], posts, expr);
         self.inner.function_snap = Some(function);
     }
 }

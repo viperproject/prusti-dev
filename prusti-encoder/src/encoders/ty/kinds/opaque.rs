@@ -24,5 +24,5 @@ pub(crate) fn ty_impure<'vir>(
 
 pub(super) fn set_opaque<'vir>(builder: &mut PredicateBuilder<'vir>) {
     builder.mk_predicate("", None);
-    builder.mk_snap_function(None);
+    builder.mk_snap_function(None, &[]);
 }

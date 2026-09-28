@@ -164,7 +164,7 @@ pub(crate) fn ty_impure<'vir>(
             else_,
         )
     });
-    builder.mk_snap_function(Some(inner));
+    builder.mk_snap_function(Some(inner), &[]);
 
     Ok(EnumData::new(
         TyImpureEnumData {

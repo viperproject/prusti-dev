@@ -103,7 +103,7 @@ pub(crate) fn ty_impure<'vir>(
     let (data, _, snap_expr) = ty_impure_variant("", task_key, data, deps, builder)?;
 
     // Ref-to-snap
-    builder.mk_snap_function(Some(snap_expr));
+    builder.mk_snap_function(Some(snap_expr), &[]);
     Ok(data)
 }
 
