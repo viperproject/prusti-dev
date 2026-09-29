@@ -1697,7 +1697,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             .collect();
         let expr = enc_output
             .expr
-            .reify(self.vcx, (self.def_id, self.vcx.alloc(locals)))
+            .reify(
+                self.vcx,
+                (self.def_id, self.vcx.alloc(locals), vir::OldLabel::None),
+            )
             .downcast_ty();
         Ok(expr)
     }
