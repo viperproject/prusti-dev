@@ -37,7 +37,9 @@ jobs:
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
         with:
-          shared-key: "shared"
+          # Builds a subset of what `all-tests` builds, which saves the cache.
+          shared-key: "build"
+          save-if: false
       - name: Compile
         run: |
           python ./x.py build --all
@@ -72,8 +74,6 @@ jobs:
         run: python x.py setup
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: "shared"
       - name: Check and report Clippy errors
         run: |
           python ./x.py clippy -- --no-deps -D warnings
@@ -96,8 +96,6 @@ jobs:
         run: python x.py setup
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: "shared"
       - name: Compile each workspace package individually
         run: |
           cargo install cargo-hack
@@ -169,7 +167,9 @@ jobs:
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
         with:
-          shared-key: "shared"
+          shared-key: "build"
+          # Failing tests do not invalidate the build artifacts.
+          cache-on-failure: true
       - name: Prepare verification cache keys
         shell: bash
         run: |
