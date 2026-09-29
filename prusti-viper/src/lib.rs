@@ -988,6 +988,9 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Stmt<'vir> {
             vir::StmtKindGenData::Exhale(v) => ctx
                 .ast
                 .exhale(v.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
+            vir::StmtKindGenData::Assert(v) => ctx
+                .ast
+                .assert(v.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),
             vir::StmtKindGenData::Fold(pred) => ctx
                 .ast
                 .fold_with_pos(pred.to_viper_no_pos(ctx), ctx.span_to_pos(self.span)),

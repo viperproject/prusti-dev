@@ -48,6 +48,7 @@ cfg_if! {
                 }
                 StmtKindGenData::Inhale(e) |
                 StmtKindGenData::Exhale(e) |
+                StmtKindGenData::Assert(e) |
                 StmtKindGenData::Refute(e) => {
                     check_expr_bindings(m, e.as_dyn());
                 }
@@ -1207,6 +1208,13 @@ impl<'tcx> VirCtxt<'tcx> {
         expr: ExprGenBool<'vir, Curr, Next>,
     ) -> StmtGen<'vir, Curr, Next> {
         StmtKindGenData::Exhale(expr).alloc_vcx(self)
+    }
+
+    pub fn mk_assert_stmt<'vir, Curr, Next>(
+        &'vir self,
+        expr: ExprGenBool<'vir, Curr, Next>,
+    ) -> StmtGen<'vir, Curr, Next> {
+        StmtKindGenData::Assert(expr).alloc_vcx(self)
     }
 
     pub fn mk_unfold_stmt<'vir, Curr, Next>(

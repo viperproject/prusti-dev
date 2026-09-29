@@ -59,15 +59,31 @@ impl<'vir, Curr: Copy, NextA, NextB> Reify<'vir, Curr>
                 vcx.alloc(ExprKindGenData::MapRange(v.reify(vcx, lctx)))
             }
             ExprKindGenData::Ternary(v) => vcx.alloc(ExprKindGenData::Ternary(v.reify(vcx, lctx))),
-            ExprKindGenData::Forall(v) => vcx.alloc(ExprKindGenData::Forall(v.reify(vcx, lctx))),
-            ExprKindGenData::Exists(v) => vcx.alloc(ExprKindGenData::Exists(v.reify(vcx, lctx))),
-            ExprKindGenData::Let(v) => vcx.alloc(ExprKindGenData::Let(v.reify(vcx, lctx))),
+            ExprKindGenData::Forall(v) => {
+                v.qvars
+                    .iter()
+                    .for_each(|q| vcx.assert_not_substituted(q.name));
+                vcx.alloc(ExprKindGenData::Forall(v.reify(vcx, lctx)))
+            }
+            ExprKindGenData::Exists(v) => {
+                v.qvars
+                    .iter()
+                    .for_each(|q| vcx.assert_not_substituted(q.name));
+                vcx.alloc(ExprKindGenData::Exists(v.reify(vcx, lctx)))
+            }
+            ExprKindGenData::Let(v) => {
+                vcx.assert_not_substituted(v.name);
+                vcx.alloc(ExprKindGenData::Let(v.reify(vcx, lctx)))
+            }
             ExprKindGenData::FuncApp(v) => vcx.alloc(ExprKindGenData::FuncApp(v.reify(vcx, lctx))),
             ExprKindGenData::PredicateApp(v) => {
                 vcx.alloc(ExprKindGenData::PredicateApp(v.reify(vcx, lctx)))
             }
             ExprKindGenData::Wand(v) => vcx.alloc(ExprKindGenData::Wand(v.reify(vcx, lctx))),
-            ExprKindGenData::Local(v) => vcx.alloc(ExprKindGenData::Local(v)),
+            ExprKindGenData::Local(v) => match vcx.local_subst(v.name) {
+                Some(e) => e.lazy().kind,
+                None => vcx.alloc(ExprKindGenData::Local(v)),
+            },
             ExprKindGenData::Const(v) => vcx.alloc(ExprKindGenData::Const(v)),
             ExprKindGenData::Result(t) => vcx.alloc(ExprKindGenData::Result(t)),
             ExprKindGenData::InhaleExhale(v) => {
