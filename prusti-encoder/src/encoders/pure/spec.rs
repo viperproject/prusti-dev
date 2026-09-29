@@ -70,7 +70,17 @@ impl<'vir> PledgeExpr<'vir> {
     }
 
     pub fn expr(&self, args: PledgeArgs<'vir>) -> vir::ExprBool<'vir> {
-        vir::with_vcx(|vcx| self.expr.reify(vcx, (self.did, args.0)))
+        vir::with_vcx(|vcx| {
+            self.expr
+                .reify(vcx, (self.did, args.0, vir::OldLabel::None))
+        })
+    }
+
+    pub fn expr_at_label(&self, args: PledgeArgs<'vir>, label: &'vir str) -> vir::ExprBool<'vir> {
+        vir::with_vcx(|vcx| {
+            self.expr
+                .reify(vcx, (self.did, args.0, vir::OldLabel::Label(label)))
+        })
     }
 
     pub fn span(&self) -> Span {
@@ -259,7 +269,9 @@ impl TaskEncoder for MirSpecEnc {
                     // Reify *inside* the span scope: the nodes created by the
                     // reification pick up the ambient span, which makes error
                     // positions inside this precondition point at the spec.
-                    let expr = vcx.with_span(span, |vcx| expr.reify(vcx, (*spec_def_id, pre_args)));
+                    let expr = vcx.with_span(span, |vcx| {
+                        expr.reify(vcx, (*spec_def_id, pre_args, vir::OldLabel::None))
+                    });
                     Some((expr, span))
                 })
                 .collect();
@@ -292,7 +304,7 @@ impl TaskEncoder for MirSpecEnc {
                             )])
                         });
                         let expr = spec.expr.downcast_ty::<vir::Bool>();
-                        let expr = expr.reify(vcx, (*spec_def_id, post_args));
+                        let expr = expr.reify(vcx, (*spec_def_id, post_args, vir::OldLabel::None));
                         let expr = expr.realloc_span();
                         Some((expr, span))
                     })

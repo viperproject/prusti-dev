@@ -143,6 +143,12 @@ pub trait TaskEncoder {
         format!("{error:?}")
     }
 
+    /// Whether the error was already reported to the user by the encoder
+    /// itself, so that it must not be reported again as an encoder error.
+    fn error_reported(_error: &Self::EncodingError) -> bool {
+        false
+    }
+
     /// Enters the given function with a reference to the cache for this
     /// encoder.
     fn with_cache<'vir, F, R>(f: F) -> R
@@ -656,6 +662,7 @@ pub trait TaskEncoder {
                 .next()
                 .unwrap_or(prusti_rustc_interface::span::DUMMY_SP);
             let msg = match error {
+                TaskEncoderError::EncodingError(err) if Self::error_reported(&err) => continue,
                 TaskEncoderError::EncodingError(err) => Self::describe_error(err),
                 other => format!(
                     "encoder '{}' failed to encode {:?}:\n {:?}",

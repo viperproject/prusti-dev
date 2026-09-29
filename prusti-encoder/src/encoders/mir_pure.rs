@@ -33,7 +33,11 @@ pub enum MirPureEncError {
     // UnsupportedTerminator,
 }
 
-pub type ExprInput<'vir> = (DefId, &'vir FxHashMap<mir::Local, vir::ExprSnap<'vir>>);
+pub type ExprInput<'vir> = (
+    DefId,
+    &'vir FxHashMap<mir::Local, vir::ExprSnap<'vir>>,
+    vir::OldLabel<'vir>,
+);
 type ExprRet<'vir> = vir::ExprGenSnap<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
 type ExprRetRef<'vir> = vir::ExprGenRef<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
 type ExprRetAny<'vir, T> = vir::ExprGen<'vir, ExprInput<'vir>, vir::ExprKind<'vir>, T>;
@@ -1263,24 +1267,44 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         let mut encoded_place = EncodedPlace::new(expr, None);
         // TODO: factor this out (duplication with impure encoder)?
         for elem in place.projection {
+            // The snapshots of the arguments and the result are pinned to a
+            // state, so the only read of the heap is the dereference of a
+            // mutable reference in an impure context; only that is wrapped.
+            // An `old` around a pinned snapshot is a no-op, but breaks the
+            // match with the callee's wand at a call site, where the `old` is
+            // labelled. Silicon evaluates the heap-independent parts of a wand
+            // when inhaling it, where `old[lhs]` is undefined.
+            let heap_read = should_wrap
+                && self.impure_context
+                && matches!(elem, mir::ProjectionElem::Deref)
+                && matches!(place_ty.ty.kind(), TyKind::Ref(.., ty::Mutability::Mut));
             encoded_place = self.encode_place_element(curr_ver, place_ty, *elem, encoded_place)?;
             place_ty = place_ty.projection_ty(self.vcx.tcx(), *elem);
+            if heap_read && self.old_mode {
+                let inner = encoded_place.snap;
+                encoded_place.snap = self.vcx.mk_lazy_expr(
+                    "old_mode_wrap",
+                    inner.ty(),
+                    Box::new(move |vcx, lctx: ExprInput<'vir>| {
+                        use vir::Reify;
+                        let reified = inner.reify(vcx, lctx);
+                        vcx.mk_old(reified, lctx.2).kind
+                    }),
+                );
+            }
+            if heap_read && self.before_expiry_mode {
+                encoded_place.snap = self.vcx.mk_old_lhs_expr(encoded_place.snap);
+            }
         }
         // Can we ever have the use of a projected place?
         assert!(place_ty.variant_index.is_none());
 
         if should_wrap {
-            if self.old_mode {
-                encoded_place.snap = self.vcx.mk_old_expr(encoded_place.snap);
-            }
             if self.rel0_mode {
                 encoded_place.snap = self.vcx.mk_rel_expr(encoded_place.snap, 0);
             }
             if self.rel1_mode {
                 encoded_place.snap = self.vcx.mk_rel_expr(encoded_place.snap, 1);
-            }
-            if self.before_expiry_mode {
-                encoded_place.snap = self.vcx.mk_old_lhs_expr(encoded_place.snap);
             }
         }
 
@@ -1360,9 +1384,15 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 parent_def_id: cl_def_id,
                 gargs: GParams::from(cl_def_id).identity_args(),
             })?
-            .expr
-            .reify(self.vcx, (cl_def_id, self.vcx.alloc(reify_args)))
-            .lift();
+            .expr;
+        let reify_args = self.vcx.alloc(reify_args);
+        let body = self.vcx.mk_lazy_expr(
+            vir::vir_format!(self.vcx, "spec closure body ({name})"),
+            body.ty(),
+            Box::new(move |vcx, lctx: ExprInput<'vir>| {
+                body.reify(vcx, (cl_def_id, reify_args, lctx.2)).kind
+            }),
+        );
         Ok((qvars, body.downcast_ty::<vir::Bool>()))
     }
 
