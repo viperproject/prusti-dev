@@ -39,11 +39,12 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> MirBorrowck<'tcx
     // when calling `get_body_with_borrowck_facts`. TODO: figure out if we need
     // (anon) const bodies at all, and if so, how to get them?
     if !is_anon_const {
-        let consumer_opts = if is_spec_fn(tcx, def_id.to_def_id()) || config::no_verify() {
-            consumers::ConsumerOptions::RegionInferenceContext
-        } else {
-            consumers::ConsumerOptions::PoloniusOutputFacts
-        };
+        let consumer_opts =
+            if is_spec_fn(tcx, def_id.to_def_id()) || config::verify_mode().is_compile_only() {
+                consumers::ConsumerOptions::RegionInferenceContext
+            } else {
+                consumers::ConsumerOptions::PoloniusOutputFacts
+            };
         let body_with_facts = consumers::get_bodies_with_borrowck_facts(tcx, def_id, consumer_opts);
         for (def_id, body) in body_with_facts {
             // SAFETY: This is safe because we are feeding in the same `tcx` that is
@@ -207,7 +208,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         // that is already in `def_spec`?
         let (annotated_procedures, types) = env.get_annotated_procedures_and_types();
 
-        if config::show_ide_info() && !config::no_verify() {
+        if config::show_ide_info() && !config::verify_mode().is_compile_only() {
             let compiler_info = IdeInfo::collect(&env, &annotated_procedures, &def_spec);
             let out = serde_json::to_string(&compiler_info).unwrap();
             PrustiError::message(format!("compilerInfo{out}"), DUMMY_SP.into())
@@ -222,7 +223,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         let is_primary_package = is_single_file || std::env::var("CARGO_PRIMARY_PACKAGE").is_ok();
 
         // collect and output Information used by IDE:
-        if !config::no_verify() && !config::skip_verification() {
+        if !config::verify_mode().is_compile_only() && !config::skip_verification() {
             let target_def_paths = config::verify_only_defpaths();
             debug!(
                 "Received def paths: {target_def_paths:?}. Package is primary: {is_primary_package}, Package is single-file: {is_single_file}"
@@ -257,7 +258,10 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                 };
                 verify(env, def_spec, verification_task);
             }
-        } else if config::skip_verification() && !config::no_verify() && is_primary_package {
+        } else if config::skip_verification()
+            && !config::verify_mode().is_compile_only()
+            && is_primary_package
+        {
             // add a fake error, reason explained in issue #1261
             fake_error(&env.diagnostic);
         }

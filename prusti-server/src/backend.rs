@@ -30,7 +30,9 @@ impl<'a> Backend<'a> {
                 ast_utils.with_local_frame(16, || {
                     let viper_program = viper::Program::new(viper_program_ref.as_obj());
 
-                    if prusti_utils::config::report_viper_messages() {
+                    // If report_viper_messages is activated, we need to check if we only run consistency checks here.
+                    // Otherwise, we will keep waiting for the messages to come in
+                    if prusti_utils::config::report_viper_messages() && verifier.is_verify() {
                         verify_and_poll_msgs(
                             verifier,
                             context,

@@ -70,7 +70,7 @@ impl VerificationRequestProcessing {
         request.send(&self.mtx_tx_verreq);
 
         futures::stream::unfold(false, move |done: bool| async move {
-            if done {
+            if request.backend_config.verify_mode.is_encode_only() || done {
                 return None;
             }
             let msg = self.mtx_rx_servermsg.lock().await.recv().unwrap();
