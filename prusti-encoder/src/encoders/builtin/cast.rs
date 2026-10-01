@@ -258,36 +258,38 @@ impl TaskEncoder for MirBuiltinCastEnc {
                         (e_op_ty.prim_to_snap)(vcx.mk_const_expr(ConstData::Int(bits)))
                     };
 
-                    // `as` rounds towards zero
-                    let trunc = (e_op_ty.fp_trunc)(arg_ex);
-                    // `fp.to_sbv`/`fp.to_ubv` are unspecified for out-of-range
-                    // values, so saturate first. The bounds `-2^(N-1)`/`0` and
-                    // `2^(N-1)`/`2^N` are powers of two and therefore exact (or
-                    // infinite if out of the float's range, in which case only
-                    // the infinities reach them). The bounds are compared as
-                    // floats: going via `fp.to_real` makes symbolic casts
-                    // unprovable with Z3's arithmetic solver.
+                    // `as` rounds towards zero, which the `RTZ` conversions
+                    // already do. They are unspecified for values whose rounded
+                    // value is out of range, so saturate first. The bounds
+                    // `-2^(N-1)`/`0` and `2^(N-1)`/`2^N` are integers, so
+                    // comparing the untruncated value against them gives the
+                    // same result as comparing the truncated one. They are also
+                    // powers of two and therefore exact (or infinite if out of
+                    // the float's range, in which case only the infinities reach
+                    // them). The bounds are compared as floats: going via
+                    // `fp.to_real` makes symbolic casts unprovable with Z3's
+                    // arithmetic solver.
                     let (lower, upper, in_range) = if signed {
                         (
                             float_pow2_bits(float, bits - 1, true),
                             float_pow2_bits(float, bits - 1, false),
-                            (conv.bitvec.sbv_to_int)((conv.to_sbv)(trunc)),
+                            (conv.bitvec.sbv_to_int)((conv.to_sbv)(arg_ex)),
                         )
                     } else {
                         (
                             0,
                             float_pow2_bits(float, bits, false),
-                            (conv.bitvec.ubv_to_int)((conv.to_ubv)(trunc)),
+                            (conv.bitvec.ubv_to_int)((conv.to_ubv)(arg_ex)),
                         )
                     };
                     let expr = vcx.mk_ternary_expr(
                         (e_op_ty.fp_is_nan)(arg_ex),
                         e_res_ty.prim_to_snap(vcx.mk_int::<0>().upcast_ty()),
                         vcx.mk_ternary_expr(
-                            (e_op_ty.fp_leq)(trunc, float_const(lower)),
+                            (e_op_ty.fp_leq)(arg_ex, float_const(lower)),
                             e_res_ty.prim_to_snap(vcx.get_min_int(result_kind).upcast_ty()),
                             vcx.mk_ternary_expr(
-                                (e_op_ty.fp_geq)(trunc, float_const(upper)),
+                                (e_op_ty.fp_geq)(arg_ex, float_const(upper)),
                                 e_res_ty.prim_to_snap(vcx.get_max_int(result_kind).upcast_ty()),
                                 e_res_ty.prim_to_snap(in_range.upcast_ty()),
                             ),
