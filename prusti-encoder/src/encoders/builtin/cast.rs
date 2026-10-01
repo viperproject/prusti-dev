@@ -1,9 +1,9 @@
 use prusti_rustc_interface::{
-    middle::{mir, ty, ty::FloatTy},
+    middle::{mir, ty},
     span::symbol,
 };
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{BinOpKind, CastType, ConstData, FunctionIdn, MethodIdn};
+use vir::{CastType, ConstData, FunctionIdn, MethodIdn};
 
 use crate::encoders::{
     TyUseImpureEnc,
@@ -11,7 +11,10 @@ use crate::encoders::{
     ty::{
         LazyRustTy, RustTy, RustTyDecomposition, RustTySpecial, TySpecifics,
         generics::{GParams, GenericParamsEnc},
-        interpretation::bitvec::{BitVecEnc, BitVecSize},
+        interpretation::{
+            bitvec::BitVecSize,
+            float_conv::{FloatBitVecConvEnc, float_pow2_bits},
+        },
         use_pure::TyUsePureEnc,
     },
 };
@@ -197,16 +200,35 @@ impl TaskEncoder for MirBuiltinCastEnc {
                 mir::CastKind::IntToFloat => {
                     let e_op_ty = op_ty.expect_primitive();
                     let e_res_ty = res_ty.expect_float();
-                    let op_kind = operand_ty.expect_primitive().kind();
-                    let (_bits, to_signed) = vir::VirCtxt::get_int_data(op_kind);
-                    // Always use 128 bits BitVec to make it easier to cast to float, since that reduces the number of interpreted functions that we need
-                    // (instead of, e.g., using BitVec8 -> Float64, BitVec16 -> Float64, BitVec32 -> Float64, BitVec64 -> Float64, BitVec128 -> Float64, we only need BitVec128 -> Float64)
-                    let bitvec = deps.require_dep::<BitVecEnc>(BitVecSize::BitVec128)?;
-                    let expr = (bitvec.from_int)(e_op_ty.snap_to_prim(arg_ex).downcast_ty());
-                    let expr = if to_signed {
-                        (e_res_ty.from_int_bv)(expr)
+                    let (bits, signed) =
+                        vir::VirCtxt::get_int_data(operand_ty.expect_primitive().kind());
+                    // Convert at the width of the source type (instead of
+                    // always 128 bits), which keeps `int2bv` cheaper for Z3.
+                    let ty::Float(float) = *result_ty.expect_primitive().kind() else {
+                        unreachable!()
+                    };
+                    let conv = deps
+                        .require_dep::<FloatBitVecConvEnc>((float, BitVecSize::from_bits(bits)))?;
+                    let from_nat = |nat| (conv.from_ubv)((conv.bitvec.from_int)(nat));
+
+                    let arg_prim = e_op_ty.snap_to_prim(arg_ex);
+                    let expr = if signed {
+                        // Convert the magnitude and negate the result for
+                        // negative values: Z3 handles `int2bv` of negative
+                        // integers poorly, and since RNE rounding is symmetric
+                        // `-round(-x) == round(x)`. The magnitude of `iN::MIN`
+                        // still fits into an unsigned `N`-bit vector.
+                        let zero = vcx.mk_int::<0>();
+                        let arg_int = arg_prim.downcast_ty::<vir::Int>();
+                        vcx.mk_ternary_expr(
+                            vir::expr!((arg_int) < (zero)),
+                            (e_res_ty.fp_neg)(from_nat(
+                                vcx.mk_unary_op_expr(vir::UnOpKind::Neg, arg_prim),
+                            )),
+                            from_nat(arg_prim),
+                        )
                     } else {
-                        (e_res_ty.from_uint_bv)(expr)
+                        from_nat(arg_prim)
                     };
 
                     let fn_idn = FunctionIdn::new(name, op_ty_snap, res_ty_snap);
@@ -224,71 +246,51 @@ impl TaskEncoder for MirBuiltinCastEnc {
                     let e_op_ty = op_ty.expect_float();
                     let e_res_ty = res_ty.expect_primitive();
                     let result_kind = result_ty.expect_primitive().kind();
-
-                    let (_bits, to_signed) = vir::VirCtxt::get_int_data(result_kind);
-                    let bitvec = deps.require_dep::<BitVecEnc>(
-                        match operand_ty.expect_primitive().kind() {
-                            ty::Float(FloatTy::F16) => BitVecSize::BitVec16,
-                            ty::Float(FloatTy::F32) => BitVecSize::BitVec32,
-                            ty::Float(FloatTy::F64) => BitVecSize::BitVec64,
-                            ty::Float(FloatTy::F128) => BitVecSize::BitVec128,
-                            _ => unreachable!(),
-                        },
-                    )?;
-
-                    let min_bound_int = vcx.get_min_int(result_kind);
-                    let max_bound_int = vcx.get_max_int(result_kind);
-
-                    // real to int will always round down (also for negative numbers) - truncate
-                    let arg_ex = (e_op_ty.fp_trunc)(arg_ex);
-
-                    let min_bound_real = vcx
-                        .mk_bin_op_expr(
-                            BinOpKind::FractionalPerm,
-                            min_bound_int,
-                            vcx.mk_const_expr(ConstData::Int(1)).downcast_ty(),
-                        )
-                        .downcast_ty();
-                    let max_bound_real = vcx
-                        .mk_bin_op_expr(
-                            BinOpKind::FractionalPerm,
-                            max_bound_int,
-                            vcx.mk_const_expr(ConstData::Int(1)).downcast_ty(),
-                        )
-                        .downcast_ty();
-                    let arg_ex_real = (e_op_ty.fp_to_real)(arg_ex);
-
-                    let (bv_fun, int_fun) = if to_signed {
-                        (e_op_ty.fp_to_sbv, bitvec.sbv_to_int)
-                    } else {
-                        (e_op_ty.fp_to_ubv, bitvec.ubv_to_int)
+                    let ty::Float(float) = *operand_ty.expect_primitive().kind() else {
+                        unreachable!()
                     };
-                    let bv_op = (bv_fun)(arg_ex);
-                    let expr = (int_fun)(bv_op);
+                    let (bits, signed) = vir::VirCtxt::get_int_data(result_kind);
+                    // Convert at the width of the target type, so that every
+                    // in-range value is representable.
+                    let conv = deps
+                        .require_dep::<FloatBitVecConvEnc>((float, BitVecSize::from_bits(bits)))?;
+                    let float_const = |bits: u128| {
+                        (e_op_ty.prim_to_snap)(vcx.mk_const_expr(ConstData::Int(bits)))
+                    };
 
-                    // clamp argument first because not having enough bits is undefined in SMT-LIB
+                    // `as` rounds towards zero
+                    let trunc = (e_op_ty.fp_trunc)(arg_ex);
+                    // `fp.to_sbv`/`fp.to_ubv` are unspecified for out-of-range
+                    // values, so saturate first. The bounds `-2^(N-1)`/`0` and
+                    // `2^(N-1)`/`2^N` are powers of two and therefore exact (or
+                    // infinite if out of the float's range, in which case only
+                    // the infinities reach them). The bounds are compared as
+                    // floats: going via `fp.to_real` makes symbolic casts
+                    // unprovable with Z3's arithmetic solver.
+                    let (lower, upper, in_range) = if signed {
+                        (
+                            float_pow2_bits(float, bits - 1, true),
+                            float_pow2_bits(float, bits - 1, false),
+                            (conv.bitvec.sbv_to_int)((conv.to_sbv)(trunc)),
+                        )
+                    } else {
+                        (
+                            0,
+                            float_pow2_bits(float, bits, false),
+                            (conv.bitvec.ubv_to_int)((conv.to_ubv)(trunc)),
+                        )
+                    };
                     let expr = vcx.mk_ternary_expr(
-                        vir::expr!((arg_ex_real) < (min_bound_real)),
-                        e_res_ty.prim_to_snap(min_bound_int.upcast_ty()),
+                        (e_op_ty.fp_is_nan)(arg_ex),
+                        e_res_ty.prim_to_snap(vcx.mk_int::<0>().upcast_ty()),
                         vcx.mk_ternary_expr(
-                            vir::expr!((max_bound_real) < (arg_ex_real)),
-                            e_res_ty.prim_to_snap(max_bound_int.upcast_ty()),
-                            e_res_ty.prim_to_snap(expr.upcast_ty()),
-                        ),
-                    );
-
-                    // Handle infinity and NaN cases
-                    let expr = vcx.mk_ternary_expr(
-                        (e_op_ty.fp_is_infinite)(arg_ex),
-                        vcx.mk_ternary_expr(
-                            (e_op_ty.fp_is_positive)(arg_ex),
-                            e_res_ty.prim_to_snap(vcx.get_max_int(result_kind).upcast_ty()),
+                            (e_op_ty.fp_leq)(trunc, float_const(lower)),
                             e_res_ty.prim_to_snap(vcx.get_min_int(result_kind).upcast_ty()),
-                        ),
-                        vcx.mk_ternary_expr(
-                            (e_op_ty.fp_is_nan)(arg_ex),
-                            e_res_ty.prim_to_snap(vcx.mk_const_expr(ConstData::Int(0))),
-                            expr.upcast_ty(),
+                            vcx.mk_ternary_expr(
+                                (e_op_ty.fp_geq)(trunc, float_const(upper)),
+                                e_res_ty.prim_to_snap(vcx.get_max_int(result_kind).upcast_ty()),
+                                e_res_ty.prim_to_snap(in_range.upcast_ty()),
+                            ),
                         ),
                     );
 

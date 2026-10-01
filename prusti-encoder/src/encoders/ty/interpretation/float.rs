@@ -1,6 +1,6 @@
 use prusti_rustc_interface::middle::ty;
 use task_encoder::{EncodeFullError, TaskEncoderDependencies};
-use vir::{BackendInterpretationPair, CallableIdn, FunctionIdn, VirCtxt, vir_format};
+use vir::{BackendInterpretationPair, CallableIdn, FunctionIdn, VirCtxt};
 
 use crate::encoders::ty::{
     interpretation::bitvec::{BitVecEnc, BitVecSize},
@@ -15,8 +15,6 @@ pub struct FloatDomainData<'vir> {
     pub prim_to_snap: FunctionIdn<'vir, vir::Prim, vir::CSnap>,
     #[allow(unused)]
     pub from_bv: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
-    pub from_int_bv: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
-    pub from_uint_bv: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
     pub fp_eq: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::Bool>,
     pub fp_add: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::CSnap>,
     pub fp_sub: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::CSnap>,
@@ -25,7 +23,6 @@ pub struct FloatDomainData<'vir> {
     pub fp_trunc: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
     pub fp_is_nan: FunctionIdn<'vir, vir::CSnap, vir::Bool>,
     pub fp_is_infinite: FunctionIdn<'vir, vir::CSnap, vir::Bool>,
-    pub fp_is_positive: FunctionIdn<'vir, vir::CSnap, vir::Bool>,
     pub fp_lt: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::Bool>,
     pub fp_leq: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::Bool>,
     pub fp_gt: FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::Bool>,
@@ -33,8 +30,6 @@ pub struct FloatDomainData<'vir> {
     pub fp_neg: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
     pub fp_abs: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
     pub fp_to_real: FunctionIdn<'vir, vir::CSnap, vir::Perm>,
-    pub fp_to_ubv: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
-    pub fp_to_sbv: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
 }
 
 pub(crate) fn ty_pure_float<'vir>(
@@ -144,13 +139,6 @@ pub(crate) fn ty_pure_float<'vir>(
         Some("fp.isInfinite"),
     );
 
-    let fp_is_positive = builder.backend_func(
-        "is_positive",
-        builder.self_type(),
-        vir::TYPE_BOOL,
-        Some("fp.isPositive"),
-    );
-
     let fp_lt = builder.backend_func(
         "lt",
         (builder.self_type(), builder.self_type()),
@@ -196,8 +184,6 @@ pub(crate) fn ty_pure_float<'vir>(
         ty::FloatTy::F128 => BitVecSize::BitVec128,
     })?;
 
-    let bit_vec_128 = deps.require_dep::<BitVecEnc>(BitVecSize::BitVec128)?;
-
     let from_bv_name = match float {
         ty::FloatTy::F16 => "(_ to_fp 5 11)",
         ty::FloatTy::F32 => "(_ to_fp 8 24)",
@@ -210,53 +196,12 @@ pub(crate) fn ty_pure_float<'vir>(
         builder.self_type(),
         Some(from_bv_name),
     );
-    let to_fp_name = vir_format!(vcx, "{from_bv_name} RNE");
-    let from_int_bv = builder.backend_func(
-        "from_int_bv",
-        (bit_vec_128.domain)(),
-        builder.self_type(),
-        Some(to_fp_name),
-    );
-
-    let to_fp_unsigned_name = match float {
-        ty::FloatTy::F16 => "(_ to_fp_unsigned 5 11) RNE",
-        ty::FloatTy::F32 => "(_ to_fp_unsigned 8 24) RNE",
-        ty::FloatTy::F64 => "(_ to_fp_unsigned 11 53) RNE",
-        ty::FloatTy::F128 => "(_ to_fp_unsigned 15 113) RNE",
-    };
-    let from_uint_bv = builder.backend_func(
-        "from_uint_bv",
-        (bit_vec_128.domain)(),
-        builder.self_type(),
-        Some(to_fp_unsigned_name),
-    );
 
     let fp_to_real = builder.backend_func(
         "to_real",
         builder.self_type(),
         vir::TYPE_PERM,
         Some("fp.to_real"),
-    );
-
-    let bits = match float {
-        ty::FloatTy::F16 => 16,
-        ty::FloatTy::F32 => 32,
-        ty::FloatTy::F64 => 64,
-        ty::FloatTy::F128 => 128,
-    };
-
-    let fp_to_sbv = builder.backend_func(
-        "to_sbv",
-        builder.self_type(),
-        (bit_vec.domain)(),
-        Some(vir_format!(vcx, "(_ fp.to_sbv {}) RTZ", bits)),
-    );
-
-    let fp_to_ubv = builder.backend_func(
-        "to_ubv",
-        builder.self_type(),
-        (bit_vec.domain)(),
-        Some(vir_format!(vcx, "(_ fp.to_ubv {}) RTZ", bits)),
     );
 
     builder.axiom("prim_to_snap", vir::expr! {
@@ -266,8 +211,6 @@ pub(crate) fn ty_pure_float<'vir>(
     Ok(FloatDomainData {
         prim_to_snap,
         from_bv,
-        from_int_bv,
-        from_uint_bv,
         fp_eq,
         fp_add,
         fp_sub,
@@ -276,7 +219,6 @@ pub(crate) fn ty_pure_float<'vir>(
         fp_trunc,
         fp_is_nan,
         fp_is_infinite,
-        fp_is_positive,
         fp_lt,
         fp_leq,
         fp_gt,
@@ -284,7 +226,5 @@ pub(crate) fn ty_pure_float<'vir>(
         fp_neg,
         fp_abs,
         fp_to_real,
-        fp_to_sbv,
-        fp_to_ubv,
     })
 }

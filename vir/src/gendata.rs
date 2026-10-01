@@ -39,8 +39,7 @@ impl<'vir, Curr, Next> BinOpGenData<'vir, Curr, Next> {
             BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Div | BinOpKind::Mod => {
                 crate::TYPE_INT.upcast_ty()
             }
-            BinOpKind::FractionalPerm
-            | BinOpKind::PermAdd
+            BinOpKind::PermAdd
             | BinOpKind::PermSub
             | BinOpKind::PermMul
             | BinOpKind::PermPermDiv => crate::TYPE_PERM.upcast_ty(),

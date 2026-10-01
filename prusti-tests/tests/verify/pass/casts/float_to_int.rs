@@ -1,3 +1,5 @@
+use prusti_contracts::*;
+
 fn main() {
     let x = 100.0;
     let y = x as i32;
@@ -38,4 +40,38 @@ fn main() {
     let x10 = f64::NAN;
     let y10 = x10 as i32;
     assert!(y10 == 0);
+}
+fn wide_targets() {
+    // in-range values that need more bits than the float itself has
+    let x = 1e10f32;
+    assert!(x as i64 == 10000000000);
+
+    let x = 3e9f32;
+    assert!(x as u64 == 3000000000);
+
+    let x = -1e10f64;
+    assert!(x as i64 == -10000000000);
+
+    let x = 1e40f64;
+    assert!(x as u128 == u128::MAX);
+
+    let x = -1e40f64;
+    assert!(x as i128 == i128::MIN);
+
+    let x = 2147483647.0f64;
+    assert!(x as i32 == i32::MAX);
+
+    let x = -2147483648.0f64;
+    assert!(x as i32 == i32::MIN);
+}
+
+#[requires(x >= 0.0 && x <= 100.0)]
+#[ensures(result <= 100)]
+fn symbolic_in_range(x: f32) -> u8 {
+    x as u8
+}
+
+#[ensures(result >= -128)]
+fn symbolic_saturating(x: f64) -> i8 {
+    x as i8
 }

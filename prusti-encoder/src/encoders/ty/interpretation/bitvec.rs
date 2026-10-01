@@ -12,6 +12,29 @@ pub enum BitVecSize {
     BitVec128,
 }
 
+impl BitVecSize {
+    pub fn from_bits(bits: u32) -> Self {
+        match bits {
+            8 => BitVecSize::BitVec8,
+            16 => BitVecSize::BitVec16,
+            32 => BitVecSize::BitVec32,
+            64 => BitVecSize::BitVec64,
+            128 => BitVecSize::BitVec128,
+            _ => unreachable!("unsupported bitvector width {bits}"),
+        }
+    }
+
+    pub fn bits(self) -> u32 {
+        match self {
+            BitVecSize::BitVec8 => 8,
+            BitVecSize::BitVec16 => 16,
+            BitVecSize::BitVec32 => 32,
+            BitVecSize::BitVec64 => 64,
+            BitVecSize::BitVec128 => 128,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct BitVecDomain<'vir> {
     pub domain: vir::DomainIdn<'vir, vir::CSnap>,
