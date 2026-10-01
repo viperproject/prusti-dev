@@ -43,7 +43,7 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> MirBorrowck<'tcx
             if is_spec_fn(tcx, def_id.to_def_id()) || config::verify_mode().is_compile_only() {
                 consumers::ConsumerOptions::RegionInferenceContext
             } else {
-                consumers::ConsumerOptions::PoloniusOutputFacts
+                consumers::ConsumerOptions::PoloniusInputFacts
             };
         let body_with_facts = consumers::get_bodies_with_borrowck_facts(tcx, def_id, consumer_opts);
         for (def_id, body) in body_with_facts {
