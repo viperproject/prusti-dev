@@ -15,6 +15,7 @@ use std::{
 };
 
 use crate::smt_manager::SmtManager;
+use prusti_utils::config::VerifyMode;
 
 pub struct VerificationContext<'a> {
     env: AttachGuard<'a>,
@@ -58,9 +59,12 @@ impl<'a> VerificationContext<'a> {
             z3_exe,
             boogie_exe,
             SmtManager::default(),
+            VerifyMode::Verify,
         )
     }
 
+    // Putting multiple arguments into the same struct would require this struct to be available in prusti-server and viper
+    #[allow(clippy::too_many_arguments)]
     #[tracing::instrument(level = "debug", skip(self, smt_manager))]
     pub fn new_verifier(
         &self,
@@ -70,6 +74,7 @@ impl<'a> VerificationContext<'a> {
         z3_exe: String,
         boogie_exe: Option<String>,
         smt_manager: SmtManager,
+        verify_mode: VerifyMode,
     ) -> Verifier<'_> {
         let mut verifier_args: Vec<String> = vec![];
 
@@ -99,7 +104,7 @@ impl<'a> VerificationContext<'a> {
 
         debug!("Verifier arguments: '{}'", verifier_args.to_vec().join(" "));
 
-        Verifier::new(&self.env, backend, report_path, smt_manager)
+        Verifier::new(&self.env, backend, report_path, smt_manager, verify_mode)
             .parse_command_line(&verifier_args)
     }
 }

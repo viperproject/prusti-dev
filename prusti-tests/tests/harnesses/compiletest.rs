@@ -114,7 +114,7 @@ fn run_no_verification(group_name: &str) {
         &[],
         &[
             ("PRUSTI_FULL_COMPILATION", "true"),
-            ("PRUSTI_NO_VERIFY", "true"),
+            ("PRUSTI_VERIFY_MODE", "compile-only"),
             ("PRUSTI_QUIET", "true"),
         ],
     )
@@ -165,7 +165,7 @@ fn run_lifetimes_dump(group_name: &str) {
         group_name,
         &[],
         &[
-            ("PRUSTI_NO_VERIFY", "true"),
+            ("PRUSTI_VERIFY_MODE", "compile-only"),
             ("PRUSTI_DUMP_BORROWCK_INFO", "true"),
             ("PRUSTI_QUIET", "true"),
         ],
