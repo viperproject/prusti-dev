@@ -14,6 +14,7 @@ mod arg_value;
 mod callbacks;
 mod verifier;
 
+use crate::config::VerifyMode;
 use arg_value::arg_value;
 use callbacks::PrustiCompilerCalls;
 use log::info;
@@ -111,7 +112,7 @@ fn main() {
     // Remote dependencies (e.g. from git/crates.io), or any dependencies if `no_verify_deps`,
     // are not verified. However, we still run Prusti on them to export potential specs.
     if is_no_verify_dep_crate || are_lints_disabled {
-        config::set_no_verify(true);
+        config::set_verify_mode(VerifyMode::CompileOnly);
     }
 
     // Disable incremental compilation because it causes mir_borrowck not to be called.

@@ -44,7 +44,7 @@
 | [`LOG_TRACING`](#log_tracing) | `bool` | `true` | A |
 | [`MAX_LOG_FILE_NAME_LENGTH`](#max_log_file_name_length) | `usize` | `60` | A |
 | [`MIN_PRUSTI_VERSION`](#min_prusti_version) | `Option<String>` | `None` | A |
-| [`NO_VERIFY`](#no_verify) | `bool` | `false` | A |
+| [`VERIFY_MODE`](#verify_mode) | `String` | `verify` | A |
 | [`NO_VERIFY_DEPS`](#no_verify_deps) | `bool` | `false` | B |
 | [`OPT_IN_VERIFICATION`](#opt_in_verification) | `bool` | `false` | A |
 | [`OPTIMIZATIONS`](#optimizations) | `Vec<String>` | "all" | A |
@@ -52,7 +52,6 @@
 | [`PRINT_COLLECTED_VERIFICATION_ITEMS`](#print_collected_verification_items) | `bool` | `false` | A |
 | [`PRINT_COUNTEREXAMPLE_IF_MODEL_IS_PRESENT`](#print_counterexample_if_model_is_present) | `bool` | `false` | A |
 | [`PRINT_DESUGARED_SPECS`](#print_desugared_specs) | `bool` | `false` | A |
-| [`PRINT_HASH`](#print_hash) | `bool` | `false` | A |
 | [`PRINT_TYPECKD_SPECS`](#print_typeckd_specs) | `bool` | `false` | A |
 | [`QUERY_METHOD_SIGNATURE`](#query_method_signature) | `Option<String>` | `None` | A |
 | [`QUIET`](#quiet) | `bool` | `false` | A* |
@@ -293,13 +292,18 @@ Maximum allowed length of a log file name. If this is exceeded, the file name is
 
 Minimum required version of Prusti that is allowed to run. If Prusti detects that its own version is lower than this, it will throw an error and refuse to verify files. Generally [set in a `Prusti.toml` file](providing.md#flags-2) of a crate to enforce a minimum Prusti version.
 
-## `NO_VERIFY`
+## `VERIFY_MODE`
 
-When enabled, verification is skipped altogether, though specs are still exported.
+This flag defines which mode Prusti runs in:
+
+- `compile-only`: This only compiles the Rust program but does not encode it into Viper.
+- `encode-only`: This encodes the Rust program into Viper, without running Viper on it. The resulting Viper program may be inconsistent, even when Prusti returns no error. From this point on, the Viper program can be dumped by setting [`DUMP_VIPER_PROGRAM`](#dump_viper_program).
+- `consistency-check`: After encoding the Rust program into Viper, Prusti calls Viper to perform consistency checks on the Viper program, without actually verifying the program.
+- `verify`: This is the default option and used to verify the Viper program.
 
 ## `NO_VERIFY_DEPS`
 
-When enabled, verification is skipped for dependencies. Equivalent to enabling `NO_VERIFY` for all dependencies. Remote dependencies from e.g. git/crates.io are already automatically `NO_VERIFY`.
+When enabled, verification is skipped for dependencies. Equivalent to setting `VERIFY_MODE` to `compile-only` for all dependencies. Remote dependencies from e.g. git/crates.io are already automatically set to `compile-only`.
 
 > **Note:** applied to all dependency crates when running with `cargo prusti`.
 
@@ -344,10 +348,6 @@ When enabled, a counterexample contains values for the original type and its mod
 ## `PRINT_DESUGARED_SPECS`
 
 When enabled, prints the AST with desugared specifications.
-
-## `PRINT_HASH`
-
-When enabled, prints the hash of a verification request (the hash is used for caching). This is a debugging option which does not perform verification &mdash; it is similar to [`NO_VERIFY`](#no_verify), except that this flag stops the verification process at a later stage.
 
 ## `PRINT_TYPECKD_SPECS`
 
@@ -406,7 +406,7 @@ When enabled, features not supported by Prusti will be reported as warnings rath
 
 ## `SKIP_VERIFICATION`
 
-When enabled, verification will be skipped. Opposed to `NO_VERIFY`, this flag will cause fake errors to stop the compiler from caching the result.
+When enabled, verification will be skipped. Opposed to `VERIFY_MODE=compile-only`, this flag will cause fake errors to stop the compiler from caching the result.
 
 ## `SMT_QI_BOUND_GLOBAL`
 

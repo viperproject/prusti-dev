@@ -53,7 +53,7 @@ pub fn verify_programs(
             VerificationRequest {
                 program,
                 procedures,
-                backend_config: ViperBackendConfig::new(backend),
+                backend_config: ViperBackendConfig::new(backend, config::verify_mode()),
             }
         })
         .collect();

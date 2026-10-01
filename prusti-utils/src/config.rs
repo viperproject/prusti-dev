@@ -13,7 +13,7 @@ use crate::launch::{find_viper_home, get_current_executable_dir};
 use ::config::{Config, Environment, File};
 use log::warn;
 use serde::Deserialize;
-use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
+use std::{collections::HashSet, env, path::PathBuf, str::FromStr, sync::RwLock};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Optimizations {
@@ -110,7 +110,7 @@ lazy_static::lazy_static! {
         settings.set_default("skip_unsupported_features", false).unwrap();
         settings.set_default("internal_errors_as_warnings", false).unwrap();
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
-        settings.set_default("no_verify", false).unwrap();
+        settings.set_default("verify_mode", "verify").unwrap();
         settings.set_default("no_verify_deps", false).unwrap();
         settings.set_default("opt_in_verification", false).unwrap();
         settings.set_default("full_compilation", false).unwrap();
@@ -144,7 +144,6 @@ lazy_static::lazy_static! {
         settings.set_default::<Option<String>>("save_failing_trace_to_file", None).unwrap();
         settings.set_default::<Option<String>>("execute_only_failing_trace", None).unwrap();
         settings.set_default::<Option<String>>("dump_fold_unfold_state_of_blocks", None).unwrap();
-        settings.set_default("print_hash", false).unwrap();
         settings.set_default("enable_cache", true).unwrap();
 
         settings.set_default("cargo_path", "cargo").unwrap();
@@ -635,14 +634,6 @@ pub fn dump_fold_unfold_state_of_blocks() -> Option<String> {
     value
 }
 
-/// When enabled, prints the hash of a verification request (the hash is used
-/// for caching). This is a debugging option which does not perform
-/// verification -- it is similar to `NO_VERIFY`, except that this flag stops
-/// the verification process at a later stage.
-pub fn print_hash() -> bool {
-    read_setting("print_hash")
-}
-
 /// When enabled, verification requests (to verify individual `fn`s) are cached
 /// to improve future verification. By default the cache is only saved in
 /// memory (of the `prusti-server` if enabled). For long-running verification
@@ -1015,12 +1006,62 @@ pub fn allow_unreachable_unsupported_code() -> bool {
     read_setting("allow_unreachable_unsupported_code")
 }
 
-/// When enabled, verification is skipped altogether.
-pub fn no_verify() -> bool {
-    read_setting("no_verify")
+#[derive(Debug, Hash, PartialEq, Eq, serde::Deserialize, serde::Serialize, Clone, Copy)]
+pub enum VerifyMode {
+    CompileOnly,
+    EncodeOnly,
+    ConsistencyCheck,
+    Verify,
 }
-pub fn set_no_verify(value: bool) {
-    write_setting("no_verify", value);
+
+impl VerifyMode {
+    pub fn is_compile_only(&self) -> bool {
+        matches!(*self, VerifyMode::CompileOnly)
+    }
+
+    pub fn is_encode_only(&self) -> bool {
+        matches!(*self, VerifyMode::EncodeOnly)
+    }
+
+    pub fn is_consistency_check(&self) -> bool {
+        matches!(*self, VerifyMode::ConsistencyCheck)
+    }
+
+    pub fn is_verify(&self) -> bool {
+        matches!(*self, VerifyMode::Verify)
+    }
+}
+
+impl FromStr for VerifyMode {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "compile-only" => Ok(Self::CompileOnly),
+            "encode-only" => Ok(Self::EncodeOnly),
+            "consistency-check" => Ok(Self::ConsistencyCheck),
+            "verify" => Ok(Self::Verify),
+            _ => Err(format!("Found invalid value {s} for option VERIFY_MODE (possible options are: \"compile-only\", \"encode-only\", \"consistency-check\", or \"verify\")")),
+        }
+    }
+}
+
+/// This flag controls the mode that Prusti runs in
+pub fn verify_mode() -> VerifyMode {
+    read_setting::<String>("verify_mode").parse().unwrap()
+}
+
+/// Sets the verification mode
+pub fn set_verify_mode(verify_mode: VerifyMode) {
+    write_setting(
+        "verify_mode",
+        match verify_mode {
+            VerifyMode::CompileOnly => "compile-only",
+            VerifyMode::EncodeOnly => "encode-only",
+            VerifyMode::ConsistencyCheck => "consistency-check",
+            VerifyMode::Verify => "verify",
+        },
+    );
 }
 
 /// When enabled, verification is skipped for dependencies.
@@ -1074,8 +1115,8 @@ pub fn show_ide_info() -> bool {
     read_setting("show_ide_info")
 }
 
-/// When enabled, verification is skipped. Similar to no_verify but needed
-/// because no_verify is also set automatically for dependencies, independent
+/// When enabled, verification is skipped. Similar to verify_mode=compile-only but needed
+/// because verify_mode=compile-only is also set automatically for dependencies, independent
 /// of whether the user passed this flag. In general only required because
 /// of issue #1261
 pub fn skip_verification() -> bool {

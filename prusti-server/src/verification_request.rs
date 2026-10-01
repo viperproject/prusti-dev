@@ -9,6 +9,7 @@ use log::info;
 use prusti_rustc_interface::data_structures::fx::FxHashSet;
 use prusti_utils::{
     config,
+    config::VerifyMode,
     report::log::{report, to_legal_file_name},
     Stopwatch,
 };
@@ -97,7 +98,11 @@ pub struct VerificationRequest {
 
 impl VerificationRequest {
     pub(crate) fn get_hash(&self) -> u64 {
-        self.program.get_hash()
+        use std::hash::{Hash, Hasher};
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        self.program.get_hash().hash(&mut hasher);
+        self.backend_config.verify_mode.hash(&mut hasher);
+        hasher.finish()
     }
 
     /// Builds a more specific request based on the backend configuration and sends it.
@@ -105,11 +110,13 @@ impl VerificationRequest {
     pub(crate) fn send(&self, mtx_tx_verreq: &sync::Mutex<mpsc::Sender<ServerRequest>>) {
         let request = self.build_request();
 
-        mtx_tx_verreq
-            .lock()
-            .unwrap()
-            .send(ServerRequest::Verification(request))
-            .unwrap();
+        if !self.backend_config.verify_mode.is_encode_only() {
+            mtx_tx_verreq
+                .lock()
+                .unwrap()
+                .send(ServerRequest::Verification(request))
+                .unwrap();
+        }
     }
 
     fn build_request(&self) -> ServerVerificationRequest {
@@ -164,10 +171,11 @@ impl VerificationRequest {
 pub struct ViperBackendConfig {
     pub backend: VerificationBackend,
     pub verifier_args: Vec<String>,
+    pub verify_mode: VerifyMode,
 }
 
 impl ViperBackendConfig {
-    pub fn new(backend: VerificationBackend) -> Self {
+    pub fn new(backend: VerificationBackend, verify_mode: VerifyMode) -> Self {
         let mut verifier_args = config::extra_verifier_args();
         match backend {
             VerificationBackend::Silicon => {
@@ -224,6 +232,7 @@ impl ViperBackendConfig {
         Self {
             backend,
             verifier_args,
+            verify_mode,
         }
     }
 }
@@ -305,6 +314,7 @@ fn new_viper_verifier<'v, 't: 'v>(
         smt_solver,
         boogie_path,
         smt_manager,
+        backend_config.verify_mode,
     )
 }
 
