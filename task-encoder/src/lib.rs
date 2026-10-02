@@ -74,7 +74,7 @@ impl<'vir> Program<'vir> {
     /// and methods added so far (see [`vir::simplify`]).
     pub fn simplify(&mut self) {
         vir::with_vcx(|vcx| {
-            let adts = vir::simplify::AdtIndex::new(&self.adts);
+            let adts = vir::simplify::AdtIndex::new(&self.adts, &self.domains, &self.functions);
             for domain in self.domains.iter_mut() {
                 *domain = vir::simplify::domain(vcx, &adts, domain);
             }

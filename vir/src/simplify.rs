@@ -7,10 +7,14 @@
 //! immediately dereferenced, generic casts cancelled out, snapshot
 //! constructors compared field by field). All rules are local equivalences:
 //!  - an adt field read of the matching constructor application yields the
-//!    constructor argument,
+//!    constructor argument; the read distributes over ternaries of which a
+//!    branch folds and moves into the body of `let`s,
+//!  - `C(p.f_0, .., p.f_n)` for the constructor `C` of a single-constructor
+//!    adt is `p`,
+//!  - `c ? f(xs..) : f(ys..)` for an adt constructor or total function `f`
+//!    is `f(c ? x_0 : y_0, ..)`,
 //!  - `C(xs..) == C(ys..)` for an adt constructor `C` is the conjunction of
 //!    the pairwise argument equalities (adt constructors are injective),
-//!  - the field read rule distributes over ternaries whose branches all fold,
 //!  - `let x = v in b` is dropped when `x` is unused, and inlined when `v` is
 //!    a local/constant or `x` is used exactly once,
 //!  - boolean and integer operations on literals fold, as do reflexive
@@ -27,7 +31,8 @@
 //! `make_generic_X` a constructor of `s_Param` and `make_concrete_X` the
 //! destructor of its value field, so `make_concrete_X(make_generic_X(e))`
 //! folds to `e`. The other direction, `make_generic_X(make_concrete_X(p))`,
-//! is left standing: it needs to know that `p` really inhabits `X`.
+//! is left standing: it needs to know that `p` really inhabits `X`, and it is
+//! the canonical form in which other terms for the same value are built.
 //!
 //! Inlining a binding (or splicing a constructor argument at a use site)
 //! moves the bound expression to the use site, which is only sound while the
@@ -47,30 +52,57 @@ use std::collections::{HashMap, HashSet};
 
 use crate::{data::*, gendata::*, genrefs::*, refs::*, CastType, VirCtxt};
 
-/// The program's adt constructors and destructors, used to recognize the
-/// foldable applications.
+/// The program's adt constructors and destructors and its total functions,
+/// used to recognize the foldable applications.
 pub struct AdtIndex<'vir> {
     /// Constructor name to its ordered field (destructor) declarations.
     constructors: HashMap<&'vir str, &'vir [crate::LocalDeclDyn<'vir>]>,
     /// Destructor name to its constructor's name and field index.
     destructors: HashMap<&'vir str, (&'vir str, usize)>,
+    /// Constructors `C` for which `C(p.f_0, .., p.f_n)` is `p`: those of
+    /// single-constructor adts, for which silver's exclusivity axiom states
+    /// exactly this, triggered by the field reads. For the variants of a
+    /// multi-constructor adt such as `s_Param` it would need the variant of
+    /// `p`, and folding a cast round trip `make_generic_X(p.make_concrete_X)`
+    /// loses its canonical form wherever `p`'s type is not known.
+    eta: HashSet<&'vir str>,
+    /// Names of the total functions: domain functions and functions without
+    /// preconditions (which therefore cannot read the heap either).
+    total_functions: HashSet<&'vir str>,
 }
 
 impl<'vir> AdtIndex<'vir> {
-    pub fn new(adts: &[Adt<'vir>]) -> Self {
+    pub fn new(adts: &[Adt<'vir>], domains: &[Domain<'vir>], functions: &[Function<'vir>]) -> Self {
+        let total_functions = domains
+            .iter()
+            .flat_map(|d| d.functions.iter().map(|f| f.name.to_str()))
+            .chain(
+                functions
+                    .iter()
+                    .filter(|f| f.pres.is_empty())
+                    .map(|f| f.name),
+            )
+            .collect();
         let mut constructors = HashMap::new();
         let mut destructors = HashMap::new();
+        let mut eta = HashSet::new();
         for adt in adts {
+            let eta_adt = adt.constructors.len() == 1;
             for cons in adt.constructors {
                 constructors.insert(cons.name, cons.args);
                 for (idx, field) in cons.args.iter().enumerate() {
                     destructors.insert(field.name, (cons.name, idx));
+                }
+                if eta_adt {
+                    eta.insert(cons.name);
                 }
             }
         }
         Self {
             constructors,
             destructors,
+            eta,
+            total_functions,
         }
     }
 }
@@ -454,6 +486,9 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
             ExprKindGenData::Let(l) => self.let_expr(e, l),
             ExprKindGenData::FuncApp(app) => {
                 let args = self.exprs(app.args);
+                if let Some(p) = self.fold_eta(app.target, args, app.result_ty) {
+                    return p;
+                }
                 let app2 = self.vcx.alloc(FuncAppGenData {
                     target: app.target,
                     args,
@@ -548,25 +583,37 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
         );
         let body = self.expr(l.expr);
         self.restore(l.name, prev);
+        self.mk_let(e, l.name, val, body)
+    }
 
+    /// `let name = val in body` for a simplified `val` and `body`, dropping
+    /// the binding when unused and inlining it when used exactly once. `orig`
+    /// gives the span and type.
+    fn mk_let(
+        &mut self,
+        orig: ExprDyn<'vir>,
+        name: &'vir str,
+        val: ExprDyn<'vir>,
+        body: ExprDyn<'vir>,
+    ) -> ExprDyn<'vir> {
         let mut val_locals = HashSet::new();
         collect_locals(val, &mut val_locals);
         let mut uses = Uses::default();
-        count_uses(l.name, &val_locals, body, false, &mut uses);
+        count_uses(name, &val_locals, body, false, &mut uses);
         if uses.free + uses.blocked == 0 {
             return body;
         }
         if uses.blocked == 0 && uses.free == 1 {
-            let prev = self.env.insert(l.name, Binding { val, subst: true });
+            let prev = self.env.insert(name, Binding { val, subst: true });
             let body = self.expr(body);
-            self.restore(l.name, prev);
+            self.restore(name, prev);
             return body;
         }
         self.mk(
-            e,
+            orig,
             self.vcx
                 .alloc(ExprKindGenData::Let(self.vcx.alloc(LetGenData {
-                    name: l.name,
+                    name,
                     val,
                     expr: body,
                 }))),
@@ -596,7 +643,12 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
         cur
     }
 
-    /// `cond ? then : else_` of type `ty`, with the span of `orig`.
+    /// `cond ? then : else_` of type `ty`, with the span of `orig`. When both
+    /// branches apply the same adt constructor or total function, the
+    /// application moves out: `c ? f(a..) : f(b..)` is
+    /// `f(c ? a_0 : b_0, ..)`, recursively. A function with a precondition
+    /// stays inside: Silicon cannot find a permission whose receiver is a
+    /// ternary unless the condition is decided.
     fn mk_ternary(
         &self,
         orig: ExprDyn<'vir>,
@@ -682,11 +734,34 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
                 _ => (),
             }
         }
-        let kind = ExprKindGenData::Ternary(self.vcx.alloc(TernaryGenData {
-            cond: cond.inner_cast_ty(),
-            then,
-            else_,
-        }));
+        let kind = match (then.kind, else_.kind) {
+            (ExprKindGenData::FuncApp(a), ExprKindGenData::FuncApp(b))
+                if a.target == b.target
+                    && a.args.len() == b.args.len()
+                    && a.typ_var_map == b.typ_var_map
+                    && a.args.iter().zip(b.args).all(|(x, y)| x.ty() == y.ty())
+                    && (self.adts.constructors.contains_key(a.target)
+                        || self.adts.total_functions.contains(a.target)) =>
+            {
+                let args = a
+                    .args
+                    .iter()
+                    .zip(b.args)
+                    .map(|(x, y)| self.mk_ternary(orig, x.ty(), cond, x, y))
+                    .collect::<Vec<_>>();
+                ExprKindGenData::FuncApp(self.vcx.alloc(FuncAppGenData {
+                    target: a.target,
+                    args: self.vcx.alloc_slice(&args),
+                    result_ty: a.result_ty,
+                    typ_var_map: a.typ_var_map,
+                }))
+            }
+            _ => ExprKindGenData::Ternary(self.vcx.alloc(TernaryGenData {
+                cond: cond.inner_cast_ty(),
+                then,
+                else_,
+            })),
+        };
         self.vcx.alloc(ExprGenData::new_inner(
             self.vcx.alloc(kind),
             orig.debug_info,
@@ -697,31 +772,46 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
 
     /// An adt field read of the matching constructor application yields the
     /// constructor argument. The read distributes over a ternary receiver
-    /// (`(c ? a : b).f` is `c ? a.f : b.f`) when both branches fold, so
-    /// nothing is duplicated. `orig` is the field read, whose span and type
-    /// such a ternary takes.
+    /// (`(c ? a : b).f` is `c ? a.f : b.f`) when at least one branch folds,
+    /// so the read is never duplicated, and moves into the body of a `let`
+    /// receiver. `orig` is the field read, whose span and type such a
+    /// ternary or `let` takes.
     fn fold_destructor(
-        &self,
+        &mut self,
         orig: ExprDyn<'vir>,
         recv: ExprDyn<'vir>,
         destr: AdtDestructor<'vir, crate::Dyn, crate::Dyn>,
     ) -> Option<ExprDyn<'vir>> {
         let recv = self.resolve(recv);
         match recv.kind {
+            ExprKindGenData::Let(l) => {
+                let prev = self.env.insert(
+                    l.name,
+                    Binding {
+                        val: l.val,
+                        subst: false,
+                    },
+                );
+                let body = self.fold_destructor(orig, l.expr, destr);
+                self.restore(l.name, prev);
+                Some(self.mk_let(orig, l.name, l.val, body?))
+            }
             ExprKindGenData::Ternary(t) => {
-                let then = self.fold_destructor(orig, t.then, destr)?;
-                let else_ = self.fold_destructor(orig, t.else_, destr)?;
-                Some(
+                let then = self.fold_destructor(orig, t.then, destr);
+                let else_ = self.fold_destructor(orig, t.else_, destr);
+                if then.is_none() && else_.is_none() {
+                    return None;
+                }
+                let read = |branch| {
                     self.mk(
                         orig,
                         self.vcx
-                            .alloc(ExprKindGenData::Ternary(self.vcx.alloc(TernaryGenData {
-                                cond: t.cond,
-                                then,
-                                else_,
-                            }))),
-                    ),
-                )
+                            .alloc(ExprKindGenData::AdtDestructor(branch, destr)),
+                    )
+                };
+                let then = then.unwrap_or_else(|| read(t.then));
+                let else_ = else_.unwrap_or_else(|| read(t.else_));
+                Some(self.mk_ternary(orig, orig.ty(), t.cond.as_dyn(), then, else_))
             }
             ExprKindGenData::FuncApp(app) => {
                 let (cons, idx) = *self.adts.destructors.get(destr.name)?;
@@ -733,6 +823,35 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
             }
             _ => None,
         }
+    }
+
+    /// A constructor application to the fields of one value of that variant,
+    /// `C(p.f_0, .., p.f_n)`, yields `p`, for the constructors in
+    /// [`AdtIndex::eta`].
+    fn fold_eta(
+        &self,
+        target: &'vir str,
+        args: &'vir [ExprDyn<'vir>],
+        result_ty: TypeDyn<'vir>,
+    ) -> Option<ExprDyn<'vir>> {
+        if !self.adts.eta.contains(target) {
+            return None;
+        }
+        let fields = *self.adts.constructors.get(target)?;
+        if fields.len() != args.len() {
+            return None;
+        }
+        let mut recv = None;
+        for (arg, field) in args.iter().zip(fields) {
+            let ExprKindGenData::AdtDestructor(p, destr) = arg.kind else {
+                return None;
+            };
+            if destr.name != field.name || !recv.is_none_or(|r| syntactic_eq(r, p)) {
+                return None;
+            }
+            recv = Some(*p);
+        }
+        recv.filter(|p| p.ty() == result_ty)
     }
 
     /// Simplified equality of two snapshots, if a rule applies: applications
