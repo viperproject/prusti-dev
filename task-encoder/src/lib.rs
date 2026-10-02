@@ -23,6 +23,7 @@ pub struct Program<'vir> {
     predicates: Vec<vir::Predicate<'vir>>,
     functions: Vec<vir::Function<'vir>>,
     methods: Vec<vir::Method<'vir>>,
+    literal_inverses: Vec<(&'vir str, &'vir str)>,
 
     code: String,
     encoder_errors: Vec<(String, Span)>,
@@ -50,6 +51,12 @@ impl<'vir> Program<'vir> {
         self.code.push_str(&format!("{domain:?}\n"));
     }
 
+    /// Declares that `outer(inner(k)) == k` for every integer literal `k` in
+    /// the program, which [`Self::simplify`] then folds.
+    pub fn add_literal_inverse(&mut self, outer: &'vir str, inner: &'vir str) {
+        self.literal_inverses.push((outer, inner));
+    }
+
     pub fn add_predicate(&mut self, predicate: vir::Predicate<'vir>) {
         self.predicates.push(predicate);
         self.code.push_str(&format!("{predicate:?}\n"));
@@ -74,7 +81,12 @@ impl<'vir> Program<'vir> {
     /// and methods added so far (see [`vir::simplify`]).
     pub fn simplify(&mut self) {
         vir::with_vcx(|vcx| {
-            let adts = vir::simplify::AdtIndex::new(&self.adts, &self.domains, &self.functions);
+            let adts = vir::simplify::AdtIndex::new(
+                &self.adts,
+                &self.domains,
+                &self.functions,
+                &self.literal_inverses,
+            );
             for domain in self.domains.iter_mut() {
                 *domain = vir::simplify::domain(vcx, &adts, domain);
             }

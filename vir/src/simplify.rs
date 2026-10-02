@@ -17,6 +17,8 @@
 //!    the pairwise argument equalities (adt constructors are injective),
 //!  - `let x = v in b` is dropped when `x` is unused, and inlined when `v` is
 //!    a local/constant or `x` is used exactly once,
+//!  - `f(g(k))` for an integer literal `k` is `k` when the encoder declares
+//!    `f` a literal inverse of `g`,
 //!  - boolean and integer operations on literals fold, as do reflexive
 //!    (in)equalities, double negations, negated comparisons, ternaries with
 //!    a literal condition, equal branches or a literal branch, and
@@ -69,10 +71,20 @@ pub struct AdtIndex<'vir> {
     /// Names of the total functions: domain functions and functions without
     /// preconditions (which therefore cannot read the heap either).
     total_functions: HashSet<&'vir str>,
+    /// Pairs `outer` to `inner` for which the encoder declares that
+    /// `outer(inner(k))` is `k` for every integer literal `k` in the program
+    /// (such as the value and constructor of a primitive snapshot domain,
+    /// whose axiom only holds within the type's bounds).
+    literal_inverses: HashMap<&'vir str, &'vir str>,
 }
 
 impl<'vir> AdtIndex<'vir> {
-    pub fn new(adts: &[Adt<'vir>], domains: &[Domain<'vir>], functions: &[Function<'vir>]) -> Self {
+    pub fn new(
+        adts: &[Adt<'vir>],
+        domains: &[Domain<'vir>],
+        functions: &[Function<'vir>],
+        literal_inverses: &[(&'vir str, &'vir str)],
+    ) -> Self {
         let total_functions = domains
             .iter()
             .flat_map(|d| d.functions.iter().map(|f| f.name.to_str()))
@@ -103,6 +115,7 @@ impl<'vir> AdtIndex<'vir> {
             destructors,
             eta,
             total_functions,
+            literal_inverses: literal_inverses.iter().copied().collect(),
         }
     }
 }
@@ -489,6 +502,9 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
                 if let Some(p) = self.fold_eta(app.target, args, app.result_ty) {
                     return p;
                 }
+                if let Some(k) = self.fold_literal_inverse(app.target, args) {
+                    return self.mk(e, k.kind);
+                }
                 let app2 = self.vcx.alloc(FuncAppGenData {
                     target: app.target,
                     args,
@@ -852,6 +868,31 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
             recv = Some(*p);
         }
         recv.filter(|p| p.ty() == result_ty)
+    }
+
+    /// `outer(inner(k))` for an integer literal `k` and a pair in
+    /// [`AdtIndex::literal_inverses`] yields `k`.
+    fn fold_literal_inverse(
+        &self,
+        target: &'vir str,
+        args: &'vir [ExprDyn<'vir>],
+    ) -> Option<ExprDyn<'vir>> {
+        let inner = *self.adts.literal_inverses.get(target)?;
+        let [arg] = args else {
+            return None;
+        };
+        let ExprKindGenData::FuncApp(app) = self.resolve(arg).kind else {
+            return None;
+        };
+        let [k] = app.args else {
+            return None;
+        };
+        let lit = match k.kind {
+            ExprKindGenData::UnOp(u) if u.kind == UnOpKind::Neg => u.expr.as_dyn(),
+            _ => *k,
+        };
+        (app.target == inner && matches!(lit.kind, ExprKindGenData::Const(ConstData::Int(_))))
+            .then_some(*k)
     }
 
     /// Simplified equality of two snapshots, if a rule applies: applications

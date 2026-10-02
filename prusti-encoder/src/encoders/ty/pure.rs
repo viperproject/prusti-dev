@@ -10,8 +10,8 @@ use prusti_rustc_interface::{
 };
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{
-    AdtDestructor, Arity, BackendInterpretationPair, CastType, CompType, DomainAxiomData,
-    DomainIdnSnap, FunctionIdn, Type,
+    AdtDestructor, Arity, BackendInterpretationPair, CallableIdn, CastType, CompType,
+    DomainAxiomData, DomainIdnSnap, FunctionIdn, Type,
 };
 
 use crate::encoders::Pure;
@@ -253,6 +253,7 @@ pub struct TyPureEncLocal<'vir> {
 pub enum TyPureEncLocalKind<'vir> {
     Domain {
         domain: vir::Domain<'vir>,
+        literal_inverse: Option<(vir::ViperIdent<'vir>, vir::ViperIdent<'vir>)>,
     },
     Adt {
         adt: vir::Adt<'vir>,
@@ -357,7 +358,15 @@ impl TaskEncoder for TyPureEnc {
                 program.add_function(function);
             }
             match output.kind {
-                TyPureEncLocalKind::Domain { domain } => program.add_domain(domain),
+                TyPureEncLocalKind::Domain {
+                    domain,
+                    literal_inverse,
+                } => {
+                    program.add_domain(domain);
+                    if let Some((outer, inner)) = literal_inverse {
+                        program.add_literal_inverse(outer.to_str(), inner.to_str());
+                    }
+                }
                 TyPureEncLocalKind::Adt { adt, discr_fn } => {
                     program.add_adt(adt);
                     if let Some(discr_fn) = discr_fn {
@@ -436,6 +445,7 @@ pub(crate) struct DomainBuilderData<'vir> {
     axioms: Vec<vir::DomainAxiom<'vir>>,
     functions: Vec<vir::DomainFunction<'vir>>,
     interpretation: Option<&'vir [&'vir BackendInterpretationPair<'vir>]>,
+    literal_inverse: Option<(vir::ViperIdent<'vir>, vir::ViperIdent<'vir>)>,
 }
 
 #[derive(Clone, Copy)]
@@ -570,7 +580,10 @@ impl<'vir> TyPureBuilder<'vir> {
                     self.vcx.alloc_slice(data.functions.as_slice()),
                     data.interpretation,
                 );
-                TyPureEncLocalKind::Domain { domain }
+                TyPureEncLocalKind::Domain {
+                    domain,
+                    literal_inverse: data.literal_inverse,
+                }
             }
             BuilderData::Adt(data) => {
                 let adt = self.vcx.mk_adt(
@@ -749,6 +762,17 @@ impl<'vir> DomainBuilder<'vir> {
         let name = vir::vir_format!(self.vcx, "{}_ax_{name}", self.name);
         let axiom = self.vcx.alloc(DomainAxiomData { name, expr });
         self.data().axioms.push(axiom);
+    }
+
+    /// Declares that `outer(inner(k)) == k` for every integer literal `k`
+    /// that the encoding applies `inner` to, so that the simplifier can fold
+    /// such applications (see [`vir::simplify::AdtIndex`]).
+    pub(crate) fn literal_inverse<A1: Arity, T1: CompType, A2: Arity, T2: CompType>(
+        &mut self,
+        outer: FunctionIdn<'vir, A1, T1>,
+        inner: FunctionIdn<'vir, A2, T2>,
+    ) {
+        self.data().literal_inverse = Some((outer.name(), inner.name()));
     }
 
     pub(crate) fn set_interpretation(
