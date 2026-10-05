@@ -198,8 +198,10 @@ impl ViperBackendConfig {
                 ]);
                 // model.partial changes the default case of functions in counterexamples
                 // to #unspecified
+                // arith.solver=6 overrides Silicon's legacy arithmetic solver (2),
+                // which is incomplete on the `mod` terms of checked arithmetic
                 let mut prover_args = format!(
-                    "smt.qi.eager_threshold={} model.partial={}",
+                    "smt.qi.eager_threshold={} model.partial={} smt.arith.solver=6",
                     config::smt_qi_eager_threshold(),
                     config::counterexample()
                 );
