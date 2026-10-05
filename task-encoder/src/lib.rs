@@ -88,16 +88,16 @@ impl<'vir> Program<'vir> {
                 &self.literal_inverses,
             );
             for domain in self.domains.iter_mut() {
-                *domain = vir::simplify::domain(vcx, &adts, domain);
+                *domain = vir::simplify::simplify(vcx, &adts, *domain);
             }
             for predicate in self.predicates.iter_mut() {
-                *predicate = vir::simplify::predicate(vcx, &adts, predicate);
+                *predicate = vir::simplify::simplify(vcx, &adts, *predicate);
             }
             for function in self.functions.iter_mut() {
-                *function = vir::simplify::function(vcx, &adts, function);
+                *function = vir::simplify::simplify(vcx, &adts, *function);
             }
             for method in self.methods.iter_mut() {
-                *method = vir::simplify::method(vcx, &adts, method);
+                *method = vir::simplify::simplify(vcx, &adts, *method);
             }
         });
     }
