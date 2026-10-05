@@ -17,5 +17,5 @@ fn rounding() {
 
 fn large_magnitude() {
     prusti_assert!(i128::MIN as f32 == -170141183460469231731687303715884105728.0);
-    //~ERROR: assertion might not hold
+    //~^ ERROR: assertion might not hold
 }

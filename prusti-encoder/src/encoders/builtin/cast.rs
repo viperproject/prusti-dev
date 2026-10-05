@@ -202,8 +202,7 @@ impl TaskEncoder for MirBuiltinCastEnc {
                     let e_res_ty = res_ty.expect_float();
                     let (bits, signed) =
                         vir::VirCtxt::get_int_data(operand_ty.expect_primitive().kind());
-                    // Convert at the width of the source type (instead of
-                    // always 128 bits), which keeps `int2bv` cheaper for Z3.
+                    // Convert at the width of the source type, which keeps `int2bv` cheaper for Z3.
                     let ty::Float(float) = *result_ty.expect_primitive().kind() else {
                         unreachable!()
                     };

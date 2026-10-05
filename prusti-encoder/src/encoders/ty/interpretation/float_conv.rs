@@ -1,6 +1,6 @@
 use prusti_rustc_interface::middle::ty;
 use task_encoder::TaskEncoder;
-use vir::{CastType, DomainGenData, FunctionIdn, ViperIdent};
+use vir::{CastType, FunctionIdn, ViperIdent, vir_format_identifier};
 
 use crate::encoders::ty::{
     RustTyDecomposition,
@@ -8,10 +8,6 @@ use crate::encoders::ty::{
     use_pure::TyUsePureEnc,
 };
 
-/// Conversions between a float and a bitvector of the width of an integer type
-/// (used by `as` casts). These live in their own domain, separate from the
-/// float domain, so that only the bitvector widths which are actually used in
-/// casts are emitted.
 #[derive(Debug, Clone, Copy)]
 pub struct FloatBitVecConv<'vir> {
     pub bitvec: BitVecDomain<'vir>,
@@ -23,6 +19,10 @@ pub struct FloatBitVecConv<'vir> {
     pub from_ubv: FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
 }
 
+/// Conversions between a float and a bitvector of the width of an integer type
+/// (used by `as` casts). These live in their own domain, separate from the
+/// float domain, so that only the bitvector widths which are actually used in
+/// casts are emitted.
 pub struct FloatBitVecConvEnc;
 
 impl TaskEncoder for FloatBitVecConvEnc {
@@ -31,11 +31,9 @@ impl TaskEncoder for FloatBitVecConvEnc {
 
     type TaskDescription<'vir> = (ty::FloatTy, BitVecSize);
 
-    type OutputFullLocal<'vir> = &'vir DomainGenData<'vir, (), !>;
+    type OutputFullLocal<'vir> = vir::Domain<'vir>;
 
     type OutputFullDependency<'vir> = FloatBitVecConv<'vir>;
-
-    type EncodingError = ();
 
     fn task_to_key<'vir>(task: &Self::TaskDescription<'vir>) -> Self::TaskKey<'vir> {
         *task
@@ -61,14 +59,14 @@ impl TaskEncoder for FloatBitVecConvEnc {
             let bitvec = deps.require_dep::<BitVecEnc>(size)?;
             let bv_snap = (bitvec.domain)();
 
-            let bits = size.bits();
+            let bits = size.to_bits();
             let (ebits, sbits) = float_format(float);
             let domain_name =
                 vir::vir_format!(vcx, "s_Float_{}_BitVec_{bits}_conv", float.name_str());
 
             let mk_fn = |name: &str, arg, ret, interpretation| {
                 let ident = FunctionIdn::new(
-                    ViperIdent::new(vir::vir_format!(vcx, "{domain_name}_{name}")),
+                    vir_format_identifier!(vcx, "{domain_name}_{name}"),
                     arg,
                     ret,
                 );
