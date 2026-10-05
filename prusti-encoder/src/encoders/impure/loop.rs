@@ -1,10 +1,12 @@
+use rustc_hash::FxHashMap;
+
 use pcg::{
     borrow_pcg::region_projection::{
         ExtractRegionsCtxt, LifetimeProjection, PcgLifetimeProjectionBase,
         PcgLifetimeProjectionBaseLike,
     },
     r#loop::PlaceUsages,
-    pcg::{EvalStmtPhase, PcgNode},
+    pcg::{CapabilityKind, EvalStmtPhase, PcgNode},
     results::PcgBasicBlock,
     utils::{
         HasCompilerCtxt, HasPlace, Place, maybe_old::MaybeLabelledPlace,
@@ -33,7 +35,14 @@ impl<'vir: 'a, 'a, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         cfpcs: &PcgBasicBlock<'_, 'vir>,
         loop_place_usages: &PlaceUsages<'vir>,
         ctxt: impl HasCompilerCtxt<'a, 'vir>,
-    ) -> EncodeResult<'vir, Vec<vir::ExprBool<'vir>>, E> {
+    ) -> EncodeResult<
+        'vir,
+        (
+            Vec<vir::ExprBool<'vir>>,
+            FxHashMap<Place<'vir>, CapabilityKind>,
+        ),
+        E,
+    > {
         let mut inv = Vec::new();
         let start = &cfpcs.statements[0];
         let state = &start.states[EvalStmtPhase::PreOperands];
@@ -100,7 +109,7 @@ impl<'vir: 'a, 'a, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             inv.push(wand);
         }
 
-        Ok(inv)
+        Ok((inv, loop_invariant_place_capabilities.into_iter().collect()))
     }
 
     pub(super) fn encode_pcg_node<T: PcgLifetimeProjectionBaseLike<'vir>>(

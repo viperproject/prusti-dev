@@ -21,7 +21,7 @@ use pcg::{
     pcg::{CapabilityKind, EvalStmtPhase, Pcg, PcgNode, PcgSuccessor},
     results::{PcgBasicBlock, PcgLocation},
     utils::{
-        CompilerCtxt, HasPlace, Place, SnapshotLocation, display::DisplayWithCtxt,
+        CompilerCtxt, HasPlace, Place, PrefixRelation, SnapshotLocation, display::DisplayWithCtxt,
         maybe_old::MaybeLabelledPlace,
     },
 };
@@ -46,7 +46,7 @@ use crate::encoders::{
     mir_fn::{CallTaskDescription, RustSignature, SpecBlockKind, SpecBlocks},
     mir_shared::{EncodeResult, PureRvalueEnc, RustcIntrinsic},
     ty::{
-        RustTyDecomposition,
+        RustFieldAddress, RustTyDecomposition, RustTySpecial,
         generics::{GArgs, GParams},
         use_impure::TyUseImpure,
         use_pure::{TyUsePure, TyUsePureEnc},
@@ -1682,6 +1682,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn encode_spec_block(
         &mut self,
         spec_block: mir::BasicBlock,
+        pcg_state: &Pcg<'_, 'vir>,
+        place_capabilities: Option<&FxHashMap<Place<'vir>, CapabilityKind>>,
     ) -> EncodeResult<'vir, vir::ExprBool<'vir>, E> {
         let enc_output = self.deps.require_dep::<MirPureEnc>(MirPureEncTask {
             encoding_depth: 0,
@@ -1690,11 +1692,31 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             kind: PureKind::SpecBlock(spec_block),
         })?;
         use vir::Reify;
-        let locals: FxHashMap<mir::Local, _> = enc_output
-            .inputs
-            .iter()
-            .map(|local| (*local, self.local_defs[*local].impure_snap))
-            .collect();
+        let mut locals: FxHashMap<mir::Local, vir::ExprSnap<'vir>> = FxHashMap::default();
+        for local in enc_output.inputs {
+            let place: Place = local.into();
+            let place_ty = RustTyDecomposition::from_ty(place.ty(self.pcg_ctxt()).ty, self.def_id);
+            // The places the local is unpacked to; computed once per local.
+            let local_state = &pcg_state.owned()[local];
+            let leaf_places: Vec<Place<'vir>> = if local_state.is_allocated() {
+                local_state
+                    .expansions()
+                    .leaf_places(self.pcg_ctxt())
+                    .into_iter()
+                    .map(Into::into)
+                    .collect()
+            } else {
+                Vec::new()
+            };
+            let snap = self.encode_partial_place_snap(
+                place,
+                place_ty,
+                pcg_state,
+                &leaf_places,
+                place_capabilities,
+            )?;
+            locals.insert(local, snap);
+        }
         let expr = enc_output
             .expr
             .reify(
@@ -1703,6 +1725,82 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             )
             .downcast_ty();
         Ok(expr)
+    }
+
+    fn encode_partial_place_snap(
+        &mut self,
+        place: Place<'vir>,
+        place_ty: RustTyDecomposition<'vir>,
+        pcg_state: &Pcg<'_, 'vir>,
+        leaf_places: &[Place<'vir>],
+        place_capabilities: Option<&FxHashMap<Place<'vir>, CapabilityKind>>,
+    ) -> EncodeResult<'vir, vir::ExprSnap<'vir>, E> {
+        let pure_ty = self.deps.require_dep::<TyUsePureEnc>(place_ty)?;
+
+        // Check if place is unpacked
+        if let Some(struct_data) = pure_ty.get_structlike()
+            && leaf_places
+                .iter()
+                .any(|leaf| place.is_strict_prefix_of(*leaf))
+        {
+            let rust_struct = place_ty.ty.expect_structlike();
+            let is_box = place_ty.ty.special == RustTySpecial::Box;
+            let field_places = place.expand_field(None, self.pcg_ctxt()).unwrap();
+            let mut field_snaps = Vec::with_capacity(rust_struct.fields.len());
+            for field_data in rust_struct.fields.iter() {
+                let field_ty = field_data.decompose_normalize(place_ty.args);
+                let field_snap = match field_data.address {
+                    // The value of a `Box`, stored at its pointer.
+                    RustFieldAddress::Dynamic => self.encode_partial_place_snap(
+                        place.project_deref(self.pcg_ctxt()),
+                        field_ty,
+                        pcg_state,
+                        leaf_places,
+                        place_capabilities,
+                    )?,
+                    // The PCG unpacks a `Box` only through its pointer, so
+                    // its other fields are held whole once it is unpacked.
+                    RustFieldAddress::Constant if is_box => {
+                        self.encode_place_with_snap(field_places[field_data.fid.index()])?
+                            .1
+                    }
+                    RustFieldAddress::Constant => self.encode_partial_place_snap(
+                        field_places[field_data.fid.index()],
+                        field_ty,
+                        pcg_state,
+                        leaf_places,
+                        place_capabilities,
+                    )?,
+                };
+                field_snaps.push(field_snap);
+            }
+
+            return Ok(struct_data.field_snaps_to_snap(field_snaps).upcast_ty());
+        }
+
+        // Check if we have capability to this place
+        let moved_out = if let Some(capabilities) = place_capabilities {
+            // for loop invariants we take the calculated capabilities of the invariant
+            capabilities.get(&place).is_none_or(|c| c.is_write())
+        } else {
+            // for other specblocks we take the owned capabilities
+            let Some(capability) = pcg_state.computed_owned_capability(place, self.pcg_ctxt())
+            else {
+                return Err(self.unsupported_rvalue(
+                    format!("INTERNAL ERROR: no capability for `{place:?}` when encoding a specification"),
+                    self.current_span(),
+                ));
+            };
+            capability.is_write()
+        };
+
+        if moved_out {
+            // we do not own this place or it is moved out -> use temporary snap
+            let snapshot_ty = pure_ty.snapshot;
+            return Ok(self.new_tmp(snapshot_ty));
+        }
+
+        Ok(self.encode_place_with_snap(place)?.1)
     }
 
     fn visit_basic_block_data(
@@ -1756,12 +1854,15 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 .analysis()
                 .loop_place_usages(loop_spec.loop_id)
                 .clone();
-            let functional = loop_spec
-                .invariants
-                .clone()
+            let invariants = loop_spec.invariants.clone();
+            let (permissions, place_capabilities) =
+                self.get_loop_inv(&cfpcs, &loop_place_usages, self.pcg_ctxt())?;
+            let pcg_state = &cfpcs.statements[0].states[EvalStmtPhase::PreOperands];
+            let functional = invariants
                 .into_iter()
                 .map(|(spec_block, span)| {
-                    let expr = self.encode_spec_block(spec_block)?;
+                    let expr =
+                        self.encode_spec_block(spec_block, pcg_state, Some(&place_capabilities))?;
                     self.vcx.with_span(span, |vcx| {
                         let error_msg = "loop invariant might not be preserved";
                         vcx.handle_error("invariant.not.preserved:assertion.false", move |_| {
@@ -1780,7 +1881,6 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     })
                 })
                 .collect::<Result<Vec<_>, _>>()?;
-            let permissions = self.get_loop_inv(&cfpcs, &loop_place_usages, self.pcg_ctxt())?;
             invariant = Some(
                 self.vcx.alloc_slice(
                     &permissions
@@ -1839,7 +1939,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 if matches!(spec.kind, SpecBlockKind::LoopInvariant) {
                     continue;
                 }
-                let spec_expr = self.encode_spec_block(spec.block)?;
+                let current_fpcs = self.current_fpcs.take().unwrap();
+                let pcg_state =
+                    &current_fpcs.statements.last().unwrap().states[EvalStmtPhase::PostMain];
+                let spec_expr = self.encode_spec_block(spec.block, pcg_state, None);
+                self.current_fpcs = Some(current_fpcs);
+                let spec_expr = spec_expr?;
                 let span = spec.span;
                 match spec.kind {
                     SpecBlockKind::Assert => {
