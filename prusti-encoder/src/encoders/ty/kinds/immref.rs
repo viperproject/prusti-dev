@@ -106,7 +106,7 @@ pub(crate) fn ty_impure<'vir>(
     );
 
     // Ref-to-snap: the referent's value comes from the `p_Param` above, whose
-    // snapshot carries its type, so the variant is known by construction.
+    // snapshot carries its type, so the type is known by construction.
     builder.mk_snap_function(
         Some(data.1.prim_to_snap.call()(
             addr,

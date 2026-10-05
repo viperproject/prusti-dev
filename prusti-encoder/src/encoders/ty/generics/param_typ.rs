@@ -10,6 +10,10 @@ pub(crate) struct ParamTypEnc;
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ParamTyp<'vir> {
     pub(crate) typ: FunctionIdn<'vir, vir::PSnap, vir::TyVal>,
+    /// Holds for every param and its type, so that an axiom can be
+    /// triggered on a param of one particular type, named by its type
+    /// constructor in the second argument.
+    pub(crate) has_typ: FunctionIdn<'vir, (vir::PSnap, vir::TyVal), vir::Bool>,
 }
 
 impl TaskEncoder for ParamTypEnc {
@@ -31,17 +35,34 @@ impl TaskEncoder for ParamTypEnc {
             vir::TYPE_PSNAP,
             vir::TYPE_TYVAL,
         );
+        let has_typ = FunctionIdn::new(
+            vir::ViperIdent::new("s_Param_has_typ"),
+            (vir::TYPE_PSNAP, vir::TYPE_TYVAL),
+            vir::TYPE_BOOL,
+        );
         deps.emit_output_ref(*task_key, ())?;
         let domain = vir::with_vcx(|vcx| {
+            let p_decl = vcx.mk_local_decl("p", vir::TYPE_PSNAP);
+            let typ_p = typ(vcx.mk_local_ex(p_decl));
+            let has_own_typ = vcx.mk_forall_expr(
+                vcx.alloc_slice(&[p_decl]),
+                vcx.alloc_slice(&[vcx.mk_trigger(&[typ_p])]),
+                has_typ(vcx.mk_local_ex(p_decl), typ_p),
+            );
             vcx.mk_domain(
                 vir::ViperIdent::new("ParamTyp"),
                 &[],
-                &[],
-                vcx.alloc_slice(&[vcx.mk_domain_function(typ, false, None)]),
+                vcx.alloc_slice(&[
+                    vcx.mk_domain_axiom(vir::ViperIdent::new("s_Param_has_typ_own"), has_own_typ)
+                ]),
+                vcx.alloc_slice(&[
+                    vcx.mk_domain_function(typ, false, None),
+                    vcx.mk_domain_function(has_typ, false, None),
+                ]),
                 None,
             )
         });
-        Ok((domain, ParamTyp { typ }))
+        Ok((domain, ParamTyp { typ, has_typ }))
     }
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {

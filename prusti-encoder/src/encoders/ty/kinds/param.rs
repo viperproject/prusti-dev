@@ -32,8 +32,8 @@ pub(crate) fn ty_impure<'vir>(
     builder.mk_predicate("", None);
     // The intended invariant of the predicate: its snapshot is a value of the
     // type the predicate is instantiated at. Everywhere a param is read out
-    // of one, this is what lets the variant bridge recover its `s_Param`
-    // variant, and with it the reconstruction from a concrete value.
+    // of one, this is what lets the variant bridge reconstruct it from its
+    // concrete value.
     //
     // This is assumed rather than checked: a param nested in a struct, enum
     // or reference has its snapshot set by that type's assign method, so

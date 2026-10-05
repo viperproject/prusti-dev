@@ -46,16 +46,12 @@ impl PurityCasters for Impure {
 
 impl<'vir, P: PurityCasters> task_encoder::OutputRefAny for GArgCasters<'vir, P> {}
 
-/// A pair's contribution to the program: its variant of the `s_Param` adt
-/// and its conjunct of the variant bridge, which
-/// [`CastersEnc::<Pure>::emit_outputs`] gathers into the one adt declaration
-/// and the one bridge axiom, and the remaining axioms relating that variant
-/// to its type.
+/// A pair's contribution to the program: its variant of the `s_Param` adt,
+/// which [`CastersEnc::<Pure>::emit_outputs`] gathers into the one adt
+/// declaration, and the axioms relating that variant to its type.
 #[derive(Clone)]
 pub(super) struct PureCaster<'vir> {
     constructor: vir::AdtConstructor<'vir>,
-    typ_p: vir::ExprTyVal<'vir>,
-    bridge: vir::ExprBool<'vir>,
     axioms: vir::Domain<'vir>,
 }
 
@@ -148,14 +144,13 @@ impl TaskEncoder for CastersEnc<Pure> {
                 None
             };
 
-            // Two facts relating the variant to its type: the definition
+            // Two axioms relating the variant to its type: the definition
             // `s_Param_typ(make_generic_T(x, ts..)) == T_type(ts..)` and the
-            // variant bridge `s_Param_typ(p).isT_type ==> p.ismake_generic_T`
-            // (a conjunct of the one bridge axiom, see `emit_outputs`).
-            // Together they make the reconstruction
-            // `make_generic_T(make_concrete_T(p), ..) == p` derivable wherever
-            // a param's type is known.
-            let typ_idn = deps.require_dep::<ParamTypEnc>(())?.typ;
+            // variant bridge, which makes the reconstruction
+            // `make_generic_T(make_concrete_T(p), ts..) == p` hold wherever
+            // `p`'s type is known to be `T_type(ts..)`.
+            let param_typ = deps.require_dep::<ParamTypEnc>(())?;
+            let typ_idn = param_typ.typ;
             let mut axioms = Vec::new();
             let x_decl = vcx.mk_local_decl("x", self_ty);
             let tys = generics
@@ -186,21 +181,66 @@ impl TaskEncoder for CastersEnc<Pure> {
                 def,
             ));
 
-            let p_decl = vcx.mk_local_decl(Self::BRIDGE_VAR, vir::TYPE_PSNAP);
-            let typ_p = typ_idn(vcx.mk_local_ex(p_decl));
-            let bridge = vcx
-                .mk_bin_op_expr(
-                    vir::BinOpKind::Implies,
-                    vcx.mk_adt_discriminator_expr(
-                        typ_p,
-                        ty_constructor.ty_constructor.name().to_str(),
-                    ),
-                    vcx.mk_adt_discriminator_expr(vcx.mk_local_ex(p_decl), constructor.name),
-                )
-                .downcast_ty();
+            // No discriminators: their tag terms trigger the N-way
+            // exhaustiveness axioms of the `Type` and `s_Param` adts.
+            let p_decl = vcx.mk_local_decl("p", vir::TYPE_PSNAP);
+            let p = vcx.mk_local_ex(p_decl);
+            let mc_p = make_concrete_destr.call()(p);
+            let typ_p = typ_idn(p);
+            let bridge = match unit_value {
+                // A param of a zero-field type is never read; the trigger
+                // names the type so that a param fires only its own bridge.
+                Some(unit_value) => {
+                    let ty = (ty_constructor.ty_constructor)(&tys, &consts);
+                    let bridge_qvars = std::iter::once(p_decl.as_dyn())
+                        .chain(generics.ty_decls().iter().map(|d| d.as_dyn()))
+                        .chain(generics.const_decls().iter().map(|d| d.as_dyn()))
+                        .collect::<Vec<vir::LocalDeclDyn<'vir>>>();
+                    vcx.mk_forall_expr(
+                        vcx.alloc_slice(&bridge_qvars),
+                        vcx.alloc_slice(&[vcx.mk_trigger(&[(param_typ.has_typ)(p, ty)])]),
+                        vcx.mk_bin_op_expr(
+                            vir::BinOpKind::Implies,
+                            vcx.mk_eq_expr(typ_p, ty),
+                            vcx.mk_eq_expr(make_generic_ident(unit_value, &tys, &consts), p),
+                        )
+                        .downcast_ty(),
+                    )
+                }
+                // Type arguments are read off `p`'s type, so `p` need not be
+                // a constructor term.
+                None => {
+                    let ty_args = ty_constructor
+                        .ty_param_accessors
+                        .iter()
+                        .map(|a| a.call()(typ_p))
+                        .collect::<Vec<_>>();
+                    let const_args = ty_constructor
+                        .const_param_accessors
+                        .iter()
+                        .map(|a| a.call()(typ_p))
+                        .collect::<Vec<_>>();
+                    vcx.mk_forall_expr(
+                        vcx.alloc_slice(&[p_decl]),
+                        vcx.alloc_slice(&[vcx.mk_trigger(&[mc_p.as_dyn(), typ_p.as_dyn()])]),
+                        vcx.mk_bin_op_expr(
+                            vir::BinOpKind::Implies,
+                            vcx.mk_eq_expr(
+                                typ_p,
+                                (ty_constructor.ty_constructor)(&ty_args, &const_args),
+                            ),
+                            vcx.mk_eq_expr(make_generic_ident(mc_p, &ty_args, &const_args), p),
+                        )
+                        .downcast_ty(),
+                    )
+                }
+            };
+            axioms.push(vcx.mk_domain_axiom(
+                vir::vir_format_identifier!(vcx, "{}_variant_{}", typ_idn.name(), constructor.name),
+                bridge,
+            ));
 
             if let Some(unit_value) = unit_value {
-                let mc_p = make_concrete_destr.call()(vcx.mk_local_ex(p_decl));
                 let unit = vcx.mk_forall_expr(
                     vcx.alloc_slice(&[p_decl]),
                     vcx.alloc_slice(&[vcx.mk_trigger(&[mc_p])]),
@@ -222,8 +262,6 @@ impl TaskEncoder for CastersEnc<Pure> {
             Ok((
                 PureCaster {
                     constructor,
-                    typ_p,
-                    bridge,
                     axioms,
                 },
                 (),
@@ -234,45 +272,15 @@ impl TaskEncoder for CastersEnc<Pure> {
     /// Emits the `s_Param` adt: one variant per generic cast pair, plus the
     /// fallback variant for values of types without a cast pair in this
     /// program (mirroring `Unknown_type` in the `Type` adt). An adt is a
-    /// single declaration, so this, and the variant bridge, are the parts
-    /// that cannot be built per pair; each pair's other axioms are emitted as
-    /// built.
+    /// single declaration, so this is the one part that cannot be built per
+    /// pair; each pair's axioms are emitted as built.
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
         let outputs = Self::all_outputs_local_no_errors(program);
         vir::with_vcx(|vcx| {
             let mut constructors = Vec::new();
-            let mut bridges = Vec::new();
-            let mut typ_p = None;
             for pc in outputs {
                 constructors.push(pc.constructor);
-                bridges.push(pc.bridge);
-                typ_p = Some(pc.typ_p);
                 program.add_domain(pc.axioms);
-            }
-            // The variant bridge of all pairs as one axiom, so that each
-            // `s_Param_typ(p)` term instantiates it once rather than once per
-            // pair. This is still not ideal triggering-wise: every instance
-            // carries every pair's implication, although at most the one for
-            // `p`'s type is of use. A trigger naming the type constructor
-            // would fire only that one, e.g. a binary
-            // `s_Param_has_typ(p, T_type(..))` stated by the producers in
-            // place of `s_Param_typ(p) == T`.
-            if let Some(typ_p) = typ_p {
-                let p_decl = vcx.mk_local_decl(Self::BRIDGE_VAR, vir::TYPE_PSNAP);
-                let bridge = vcx.mk_forall_expr(
-                    vcx.alloc_slice(&[p_decl]),
-                    vcx.alloc_slice(&[vcx.mk_trigger(&[typ_p])]),
-                    vcx.mk_conj(&bridges),
-                );
-                program.add_domain(vcx.mk_domain(
-                    vir::ViperIdent::new("ParamTypVariant"),
-                    &[],
-                    vcx.alloc_slice(&[
-                        vcx.mk_domain_axiom(vir::ViperIdent::new("s_Param_typ_variant"), bridge),
-                    ]),
-                    &[],
-                    None,
-                ));
             }
             let unknown_args =
                 vcx.alloc_array(&[vcx.mk_local_decl(Self::UNKNOWN_PARAM_ID, vir::TYPE_INT)]);
@@ -293,9 +301,6 @@ impl CastersEnc<Pure> {
     /// The name of the fallback variant of the `s_Param` adt.
     pub const UNKNOWN_PARAM_NAME: &str = "s_Param_Unknown";
     const UNKNOWN_PARAM_ID: &str = "s_Param_Unknown_id";
-    /// The variable bound by the variant bridge, shared by all pairs'
-    /// conjuncts.
-    const BRIDGE_VAR: &str = "p";
 }
 
 impl TaskEncoder for CastersEnc<Impure> {
