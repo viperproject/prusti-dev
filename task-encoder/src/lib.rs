@@ -70,12 +70,17 @@ impl<'vir> Program<'vir> {
         &self.code
     }
 
-    /// Simplifies the expressions of all functions and methods added so far
-    /// (see [`vir::simplify`]). Domains are left untouched: folding in their
-    /// axioms could remove the terms that quantifier triggers rely on.
+    /// Simplifies the expressions of all domain axioms, predicates, functions
+    /// and methods added so far (see [`vir::simplify`]).
     pub fn simplify(&mut self) {
         vir::with_vcx(|vcx| {
             let adts = vir::simplify::AdtIndex::new(&self.adts);
+            for domain in self.domains.iter_mut() {
+                *domain = vir::simplify::domain(vcx, &adts, domain);
+            }
+            for predicate in self.predicates.iter_mut() {
+                *predicate = vir::simplify::predicate(vcx, &adts, predicate);
+            }
             for function in self.functions.iter_mut() {
                 *function = vir::simplify::function(vcx, &adts, function);
             }

@@ -1,6 +1,6 @@
 //! Peephole simplification of hole-free expressions, run over the final
-//! program (functions and methods only; folding in domain axioms could remove
-//! the terms that quantifier triggers rely on).
+//! program (domain axioms, predicates, functions and methods). Quantifier
+//! triggers are left as encoded.
 //!
 //! The rules undo the wrap/unwrap round-trips produced by composing
 //! independently encoded snapshot operations (reference snapshots built and
@@ -10,8 +10,16 @@
 //!    constructor argument,
 //!  - `C(xs..) == C(ys..)` for an adt constructor `C` is the conjunction of
 //!    the pairwise argument equalities (adt constructors are injective),
+//!  - the field read rule distributes over ternaries whose branches all fold,
 //!  - `let x = v in b` is dropped when `x` is unused, and inlined when `v` is
-//!    a local/constant or `x` is used exactly once.
+//!    a local/constant or `x` is used exactly once,
+//!  - boolean and integer operations on literals fold, as do reflexive
+//!    (in)equalities, double negations, negated comparisons, ternaries with
+//!    a literal condition, equal branches or a literal branch, and
+//!    quantifiers with a literal body.
+//!
+//! Rules may drop subexpressions together with their well-definedness
+//! checks: Prusti checks all side conditions explicitly in impure code.
 //!
 //! Constructors and destructors are recognized via the program's adt
 //! declarations ([`AdtIndex`]), which also ground the injectivity the
@@ -81,6 +89,44 @@ pub fn function<'vir, 'tcx>(
         posts: s.roots(f.posts),
         decreases: s.decreases(f.decreases),
         expr: s.opt_root(f.expr),
+    })
+}
+
+pub fn domain<'vir, 'tcx>(
+    vcx: &'vir VirCtxt<'tcx>,
+    adts: &AdtIndex<'vir>,
+    d: Domain<'vir>,
+) -> Domain<'vir> {
+    let mut s = Simplifier::new(vcx, adts);
+    let axioms = d
+        .axioms
+        .iter()
+        .map(|a| {
+            vcx.alloc(DomainAxiomGenData {
+                name: a.name,
+                expr: s.root(a.expr),
+            }) as DomainAxiom<'vir>
+        })
+        .collect::<Vec<_>>();
+    vcx.alloc(DomainGenData {
+        name: d.name,
+        typarams: d.typarams,
+        axioms: vcx.alloc_slice(&axioms),
+        functions: d.functions,
+        interpretation: d.interpretation,
+    })
+}
+
+pub fn predicate<'vir, 'tcx>(
+    vcx: &'vir VirCtxt<'tcx>,
+    adts: &AdtIndex<'vir>,
+    p: Predicate<'vir>,
+) -> Predicate<'vir> {
+    let mut s = Simplifier::new(vcx, adts);
+    vcx.alloc(PredicateGenData {
+        name: p.name,
+        args: p.args,
+        expr: s.opt_root(p.expr),
     })
 }
 
@@ -275,6 +321,18 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
             }
             ExprKindGenData::UnOp(u) => {
                 let inner = self.expr(u.expr.as_dyn());
+                match (u.kind, inner.kind) {
+                    (UnOpKind::Not, _) => return self.mk_not(e, inner),
+                    (UnOpKind::Neg, ExprKindGenData::UnOp(i)) if i.kind == UnOpKind::Neg => {
+                        return i.expr.as_dyn()
+                    }
+                    (UnOpKind::PermNeg, ExprKindGenData::UnOp(i))
+                        if i.kind == UnOpKind::PermNeg =>
+                    {
+                        return i.expr.as_dyn()
+                    }
+                    _ => (),
+                }
                 self.mk(
                     e,
                     self.vcx
@@ -295,28 +353,12 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
                     }
                     BinOpKind::CmpNe => {
                         if let Some(eq) = self.fold_eq(e, lhs, rhs) {
-                            return self.mk(
-                                e,
-                                self.vcx.alloc(ExprKindGenData::UnOp(self.vcx.alloc(
-                                    UnOpGenData {
-                                        kind: UnOpKind::Not,
-                                        expr: eq.inner_cast_ty(),
-                                    },
-                                ))),
-                            );
+                            return self.mk_not(e, eq);
                         }
                     }
                     _ => (),
                 }
-                self.mk(
-                    e,
-                    self.vcx
-                        .alloc(ExprKindGenData::BinOp(self.vcx.alloc(BinOpGenData {
-                            kind: b.kind,
-                            lhs,
-                            rhs,
-                        }))),
-                )
+                self.mk_binop(e, e.ty(), b.kind, lhs, rhs)
             }
             ExprKindGenData::CollectionBinOp(b) => {
                 let lhs = self.expr(b.lhs);
@@ -368,29 +410,20 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
             }
             ExprKindGenData::Ternary(t) => {
                 let cond = self.expr(t.cond.as_dyn());
-                if let ExprKindGenData::Const(ConstData::Bool(b)) = cond.kind {
-                    return if *b {
-                        self.expr(t.then)
-                    } else {
-                        self.expr(t.else_)
-                    };
+                if let Some(b) = bool_lit(cond) {
+                    return self.expr(if b { t.then } else { t.else_ });
                 }
                 let then = self.expr(t.then);
                 let else_ = self.expr(t.else_);
-                self.mk(
-                    e,
-                    self.vcx
-                        .alloc(ExprKindGenData::Ternary(self.vcx.alloc(TernaryGenData {
-                            cond: cond.inner_cast_ty(),
-                            then,
-                            else_,
-                        }))),
-                )
+                self.mk_ternary(e, e.ty(), cond, then, else_)
             }
             ExprKindGenData::Forall(q) => {
                 let saved = self.quantifier_env(q.qvars);
                 let body = self.expr(q.body.as_dyn());
                 self.env = saved;
+                if bool_lit(body).is_some() {
+                    return self.mk(e, body.kind);
+                }
                 self.mk(
                     e,
                     self.vcx
@@ -405,6 +438,9 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
                 let saved = self.quantifier_env(q.qvars);
                 let body = self.expr(q.body.as_dyn());
                 self.env = saved;
+                if bool_lit(body).is_some() {
+                    return self.mk(e, body.kind);
+                }
                 self.mk(
                     e,
                     self.vcx
@@ -447,7 +483,7 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
             }
             ExprKindGenData::AdtDestructor(recv, destr) => {
                 let recv = self.expr(recv);
-                if let Some(arg) = self.fold_destructor(recv, destr) {
+                if let Some(arg) = self.fold_destructor(e, recv, destr) {
                     return arg;
                 }
                 self.mk(
@@ -560,37 +596,154 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
         cur
     }
 
+    /// `cond ? then : else_` of type `ty`, with the span of `orig`.
+    fn mk_ternary(
+        &self,
+        orig: ExprDyn<'vir>,
+        ty: TypeDyn<'vir>,
+        cond: ExprDyn<'vir>,
+        then: ExprDyn<'vir>,
+        else_: ExprDyn<'vir>,
+    ) -> ExprDyn<'vir> {
+        if let Some(b) = bool_lit(cond) {
+            return if b { then } else { else_ };
+        }
+        let then = match then.kind {
+            ExprKindGenData::Ternary(t) if syntactic_eq(t.cond.as_dyn(), cond) => t.then,
+            _ => then,
+        };
+        let else_ = match else_.kind {
+            ExprKindGenData::Ternary(t) if syntactic_eq(t.cond.as_dyn(), cond) => t.else_,
+            _ => else_,
+        };
+        if syntactic_eq(then, else_) {
+            return then;
+        }
+        let bool_ty = crate::TYPE_BOOL.as_dyn();
+        // Nested ternaries sharing a branch merge their conditions.
+        if let ExprKindGenData::Ternary(t) = then.kind {
+            if syntactic_eq(t.then, else_) {
+                let not = self.mk_not(orig, t.cond.as_dyn());
+                let cond = self.mk_binop(orig, bool_ty, BinOpKind::And, cond, not);
+                return self.mk_ternary(orig, ty, cond, t.else_, else_);
+            }
+            if syntactic_eq(t.else_, else_) {
+                let cond = self.mk_binop(orig, bool_ty, BinOpKind::And, cond, t.cond.as_dyn());
+                return self.mk_ternary(orig, ty, cond, t.then, else_);
+            }
+        }
+        if let ExprKindGenData::Ternary(t) = else_.kind {
+            if syntactic_eq(then, t.then) {
+                let cond = self.mk_binop(orig, bool_ty, BinOpKind::Or, cond, t.cond.as_dyn());
+                return self.mk_ternary(orig, ty, cond, then, t.else_);
+            }
+            if syntactic_eq(then, t.else_) {
+                let not = self.mk_not(orig, t.cond.as_dyn());
+                let cond = self.mk_binop(orig, bool_ty, BinOpKind::Or, cond, not);
+                return self.mk_ternary(orig, ty, cond, then, t.then);
+            }
+        }
+        if ty == bool_ty {
+            match else_.kind {
+                ExprKindGenData::BinOp(b)
+                    if b.kind == BinOpKind::Implies && syntactic_eq(then, b.rhs) =>
+                {
+                    let lhs = self.mk_binop(orig, bool_ty, BinOpKind::Or, cond, b.lhs);
+                    return self.mk_binop(orig, bool_ty, BinOpKind::Implies, lhs, then);
+                }
+                _ => (),
+            }
+            match then.kind {
+                ExprKindGenData::BinOp(b)
+                    if b.kind == BinOpKind::Implies && syntactic_eq(b.rhs, else_) =>
+                {
+                    let not = self.mk_not(orig, cond);
+                    let lhs = self.mk_binop(orig, bool_ty, BinOpKind::Or, not, b.lhs);
+                    return self.mk_binop(orig, bool_ty, BinOpKind::Implies, lhs, else_);
+                }
+                _ => (),
+            }
+            match (bool_lit(then), bool_lit(else_)) {
+                (Some(true), Some(false)) => return cond,
+                (Some(false), Some(true)) => return self.mk_not(orig, cond),
+                (Some(false), None) => {
+                    let not = self.mk_not(orig, cond);
+                    return self.mk_binop(orig, bool_ty, BinOpKind::And, not, else_);
+                }
+                (Some(true), None) => {
+                    return self.mk_binop(orig, bool_ty, BinOpKind::Or, cond, else_)
+                }
+                (None, Some(false)) => {
+                    return self.mk_binop(orig, bool_ty, BinOpKind::And, cond, then)
+                }
+                (None, Some(true)) => {
+                    return self.mk_binop(orig, bool_ty, BinOpKind::Implies, cond, then)
+                }
+                _ => (),
+            }
+        }
+        let kind = ExprKindGenData::Ternary(self.vcx.alloc(TernaryGenData {
+            cond: cond.inner_cast_ty(),
+            then,
+            else_,
+        }));
+        self.vcx.alloc(ExprGenData::new_inner(
+            self.vcx.alloc(kind),
+            orig.debug_info,
+            orig.span,
+            ty,
+        ))
+    }
+
     /// An adt field read of the matching constructor application yields the
-    /// constructor argument.
+    /// constructor argument. The read distributes over a ternary receiver
+    /// (`(c ? a : b).f` is `c ? a.f : b.f`) when both branches fold, so
+    /// nothing is duplicated. `orig` is the field read, whose span and type
+    /// such a ternary takes.
     fn fold_destructor(
         &self,
+        orig: ExprDyn<'vir>,
         recv: ExprDyn<'vir>,
         destr: AdtDestructor<'vir, crate::Dyn, crate::Dyn>,
     ) -> Option<ExprDyn<'vir>> {
         let recv = self.resolve(recv);
-        let ExprKindGenData::FuncApp(app) = recv.kind else {
-            return None;
-        };
-        let (cons, idx) = *self.adts.destructors.get(destr.name)?;
-        if app.target != cons {
-            return None;
+        match recv.kind {
+            ExprKindGenData::Ternary(t) => {
+                let then = self.fold_destructor(orig, t.then, destr)?;
+                let else_ = self.fold_destructor(orig, t.else_, destr)?;
+                Some(
+                    self.mk(
+                        orig,
+                        self.vcx
+                            .alloc(ExprKindGenData::Ternary(self.vcx.alloc(TernaryGenData {
+                                cond: t.cond,
+                                then,
+                                else_,
+                            }))),
+                    ),
+                )
+            }
+            ExprKindGenData::FuncApp(app) => {
+                let (cons, idx) = *self.adts.destructors.get(destr.name)?;
+                if app.target != cons {
+                    return None;
+                }
+                let arg = *app.args.get(idx)?;
+                (recv.ty() == destr.input && arg.ty() == destr.ty).then_some(arg)
+            }
+            _ => None,
         }
-        let arg = *app.args.get(idx)?;
-        (recv.ty() == destr.input && arg.ty() == destr.ty).then_some(arg)
     }
 
-    /// Simplified equality of two snapshots, if a rule applies: identical
-    /// operands are `true`; applications of the same adt constructor compare
-    /// pairwise (adt constructors are injective).
+    /// Simplified equality of two snapshots, if a rule applies: applications
+    /// of the same adt constructor compare pairwise (adt constructors are
+    /// injective).
     fn fold_eq(
         &mut self,
         orig: ExprDyn<'vir>,
         lhs: ExprDyn<'vir>,
         rhs: ExprDyn<'vir>,
     ) -> Option<ExprDyn<'vir>> {
-        if syntactic_eq(lhs, rhs) {
-            return Some(self.vcx.mk_bool::<true>().as_dyn());
-        }
         let (l, r) = (self.resolve(lhs), self.resolve(rhs));
         let (ExprKindGenData::FuncApp(la), ExprKindGenData::FuncApp(ra)) = (l.kind, r.kind) else {
             return None;
@@ -622,38 +775,162 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
         if let Some(eq) = self.fold_eq(orig, lhs, rhs) {
             return eq;
         }
-        self.vcx.alloc(ExprGenData::new_inner(
-            self.vcx
-                .alloc(ExprKindGenData::BinOp(self.vcx.alloc(BinOpGenData {
-                    kind: BinOpKind::CmpEq,
-                    lhs,
-                    rhs,
-                }))),
-            orig.debug_info,
-            orig.span,
-            crate::TYPE_BOOL.as_dyn(),
-        ))
+        self.mk_binop(orig, crate::TYPE_BOOL.as_dyn(), BinOpKind::CmpEq, lhs, rhs)
     }
 
     fn mk_and(&mut self, exprs: Vec<ExprDyn<'vir>>) -> ExprDyn<'vir> {
-        let mut conjuncts = exprs
-            .into_iter()
-            .filter(|e| !matches!(e.kind, ExprKindGenData::Const(ConstData::Bool(true))));
+        let mut conjuncts = exprs.into_iter();
         let Some(first) = conjuncts.next() else {
             return self.vcx.mk_bool::<true>().as_dyn();
         };
         conjuncts.fold(first, |acc, e| {
-            self.vcx.alloc(ExprGenData::new_inner(
+            self.mk_binop(acc, crate::TYPE_BOOL.as_dyn(), BinOpKind::And, acc, e)
+        })
+    }
+
+    /// `kind` with the span of `orig` and type `ty`.
+    fn mk_typed(
+        &self,
+        orig: ExprDyn<'vir>,
+        ty: TypeDyn<'vir>,
+        kind: ExprKind<'vir>,
+    ) -> ExprDyn<'vir> {
+        self.vcx
+            .alloc(ExprGenData::new_inner(kind, orig.debug_info, orig.span, ty))
+    }
+
+    fn mk_bool_lit(&self, orig: ExprDyn<'vir>, b: bool) -> ExprDyn<'vir> {
+        self.mk_typed(
+            orig,
+            crate::TYPE_BOOL.as_dyn(),
+            self.vcx
+                .alloc(ExprKindGenData::Const(self.vcx.alloc(ConstData::Bool(b)))),
+        )
+    }
+
+    /// The integer literal `v` of type `ty`, a negative one as the negation
+    /// of its absolute value (as the encoder writes them).
+    fn mk_int_lit(&self, orig: ExprDyn<'vir>, ty: TypeDyn<'vir>, v: i128) -> ExprDyn<'vir> {
+        let abs = self.mk_typed(
+            orig,
+            ty,
+            self.vcx.alloc(ExprKindGenData::Const(
+                self.vcx.alloc(ConstData::Int(v.unsigned_abs())),
+            )),
+        );
+        if v >= 0 {
+            return abs;
+        }
+        self.mk_typed(
+            orig,
+            ty,
+            self.vcx
+                .alloc(ExprKindGenData::UnOp(self.vcx.alloc(UnOpGenData {
+                    kind: UnOpKind::Neg,
+                    expr: abs.inner_cast_ty(),
+                }))),
+        )
+    }
+
+    /// `!e` with the span of `orig`: literals and double negations fold, and
+    /// a negated comparison flips its operator.
+    fn mk_not(&self, orig: ExprDyn<'vir>, e: ExprDyn<'vir>) -> ExprDyn<'vir> {
+        if let Some(b) = bool_lit(e) {
+            return self.mk_bool_lit(orig, !b);
+        }
+        let bool_ty = crate::TYPE_BOOL.as_dyn();
+        let kind = match e.kind {
+            ExprKindGenData::UnOp(u) if u.kind == UnOpKind::Not => return u.expr.as_dyn(),
+            ExprKindGenData::BinOp(b) if negated_cmp(b.kind).is_some() => {
+                ExprKindGenData::BinOp(self.vcx.alloc(BinOpGenData {
+                    kind: negated_cmp(b.kind).unwrap(),
+                    lhs: b.lhs,
+                    rhs: b.rhs,
+                }))
+            }
+            _ => ExprKindGenData::UnOp(self.vcx.alloc(UnOpGenData {
+                kind: UnOpKind::Not,
+                expr: e.inner_cast_ty(),
+            })),
+        };
+        self.mk_typed(orig, bool_ty, self.vcx.alloc(kind))
+    }
+
+    /// `lhs <kind> rhs` of type `ty` with the span of `orig`, folding boolean
+    /// and integer literal operands and reflexive (in)equalities.
+    fn mk_binop(
+        &self,
+        orig: ExprDyn<'vir>,
+        ty: TypeDyn<'vir>,
+        kind: BinOpKind,
+        lhs: ExprDyn<'vir>,
+        rhs: ExprDyn<'vir>,
+    ) -> ExprDyn<'vir> {
+        let (bl, br) = (bool_lit(lhs), bool_lit(rhs));
+        let (il, ir) = (int_lit(lhs), int_lit(rhs));
+        let lit = |b| Some(self.mk_bool_lit(orig, b));
+        let int = |v: Option<i128>| v.map(|v| self.mk_int_lit(orig, ty, v));
+        let folded = match kind {
+            BinOpKind::And => match (bl, br) {
+                (Some(true), _) => Some(rhs),
+                (_, Some(true)) => Some(lhs),
+                (Some(false), _) | (_, Some(false)) => lit(false),
+                _ => None,
+            },
+            BinOpKind::Or => match (bl, br) {
+                (Some(false), _) => Some(rhs),
+                (_, Some(false)) => Some(lhs),
+                (Some(true), _) | (_, Some(true)) => lit(true),
+                _ => None,
+            },
+            BinOpKind::Implies => match (bl, br) {
+                (Some(false), _) | (_, Some(true)) => lit(true),
+                (Some(true), _) => Some(rhs),
+                _ => None,
+            },
+            BinOpKind::CmpEq | BinOpKind::CmpNe => {
+                let eq = kind == BinOpKind::CmpEq;
+                match (bl, br) {
+                    _ if syntactic_eq(lhs, rhs) => lit(eq),
+                    (Some(a), Some(b)) => lit((a == b) == eq),
+                    (Some(a), None) if a == eq => Some(rhs),
+                    (Some(_), None) => Some(self.mk_not(orig, rhs)),
+                    (None, Some(b)) if b == eq => Some(lhs),
+                    (None, Some(_)) => Some(self.mk_not(orig, lhs)),
+                    (None, None) => il.zip(ir).and_then(|(a, b)| lit((a == b) == eq)),
+                }
+            }
+            BinOpKind::CmpGt | BinOpKind::CmpGe | BinOpKind::CmpLt | BinOpKind::CmpLe => {
+                il.zip(ir).and_then(|(a, b)| {
+                    lit(match kind {
+                        BinOpKind::CmpGt => a > b,
+                        BinOpKind::CmpGe => a >= b,
+                        BinOpKind::CmpLt => a < b,
+                        _ => a <= b,
+                    })
+                })
+            }
+            BinOpKind::Add => int(il.zip(ir).and_then(|(a, b)| a.checked_add(b))),
+            BinOpKind::Sub => int(il.zip(ir).and_then(|(a, b)| a.checked_sub(b))),
+            BinOpKind::Mul => int(il.zip(ir).and_then(|(a, b)| a.checked_mul(b))),
+            // SMT division and modulo agree with Rust's only for non-negative
+            // operands.
+            BinOpKind::Div | BinOpKind::Mod => int(il.zip(ir).and_then(|(a, b)| {
+                (a >= 0 && b > 0).then(|| if kind == BinOpKind::Div { a / b } else { a % b })
+            })),
+            _ => None,
+        };
+        folded.unwrap_or_else(|| {
+            self.mk_typed(
+                orig,
+                ty,
                 self.vcx
                     .alloc(ExprKindGenData::BinOp(self.vcx.alloc(BinOpGenData {
-                        kind: BinOpKind::And,
-                        lhs: acc,
-                        rhs: e,
+                        kind,
+                        lhs,
+                        rhs,
                     }))),
-                acc.debug_info,
-                acc.span,
-                crate::TYPE_BOOL.as_dyn(),
-            ))
+            )
         })
     }
 
@@ -756,8 +1033,40 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
     }
 }
 
-/// Syntactic equality, conservative (`false` for unhandled kinds). Used to
-/// fold reflexive equalities.
+fn bool_lit(e: ExprDyn<'_>) -> Option<bool> {
+    match e.kind {
+        ExprKindGenData::Const(ConstData::Bool(b)) => Some(*b),
+        _ => None,
+    }
+}
+
+/// An integer literal, a negative one written as the negation of its
+/// absolute value.
+fn int_lit(e: ExprDyn<'_>) -> Option<i128> {
+    match e.kind {
+        ExprKindGenData::Const(ConstData::Int(v)) => i128::try_from(*v).ok(),
+        ExprKindGenData::UnOp(u) if u.kind == UnOpKind::Neg => match u.expr.kind {
+            ExprKindGenData::Const(ConstData::Int(v)) => i128::try_from(*v).ok().map(|v| -v),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+/// The comparison that is the negation of `kind`, if `kind` is one.
+fn negated_cmp(kind: BinOpKind) -> Option<BinOpKind> {
+    Some(match kind {
+        BinOpKind::CmpEq => BinOpKind::CmpNe,
+        BinOpKind::CmpNe => BinOpKind::CmpEq,
+        BinOpKind::CmpGt => BinOpKind::CmpLe,
+        BinOpKind::CmpLe => BinOpKind::CmpGt,
+        BinOpKind::CmpGe => BinOpKind::CmpLt,
+        BinOpKind::CmpLt => BinOpKind::CmpGe,
+        _ => return None,
+    })
+}
+
+/// Syntactic equality, conservative (`false` for unhandled kinds).
 fn syntactic_eq<'vir>(a: ExprDyn<'vir>, b: ExprDyn<'vir>) -> bool {
     if std::ptr::eq(a.kind, b.kind) {
         return true;
@@ -773,6 +1082,46 @@ fn syntactic_eq<'vir>(a: ExprDyn<'vir>, b: ExprDyn<'vir>) -> bool {
         (ExprKindGenData::AdtDestructor(e1, d1), ExprKindGenData::AdtDestructor(e2, d2)) => {
             d1.name == d2.name && syntactic_eq(e1, e2)
         }
+        (ExprKindGenData::UnOp(x), ExprKindGenData::UnOp(y)) => {
+            x.kind == y.kind && syntactic_eq(x.expr.as_dyn(), y.expr.as_dyn())
+        }
+        (ExprKindGenData::BinOp(x), ExprKindGenData::BinOp(y)) => {
+            x.kind == y.kind && syntactic_eq(x.lhs, y.lhs) && syntactic_eq(x.rhs, y.rhs)
+        }
+        (ExprKindGenData::CollectionBinOp(x), ExprKindGenData::CollectionBinOp(y)) => {
+            x.kind == y.kind && syntactic_eq(x.lhs, y.lhs) && syntactic_eq(x.rhs, y.rhs)
+        }
+        (ExprKindGenData::CollectionLiteral(x), ExprKindGenData::CollectionLiteral(y)) => {
+            x.ty == y.ty
+                && x.values.len() == y.values.len()
+                && x.values
+                    .iter()
+                    .zip(y.values)
+                    .all(|(a, b)| syntactic_eq(a, b))
+        }
+        (ExprKindGenData::CollectionUpdate(x), ExprKindGenData::CollectionUpdate(y)) => {
+            syntactic_eq(x.target, y.target)
+                && syntactic_eq(x.key, y.key)
+                && syntactic_eq(x.val, y.val)
+        }
+        (ExprKindGenData::CollectionLen(x), ExprKindGenData::CollectionLen(y))
+        | (ExprKindGenData::MapDomain(x), ExprKindGenData::MapDomain(y))
+        | (ExprKindGenData::MapRange(x), ExprKindGenData::MapRange(y)) => syntactic_eq(x, y),
+        (ExprKindGenData::Field(r1, f1), ExprKindGenData::Field(r2, f2)) => {
+            f1.name == f2.name && syntactic_eq(r1.as_dyn(), r2.as_dyn())
+        }
+        (ExprKindGenData::Old(x), ExprKindGenData::Old(y)) => {
+            x.label == y.label && syntactic_eq(x.expr, y.expr)
+        }
+        (ExprKindGenData::Ternary(x), ExprKindGenData::Ternary(y)) => {
+            syntactic_eq(x.cond.as_dyn(), y.cond.as_dyn())
+                && syntactic_eq(x.then, y.then)
+                && syntactic_eq(x.else_, y.else_)
+        }
+        (ExprKindGenData::AdtDiscriminator(e1, n1), ExprKindGenData::AdtDiscriminator(e2, n2)) => {
+            n1 == n2 && syntactic_eq(e1, e2)
+        }
+        (ExprKindGenData::Result(_), ExprKindGenData::Result(_)) => a.ty() == b.ty(),
         _ => false,
     }
 }
