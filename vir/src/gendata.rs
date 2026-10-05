@@ -11,14 +11,14 @@ use crate::{
 
 use vir_proc_macro::*;
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct UnOpGenData<'vir, Curr, Next> {
     #[vir(reify_pass)]
     pub kind: UnOpKind,
     pub expr: ExprGenPrim<'vir, Curr, Next>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct BinOpGenData<'vir, Curr, Next> {
     #[vir(reify_pass)]
     pub kind: BinOpKind,
@@ -51,7 +51,7 @@ impl<'vir, Curr, Next> BinOpGenData<'vir, Curr, Next> {
 /// A binary operation on a native Viper collection (see
 /// [`CollectionBinOpKind`]). The collection operand determines the exact
 /// operation and the result type.
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct CollectionBinOpGenData<'vir, Curr, Next> {
     #[vir(reify_pass)]
     pub kind: CollectionBinOpKind,
@@ -118,14 +118,14 @@ impl<'vir, Curr, Next> CollectionBinOpGenData<'vir, Curr, Next> {
     }
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct TernaryGenData<'vir, Curr, Next> {
     pub cond: ExprGenBool<'vir, Curr, Next>,
     pub then: ExprGenDyn<'vir, Curr, Next>,
     pub else_: ExprGenDyn<'vir, Curr, Next>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct ForallGenData<'vir, Curr, Next> {
     #[vir(reify_pass)]
     pub qvars: &'vir [LocalDeclDyn<'vir>],
@@ -133,7 +133,7 @@ pub struct ForallGenData<'vir, Curr, Next> {
     pub body: ExprGenBool<'vir, Curr, Next>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct ExistsGenData<'vir, Curr, Next> {
     #[vir(reify_pass)]
     pub qvars: &'vir [LocalDeclDyn<'vir>],
@@ -141,7 +141,7 @@ pub struct ExistsGenData<'vir, Curr, Next> {
     pub body: ExprGenBool<'vir, Curr, Next>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct TriggerGenData<'vir, Curr, Next> {
     pub exprs: &'vir [ExprGenDyn<'vir, Curr, Next>],
 }
@@ -149,7 +149,7 @@ pub struct TriggerGenData<'vir, Curr, Next> {
 /// A literal of a native Viper collection (`Set`/`Multiset`/`Seq`/`Map`);
 /// which one is determined by `ty`. `Map` literals must be empty (maps are
 /// built up with [`CollectionUpdateGenData`]).
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct CollectionLiteralGenData<'vir, Curr, Next> {
     pub values: &'vir [ExprGenDyn<'vir, Curr, Next>],
     #[vir(reify_pass, is_ref)]
@@ -157,14 +157,14 @@ pub struct CollectionLiteralGenData<'vir, Curr, Next> {
 }
 
 /// The native Viper map or sequence update `target[key := val]`.
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct CollectionUpdateGenData<'vir, Curr, Next> {
     pub target: ExprGenDyn<'vir, Curr, Next>,
     pub key: ExprGenDyn<'vir, Curr, Next>,
     pub val: ExprGenDyn<'vir, Curr, Next>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct FuncAppGenData<'vir, Curr, Next> {
     pub target: &'vir str, // TODO: identifiers
     pub args: &'vir [ExprGenDyn<'vir, Curr, Next>],
@@ -176,27 +176,27 @@ pub struct FuncAppGenData<'vir, Curr, Next> {
     pub typ_var_map: &'vir [TypeDyn<'vir>],
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct OldGenData<'vir, Curr, Next> {
     pub expr: ExprGenDyn<'vir, Curr, Next>,
     #[vir(reify_pass)]
     pub label: OldLabel<'vir>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct PredicateAppGenData<'vir, Curr, Next> {
     pub target: &'vir str, // TODO: identifiers
     pub args: &'vir [ExprGenDyn<'vir, Curr, Next>],
     pub perm: Option<ExprGenPerm<'vir, Curr, Next>>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct UnfoldingGenData<'vir, Curr, Next> {
     pub target: PredicateAppGen<'vir, Curr, Next>,
     pub expr: ExprGenDyn<'vir, Curr, Next>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct AccFieldGenData<'vir, Curr, Next> {
     pub recv: ExprGenRef<'vir, Curr, Next>,
     #[vir(reify_pass, is_ref)]
@@ -204,7 +204,7 @@ pub struct AccFieldGenData<'vir, Curr, Next> {
     pub perm: Option<ExprGenPerm<'vir, Curr, Next>>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct LetGenData<'vir, Curr, Next> {
     pub name: &'vir str,
     pub val: ExprGenDyn<'vir, Curr, Next>,
@@ -348,7 +348,7 @@ impl<'tcx> crate::VirCtxt<'tcx> {
     }
 }
 
-#[derive(VirHash, VirSerde, VirVisitable)]
+#[derive(VirHash, VirSerde, VirVisitable, VirFoldable)]
 pub enum ExprKindGenData<'vir, Curr: 'vir, Next: 'vir> {
     Local(#[vir(reify_pass, is_ref)] LocalDyn<'vir>),
     Field(
@@ -508,19 +508,19 @@ impl<'vir, Curr: 'vir, Next: 'vir> serde::Deserialize<'vir> for LazyGenData<'vir
     }
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct InhaleExhaleGenData<'vir, Curr: 'vir, Next: 'vir> {
     pub inhale: ExprGenBool<'vir, Curr, Next>,
     pub exhale: ExprGenBool<'vir, Curr, Next>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct DomainAxiomGenData<'vir, Curr, Next> {
     pub name: &'vir str, // ? or comment, then auto-gen the names?
     pub expr: ExprGenBool<'vir, Curr, Next>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct DomainGenData<'vir, Curr, Next> {
     pub name: &'vir str, // TODO: identifiers
     #[vir(reify_pass)]
@@ -532,7 +532,7 @@ pub struct DomainGenData<'vir, Curr, Next> {
     pub interpretation: Option<BackendInterpretation<'vir>>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct AdtGenData<'vir, Curr, Next> {
     pub name: &'vir str,
     #[vir(reify_pass)]
@@ -540,7 +540,7 @@ pub struct AdtGenData<'vir, Curr, Next> {
     pub constructors: &'vir [AdtConstructorGen<'vir, Curr, Next>],
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct AdtConstructorGenData<'vir, Curr, Next> {
     pub name: &'vir str,
     #[vir(reify_pass)]
@@ -548,7 +548,7 @@ pub struct AdtConstructorGenData<'vir, Curr, Next> {
     pub axiom: Option<ExprGenBool<'vir, Curr, Next>>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct PredicateGenData<'vir, Curr, Next> {
     pub name: &'vir str, // TODO: identifiers
     #[vir(reify_pass)]
@@ -556,7 +556,7 @@ pub struct PredicateGenData<'vir, Curr, Next> {
     pub expr: Option<ExprGenBool<'vir, Curr, Next>>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct FunctionGenData<'vir, Curr, Next> {
     pub name: &'vir str, // TODO: identifiers
     #[vir(reify_pass)]
@@ -569,7 +569,7 @@ pub struct FunctionGenData<'vir, Curr, Next> {
     pub expr: Option<ExprGenDyn<'vir, Curr, Next>>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub enum DecreasesGenData<'vir, Curr, Next> {
     None,
     Tuple(
@@ -581,7 +581,7 @@ pub enum DecreasesGenData<'vir, Curr, Next> {
 }
 
 // TODO: why is this called "pure"?
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct PureAssignGenData<'vir, Curr, Next> {
     pub lhs: ExprGenDyn<'vir, Curr, Next>,
     //pub dest: Local<'vir>,
@@ -589,7 +589,7 @@ pub struct PureAssignGenData<'vir, Curr, Next> {
     pub rhs: ExprGenDyn<'vir, Curr, Next>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct MethodCallGenData<'vir, Curr, Next> {
     #[vir(reify_pass)]
     pub targets: &'vir [LocalDyn<'vir>],
@@ -597,7 +597,7 @@ pub struct MethodCallGenData<'vir, Curr, Next> {
     pub args: &'vir [ExprGenDyn<'vir, Curr, Next>],
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct StmtGenData<'vir, Curr, Next> {
     pub kind: StmtKindGen<'vir, Curr, Next>,
     // #[vir(reify_pass)] pub debug_info: DebugInfo<'vir>,
@@ -615,7 +615,7 @@ impl<'vir, Curr: 'vir, Next: 'vir> StmtGenData<'vir, Curr, Next> {
     }
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub enum StmtKindGenData<'vir, Curr, Next> {
     LocalDecl(
         #[vir(reify_pass, is_ref)] LocalDeclDyn<'vir>,
@@ -654,7 +654,7 @@ impl<'vir, Curr, Next> StmtKindGenData<'vir, Curr, Next> {
     }
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct GotoIfGenData<'vir, Curr, Next> {
     pub value: ExprGenDyn<'vir, Curr, Next>,
     pub targets: &'vir [GotoIfTargetGen<'vir, Curr, Next>],
@@ -663,7 +663,7 @@ pub struct GotoIfGenData<'vir, Curr, Next> {
     pub otherwise_statements: &'vir [StmtGen<'vir, Curr, Next>],
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct GotoIfTargetGenData<'vir, Curr, Next> {
     pub value: ExprGenDyn<'vir, Curr, Next>,
     #[vir(reify_pass, is_ref)]
@@ -671,7 +671,7 @@ pub struct GotoIfTargetGenData<'vir, Curr, Next> {
     pub statements: &'vir [StmtGen<'vir, Curr, Next>],
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub enum TerminatorStmtGenData<'vir, Curr, Next> {
     AssumeFalse,
     Goto(#[vir(reify_pass, is_ref)] CfgBlockLabel<'vir>),
@@ -680,21 +680,21 @@ pub enum TerminatorStmtGenData<'vir, Curr, Next> {
     Dummy(&'vir str),
 }
 
-#[derive(Debug, VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(Debug, VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct CfgBlockGenData<'vir, Curr, Next> {
     pub label: CfgLabelGen<'vir, Curr, Next>,
     pub stmts: &'vir [StmtGen<'vir, Curr, Next>],
     pub terminator: TerminatorStmtGen<'vir, Curr, Next>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct CfgLabelGenData<'vir, Curr, Next> {
     #[vir(reify_pass, is_ref)]
     pub label: CfgBlockLabel<'vir>,
     pub invariants: &'vir [ExprGenBool<'vir, Curr, Next>],
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct MethodGenData<'vir, Curr, Next> {
     pub name: &'vir str, // TODO: identifiers
     #[vir(reify_pass)]
@@ -707,12 +707,12 @@ pub struct MethodGenData<'vir, Curr, Next> {
     pub body: Option<MethodBodyGen<'vir, Curr, Next>>,
 }
 
-#[derive(VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct MethodBodyGenData<'vir, Curr, Next> {
     pub blocks: &'vir [CfgBlockGen<'vir, Curr, Next>], // first one is the entrypoint
 }
 
-#[derive(Debug, VirHash, VirReify, VirSerde, VirVisitable)]
+#[derive(Debug, VirHash, VirReify, VirSerde, VirVisitable, VirFoldable)]
 pub struct ProgramGenData<'vir, Curr, Next> {
     #[vir(reify_pass)]
     pub fields: &'vir [FieldDyn<'vir>],

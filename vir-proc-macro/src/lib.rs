@@ -2,6 +2,7 @@
 
 use proc_macro::TokenStream;
 
+mod fold;
 mod hash;
 mod reify;
 pub(crate) mod reify_kind;
@@ -26,6 +27,11 @@ pub fn derive_serde(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(VirVisitable, attributes(vir))]
 pub fn derive_visitable(input: TokenStream) -> TokenStream {
     visit::derive_visitable(input)
+}
+
+#[proc_macro_derive(VirFoldable, attributes(vir))]
+pub fn derive_foldable(input: TokenStream) -> TokenStream {
+    fold::derive_foldable(input)
 }
 
 fn params_to_args_and_params(

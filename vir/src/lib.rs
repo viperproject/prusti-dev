@@ -21,10 +21,12 @@ mod callable;
 mod viper_ident;
 mod r#type;
 mod visit;
+mod fold;
 
 pub use callable::*;
 pub use context::*;
 pub use data::*;
+pub use fold::*;
 pub use gendata::*;
 pub use genrefs::*;
 pub use r#type::*;
