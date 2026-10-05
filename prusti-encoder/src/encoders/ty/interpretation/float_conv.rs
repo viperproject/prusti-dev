@@ -41,12 +41,6 @@ impl TaskEncoder for FloatBitVecConvEnc {
         *task
     }
 
-    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        for output in Self::all_outputs_local_no_errors(program) {
-            program.add_domain(output);
-        }
-    }
-
     fn do_encode_full<'vir>(
         task_key: &Self::TaskKey<'vir>,
         deps: &mut task_encoder::TaskEncoderDependencies<'vir, Self>,
@@ -121,6 +115,12 @@ impl TaskEncoder for FloatBitVecConvEnc {
             ))
         })
     }
+
+    fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
+        for output in Self::all_outputs_local_no_errors(program) {
+            program.add_domain(output);
+        }
+    }
 }
 
 /// The SMT-LIB `(eb, sb)` parameters of a float format (`sb` includes the
@@ -134,7 +134,7 @@ fn float_format(float: ty::FloatTy) -> (u32, u32) {
     }
 }
 
-/// The raw bits of the float `±2^exp` (`±inf` if it is out of range).
+/// The raw bits of the float `+/-2^exp` (`+/-inf` if it is out of range).
 pub fn float_pow2_bits(float: ty::FloatTy, exp: u32, negative: bool) -> u128 {
     let (ebits, sbits) = float_format(float);
     let bias = (1u128 << (ebits - 1)) - 1;

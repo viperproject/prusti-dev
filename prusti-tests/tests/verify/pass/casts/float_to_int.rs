@@ -71,7 +71,8 @@ fn symbolic_in_range(x: f32) -> u8 {
     x as u8
 }
 
-#[ensures(result >= -128)]
+#[ensures(x >= 128.0 ==> result == 127)]
+#[ensures(x <= -129.0 ==> result == -128)]
 fn symbolic_saturating(x: f64) -> i8 {
     x as i8
 }
