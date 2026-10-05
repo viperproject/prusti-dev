@@ -6,6 +6,7 @@ mod hash;
 mod reify;
 pub(crate) mod reify_kind;
 mod serde;
+mod visit;
 
 #[proc_macro_derive(VirHash)]
 pub fn derive_hash(input: TokenStream) -> TokenStream {
@@ -20,6 +21,11 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(VirSerde, attributes(vir))]
 pub fn derive_serde(input: TokenStream) -> TokenStream {
     serde::derive_serde(input)
+}
+
+#[proc_macro_derive(VirVisitable, attributes(vir))]
+pub fn derive_visitable(input: TokenStream) -> TokenStream {
+    visit::derive_visitable(input)
 }
 
 fn params_to_args_and_params(

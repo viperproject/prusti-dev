@@ -167,7 +167,15 @@ pub fn one<T: One>() -> T {
     One::one()
 }
 
+// `zero`, `one` and `is_zero` have no specs, so these assertions are not
+// provable.
+// TODO: make them `#[pure]` and remove `#[trusted]` once (1) impl fn axioms
+// fire for calls through a trait fn whose signature is generic but whose
+// impl types are concrete, and (2) permissions of dead temporaries are
+// released, since otherwise verifying this many assertions in one function
+// takes time roughly cubic in their number.
 #[test]
+#[trusted]
 fn wrapping_identities() {
     macro_rules! test_wrapping_identities {
         ($($t:ty)+) => {

@@ -8,7 +8,7 @@ use crate::encoders::{
     ty::{
         RustTyDecomposition,
         generics::{
-            GParams, GenericParams, GenericParamsEnc,
+            GParams, GenericParamsEnc,
             trait_impls::{self, TraitImplConditionEnc},
         },
         lifted::TyConstructorEnc,
@@ -24,16 +24,11 @@ pub struct TraitEncOutputRef<'vir> {
         FxHashMap<DefId, FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::TyVal>>,
     pub assoc_consts:
         FxHashMap<DefId, FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Snap>>,
+    /// Whether the trait is implemented for the given trait arguments. Only
+    /// ever stated positively (see [`TraitImplConditionEnc`]): nothing
+    /// implies that a trait is *not* implemented, so an impl that is not part
+    /// of the encoded program leaves implementedness open rather than false.
     pub impl_fun: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
-}
-
-#[derive(Debug, Clone)]
-pub struct TraitEncOutput<'vir> {
-    trait_did: DefId,
-    trait_domain: vir::Domain<'vir>,
-    impl_fun_idn: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Bool>,
-    trait_generics: GenericParams<'vir>,
-    unknown_type_check: vir::ExprBool<'vir>,
 }
 
 impl<'vir> OutputRefAny for TraitEncOutputRef<'vir> {}
@@ -49,43 +44,12 @@ impl TaskEncoder for TraitEnc {
     type TaskDescription<'vir> = DefId;
 
     type OutputRef<'vir> = TraitEncOutputRef<'vir>;
-    type OutputFullLocal<'vir> = TraitEncOutput<'vir>;
+    type OutputFullLocal<'vir> = vir::Domain<'vir>;
 
     fn emit_outputs<'vir>(program: &mut task_encoder::Program<'vir>) {
-        // Which impls contribute to a trait's `impl_fun` is only known once
-        // all encoding is done (the impls of constructed types, see
-        // `register_impl_triggers`), so the function is assembled here,
-        // analogously to how `TyConstructorEnc` assembles the `Type` ADT.
-        let mut conditions: FxHashMap<DefId, Vec<vir::ExprBool<'vir>>> = FxHashMap::default();
-        for (trait_did, condition) in
-            trait_impls::TraitImplConditionEnc::all_outputs_local_no_errors(program)
-        {
-            conditions.entry(trait_did).or_default().push(condition);
+        for domain in TraitEnc::all_outputs_local_no_errors(program) {
+            program.add_domain(domain);
         }
-        vir::with_vcx(|vcx| {
-            for output in TraitEnc::all_outputs_local_no_errors(program) {
-                program.add_domain(output.trait_domain);
-                let mut checks = conditions.remove(&output.trait_did).unwrap_or_default();
-                checks.push(output.unknown_type_check);
-                // TODO: putting the body in the postcondition will result in a
-                // matching loop for recursive definitions. We can avoid this by
-                // manually axiomatising the function, or by adding adt-based
-                // unfolding to Viper.
-                let ensures = vcx.mk_eq_expr(vcx.mk_result(vir::TYPE_BOOL), vcx.mk_disj(&checks));
-                let impl_fun = vcx.mk_function(
-                    output.impl_fun_idn,
-                    (
-                        output.trait_generics.ty_decls(),
-                        output.trait_generics.const_decls(),
-                    ),
-                    &[],
-                    vcx.alloc_slice(&[ensures]),
-                    Some(&vir::DecreasesGenData::Star),
-                    None,
-                );
-                program.add_function(impl_fun);
-            }
-        })
     }
 
     fn do_encode_full<'vir>(
@@ -142,13 +106,7 @@ impl TaskEncoder for TraitEnc {
                 trait_args,
                 vir::TYPE_BOOL,
             );
-            // Omit the `Self` type as it is known to be the unknown type
-            let impl_for_unknown_fun =
-                FunctionIdn::<(vir::Int, vir::ManyTyVal, vir::ManyCSnap), _>::new(
-                    vir_format_identifier!(vcx, "{trait_name}_impl_for_unknown"),
-                    (vir::TYPE_INT, &trait_args.0[1..], trait_args.1),
-                    vir::TYPE_BOOL,
-                );
+            dom_funcs.push(vcx.mk_domain_function(impl_fun, false, None));
 
             // Emit the impl function reference early, so that it can be used to encode caller
             // bounds without causing dependency cycles.
@@ -162,11 +120,9 @@ impl TaskEncoder for TraitEnc {
                 },
             )?;
 
-            // The `impl_fun` body (a disjunction over the conditions of this
-            // trait's impls) is assembled in `emit_outputs`, once it is known
-            // which impls are relevant (see `impl_unlock_keys` for the
-            // gating).
-            for impl_did in tcx.all_impls(*task_key) {
+            // Each relevant impl contributes an axiom stating where it makes
+            // `impl_fun` hold (see `impl_unlock_keys` for the gating).
+            for impl_did in trait_impls::implementing_impls(tcx, *task_key) {
                 let keys = trait_impls::impl_unlock_keys(impl_did);
                 let span = tcx.def_span(impl_did);
                 TyConstructorEnc::on_all_requested(keys.clone(), move || {
@@ -175,39 +131,29 @@ impl TaskEncoder for TraitEnc {
                 // The impl's associated types resolve through the trait's
                 // type functions declared above, so they unlock together
                 // with the condition (fn items instead unlock per called
-                // function, from `TraitFnEnc`).
-                for item in tcx.associated_items(impl_did).in_definition_order() {
-                    if matches!(item.kind, ty::AssocKind::Type { .. }) {
-                        let item_did = item.def_id;
-                        TyConstructorEnc::on_all_requested(keys.clone(), move || {
-                            let _ = trait_impls::TraitImplItemEnc::encode(item_did, false, span);
-                        });
+                // function, from `TraitFnEnc`). Only final definitions are
+                // assumed (see `final_leaf_def`); defaults provided by the
+                // trait are not supported.
+                for item in tcx.associated_items(*task_key).in_definition_order() {
+                    if !matches!(item.kind, ty::AssocKind::Type { .. }) {
+                        continue;
                     }
+                    let Some(leaf) = trait_impls::final_leaf_def(tcx, impl_did, item.def_id) else {
+                        continue;
+                    };
+                    if leaf.defining_node.is_from_trait() {
+                        continue;
+                    }
+                    let item_did = leaf.item.def_id;
+                    TyConstructorEnc::on_all_requested(keys.clone(), move || {
+                        let _ = trait_impls::TraitImplItemEnc::encode(
+                            (impl_did, item_did),
+                            false,
+                            span,
+                        );
+                    });
                 }
             }
-            let unknown_type_check = {
-                let self_expr = trait_generics.ty_exprs()[0];
-
-                let is_unknown_type =
-                    vcx.mk_adt_discriminator_expr(self_expr, TyConstructorEnc::UNKNOWN_TYPE_NAME);
-
-                let extracted_id =
-                    TyConstructorEnc::unknown_type_id_accessor(vcx).call()(self_expr);
-
-                let unknown_impls = impl_for_unknown_fun(
-                    extracted_id,
-                    &trait_generics.ty_exprs()[1..],
-                    trait_generics.const_exprs(),
-                );
-
-                vir::expr! { vcx;
-                     (is_unknown_type) && (unknown_impls)
-                }
-            };
-
-            let impl_for_unknown_fun = vcx.mk_domain_function(impl_for_unknown_fun, false, None);
-            dom_funcs.push(impl_for_unknown_fun);
-
             let trait_domain = vcx.mk_domain(
                 vir_format_identifier!(vcx, "trait_{trait_name}"),
                 &[],
@@ -216,16 +162,7 @@ impl TaskEncoder for TraitEnc {
                 None,
             );
 
-            Ok((
-                TraitEncOutput {
-                    trait_did: *task_key,
-                    trait_domain,
-                    impl_fun_idn: impl_fun,
-                    trait_generics,
-                    unknown_type_check,
-                },
-                (),
-            ))
+            Ok((trait_domain, ()))
         })
     }
 }

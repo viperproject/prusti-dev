@@ -1,7 +1,10 @@
 use task_encoder::{EncodeFullResult, OutputRefAny, TaskEncoder};
 use vir::{CallableIdn, CastType, FunctionIdn, HasType};
 
-use crate::encoders::ty::{RustParamData, RustTy, TySpecifics, generics::GenericParamsEnc};
+use crate::encoders::ty::{
+    RustParamData, RustTy, TySpecifics,
+    generics::{GenericParamsEnc, sizedness::SizednessEnc},
+};
 
 #[derive(Debug, Clone)]
 pub struct TyConstructorEncOutputRef<'vir> {
@@ -91,6 +94,7 @@ impl TaskEncoder for TyConstructorEnc {
                     const_param_accessors: vcx.alloc_slice(&const_accessor_functions),
                 },
             )?;
+            SizednessEnc::require(task_key);
 
             let args = ty_accessor_functions
                 .iter()
@@ -127,10 +131,4 @@ impl TyConstructorEnc {
     /// The name of the constructor for the unknown type variant in the `Type` ADT.
     pub const UNKNOWN_TYPE_NAME: &str = "Unknown_type";
     const UNKNOWN_TYPE_ID: &str = "id";
-
-    pub fn unknown_type_id_accessor<'vir>(
-        vcx: &'vir vir::VirCtxt<'vir>,
-    ) -> vir::AdtDestructor<'vir, vir::TyVal, vir::Int> {
-        vcx.mk_adt_destructor(Self::UNKNOWN_TYPE_ID, vir::TYPE_TYVAL, vir::TYPE_INT)
-    }
 }
