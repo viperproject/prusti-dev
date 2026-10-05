@@ -28,7 +28,7 @@
 //! checks: Prusti checks all side conditions explicitly in impure code.
 //!
 //! Constructors and destructors are recognized via the program's adt
-//! declarations ([`AdtIndex`]), which also ground the injectivity the
+//! declarations ([`SimplifyCtx`]), which also ground the injectivity the
 //! equality rule relies on. The generic casts are such a pair, with
 //! `make_generic_X` a constructor of `s_Param` and `make_concrete_X` the
 //! destructor of its value field, so `make_concrete_X(make_generic_X(e))`
@@ -56,13 +56,14 @@ use std::collections::{HashMap, HashSet};
 use prusti_rustc_interface::data_structures::fx::FxHashSet;
 
 use crate::{
-    collect_locals, data::*, gendata::*, refs::*, CastType, Foldable, Folder, VirCtxt, Visitable,
-    Visitor,
+    collect_locals, data::*, gendata::*, refs::*, CastType, Foldable, Folder, ViperIdent, VirCtxt,
+    Visitable, Visitor,
 };
 
-/// The program's adt constructors and destructors and its total functions,
-/// used to recognize the foldable applications.
-pub struct AdtIndex<'vir> {
+/// What the simplification knows about the program: its adt constructors and
+/// destructors, its total functions and the literal inverses its encoder
+/// declares, used to recognize the foldable applications.
+pub struct SimplifyCtx<'vir> {
     /// Constructor name to its ordered field (destructor) declarations.
     constructors: HashMap<&'vir str, &'vir [crate::LocalDeclDyn<'vir>]>,
     /// Destructor name to its constructor's name and field index.
@@ -84,12 +85,12 @@ pub struct AdtIndex<'vir> {
     literal_inverses: HashMap<&'vir str, &'vir str>,
 }
 
-impl<'vir> AdtIndex<'vir> {
+impl<'vir> SimplifyCtx<'vir> {
     pub fn new(
         adts: &[Adt<'vir>],
         domains: &[Domain<'vir>],
         functions: &[Function<'vir>],
-        literal_inverses: &[(&'vir str, &'vir str)],
+        literal_inverses: &[(ViperIdent<'vir>, ViperIdent<'vir>)],
     ) -> Self {
         let total_functions = domains
             .iter()
@@ -121,7 +122,10 @@ impl<'vir> AdtIndex<'vir> {
             destructors,
             eta,
             total_functions,
-            literal_inverses: literal_inverses.iter().copied().collect(),
+            literal_inverses: literal_inverses
+                .iter()
+                .map(|(outer, inner)| (outer.to_str(), inner.to_str()))
+                .collect(),
         }
     }
 }
@@ -130,10 +134,10 @@ impl<'vir> AdtIndex<'vir> {
 /// function or method).
 pub fn simplify<'vir, 'tcx, T: Foldable<'vir, (), !> + Copy>(
     vcx: &'vir VirCtxt<'tcx>,
-    adts: &AdtIndex<'vir>,
+    ctx: &SimplifyCtx<'vir>,
     item: T,
 ) -> T {
-    let mut s = Simplifier::new(vcx, adts);
+    let mut s = Simplifier::new(vcx, ctx);
     item.fold_with(&mut Roots(&mut s)).unwrap_or(item)
 }
 
@@ -148,7 +152,7 @@ struct Binding<'vir> {
 
 struct Simplifier<'enc, 'vir, 'tcx> {
     vcx: &'vir VirCtxt<'tcx>,
-    adts: &'enc AdtIndex<'vir>,
+    ctx: &'enc SimplifyCtx<'vir>,
     env: HashMap<&'vir str, Binding<'vir>>,
 }
 
@@ -178,10 +182,10 @@ impl<'vir> Folder<'vir, (), !> for Simplifier<'_, 'vir, '_> {
 }
 
 impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
-    fn new(vcx: &'vir VirCtxt<'tcx>, adts: &'enc AdtIndex<'vir>) -> Self {
+    fn new(vcx: &'vir VirCtxt<'tcx>, ctx: &'enc SimplifyCtx<'vir>) -> Self {
         Self {
             vcx,
-            adts,
+            ctx,
             env: HashMap::new(),
         }
     }
@@ -569,8 +573,8 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
                     && a.args.len() == b.args.len()
                     && a.typ_var_map == b.typ_var_map
                     && a.args.iter().zip(b.args).all(|(x, y)| x.ty() == y.ty())
-                    && (self.adts.constructors.contains_key(a.target)
-                        || self.adts.total_functions.contains(a.target)) =>
+                    && (self.ctx.constructors.contains_key(a.target)
+                        || self.ctx.total_functions.contains(a.target)) =>
             {
                 let args = a
                     .args
@@ -651,7 +655,7 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
                 Some(self.mk_ternary(orig, orig.ty(), t.cond.as_dyn(), then, else_))
             }
             ExprKindGenData::FuncApp(app) => {
-                let (cons, idx) = *self.adts.destructors.get(destr.name)?;
+                let (cons, idx) = *self.ctx.destructors.get(destr.name)?;
                 if app.target != cons {
                     return None;
                 }
@@ -664,17 +668,17 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
 
     /// A constructor application to the fields of one value of that variant,
     /// `C(p.f_0, .., p.f_n)`, yields `p`, for the constructors in
-    /// [`AdtIndex::eta`].
+    /// [`SimplifyCtx::eta`].
     fn fold_eta(
         &self,
         target: &'vir str,
         args: &'vir [ExprDyn<'vir>],
         result_ty: TypeDyn<'vir>,
     ) -> Option<ExprDyn<'vir>> {
-        if !self.adts.eta.contains(target) {
+        if !self.ctx.eta.contains(target) {
             return None;
         }
-        let fields = *self.adts.constructors.get(target)?;
+        let fields = *self.ctx.constructors.get(target)?;
         if fields.len() != args.len() {
             return None;
         }
@@ -692,13 +696,13 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
     }
 
     /// `outer(inner(k))` for an integer literal `k` and a pair in
-    /// [`AdtIndex::literal_inverses`] yields `k`.
+    /// [`SimplifyCtx::literal_inverses`] yields `k`.
     fn fold_literal_inverse(
         &self,
         target: &'vir str,
         args: &'vir [ExprDyn<'vir>],
     ) -> Option<ExprDyn<'vir>> {
-        let inner = *self.adts.literal_inverses.get(target)?;
+        let inner = *self.ctx.literal_inverses.get(target)?;
         let [arg] = args else {
             return None;
         };
@@ -731,7 +735,7 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
         };
         if la.target != ra.target
             || la.args.len() != ra.args.len()
-            || !self.adts.constructors.contains_key(la.target)
+            || !self.ctx.constructors.contains_key(la.target)
         {
             return None;
         }
@@ -1117,12 +1121,12 @@ mod tests {
 
     /// Builds expressions over `Bool` and `Int` locals and the adt
     /// `P = P_cons(f0: Int, f1: Int)`.
-    struct Ctx<'vir, 'tcx> {
+    struct Builder<'vir, 'tcx> {
         vcx: &'vir VirCtxt<'tcx>,
         p_ty: TypeDyn<'vir>,
     }
 
-    impl<'vir, 'tcx> Ctx<'vir, 'tcx> {
+    impl<'vir, 'tcx> Builder<'vir, 'tcx> {
         fn node(&self, kind: ExprKindGenData<'vir, (), !>) -> ExprDyn<'vir> {
             self.vcx
                 .alloc(ExprGenData::<_, _, Dyn>::new(self.vcx.alloc(kind)))
@@ -1195,7 +1199,7 @@ mod tests {
     /// Simplifies the expression `build` makes and checks the result's Viper
     /// syntax with `check`.
     fn check_with(
-        build: impl for<'vir, 'tcx> FnOnce(&Ctx<'vir, 'tcx>) -> ExprDyn<'vir>,
+        build: impl for<'vir, 'tcx> FnOnce(&Builder<'vir, 'tcx>) -> ExprDyn<'vir>,
         check: impl FnOnce(&str),
     ) {
         crate::init_vcx(VirCtxt::new_without_tcx());
@@ -1206,17 +1210,17 @@ mod tests {
             ]);
             let cons = vcx.mk_adt_constructor::<(), !, _>("P_cons", fields);
             let adt = vcx.mk_adt(crate::ViperIdent::new("P"), &[], vcx.alloc_slice(&[cons]));
-            let adts = AdtIndex::new(&[adt], &[], &[], &[]);
+            let ctx = SimplifyCtx::new(&[adt], &[], &[], &[]);
             let p_ty = vcx.alloc(TypeData::<Dyn>::new(TypeKind::Domain("P", &[])));
-            let e = build(&Ctx { vcx, p_ty });
-            let mut s = Simplifier::new(vcx, &adts);
+            let e = build(&Builder { vcx, p_ty });
+            let mut s = Simplifier::new(vcx, &ctx);
             check(&format!("{:?}", s.expr(e)));
         });
     }
 
     fn check(
         expected: &str,
-        build: impl for<'vir, 'tcx> FnOnce(&Ctx<'vir, 'tcx>) -> ExprDyn<'vir>,
+        build: impl for<'vir, 'tcx> FnOnce(&Builder<'vir, 'tcx>) -> ExprDyn<'vir>,
     ) {
         check_with(build, |actual| assert_eq!(actual, expected));
     }
@@ -1301,10 +1305,10 @@ mod tests {
     fn unchanged_expressions_are_not_reallocated() {
         crate::init_vcx(VirCtxt::new_without_tcx());
         crate::with_vcx(|vcx| {
-            let adts = AdtIndex::new(&[], &[], &[], &[]);
+            let ctx = SimplifyCtx::new(&[], &[], &[], &[]);
             let ex = |name| vcx.mk_local_ex::<(), !, _>(vcx.mk_local_decl(name, TYPE_INT));
             let e = vcx.mk_eq_expr(ex("x"), ex("y")).as_dyn();
-            assert!(Simplifier::new(vcx, &adts).simplify(e).is_none());
+            assert!(Simplifier::new(vcx, &ctx).simplify(e).is_none());
         });
     }
 }

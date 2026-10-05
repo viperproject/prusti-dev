@@ -364,7 +364,7 @@ impl TaskEncoder for TyPureEnc {
                 } => {
                     program.add_domain(domain);
                     if let Some((outer, inner)) = literal_inverse {
-                        program.add_literal_inverse(outer.to_str(), inner.to_str());
+                        program.add_literal_inverse(outer, inner);
                     }
                 }
                 TyPureEncLocalKind::Adt { adt, discr_fn } => {
@@ -766,7 +766,7 @@ impl<'vir> DomainBuilder<'vir> {
 
     /// Declares that `outer(inner(k)) == k` for every integer literal `k`
     /// that the encoding applies `inner` to, so that the simplifier can fold
-    /// such applications (see [`vir::simplify::AdtIndex`]).
+    /// such applications (see [`vir::simplify::SimplifyCtx`]).
     pub(crate) fn literal_inverse<A1: Arity, T1: CompType, A2: Arity, T2: CompType>(
         &mut self,
         outer: FunctionIdn<'vir, A1, T1>,

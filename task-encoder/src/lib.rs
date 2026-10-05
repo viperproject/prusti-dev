@@ -23,7 +23,7 @@ pub struct Program<'vir> {
     predicates: Vec<vir::Predicate<'vir>>,
     functions: Vec<vir::Function<'vir>>,
     methods: Vec<vir::Method<'vir>>,
-    literal_inverses: Vec<(&'vir str, &'vir str)>,
+    literal_inverses: Vec<(vir::ViperIdent<'vir>, vir::ViperIdent<'vir>)>,
 
     code: String,
     encoder_errors: Vec<(String, Span)>,
@@ -53,7 +53,11 @@ impl<'vir> Program<'vir> {
 
     /// Declares that `outer(inner(k)) == k` for every integer literal `k` in
     /// the program, which [`Self::simplify`] then folds.
-    pub fn add_literal_inverse(&mut self, outer: &'vir str, inner: &'vir str) {
+    pub fn add_literal_inverse(
+        &mut self,
+        outer: vir::ViperIdent<'vir>,
+        inner: vir::ViperIdent<'vir>,
+    ) {
         self.literal_inverses.push((outer, inner));
     }
 
@@ -81,23 +85,23 @@ impl<'vir> Program<'vir> {
     /// and methods added so far (see [`vir::simplify`]).
     pub fn simplify(&mut self) {
         vir::with_vcx(|vcx| {
-            let adts = vir::simplify::AdtIndex::new(
+            let ctx = vir::simplify::SimplifyCtx::new(
                 &self.adts,
                 &self.domains,
                 &self.functions,
                 &self.literal_inverses,
             );
             for domain in self.domains.iter_mut() {
-                *domain = vir::simplify::simplify(vcx, &adts, *domain);
+                *domain = vir::simplify::simplify(vcx, &ctx, *domain);
             }
             for predicate in self.predicates.iter_mut() {
-                *predicate = vir::simplify::simplify(vcx, &adts, *predicate);
+                *predicate = vir::simplify::simplify(vcx, &ctx, *predicate);
             }
             for function in self.functions.iter_mut() {
-                *function = vir::simplify::simplify(vcx, &adts, *function);
+                *function = vir::simplify::simplify(vcx, &ctx, *function);
             }
             for method in self.methods.iter_mut() {
-                *method = vir::simplify::simplify(vcx, &adts, *method);
+                *method = vir::simplify::simplify(vcx, &ctx, *method);
             }
         });
     }
