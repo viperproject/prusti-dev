@@ -74,6 +74,7 @@ impl<'tcx> RustTyDecomposition<'tcx> {
             name: symbol::Symbol::intern("Param"),
             params: GParams::empty_env(gty),
             special: RustTySpecial::None,
+            sizedness: RustTySizedness::None,
         };
         let specifics = TySpecifics::Param(RustParamData::Generic);
         TyData::<RustTyDatas>::new(data, specifics).alloc()
@@ -260,6 +261,52 @@ pub struct RustTyData<'tcx> {
     pub name: symbol::Symbol,
     pub params: GParams<'tcx>,
     pub special: RustTySpecial,
+    pub sizedness: RustTySizedness<'tcx>,
+}
+
+/// Which of the sizedness traits (`Sized`, `MetaSized`, `PointeeSized`) the
+/// constructor's instances implement. These traits have no impls, so their
+/// facts are encoded per constructor instead (see `SizednessEnc`). Mirrors
+/// `Ty::has_trivial_sizedness`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum RustTySizedness<'tcx> {
+    /// Not a type constructor (a type parameter or projection).
+    None,
+    /// `Sized` and `MetaSized` exactly when the respective tail type, over
+    /// the constructor's parameters, is; unconditionally if there is none.
+    Sized {
+        sized_if: Option<ty::Ty<'tcx>>,
+        meta_sized_if: Option<ty::Ty<'tcx>>,
+    },
+    /// `MetaSized` but not `Sized`: `str`, slices and trait objects.
+    MetaSized,
+    /// Only `PointeeSized`: extern types.
+    PointeeSized,
+}
+
+impl<'tcx> RustTySizedness<'tcx> {
+    fn from_ty(ty: ty::Ty<'tcx>) -> Self {
+        let tail = |kind| match *ty.kind() {
+            ty::TyKind::Adt(adt, _) => vir::with_vcx(|vcx| {
+                adt.sizedness_constraint(vcx.tcx(), kind)
+                    .map(ty::EarlyBinder::instantiate_identity)
+            }),
+            ty::TyKind::Tuple(tys) => tys
+                .len()
+                .checked_sub(1)
+                .map(|last| TySpecifics::new_param_ty(last as u32)),
+            _ => None,
+        };
+        match ty.kind() {
+            ty::TyKind::Param(_) | ty::TyKind::Alias(..) => Self::None,
+            ty::TyKind::Str | ty::TyKind::Slice(_) | ty::TyKind::Dynamic(..) => Self::MetaSized,
+            ty::TyKind::Foreign(_) => Self::PointeeSized,
+            _ => Self::Sized {
+                sized_if: tail(ty::SizedTraitKind::Sized),
+                meta_sized_if: tail(ty::SizedTraitKind::MetaSized),
+            },
+        }
+    }
 }
 
 /// Marks types with extra hardcoded treatment on top of their regular encoding.
@@ -372,6 +419,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             name: symbol::Symbol::intern(&name),
             params,
             special: RustTySpecial::from_ty(ty),
+            sizedness: RustTySizedness::from_ty(ty),
         };
         RustTyDecomposition::new(Self::new(data, specifics).alloc(), args)
     }
@@ -384,6 +432,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             name: symbol::Symbol::intern(&name),
             params,
             special: RustTySpecial::None,
+            sizedness: RustTySizedness::from_ty(ty),
         };
         let specifics = TySpecifics::from_prim_ty(ty);
         RustTyDecomposition::new(Self::new(data, specifics).alloc(), args)

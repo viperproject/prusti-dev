@@ -10,7 +10,10 @@ use crate::encoders::{
     Impure, ImpureEncVisitor, MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc, WandEnc, WandEncTask,
     mir_fn::{CallTaskDescription, RustSignature, SpecBlocks, SpecBlocksEnc},
     pure::spec::MirSpecEncMode,
-    ty::generics::{GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc},
+    ty::generics::{
+        GArgCaster, GArgsCastEnc, GArgsTy, GArgsTyEnc, GParams, GenericParamsEnc,
+        trait_impls::TraitImplEnc,
+    },
 };
 
 // Method wrapper
@@ -269,7 +272,7 @@ impl TaskEncoder for MethodEnc {
                     // extra blocks: Start, End
                     2 + block_count,
                 );
-                let mut start_stmts = Vec::new();
+                let mut start_stmts = TraitImplEnc::assume_context_bounds(vcx, deps, params)?;
                 for local in (arg_count..body.local_decls.len()).map(mir::Local::from) {
                     // Spec-only locals have no definition.
                     let Some(local_def) = local_defs.get(local) else {
