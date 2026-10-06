@@ -23,7 +23,7 @@ pub struct Program<'vir> {
     predicates: Vec<vir::Predicate<'vir>>,
     functions: Vec<vir::Function<'vir>>,
     methods: Vec<vir::Method<'vir>>,
-    literal_inverses: Vec<(vir::ViperIdent<'vir>, vir::ViperIdent<'vir>)>,
+    literal_inverses: Vec<vir::simplify::LiteralInverse<'vir>>,
 
     code: String,
     encoder_errors: Vec<(String, Span)>,
@@ -51,14 +51,9 @@ impl<'vir> Program<'vir> {
         self.code.push_str(&format!("{domain:?}\n"));
     }
 
-    /// Declares that `outer(inner(k)) == k` for every integer literal `k` in
-    /// the program, which [`Self::simplify`] then folds.
-    pub fn add_literal_inverse(
-        &mut self,
-        outer: vir::ViperIdent<'vir>,
-        inner: vir::ViperIdent<'vir>,
-    ) {
-        self.literal_inverses.push((outer, inner));
+    /// Declares a literal inverse, which [`Self::simplify`] then folds.
+    pub fn add_literal_inverse(&mut self, literal_inverse: vir::simplify::LiteralInverse<'vir>) {
+        self.literal_inverses.push(literal_inverse);
     }
 
     pub fn add_predicate(&mut self, predicate: vir::Predicate<'vir>) {

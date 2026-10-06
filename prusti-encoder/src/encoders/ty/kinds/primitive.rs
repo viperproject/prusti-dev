@@ -67,8 +67,14 @@ pub(crate) fn ty_pure<'vir>(
                     });
                 }
             };
-            // Literals are only encoded in range, where the `value` axiom applies.
-            builder.literal_inverse(value_ident, cons_ident);
+            let (bits, signed) = VirCtxt::get_int_data(ty_kind);
+            let shift = 128 - bits;
+            let (min, max) = if signed {
+                (i128::MIN >> shift, i128::MAX >> shift)
+            } else {
+                (0, i128::try_from(u128::MAX >> shift).unwrap_or(i128::MAX))
+            };
+            builder.literal_inverse(value_ident, cons_ident, min, max);
             TyPurePrimDataKind::Int(TyPurePrimDataInt {
                 prim_to_snap: cons_ident,
                 snap_to_prim: value_ident,

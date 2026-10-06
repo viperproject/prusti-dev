@@ -253,7 +253,7 @@ pub struct TyPureEncLocal<'vir> {
 pub enum TyPureEncLocalKind<'vir> {
     Domain {
         domain: vir::Domain<'vir>,
-        literal_inverse: Option<(vir::ViperIdent<'vir>, vir::ViperIdent<'vir>)>,
+        literal_inverse: Option<vir::simplify::LiteralInverse<'vir>>,
     },
     Adt {
         adt: vir::Adt<'vir>,
@@ -363,8 +363,8 @@ impl TaskEncoder for TyPureEnc {
                     literal_inverse,
                 } => {
                     program.add_domain(domain);
-                    if let Some((outer, inner)) = literal_inverse {
-                        program.add_literal_inverse(outer, inner);
+                    if let Some(literal_inverse) = literal_inverse {
+                        program.add_literal_inverse(literal_inverse);
                     }
                 }
                 TyPureEncLocalKind::Adt { adt, discr_fn } => {
@@ -445,7 +445,7 @@ pub(crate) struct DomainBuilderData<'vir> {
     axioms: Vec<vir::DomainAxiom<'vir>>,
     functions: Vec<vir::DomainFunction<'vir>>,
     interpretation: Option<&'vir [&'vir BackendInterpretationPair<'vir>]>,
-    literal_inverse: Option<(vir::ViperIdent<'vir>, vir::ViperIdent<'vir>)>,
+    literal_inverse: Option<vir::simplify::LiteralInverse<'vir>>,
 }
 
 #[derive(Clone, Copy)]
@@ -764,15 +764,22 @@ impl<'vir> DomainBuilder<'vir> {
         self.data().axioms.push(axiom);
     }
 
-    /// Declares that `outer(inner(k)) == k` for every integer literal `k`
-    /// that the encoding applies `inner` to, so that the simplifier can fold
-    /// such applications (see [`vir::simplify::SimplifyCtx`]).
+    /// Declares that `outer(inner(k)) == k` for every integer literal `k` in
+    /// `min..=max`, so that the simplifier can fold such applications (see
+    /// [`vir::simplify::LiteralInverse`]).
     pub(crate) fn literal_inverse<A1: Arity, T1: CompType, A2: Arity, T2: CompType>(
         &mut self,
         outer: FunctionIdn<'vir, A1, T1>,
         inner: FunctionIdn<'vir, A2, T2>,
+        min: i128,
+        max: i128,
     ) {
-        self.data().literal_inverse = Some((outer.name(), inner.name()));
+        self.data().literal_inverse = Some(vir::simplify::LiteralInverse {
+            outer: outer.name(),
+            inner: inner.name(),
+            min,
+            max,
+        });
     }
 
     pub(crate) fn set_interpretation(

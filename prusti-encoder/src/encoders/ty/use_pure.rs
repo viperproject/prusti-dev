@@ -431,7 +431,7 @@ impl<'vir> TyUsePureImmRef<'vir> {
     ) -> vir::ExprGenCSnap<'vir, Curr, Next> {
         vir::with_vcx(|vcx| {
             self.pure.prim_to_snap.call()(
-                vcx.mk_const_expr(vir::ConstData::Null).downcast_ty(),
+                vcx.mk_null().lazy(),
                 self.pure.metadata_access.call()(snap),
                 self.pure.value_access.call()(snap),
             )

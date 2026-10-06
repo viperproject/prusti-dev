@@ -51,38 +51,44 @@
 //! subterms of a wand only when applying it, in the order of its conjuncts,
 //! so moving them around inside a wand changes which permissions are there.
 
-use std::collections::{HashMap, HashSet};
-
-use prusti_rustc_interface::data_structures::fx::FxHashSet;
+use prusti_rustc_interface::data_structures::fx::{FxHashMap, FxHashSet};
 
 use crate::{
     collect_locals, data::*, gendata::*, refs::*, CastType, Foldable, Folder, ViperIdent, VirCtxt,
     Visitable, Visitor,
 };
 
+/// A declaration that `outer(inner(k))` is `k` for every integer literal `k`
+/// in `min..=max`, such as for the value and constructor of a primitive
+/// snapshot domain, whose axiom only holds within the type's bounds.
+#[derive(Clone, Copy, Debug)]
+pub struct LiteralInverse<'vir> {
+    pub outer: ViperIdent<'vir>,
+    pub inner: ViperIdent<'vir>,
+    pub min: i128,
+    pub max: i128,
+}
+
 /// What the simplification knows about the program: its adt constructors and
 /// destructors, its total functions and the literal inverses its encoder
 /// declares, used to recognize the foldable applications.
 pub struct SimplifyCtx<'vir> {
     /// Constructor name to its ordered field (destructor) declarations.
-    constructors: HashMap<&'vir str, &'vir [crate::LocalDeclDyn<'vir>]>,
+    constructors: FxHashMap<&'vir str, &'vir [crate::LocalDeclDyn<'vir>]>,
     /// Destructor name to its constructor's name and field index.
-    destructors: HashMap<&'vir str, (&'vir str, usize)>,
+    destructors: FxHashMap<&'vir str, (&'vir str, usize)>,
     /// Constructors `C` for which `C(p.f_0, .., p.f_n)` is `p`: those of
     /// single-constructor adts, for which silver's exclusivity axiom states
     /// exactly this, triggered by the field reads. For the variants of a
     /// multi-constructor adt such as `s_Param` it would need the variant of
     /// `p`, and folding a cast round trip `make_generic_X(p.make_concrete_X)`
     /// loses its canonical form wherever `p`'s type is not known.
-    eta: HashSet<&'vir str>,
+    eta: FxHashSet<&'vir str>,
     /// Names of the total functions: domain functions and functions without
     /// preconditions (which therefore cannot read the heap either).
-    total_functions: HashSet<&'vir str>,
-    /// Pairs `outer` to `inner` for which the encoder declares that
-    /// `outer(inner(k))` is `k` for every integer literal `k` in the program
-    /// (such as the value and constructor of a primitive snapshot domain,
-    /// whose axiom only holds within the type's bounds).
-    literal_inverses: HashMap<&'vir str, &'vir str>,
+    total_functions: FxHashSet<&'vir str>,
+    /// The declared literal inverses, by the name of `outer`.
+    literal_inverses: FxHashMap<&'vir str, LiteralInverse<'vir>>,
 }
 
 impl<'vir> SimplifyCtx<'vir> {
@@ -90,7 +96,7 @@ impl<'vir> SimplifyCtx<'vir> {
         adts: &[Adt<'vir>],
         domains: &[Domain<'vir>],
         functions: &[Function<'vir>],
-        literal_inverses: &[(ViperIdent<'vir>, ViperIdent<'vir>)],
+        literal_inverses: &[LiteralInverse<'vir>],
     ) -> Self {
         let total_functions = domains
             .iter()
@@ -102,9 +108,9 @@ impl<'vir> SimplifyCtx<'vir> {
                     .map(|f| f.name),
             )
             .collect();
-        let mut constructors = HashMap::new();
-        let mut destructors = HashMap::new();
-        let mut eta = HashSet::new();
+        let mut constructors = FxHashMap::default();
+        let mut destructors = FxHashMap::default();
+        let mut eta = FxHashSet::default();
         for adt in adts {
             let eta_adt = adt.constructors.len() == 1;
             for cons in adt.constructors {
@@ -124,7 +130,7 @@ impl<'vir> SimplifyCtx<'vir> {
             total_functions,
             literal_inverses: literal_inverses
                 .iter()
-                .map(|(outer, inner)| (outer.to_str(), inner.to_str()))
+                .map(|inverse| (inverse.outer.to_str(), *inverse))
                 .collect(),
         }
     }
@@ -153,7 +159,9 @@ struct Binding<'vir> {
 struct Simplifier<'enc, 'vir, 'tcx> {
     vcx: &'vir VirCtxt<'tcx>,
     ctx: &'enc SimplifyCtx<'vir>,
-    env: HashMap<&'vir str, Binding<'vir>>,
+    env: FxHashMap<&'vir str, Binding<'vir>>,
+    /// Memoized [`Self::is_impure`], by expression address.
+    impure: FxHashMap<*const ExprGenData<'vir, (), !, crate::Dyn>, bool>,
 }
 
 /// Hands the roots of the expression trees of an item (contract clauses,
@@ -186,18 +194,14 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
         Self {
             vcx,
             ctx,
-            env: HashMap::new(),
+            env: FxHashMap::default(),
+            impure: FxHashMap::default(),
         }
     }
 
     /// Rebuilds `orig` with a new kind, keeping its span and type.
     fn mk(&self, orig: ExprDyn<'vir>, kind: ExprKind<'vir>) -> ExprDyn<'vir> {
-        self.vcx.alloc(ExprGenData::new_inner(
-            kind,
-            orig.debug_info,
-            orig.span,
-            orig.ty(),
-        ))
+        self.mk_typed(orig, orig.ty(), kind)
     }
 
     fn expr(&mut self, e: ExprDyn<'vir>) -> ExprDyn<'vir> {
@@ -246,45 +250,70 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
                 self.env = saved;
                 return folded;
             }
-            ExprKindGenData::Forall(q) => {
-                let body = self.quantifier_body(q.qvars, q.body.as_dyn())?;
+            ExprKindGenData::Forall(ForallGenData {
+                qvars,
+                triggers,
+                body,
+            })
+            | ExprKindGenData::Exists(ExistsGenData {
+                qvars,
+                triggers,
+                body,
+            }) => {
+                let body = self.quantifier_body(qvars, body.as_dyn())?;
                 if bool_lit(body).is_some() {
                     return Some(self.mk(e, body.kind));
                 }
-                return Some(
-                    self.mk(
-                        e,
-                        self.vcx
-                            .alloc(ExprKindGenData::Forall(self.vcx.alloc(ForallGenData {
-                                qvars: q.qvars,
-                                triggers: q.triggers,
-                                body: body.inner_cast_ty(),
-                            }))),
-                    ),
-                );
-            }
-            ExprKindGenData::Exists(q) => {
-                let body = self.quantifier_body(q.qvars, q.body.as_dyn())?;
-                if bool_lit(body).is_some() {
-                    return Some(self.mk(e, body.kind));
-                }
-                return Some(
-                    self.mk(
-                        e,
-                        self.vcx
-                            .alloc(ExprKindGenData::Exists(self.vcx.alloc(ExistsGenData {
-                                qvars: q.qvars,
-                                triggers: q.triggers,
-                                body: body.inner_cast_ty(),
-                            }))),
-                    ),
-                );
+                let (qvars, triggers, body) = (*qvars, *triggers, body.inner_cast_ty());
+                let kind = match e.kind {
+                    ExprKindGenData::Forall(_) => {
+                        ExprKindGenData::Forall(self.vcx.alloc(ForallGenData {
+                            qvars,
+                            triggers,
+                            body,
+                        }))
+                    }
+                    _ => ExprKindGenData::Exists(self.vcx.alloc(ExistsGenData {
+                        qvars,
+                        triggers,
+                        body,
+                    })),
+                };
+                return Some(self.mk(e, self.vcx.alloc(kind)));
             }
             ExprKindGenData::Let(l) => return self.let_expr(e, l),
             _ => (),
         }
         let folded = e.super_fold_with(self);
-        self.rewrite(folded.unwrap_or(e)).or(folded)
+        let e = folded.unwrap_or(e);
+        if self.is_impure(e) {
+            return folded;
+        }
+        self.rewrite(e).or(folded)
+    }
+
+    /// Whether `e` contains an assertion (an access predicate, magic wand or
+    /// inhale-exhale expression), other than as an `unfolding` target. The
+    /// rules only apply to pure expressions: e.g. `c ? true : acc(x.f)` must
+    /// not become `c || acc(x.f)`, which Viper rejects. The subexpressions of
+    /// an assertion are still simplified.
+    fn is_impure(&mut self, e: ExprDyn<'vir>) -> bool {
+        if let Some(&impure) = self.impure.get(&std::ptr::from_ref(e)) {
+            return impure;
+        }
+        let impure = match e.kind {
+            ExprKindGenData::AccField(_)
+            | ExprKindGenData::PredicateApp(_)
+            | ExprKindGenData::Wand(_)
+            | ExprKindGenData::InhaleExhale(_) => true,
+            _ => {
+                let mut children = Children(Vec::new());
+                e.super_visit_with(&mut children);
+                children.0.into_iter().any(|child| self.is_impure(child))
+            }
+        };
+        self.impure.insert(std::ptr::from_ref(e), impure);
+        impure
     }
 
     /// The rules applying to `e`, whose subexpressions are simplified
@@ -344,7 +373,7 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
     fn quantifier_env(
         &mut self,
         qvars: &'vir [crate::LocalDeclDyn<'vir>],
-    ) -> HashMap<&'vir str, Binding<'vir>> {
+    ) -> FxHashMap<&'vir str, Binding<'vir>> {
         let saved = self.env.clone();
         self.env.retain(|name, b| {
             if qvars.iter().any(|q| q.name == *name) {
@@ -695,14 +724,14 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
         recv.filter(|p| p.ty() == result_ty)
     }
 
-    /// `outer(inner(k))` for an integer literal `k` and a pair in
-    /// [`SimplifyCtx::literal_inverses`] yields `k`.
+    /// `outer(inner(k))` for an integer literal `k` in range of a
+    /// [`LiteralInverse`] yields `k`.
     fn fold_literal_inverse(
         &self,
         target: &'vir str,
         args: &'vir [ExprDyn<'vir>],
     ) -> Option<ExprDyn<'vir>> {
-        let inner = *self.ctx.literal_inverses.get(target)?;
+        let inverse = self.ctx.literal_inverses.get(target)?;
         let [arg] = args else {
             return None;
         };
@@ -712,11 +741,8 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
         let [k] = app.args else {
             return None;
         };
-        let lit = match k.kind {
-            ExprKindGenData::UnOp(u) if u.kind == UnOpKind::Neg => u.expr.as_dyn(),
-            _ => *k,
-        };
-        (app.target == inner && matches!(lit.kind, ExprKindGenData::Const(ConstData::Int(_))))
+        let v = int_lit(k)?;
+        (app.target == inverse.inner.to_str() && (inverse.min..=inverse.max).contains(&v))
             .then_some(*k)
     }
 
@@ -1036,6 +1062,15 @@ fn syntactic_eq<'vir>(a: ExprDyn<'vir>, b: ExprDyn<'vir>) -> bool {
     }
 }
 
+/// Collects the direct subexpressions of an expression.
+struct Children<'vir>(Vec<ExprDyn<'vir>>);
+
+impl<'vir> Visitor<'vir, (), !> for Children<'vir> {
+    fn visit_expr(&mut self, e: ExprDyn<'vir>) {
+        self.0.push(e);
+    }
+}
+
 /// Counts the uses of `name` in an expression. Occurrences inside `old(..)`,
 /// inside magic wands or triggers, or under a binder that captures a local
 /// of the bound value count as `blocked`: the binding can be dropped when
@@ -1117,7 +1152,8 @@ impl<'vir> Visitor<'vir, (), !> for UseCounter<'vir> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{BinOpKind::*, Dyn, TypeData, TypeKind, TYPE_BOOL, TYPE_INT};
+    use crate::{BinOpKind::*, Dyn, TypeData, TypeKind, TYPE_BOOL, TYPE_INT, TYPE_REF};
+    use prusti_rustc_interface::span::DUMMY_SP;
 
     /// Builds expressions over `Bool` and `Int` locals and the adt
     /// `P = P_cons(f0: Int, f1: Int)`.
@@ -1194,6 +1230,18 @@ mod tests {
             let destr = self.vcx.mk_adt_destructor(name, self.p_ty, TYPE_INT);
             self.vcx.mk_adt_destructor_expr(recv, destr).as_dyn()
         }
+        /// The `Int` application `name(args..)`.
+        fn app(&self, name: &'vir str, args: &[ExprDyn<'vir>]) -> ExprDyn<'vir> {
+            self.vcx
+                .mk_func_app(name, self.vcx.alloc_slice(args), TYPE_INT, &[])
+                .as_dyn()
+        }
+        /// `acc(r.f)` for a `Ref` local `r`.
+        fn acc(&self, r: &'vir str) -> ExprDyn<'vir> {
+            let recv = self.vcx.mk_local_ex(self.vcx.mk_local_decl(r, TYPE_REF));
+            let field = self.vcx.mk_field("f", TYPE_INT);
+            self.vcx.mk_acc_field_expr(recv, field, None).as_dyn()
+        }
     }
 
     /// Simplifies the expression `build` makes and checks the result's Viper
@@ -1210,7 +1258,13 @@ mod tests {
             ]);
             let cons = vcx.mk_adt_constructor::<(), !, _>("P_cons", fields);
             let adt = vcx.mk_adt(crate::ViperIdent::new("P"), &[], vcx.alloc_slice(&[cons]));
-            let ctx = SimplifyCtx::new(&[adt], &[], &[], &[]);
+            let byte = LiteralInverse {
+                outer: crate::ViperIdent::new("value"),
+                inner: crate::ViperIdent::new("cons"),
+                min: 0,
+                max: 255,
+            };
+            let ctx = SimplifyCtx::new(&[adt], &[], &[], &[byte]);
             let p_ty = vcx.alloc(TypeData::<Dyn>::new(TypeKind::Domain("P", &[])));
             let e = build(&Builder { vcx, p_ty });
             let mut s = Simplifier::new(vcx, &ctx);
@@ -1299,6 +1353,75 @@ mod tests {
             },
             |actual| assert_eq!(actual, "c\n? x\n: r.f0"),
         );
+    }
+
+    #[test]
+    fn literal_inverses() {
+        check("7", |c| c.app("value", &[c.app("cons", &[c.int(7)])]));
+        // `250 + 10` folds to a literal out of the declared range.
+        check("value(cons(260))", |c| {
+            let sum = c.bin(Add, c.int(250), c.int(10));
+            c.app("value", &[c.app("cons", &[sum])])
+        });
+    }
+
+    #[test]
+    fn assertions_are_not_rewritten() {
+        // `c || acc(r.f)` would not be a valid assertion; the pure branch is
+        // still simplified.
+        check_with(
+            |c| c.ite(c.b("c"), c.not(c.not(c.tt())), c.acc("r")),
+            |actual| assert!(actual.starts_with("c\n? true\n: acc("), "{actual}"),
+        );
+    }
+
+    #[test]
+    fn triggers_and_wands_block_inlining() {
+        check_with(
+            |c| {
+                let qvars = c.vcx.alloc_slice(&[c.vcx.mk_local_decl("q", TYPE_INT)]);
+                let trigger = c.vcx.mk_trigger(&[c.app("f", &[c.i("a")])]);
+                let body = c.bin(CmpEq, c.app("f", &[c.i("q")]), c.i("q"));
+                let forall = c
+                    .vcx
+                    .mk_forall_expr::<(), !, _>(
+                        qvars,
+                        c.vcx.alloc_slice(&[trigger]),
+                        body.inner_cast_ty(),
+                    )
+                    .as_dyn();
+                c.let_("a", c.i("x"), forall)
+            },
+            |actual| assert!(actual.starts_with("(let a =="), "{actual}"),
+        );
+        check_with(
+            |c| {
+                let lhs = c.bin(CmpEq, c.i("a"), c.i("y"));
+                let wand = c.vcx.mk_wand(lhs.inner_cast_ty(), c.vcx.mk_bool::<true>());
+                c.let_("a", c.i("x"), c.vcx.mk_wand_expr(wand).as_dyn())
+            },
+            |actual| assert!(actual.starts_with("(let a =="), "{actual}"),
+        );
+    }
+
+    #[test]
+    fn roots_keep_their_span() {
+        crate::init_vcx(VirCtxt::new_without_tcx());
+        crate::with_vcx(|vcx| {
+            let ctx = SimplifyCtx::new(&[], &[], &[], &[]);
+            let local = |name| vcx.mk_local_ex::<(), !, _>(vcx.mk_local_decl(name, TYPE_BOOL));
+            let and = |rhs| vcx.mk_bin_op_expr(And, vcx.mk_bool::<true>(), rhs).as_dyn();
+            let mut s = Simplifier::new(vcx, &ctx);
+            // `true && x` is `x`, but keeps the span of the root.
+            let root = vcx.with_span(DUMMY_SP, |_| and(local("x")));
+            let simplified = s.root(root).unwrap();
+            assert!(matches!(simplified.kind, ExprKindGenData::Local(l) if l.name == "x"));
+            assert!(std::ptr::eq(simplified.span.unwrap(), root.span.unwrap()));
+            // A root without a span keeps the result's own.
+            let y = vcx.with_span(DUMMY_SP, |_| local("y"));
+            let simplified = s.root(and(y)).unwrap();
+            assert!(std::ptr::eq(simplified.span.unwrap(), y.span.unwrap()));
+        });
     }
 
     #[test]
