@@ -21,6 +21,7 @@ use crate::encoders::{
     ty::{
         RustTyDecomposition,
         generics::{GParams, GenericParamsEnc},
+        interpretation::float::FloatLitEnc,
         use_pure::{TyUsePure, TyUsePureEnc},
     },
 };
@@ -155,6 +156,7 @@ impl<'enc, 'vir: 'enc> Enc<'enc, 'vir> {
                         .try_to_scalar_int()
                         .expect("scalar should be an integer");
                     let val = int.to_bits(int.size());
+                    ConstEnc::require_float_lit(self.deps, *ty.ty.expect_primitive(), val)?;
                     let val = prim.expr_from_bits(*ty.ty.expect_primitive(), val);
                     prim.prim_to_snap(val)
                 }
@@ -272,8 +274,20 @@ impl ConstEnc {
         }
     }
 
+    /// Float constants also need their exact value, see [`FloatLitEnc`].
+    fn require_float_lit<'vir>(
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
+        ty: ty::Ty<'vir>,
+        bits: u128,
+    ) -> Result<(), EncodeFullError<'vir, ConstEnc>> {
+        if let ty::TyKind::Float(float) = ty.kind() {
+            deps.require_dep::<FloatLitEnc>((*float, bits))?;
+        }
+        Ok(())
+    }
+
     fn encode_scalar_ty<'vir>(
-        _deps: &mut TaskEncoderDependencies<'vir, Self>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
         scalar: Scalar,
         ty: RustTyDecomposition<'vir>,
         ty_enc: TyUsePure<'vir>,
@@ -282,6 +296,7 @@ impl ConstEnc {
             Scalar::Int(int) => {
                 let prim = ty_enc.expect_primitive();
                 let val = int.to_bits(int.size());
+                Self::require_float_lit(deps, *ty.ty.expect_primitive(), val)?;
                 let val = prim.expr_from_bits(*ty.ty.expect_primitive(), val);
                 prim.prim_to_snap(val)
             }

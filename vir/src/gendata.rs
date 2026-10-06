@@ -42,7 +42,8 @@ impl<'vir, Curr, Next> BinOpGenData<'vir, Curr, Next> {
             BinOpKind::PermAdd
             | BinOpKind::PermSub
             | BinOpKind::PermMul
-            | BinOpKind::PermPermDiv => crate::TYPE_PERM.upcast_ty(),
+            | BinOpKind::PermPermDiv
+            | BinOpKind::IntIntPermDiv => crate::TYPE_PERM.upcast_ty(),
         };
         ty.as_dyn()
     }

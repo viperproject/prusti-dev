@@ -30,7 +30,7 @@ use crate::encoders::{
                 TraitImplConditionEnc, TraitImplDefaultFnEnc, TraitImplEnc, TraitImplItemEnc,
             },
         },
-        interpretation::bitvec::BitVecEnc,
+        interpretation::{bitvec::BitVecEnc, float::FloatLitEnc},
         lifted::TyConstructorEnc,
     },
 };
@@ -116,6 +116,7 @@ pub fn test_entrypoint<'tcx>(
     program.header("snapshots");
     crate::encoders::TyUsePureEnc::emit_outputs(&mut program);
     BitVecEnc::emit_outputs(&mut program);
+    FloatLitEnc::emit_outputs(&mut program);
 
     program.header("predicates");
     crate::encoders::TyUseImpureEnc::emit_outputs(&mut program);
