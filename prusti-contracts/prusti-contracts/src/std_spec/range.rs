@@ -44,20 +44,3 @@ impl<T> SliceIndex<[T]> for RangeToInclusive<usize> {
     #[ensures(self.end < slice.len() ==> result.len() == self.end + 1)]
     fn index(self, slice: &[T]) -> &[T];
 }
-
-#[extern_spec]
-impl<Idx> RangeInclusive<Idx> {
-    #[trusted]
-    #[pure]
-    #[ensures(*result.start() === start)]
-    #[ensures(*result.end() === end)]
-    fn new(start: Idx, end: Idx) -> Self;
-
-    #[trusted]
-    #[pure]
-    fn start(&self) -> &Idx;
-
-    #[trusted]
-    #[pure]
-    fn end(&self) -> &Idx;
-}
