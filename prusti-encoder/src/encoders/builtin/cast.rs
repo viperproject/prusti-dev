@@ -312,8 +312,8 @@ impl TaskEncoder for MirBuiltinCastEnc {
 
                         let u_pred = u_impure.ref_to_pred(vcx, addr, None);
                         let v_pred = v_impure.ref_to_pred(vcx, addr, None);
-                        let u_snap = u_impure.ref_to_snap(addr).downcast_ty::<vir::PSnap>();
-                        let v_snap = v_impure.ref_to_snap(addr).downcast_ty::<vir::PSnap>();
+                        let u_snap = u_impure.ref_to_deep_snap(addr).downcast_ty::<vir::PSnap>();
+                        let v_snap = v_impure.ref_to_deep_snap(addr).downcast_ty::<vir::PSnap>();
 
                         // `unsize`: operand referent `U` -> result referent `V`; the
                         // new `V` value is `value_cast(old(U), U, V)`. `undo` is the

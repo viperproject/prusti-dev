@@ -85,6 +85,10 @@ pub struct LocalDef<'vir> {
     pub local_snap: vir::LocalDeclSnap<'vir>,
     pub local_ex: vir::ExprRef<'vir>,
     pub impure_snap: vir::ExprSnap<'vir>,
+    /// The shallow snapshot, which (unlike `impure_snap`) needs no permission
+    /// to what the local's mutable references point to. Use it to locate
+    /// these referents.
+    pub impure_shallow_snap: vir::ExprSnap<'vir>,
     pub impure_pred: vir::ExprBool<'vir>,
 }
 
@@ -183,15 +187,17 @@ impl TaskEncoder for MirLocalDefEnc {
             let ref_local = vir::vir_format!(vcx, "_{}p", local.index());
             let snap_local = vir::vir_format!(vcx, "_{}s", local.index());
             let local = vcx.mk_local_decl(ref_local, vir::TYPE_REF);
-            let local_snap = vcx.mk_local_decl(snap_local, ty.snapshot());
+            let local_snap = vcx.mk_local_decl(snap_local, ty.deep_snapshot());
             let local_ex = vcx.mk_local_ex(local);
-            let impure_snap = ty.ref_to_snap(local_ex);
+            let impure_snap = ty.ref_to_deep_snap(local_ex);
+            let impure_shallow_snap = ty.ref_to_shallow_snap(local_ex);
             let impure_pred = ty.ref_to_pred(vcx, local_ex, None);
             LocalDef {
                 local,
                 local_snap,
                 local_ex,
                 impure_snap,
+                impure_shallow_snap,
                 impure_pred,
             }
         }

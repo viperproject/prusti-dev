@@ -88,7 +88,7 @@ pub(crate) fn ty_impure<'vir>(
 
 /// A predicate holding a single `val` field with the snapshot value.
 pub(super) fn set_primitive<'vir>(builder: &mut PredicateBuilder<'vir>) {
-    let snap_type = builder.csnap_type();
+    let snap_type = builder.csnap_type_shallow();
 
     let ref_self_decl = builder.ref_self_decl();
     let ref_self = builder.vcx.mk_local_ex(ref_self_decl);
@@ -100,5 +100,5 @@ pub(super) fn set_primitive<'vir>(builder: &mut PredicateBuilder<'vir>) {
     builder.mk_predicate("", Some(vir::expr! { acc((ref_self).[prim_field]) }));
 
     // Ref-to-snap
-    builder.mk_snap_function(Some(vir::expr! { [prim_field](ref_self) }), &[]);
+    builder.mk_shallow_snap_function(Some(vir::expr! { [prim_field](ref_self) }), &[]);
 }

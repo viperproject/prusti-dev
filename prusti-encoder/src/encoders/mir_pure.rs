@@ -1135,23 +1135,12 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                         let snap = encoded_place.snap.downcast_ty();
                         let metadata = e_ty.metadata_access(snap);
                         let ref_expr = e_ty.deref_access(snap);
-                        if !self.impure_context {
-                            // The value field of a mutable reference's snapshot
-                            // is never constrained to the referent (see
-                            // `p_Ref_mutable_arbitrary_value`).
-                            return Err(self.unsupported_rvalue(
-                                format!(
-                                    "dereference of the mutable reference `{}` in pure code",
-                                    place_ty.ty
-                                ),
-                                self.current_span(),
-                            ));
-                        }
-                        let val_expr = {
-                            // The snapshot is shallow and doesn't contain the
-                            // value behind the mutable reference, so we need to
-                            // take an extra snapshot here.
-                            // TODO: avoid all of this by using shallow and deep snapshots
+                        let val_expr = if self.impure_context {
+                            // In the specification of an impure function, the
+                            // value is the referent's *current* one (e.g. in a
+                            // postcondition, `*x` is the final value even
+                            // though `x` is bound to the old snapshot), so it
+                            // is read from the heap.
                             let ty_task = RustTyDecomposition::from_ty(place_ty.ty, self.context);
                             let inner = ty_task.ty.expect_mutref();
                             let normalized = inner
@@ -1168,7 +1157,12 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                                 .deps
                                 .require_dep::<crate::encoders::TyUseImpureEnc>(inner_ty_task)
                                 .unwrap();
-                            caster.cast_to_caller_ctx(inner_ty.ref_to_snap(ref_expr))
+                            caster.cast_to_caller_ctx(inner_ty.ref_to_deep_snap(ref_expr))
+                        } else {
+                            // Elsewhere snapshots are deep, so the value behind
+                            // the mutable reference is part of the snapshot.
+                            // (Reading the heap would not work in axioms.)
+                            e_ty.value_access(snap)
                         };
                         EncodedPlace::new(val_expr, Some(ref_expr)).with_metadata(metadata)
                     }

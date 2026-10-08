@@ -73,7 +73,7 @@ pub(crate) fn ty_impure<'vir>(
             builder.params.ty_args(),
             builder.params.const_args(),
         ),
-        task_key.1.snapshot.downcast_ty(),
+        task_key.1.deep_snapshot.downcast_ty(),
         (
             ref_self_decl,
             index_decl,
@@ -91,7 +91,7 @@ pub(crate) fn ty_impure<'vir>(
     let element_ty_out = deps.require_dep::<TyUseImpureEnc>(element_ty)?;
     let element_pred = element_ty_out.ref_to_pred(builder.vcx, index_ref, None);
 
-    let array_snap = vir::expr! { [builder.ref_to_snap](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]) }.downcast_ty();
+    let array_snap = vir::expr! { [builder.ref_to_deep_snap](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]) }.downcast_ty();
     let array_index = data.1.index_access.call()(array_snap, index);
     let method_fold = builder
         .inner
@@ -120,7 +120,7 @@ pub(crate) fn ty_impure<'vir>(
                     forall idx: Int :: {[data.1.index_access](array_snap, idx)}
                         ([data.1.index_access](array_snap, idx)) == (
                             ((idx) == (index))
-                            ? ([builder.vcx.mk_old_expr(element_ty_out.ref_to_snap(index_ref).downcast_ty())])
+                            ? ([builder.vcx.mk_old_expr(element_ty_out.ref_to_deep_snap(index_ref).downcast_ty())])
                             : (old([data.1.index_access](([index_frame](ref_self, index, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])), idx)))
                         )
                 },
@@ -150,7 +150,7 @@ pub(crate) fn ty_impure<'vir>(
                 element_pred,
                 vir::expr! { [index_predicate](ref_self, index, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]) },
                 vir::expr! {
-                    ([element_ty_out.ref_to_snap(index_ref)])
+                    ([element_ty_out.ref_to_deep_snap(index_ref)])
                     == ([builder.vcx.mk_old_expr(array_index).upcast_ty()])
                 },
                 vir::expr! {

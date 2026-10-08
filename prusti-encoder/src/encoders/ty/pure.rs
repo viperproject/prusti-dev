@@ -155,8 +155,8 @@ impl<'vir, D: TyDatas<'vir, PrimitiveData = TyPurePrimData<'vir>>> TyData<'vir, 
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyPureImmRefData<'vir> {
-    /// Construct domain from a `Ref` value.
-    pub(super) prim_to_snap: FunctionIdn<'vir, (vir::Ref, vir::PSnap, vir::PSnap), vir::CSnap>,
+    /// Construct deep domain from a `Ref` value.
+    pub(super) prim_to_deep_snap: FunctionIdn<'vir, (vir::Ref, vir::PSnap, vir::PSnap), vir::CSnap>,
     /// Function to access the referee.
     pub(super) deref_access: AdtDestructor<'vir, vir::CSnap, vir::Ref>,
     /// Function to access the reference metadata (fat pointer).
@@ -169,8 +169,8 @@ pub struct TyPureImmRefData<'vir> {
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyPureMutRefData<'vir> {
-    /// Construct domain from a `Ref` value.
-    pub(super) prim_to_snap: FunctionIdn<'vir, (vir::Ref, vir::PSnap, vir::PSnap), vir::CSnap>,
+    /// Construct deep domain from a `Ref` value.
+    pub(super) prim_to_deep_snap: FunctionIdn<'vir, (vir::Ref, vir::PSnap, vir::PSnap), vir::CSnap>,
     /// Function to access the referee.
     pub(super) deref_access: AdtDestructor<'vir, vir::CSnap, vir::Ref>,
     /// Function to access the reference metadata (fat pointer).
@@ -237,7 +237,8 @@ pub(super) type TyPureEnc = super::TyEnc<Pure>;
 
 #[derive(Debug, Clone, Copy)]
 pub struct TyPureRef<'vir> {
-    pub snapshot: vir::TypeSnap<'vir>,
+    pub deep_snapshot: vir::TypeSnap<'vir>,
+    pub shallow_snapshot: vir::TypeSnap<'vir>,
     pub unreachable_to_snap: FunctionIdn<'vir, (vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
 }
 
@@ -507,7 +508,8 @@ impl<'vir> TyPureBuilder<'vir> {
 
     pub(crate) fn output_ref(&self) -> TyPureRef<'vir> {
         TyPureRef {
-            snapshot: self.self_type,
+            deep_snapshot: self.self_type,
+            shallow_snapshot: self.self_type,
             unreachable_to_snap: self.unreachable_to_snap,
         }
     }

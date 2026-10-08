@@ -45,7 +45,7 @@ pub(crate) fn ty_pure<'vir>(
     );
 
     Ok(TyPureImmRefData {
-        prim_to_snap: field_snaps_to_snap,
+        prim_to_deep_snap: field_snaps_to_snap,
         deref_access: field_access[0].downcast_ty(),
         metadata_access: field_access[1].downcast_ty(),
         value_snap_fn,
@@ -106,20 +106,23 @@ pub(crate) fn ty_impure<'vir>(
     );
 
     // Ref-to-snap: the referent's value comes from the `p_Param` above, whose
-    // snapshot carries its type, so the type is known by construction.
-    builder.mk_snap_function(
-        Some(data.1.prim_to_snap.call()(
+    // snapshot carries its type, so the type is known by construction. The
+    // predicate holds (read) permission to the referent, so the shallow
+    // snapshot already contains its value; a shared reference has no separate
+    // deep snapshot.
+    builder.mk_shallow_snap_function(
+        Some(data.1.prim_to_deep_snap.call()(
             addr,
             vir::expr! { [metadata_field](ref_self) },
-            (param_ty.ref_to_snap)(addr, vcx.alloc_slice(&[referent_ty]), &[]).downcast_ty(),
+            (param_ty.ref_to_deep_snap)(addr, vcx.alloc_slice(&[referent_ty]), &[]).downcast_ty(),
         )),
         &[
             metadata_typ(data.1.metadata_access.call()(
-                vcx.mk_result(builder.csnap_type()),
+                vcx.mk_result(builder.csnap_type_shallow()),
             )),
             vcx.mk_eq_expr(
                 typ(data.1.value_access.call()(
-                    vcx.mk_result(builder.csnap_type()),
+                    vcx.mk_result(builder.csnap_type_shallow()),
                 )),
                 referent_ty,
             ),

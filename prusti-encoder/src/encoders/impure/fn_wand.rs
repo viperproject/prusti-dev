@@ -227,7 +227,7 @@ impl<'vir> WandEncOutput<'vir> {
     ) -> impl Iterator<Item = vir::ExprBool<'vir>> + 'a {
         self.inputs().filter_map(|g| {
             self.encode_predicates_for_function_shape_node(vcx, deps, g, None, |i| {
-                local_defs[i].impure_snap
+                local_defs[i].impure_shallow_snap
             })
         })
     }
@@ -248,7 +248,7 @@ impl<'vir> WandEncOutput<'vir> {
             .filter(|i| !self.blocked_inputs().contains(i))
             .filter_map(|lp| {
                 self.encode_predicates_for_function_shape_node(vcx, deps, lp, None, |i| {
-                    vcx.mk_old_expr(local_defs[i].impure_snap)
+                    vcx.mk_old_expr(local_defs[i].impure_shallow_snap)
                 })
             })
             .collect::<Vec<_>>()
@@ -256,7 +256,7 @@ impl<'vir> WandEncOutput<'vir> {
 
         let output_posts = self.outputs().filter_map(|g| {
             self.encode_predicates_for_function_shape_node(vcx, deps, g, None, |i| {
-                local_defs[i].impure_snap
+                local_defs[i].impure_shallow_snap
             })
         });
         unblocked_input_posts.chain(output_posts)

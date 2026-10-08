@@ -70,7 +70,8 @@ pub struct TyUseImpureMutRef<'vir> {
     metadata_caster: GArgCaster<'vir, crate::encoders::Pure>,
     args: GArgsTy<'vir>,
     impure: <ImpureTyDatas as TyDatas<'vir>>::MutRefData,
-    ref_to_snap: vir::FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
+    ref_to_shallow_snap:
+        vir::FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -203,7 +204,7 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
                     metadata_caster,
                     args: self.args_t,
                     impure: *data.1,
-                    ref_to_snap: ty.1.ref_to_snap,
+                    ref_to_shallow_snap: ty.1.ref_to_shallow_snap,
                 })
             }
             TySpecifics::Raw(data) => {
@@ -396,16 +397,24 @@ impl<'vir> TyUseImpureData<'vir> {
         (self.impure.ref_to_pred)(self_ref, self.args.get_ty(), self.args.get_const())(perm)
     }
 
-    /// Calls the predicate (heap) dependent snapshot construction function.
-    pub fn ref_to_snap<Curr, Next>(
+    /// Calls the predicate (heap) dependent deep snapshot construction function.
+    pub fn ref_to_deep_snap<Curr, Next>(
         &self,
         self_ref: vir::ExprGenRef<'vir, Curr, Next>,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
-        self.impure.ref_to_snap.call()(self_ref, self.args.get_ty(), self.args.get_const())
+        self.impure.ref_to_deep_snap.call()(self_ref, self.args.get_ty(), self.args.get_const())
     }
 
-    pub fn snapshot(&self) -> vir::TypeSnap<'vir> {
-        self.impure.ref_to_snap.result()
+    pub fn deep_snapshot(&self) -> vir::TypeSnap<'vir> {
+        self.impure.ref_to_deep_snap.result()
+    }
+
+    /// Calls the predicate (heap) dependent shallow snapshot construction function.
+    pub fn ref_to_shallow_snap<Curr, Next>(
+        &self,
+        self_ref: vir::ExprGenRef<'vir, Curr, Next>,
+    ) -> vir::ExprGenSnap<'vir, Curr, Next> {
+        self.impure.ref_to_shallow_snap.call()(self_ref, self.args.get_ty(), self.args.get_const())
     }
 }
 
@@ -512,7 +521,7 @@ impl<'vir> TyData<'vir, UseImpureTyDatas> {
                 vir::with_vcx(|vcx| {
                     let discr = data
                         .discr_ty()
-                        .ref_to_snap(data.discr(self_ref))
+                        .ref_to_deep_snap(data.discr(self_ref))
                         .downcast_ty::<vir::CSnap>();
                     std::iter::once(vcx.mk_unfold_stmt(pred_app))
                         .chain(data.variant_inhabited.iter().map(
@@ -655,13 +664,16 @@ impl<'vir> TyUseImpureEnum<'vir> {
 impl<'vir> TyUseImpureImmRef<'vir> {}
 
 impl<'vir> TyUseImpureMutRef<'vir> {
+    /// The referent's address. Only reads the shallow snapshot, so it needs
+    /// no permission to the referent.
     pub fn deref(
         &self,
         self_ref: vir::ExprRef<'vir>,
         label: Option<vir::OldLabel<'vir>>,
     ) -> vir::ExprRef<'vir> {
-        let snap = self.ref_to_snap.call()(self_ref, self.args.get_ty(), self.args.get_const())
-            .downcast_ty();
+        let snap =
+            self.ref_to_shallow_snap.call()(self_ref, self.args.get_ty(), self.args.get_const())
+                .downcast_ty();
         let deref = self.impure.pure.deref_access.call()(snap);
         vir::with_vcx(|vcx| vcx.maybe_apply_label(deref, label))
     }
@@ -671,6 +683,8 @@ impl<'vir> TyUseImpureMutRef<'vir> {
         self_ref: vir::ExprRef<'vir>,
         metadata: vir::ExprSnap<'vir>,
     ) -> vir::ExprCSnap<'vir> {
+        // A fresh borrow: its shallow snapshot, as assigned by `method_assign`
+        // and returned by the shallow snapshot function.
         let metadata = self.metadata_caster.cast_to_callee_ctx(metadata);
         (self.impure.arbitrary_value)(
             self_ref,

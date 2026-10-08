@@ -1,3 +1,4 @@
+use pcg::borrow_pcg::FunctionData;
 use prusti_interface::specs::is_spec_fn;
 use prusti_rustc_interface::{
     middle::{mir, ty},
@@ -8,7 +9,7 @@ use vir::{FunctionIdn, MethodIdn, ViperIdent, vir_format_identifier};
 
 use crate::{
     encoders::{
-        MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc,
+        MirLocalDefEnc, MirLocalDefEncTask, MirSpecEnc, WandEnc, WandEncTask,
         pure::spec::MirSpecEncMode,
         ty::{
             RustTyDecomposition,
@@ -357,7 +358,16 @@ impl TaskEncoder for TraitFnEnc {
                     }
                 }
                 stub_posts.push(local_defs[mir::RETURN_PLACE].impure_pred);
-                // TODO: wands
+                // Like a regular method, the stub takes (and returns) what the
+                // arguments and the result point to, and the wands that give
+                // back what the result borrows. The deep snapshots passed to
+                // the pre- and postcondition functions below read it.
+                let wands = deps.require_dep::<WandEnc>(WandEncTask {
+                    data: FunctionData::new(def_id),
+                })?;
+                stub_pres.extend(wands.indirect_pres(vcx, &local_defs, deps));
+                stub_posts.extend(wands.indirect_posts(vcx, &local_defs, deps));
+                stub_posts.extend(wands.wand_posts(vcx, &local_defs, deps));
 
                 stub_pres.push(pre_func.call()(
                     vcx.alloc_slice(

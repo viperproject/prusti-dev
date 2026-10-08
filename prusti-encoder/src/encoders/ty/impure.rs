@@ -1,14 +1,16 @@
 use std::ops::{Deref, DerefMut};
 
-use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CastType, FunctionIdn, HasType, MethodIdn, PredicateIdn};
+use pcg::borrow_pcg::region_projection::{ExtractRegionsCtxt, LifetimeProjection};
+use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+use vir::{CastType, FunctionIdn, HasType, MethodIdn, PredicateIdn, Reify};
 
 use crate::encoders::{Impure, ty::use_impure::TyUseImpure};
 
 use super::{
-    RustTy, ViperTyDatas,
+    RustTy, RustTyDecomposition, ViperTyDatas,
     data::*,
     generics::{GenericParams, GenericParamsEnc},
+    indirect::{IndirectPredicatesEnc, PrustiPcgCtxt},
     pure::*,
 };
 
@@ -46,9 +48,11 @@ pub struct TyImpureRawData {}
 #[derive(Debug, Clone, Copy)]
 pub struct TyImpureMutRefData<'vir> {
     pub pure: <PureTyDatas as TyDatas<'vir>>::MutRefData,
-    /// For use in constructing a snapshot from just a `Ref` and metadata
-    /// `PSnap`. Takes the referent's type arguments so that the (unconstrained)
-    /// value slot is not shared between instantiations at different types.
+    /// The value slot of the *shallow* snapshot: a shallow snapshot holds no
+    /// permission to the referent, so its value is unconstrained. Takes the
+    /// referent's type arguments so that it is not shared between
+    /// instantiations at different types. Only the deep snapshot (see
+    /// `ref_to_deep_snap`) carries the referent's actual value.
     pub arbitrary_value:
         vir::FunctionIdn<'vir, (vir::Ref, vir::PSnap, vir::ManyTyVal, vir::ManyCSnap), vir::CSnap>,
 }
@@ -109,8 +113,11 @@ pub enum TyImpureEncError {
 pub struct TyImpureRef<'vir> {
     /// Constructs the Viper predicate application.
     pub ref_to_pred: PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>,
-    /// Construct snapshot from Viper ref.
-    pub ref_to_snap: FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
+    /// Construct deep snapshot from Viper ref.
+    pub ref_to_deep_snap: FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
+    /// Construct shallow snapshot from Viper ref.
+    pub ref_to_shallow_snap:
+        FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
     /// Ref as first argument, followed by type parameters, followed by
     /// snapshot. Ensures predicate access to ref with snapshot value. This
     /// probably shouldn't be accessed directly, instead see
@@ -125,7 +132,9 @@ impl<'vir> task_encoder::OutputRefAny for TyImpureRef<'vir> {}
 pub struct TyImpureEncLocal<'vir> {
     pub fields: Vec<vir::FieldDyn<'vir>>,
     pub predicates: Vec<vir::Predicate<'vir>>,
-    pub function_snap: vir::Function<'vir>,
+    pub function_shallow_snap: vir::Function<'vir>,
+    /// `None` if the type does not construct a separate deep snapshot.
+    pub function_deep_snap: Option<vir::Function<'vir>>,
     pub functions: Vec<vir::Function<'vir>>,
     pub method_assign: vir::Method<'vir>,
     pub methods: Vec<vir::Method<'vir>>,
@@ -151,34 +160,37 @@ impl TaskEncoder for TyImpureEnc {
         deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeFullResult<'vir, Self> {
         let snap = deps.require_dep::<TyPureEnc>(*task_key)?;
-        let snapshot = snap.snapshot;
+        let deep_snapshot = snap.deep_snapshot;
+        let shallow_snapshot = snap.shallow_snapshot;
 
         let ty = task_key.zip(snap);
 
         vir::with_vcx(|vcx| {
-            let mut builder = PredicateBuilder::new(deps, vcx, task_key, snapshot);
+            let mut builder =
+                PredicateBuilder::new(deps, vcx, task_key, deep_snapshot, shallow_snapshot);
 
             let ref_self_decl = builder.ref_self_decl();
             let ref_self = vcx.mk_local_ex(ref_self_decl);
 
             // assign method
-            let value_decl = vcx.mk_local_decl("value", snapshot);
+            let value_decl = vcx.mk_local_decl("value", shallow_snapshot);
             let value = vcx.mk_local_ex(value_decl);
             let method_assign = builder.inner.method(
                 "assign",
-                (ref_self_decl.ty(), builder.params.ty_args(), builder.params.const_args(), snapshot),
+                (ref_self_decl.ty(), builder.params.ty_args(), builder.params.const_args(), shallow_snapshot),
                 &[],
                 (ref_self_decl, builder.params.ty_decls(), builder.params.const_decls(), value_decl),
                 &[],
                 &[
                     vir::expr! { [builder.ref_to_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]]) },
-                    vir::expr! { ([builder.ref_to_snap](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) == (value) },
+                    vir::expr! { ([builder.ref_to_shallow_snap](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) == (value) },
                 ],
             );
 
             let data = TyImpureRef {
                 ref_to_pred: builder.ref_to_pred,
-                ref_to_snap: builder.ref_to_snap,
+                ref_to_deep_snap: builder.ref_to_deep_snap,
+                ref_to_shallow_snap: builder.ref_to_shallow_snap,
                 method_assign,
             };
             deps.emit_output_ref(*task_key, data)?;
@@ -217,7 +229,7 @@ impl TaskEncoder for TyImpureEnc {
             };
             let output = TyData::new(data, specifics).alloc();
 
-            Ok((builder.inner.build(), output))
+            Ok((builder.build(), output))
         })
     }
 
@@ -229,7 +241,10 @@ impl TaskEncoder for TyImpureEnc {
             for field_projection in output.functions {
                 program.add_function(field_projection);
             }
-            program.add_function(output.function_snap);
+            program.add_function(output.function_shallow_snap);
+            if let Some(function_deep_snap) = output.function_deep_snap {
+                program.add_function(function_deep_snap);
+            }
             for pred in output.predicates {
                 program.add_predicate(pred);
             }
@@ -243,9 +258,15 @@ impl TaskEncoder for TyImpureEnc {
 
 pub(crate) struct PredicateBuilder<'vir> {
     pub(super) params: GenericParams<'vir>,
-    snapshot: vir::TypeSnap<'vir>,
+    deep_snapshot: vir::TypeSnap<'vir>,
+    shallow_snapshot: vir::TypeSnap<'vir>,
+    /// See `RustTyData::construct_deep_snapshot`.
+    construct_deep_snapshot: bool,
+    ty: RustTy<'vir>,
     pub(super) ref_to_pred: PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>,
-    pub(super) ref_to_snap:
+    pub(super) ref_to_deep_snap:
+        FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
+    pub(super) ref_to_shallow_snap:
         FunctionIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Snap>,
 
     pub(super) inner: PredicateBuilderInner<'vir>,
@@ -262,7 +283,8 @@ pub(crate) struct PredicateBuilderInner<'vir> {
     pub(crate) methods: Vec<vir::Method<'vir>>,
 
     // TODO: function idents!
-    pub(crate) function_snap: Option<vir::Function<'vir>>,
+    pub(crate) function_shallow_snap: Option<vir::Function<'vir>>,
+    pub(crate) function_deep_snap: Option<vir::Function<'vir>>,
 }
 
 impl<'vir> PredicateBuilder<'vir> {
@@ -270,7 +292,8 @@ impl<'vir> PredicateBuilder<'vir> {
         deps: &mut TaskEncoderDependencies<'vir, E>,
         vcx: &'vir vir::VirCtxt<'vir>,
         ty: RustTy<'vir>,
-        snapshot: vir::TypeSnap<'vir>,
+        deep_snapshot: vir::TypeSnap<'vir>,
+        shallow_snapshot: vir::TypeSnap<'vir>,
     ) -> Self {
         let params = deps.require_dep::<GenericParamsEnc>(ty.params).unwrap();
         let name = vir::vir_format!(vcx, "p_{}", ty.name());
@@ -281,25 +304,42 @@ impl<'vir> PredicateBuilder<'vir> {
             functions: Vec::new(),
             methods: Vec::new(),
             predicates: Vec::new(),
-            function_snap: None,
+            function_shallow_snap: None,
+            function_deep_snap: None,
         };
 
         let ref_self_decl = inner.ref_self_decl();
         let args = (ref_self_decl.ty(), params.ty_args(), params.const_args());
         let ref_to_pred = inner.predicate_ident("", args);
-        let ref_to_snap = inner.function_ident("snap", args, snapshot);
+        let (ref_to_deep_snap, ref_to_shallow_snap) = if ty.construct_deep_snapshot {
+            (
+                inner.function_ident("deep_snap", args, deep_snapshot),
+                inner.function_ident("shallow_snap", args, shallow_snapshot),
+            )
+        } else {
+            let snap = inner.function_ident("snap", args, shallow_snapshot);
+            (snap, snap)
+        };
 
         PredicateBuilder {
             params,
-            snapshot,
+            deep_snapshot,
+            shallow_snapshot,
+            construct_deep_snapshot: ty.construct_deep_snapshot,
+            ty,
             ref_to_pred,
-            ref_to_snap,
+            ref_to_deep_snap,
+            ref_to_shallow_snap,
             inner,
         }
     }
 
-    pub(crate) fn csnap_type(&self) -> vir::TypeCSnap<'vir> {
-        self.snapshot.downcast_ty()
+    pub(crate) fn csnap_type_deep(&self) -> vir::TypeCSnap<'vir> {
+        self.deep_snapshot.downcast_ty()
+    }
+
+    pub(crate) fn csnap_type_shallow(&self) -> vir::TypeCSnap<'vir> {
+        self.shallow_snapshot.downcast_ty()
     }
 
     pub(crate) fn mk_predicate(
@@ -321,11 +361,91 @@ impl<'vir> PredicateBuilder<'vir> {
         self.inner.predicate(name, args, params, expr)
     }
 
-    /// Creates the `snap` function, sets the precondition to
+    /// The permissions to what the mutable references inside the type point
+    /// to, for use as `deep_pres` of a struct or enum. These are the type's
+    /// indirect predicates (as in method contracts) for each of its
+    /// lifetimes, located through the shallow snapshot so that the deep
+    /// snapshot's precondition does not depend on the deep snapshot itself.
+    /// Empty if the type does not construct a deep snapshot.
+    pub(crate) fn indirect_deep_pres(
+        &self,
+        deps: &mut TaskEncoderDependencies<'vir, TyImpureEnc>,
+    ) -> Result<Vec<vir::ExprBool<'vir>>, EncodeFullError<'vir, TyImpureEnc>> {
+        if !self.construct_deep_snapshot {
+            return Ok(Vec::new());
+        }
+        let ref_self = self.vcx.mk_local_ex(self.ref_self_decl());
+        let shallow_snap = self.ref_to_shallow_snap.call()(
+            ref_self,
+            self.params.ty_exprs(),
+            self.params.const_exprs(),
+        );
+        let decomp = RustTyDecomposition::identity(self.ty);
+        let mut pres = Vec::new();
+        for region in PrustiPcgCtxt.extract_regions(decomp) {
+            let Some(proj) = LifetimeProjection::new(decomp, region, None, PrustiPcgCtxt) else {
+                continue;
+            };
+            let indirect = deps.require_dep::<IndirectPredicatesEnc>(proj)?;
+            pres.extend(
+                indirect
+                    .predicate_applications
+                    .iter()
+                    .map(|pred| pred.reify(self.vcx, shallow_snap)),
+            );
+        }
+        Ok(pres)
+    }
+
+    /// Creates the `deep_snap` function, sets the precondition to
+    /// `acc(ref_to_pred(self, ...)) && deep_pres`, and the body as
+    /// `unfolding acc(ref_to_pred(self, ...)) in inner`. Note that the `inner`
+    /// will be wrapped in an unfolding and should not include it.
+    ///
+    /// `deep_pres` are the permissions beyond the type's own predicate that
+    /// the deep snapshot reads, i.e. those to the referent of a mutable
+    /// reference. They must be framed by the type's predicate: they may only
+    /// reach the referent through the *shallow* snapshot, never through the
+    /// deep one, which would make the function depend on itself.
+    ///
+    /// A no-op if the type does not construct a separate deep snapshot, in
+    /// which case `ref_to_deep_snap` is the shallow snapshot function.
+    pub(crate) fn mk_deep_snap_function(
+        &mut self,
+        inner: Option<vir::ExprCSnap<'vir>>,
+        deep_pres: &[vir::ExprBool<'vir>],
+        posts: &[vir::ExprBool<'vir>],
+    ) {
+        if !self.construct_deep_snapshot {
+            return;
+        }
+        let ref_self_decl = self.ref_self_decl();
+        let ref_self = self.vcx.mk_local_ex(ref_self_decl);
+        let params = (
+            ref_self_decl,
+            self.params.ty_decls(),
+            self.params.const_decls(),
+        );
+        let pred = vir::expr! {
+            acc([self.ref_to_pred](ref_self, [..[self.params.ty_exprs()]], [..[self.params.const_exprs()]]))
+        };
+        let pres = std::iter::once(pred)
+            .chain(deep_pres.iter().copied())
+            .collect::<Vec<_>>();
+        let expr = inner.map(|e| vir::expr! {
+            unfolding ([self.ref_to_pred](ref_self, [..[self.params.ty_exprs()]], [..[self.params.const_exprs()]])) in (e)
+        }.upcast_ty());
+        let function = self
+            .inner
+            .mk_function(self.ref_to_deep_snap, params, &pres, posts, expr);
+        self.inner.function_deep_snap = Some(function);
+    }
+
+    /// Creates the `shallow_snap` function, sets the precondition to
     /// `acc(ref_to_pred(self, ...))`, and the body as
     /// `unfolding acc(ref_to_pred(self, ...)) in inner`. Note that the `inner`
     /// will be wrapped in an unfolding and should not include it.
-    pub(crate) fn mk_snap_function(
+    pub(crate) fn mk_shallow_snap_function(
         &mut self,
         inner: Option<vir::ExprCSnap<'vir>>,
         posts: &[vir::ExprBool<'vir>],
@@ -343,10 +463,38 @@ impl<'vir> PredicateBuilder<'vir> {
         let expr = inner.map(|e| vir::expr! {
             unfolding ([self.ref_to_pred](ref_self, [..[self.params.ty_exprs()]], [..[self.params.const_exprs()]])) in (e)
         }.upcast_ty());
-        let function = self
-            .inner
-            .mk_function(self.ref_to_snap, params, &[pred], posts, expr);
-        self.inner.function_snap = Some(function);
+        let function =
+            self.inner
+                .mk_function(self.ref_to_shallow_snap, params, &[pred], posts, expr);
+        self.inner.function_shallow_snap = Some(function);
+    }
+
+    /// Finishes the encoding. A kind that constructs a separate deep snapshot
+    /// but did not define it (it has nothing that the deep snapshot would
+    /// add, e.g. a type parameter) gets one equal to the shallow snapshot.
+    pub(crate) fn build(mut self) -> TyImpureEncLocal<'vir> {
+        if self.construct_deep_snapshot && self.inner.function_deep_snap.is_none() {
+            let ref_self_decl = self.ref_self_decl();
+            let ref_self = self.vcx.mk_local_ex(ref_self_decl);
+            let params = (
+                ref_self_decl,
+                self.params.ty_decls(),
+                self.params.const_decls(),
+            );
+            let pred = vir::expr! {
+                acc([self.ref_to_pred](ref_self, [..[self.params.ty_exprs()]], [..[self.params.const_exprs()]]))
+            };
+            let shallow = self.ref_to_shallow_snap.call()(
+                ref_self,
+                self.params.ty_exprs(),
+                self.params.const_exprs(),
+            );
+            let function =
+                self.inner
+                    .mk_function(self.ref_to_deep_snap, params, &[pred], &[], Some(shallow));
+            self.inner.function_deep_snap = Some(function);
+        }
+        self.inner.build()
     }
 }
 
@@ -489,7 +637,8 @@ impl<'vir> PredicateBuilderInner<'vir> {
         TyImpureEncLocal {
             fields: self.fields,
             predicates: self.predicates,
-            function_snap: self.function_snap.unwrap(),
+            function_shallow_snap: self.function_shallow_snap.unwrap(),
+            function_deep_snap: self.function_deep_snap,
             functions: self.functions,
             method_assign,
             methods: self.methods,

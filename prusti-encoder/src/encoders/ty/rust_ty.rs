@@ -75,6 +75,7 @@ impl<'tcx> RustTyDecomposition<'tcx> {
             params: GParams::empty_env(gty),
             special: RustTySpecial::None,
             sizedness: RustTySizedness::None,
+            construct_deep_snapshot: false,
         };
         let specifics = TySpecifics::Param(RustParamData::Generic);
         TyData::<RustTyDatas>::new(data, specifics).alloc()
@@ -266,6 +267,7 @@ pub struct RustTyData<'tcx> {
     pub params: GParams<'tcx>,
     pub special: RustTySpecial,
     pub sizedness: RustTySizedness<'tcx>,
+    pub construct_deep_snapshot: bool,
 }
 
 /// Which of the sizedness traits (`Sized`, `MetaSized`, `PointeeSized`) the
@@ -425,8 +427,23 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             params,
             special: RustTySpecial::from_ty(ty),
             sizedness: RustTySizedness::from_ty(ty),
+            construct_deep_snapshot: Self::construct_deep_snapshot(ty),
         };
         RustTyDecomposition::new(Self::new(data, specifics).alloc(), args)
+    }
+
+    fn construct_deep_snapshot(ty: ty::Ty<'tcx>) -> bool {
+        match ty.kind() {
+            ty::TyKind::Ref(_, _, ty::Mutability::Mut) => true,
+            ty::TyKind::Adt(adt, _) => vir::with_vcx(|vcx| {
+                vcx.tcx()
+                    .generics_of(adt.did())
+                    .own_params
+                    .iter()
+                    .any(|param| matches!(param.kind, ty::GenericParamDefKind::Lifetime))
+            }),
+            _ => false,
+        }
     }
 
     fn from_prim_ty(ty: ty::Ty<'tcx>) -> RustTyDecomposition<'tcx> {
@@ -438,6 +455,7 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             params,
             special: RustTySpecial::None,
             sizedness: RustTySizedness::from_ty(ty),
+            construct_deep_snapshot: false,
         };
         let specifics = TySpecifics::from_prim_ty(ty);
         RustTyDecomposition::new(Self::new(data, specifics).alloc(), args)

@@ -394,7 +394,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                             self.vcx.mk_unfolding_expr(
                                 ty.ref_to_pred_app(place_expr, Some(self.vcx.mk_wildcard())),
                                 el.discr_ty()
-                                    .ref_to_snap(el.discr(place_expr))
+                                    .ref_to_deep_snap(el.discr(place_expr))
                                     .downcast_ty(),
                             )
                         }
@@ -1138,7 +1138,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             &mir::Operand::Copy(place) | &mir::Operand::Move(place) => {
                 let (result, snap_val, _, ty_out) =
                     self.encode_place_with_snap(Place::from(place))?;
-                let tmp = self.new_tmp(ty_out.snapshot());
+                let tmp = self.new_tmp(ty_out.deep_snapshot());
                 self.stmt(self.vcx.mk_pure_assign_stmt(tmp, snap_val));
                 if matches!(operand, mir::Operand::Move(_)) {
                     self.stmt(self.vcx.mk_exhale_stmt(ty_out.ref_to_pred(
@@ -1228,7 +1228,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         let snap = result
             .expr
             .snap
-            .unwrap_or_else(|| ty_out.ref_to_snap(result.expr.address));
+            .unwrap_or_else(|| ty_out.ref_to_deep_snap(result.expr.address));
         Ok((result, snap, ty, ty_out))
     }
 
@@ -1333,7 +1333,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     ty::TyKind::Ref(_, _, ty::Mutability::Not) => {
                         let snap = expr
                             .snap
-                            .unwrap_or_else(|| e_ty.ref_to_snap(expr.address))
+                            .unwrap_or_else(|| e_ty.ref_to_deep_snap(expr.address))
                             .downcast_ty();
                         let p_ty = self.ty_use_pure(place_ty.ty).expect_immref();
                         PlaceExpr {
@@ -1343,7 +1343,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         }
                     }
                     ty::TyKind::Ref(_, _, ty::Mutability::Mut) => {
-                        let ref_snap = e_ty.ref_to_snap(expr.address).downcast_ty();
+                        let ref_snap = e_ty.ref_to_shallow_snap(expr.address).downcast_ty();
                         let p_ty = self.ty_use_pure(place_ty.ty).expect_mutref();
                         PlaceExpr {
                             address: p_ty.deref_access(ref_snap),

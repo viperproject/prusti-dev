@@ -8,6 +8,11 @@ impl<T> [T] {
     #[pure]
     #[ensures(result == core::intrinsics::ptr_metadata(self))]
     fn len(&self) -> usize;
+
+    #[trusted]
+    #[pure]
+    #[ensures(result == (self.len() == 0))]
+    fn is_empty(&self) -> bool;
 }
 
 #[extern_spec]

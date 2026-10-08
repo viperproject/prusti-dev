@@ -159,7 +159,10 @@ impl TaskEncoder for IndirectPredicatesEnc {
                                         "ref_inner_indirect",
                                         vir::TYPE_BOOL,
                                         Box::new(move |vcx, self_expr: vir::ExprGenSnap<_, _>| {
-                                            let inner_snap = inner_impure.ref_to_snap(
+                                            // Only addresses are read, which the
+                                            // shallow snapshot has without the
+                                            // permission behind the reference.
+                                            let inner_snap = inner_impure.ref_to_shallow_snap(
                                                 ref_domain.deref_access(self_expr.downcast_ty()),
                                             );
                                             inner_expr
