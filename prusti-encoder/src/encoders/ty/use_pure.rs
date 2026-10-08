@@ -660,8 +660,8 @@ impl<'vir> TyUsePureField<'vir> {
         self.caster.cast_to_caller_ctx(res)
     }
 
-    /// Get the (Ref) address of a field. Identical to the function one would
-    /// call in `use_impure`.
+    /// Get the (Ref) address of a field. Panics for dynamic addresses; otherwise
+    /// the same as `use_impure`'s `field_ref` with `label = None`.
     #[track_caller]
     pub fn field_ref<Curr, Next>(
         &self,
