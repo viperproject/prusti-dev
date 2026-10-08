@@ -9,7 +9,7 @@ use core::{
 impl<T> SliceIndex<[T]> for Range<usize> {
     #[trusted]
     #[pure]
-    #[ensures(result.len() == self.end - self.start)]
+    #[ensures(self.start <= self.end && self.end <= slice.len() ==> result.len() == self.end - self.start)]
     fn index(self, slice: &[T]) -> &[T];
 }
 
@@ -17,7 +17,7 @@ impl<T> SliceIndex<[T]> for Range<usize> {
 impl<T> SliceIndex<[T]> for RangeFrom<usize> {
     #[trusted]
     #[pure]
-    #[ensures(result.len() == slice.len() - self.start)]
+    #[ensures(self.start <= slice.len() ==> result.len() == slice.len() - self.start)]
     fn index(self, slice: &[T]) -> &[T];
 }
 
@@ -25,7 +25,7 @@ impl<T> SliceIndex<[T]> for RangeFrom<usize> {
 impl<T> SliceIndex<[T]> for RangeTo<usize> {
     #[trusted]
     #[pure]
-    #[ensures(result.len() == self.end)]
+    #[ensures(self.end <= slice.len() ==> result.len() == self.end)]
     fn index(self, slice: &[T]) -> &[T];
 }
 
@@ -41,17 +41,7 @@ impl<T> SliceIndex<[T]> for RangeFull {
 impl<T> SliceIndex<[T]> for RangeToInclusive<usize> {
     #[trusted]
     #[pure]
-    #[ensures(result.len() == self.end + 1)]
-    fn index(self, slice: &[T]) -> &[T];
-}
-
-#[extern_spec]
-impl<T> SliceIndex<[T]> for RangeInclusive<usize> {
-    #[trusted]
-    #[pure]
-    // Unsound for exhausted ranges (e.g. after iterating to the end), which
-    // index to an empty slice; the private `exhausted` flag is not modelled.
-    #[ensures(result.len() == *self.end() - *self.start() + 1)]
+    #[ensures(self.end < slice.len() ==> result.len() == self.end + 1)]
     fn index(self, slice: &[T]) -> &[T];
 }
 

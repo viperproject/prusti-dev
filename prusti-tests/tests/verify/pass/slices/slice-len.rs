@@ -13,8 +13,9 @@ fn slice(a: &[i32]) {
     assert!(s.len() == a.len()-1);
     let s = &a[..];
     assert!(s.len() == a.len());
-    let s = &a[1..=4];
-    assert!(s.len() == 4);
+    // Unsupported
+    //let s = &a[1..=4];
+    //assert!(s.len() == 4);
     let s = &a[..=4];
     assert!(s.len() == 5);
 }
