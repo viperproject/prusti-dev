@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{core_spec::slice::slice_index_touches, *};
 use std::{alloc::Allocator, slice::SliceIndex, vec::Vec};
 
 #[extern_spec]
@@ -50,6 +50,7 @@ where
 {
     #[trusted]
     #[pure]
+    #[ensures(result === SliceIndex::index(index, self.as_slice()))]
     fn index(&self, index: I) -> &I::Output;
 }
 
@@ -62,5 +63,10 @@ where
     #[trusted]
     #[ensures(*result === *old(&self[index]))]
     #[after_expiry(self[index] === *before_expiry(&*result))]
+    #[after_expiry(self.len() == old(self.len()))]
+    // TODO: Convert to quantifier once custom triggers are supported
+    #[after_expiry(0 < self.len() && !slice_index_touches(&index, 0) ==> &self[0] === old(&self[0]))]
+    #[after_expiry(1 < self.len() && !slice_index_touches(&index, 1) ==> &self[1] === old(&self[1]))]
+    #[after_expiry(2 < self.len() && !slice_index_touches(&index, 2) ==> &self[2] === old(&self[2]))]
     fn index_mut(&mut self, index: I) -> &mut I::Output;
 }
