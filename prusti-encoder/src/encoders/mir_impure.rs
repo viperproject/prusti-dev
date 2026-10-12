@@ -217,6 +217,22 @@ macro_rules! comment {
 /// effect; all other operand reads (terminators, repack guides) pass `None`.
 type OperandSnaps<'vir> = Option<FxHashMap<mir::Place<'vir>, vir::ExprSnap<'vir>>>;
 
+/// Which snapshot of a place to read.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum SnapDepth {
+    /// Includes the values behind the mutable references in the place. Used
+    /// where the value is observed, e.g. by a pure function or a spec.
+    Deep,
+    /// Only the addresses (and metadata) of the mutable references in the
+    /// place, like what the compiler copies. Used for a value that is
+    /// assigned, as `method_assign` sets the *shallow* snapshot of the
+    /// destination: assigning a deep snapshot would equate the referent's
+    /// current value with the heap-independent `arbitrary_value` of the
+    /// shallow snapshot, which contradicts a later assignment of the same
+    /// reference after the referent changed.
+    Shallow,
+}
+
 struct EncodedRvalue<'vir> {
     /// A snapshot of the rvalue. This snapshot is guaranteed to be well-formed
     /// in the state *before* the Rvalue has been assigned to a place. For
@@ -1133,12 +1149,16 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn capture_operand_snap(
         &mut self,
         operand: &mir::Operand<'vir>,
+        depth: SnapDepth,
     ) -> EncodeResult<'vir, vir::ExprSnap<'vir>, E> {
         match operand {
             &mir::Operand::Copy(place) | &mir::Operand::Move(place) => {
                 let (result, snap_val, _, ty_out) =
-                    self.encode_place_with_snap(Place::from(place))?;
-                let tmp = self.new_tmp(ty_out.deep_snapshot());
+                    self.encode_place_with_snap_at_depth(Place::from(place), depth)?;
+                let tmp = self.new_tmp(match depth {
+                    SnapDepth::Deep => ty_out.deep_snapshot(),
+                    SnapDepth::Shallow => ty_out.shallow_snapshot(),
+                });
                 self.stmt(self.vcx.mk_pure_assign_stmt(tmp, snap_val));
                 if matches!(operand, mir::Operand::Move(_)) {
                     self.stmt(self.vcx.mk_exhale_stmt(ty_out.ref_to_pred(
@@ -1180,7 +1200,9 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             if snaps.contains_key(&place) {
                 continue;
             }
-            let snap = self.capture_operand_snap(operand)?;
+            // The statement's effect assigns the operands (or values built
+            // from them), see [SnapDepth::Shallow].
+            let snap = self.capture_operand_snap(operand, SnapDepth::Shallow)?;
             snaps.insert(place, snap);
         }
         Ok(Some(snaps))
@@ -1207,9 +1229,27 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         })
     }
 
+    /// The place and its deep snapshot, see [SnapDepth::Deep].
     pub(crate) fn encode_place_with_snap(
         &mut self,
         place: Place<'vir>,
+    ) -> EncodeResult<
+        'vir,
+        (
+            EncodePlaceResult<'vir>,
+            vir::ExprSnap<'vir>,
+            mir::PlaceTy<'vir>,
+            TyUseImpure<'vir>,
+        ),
+        E,
+    > {
+        self.encode_place_with_snap_at_depth(place, SnapDepth::Deep)
+    }
+
+    fn encode_place_with_snap_at_depth(
+        &mut self,
+        place: Place<'vir>,
+        depth: SnapDepth,
     ) -> EncodeResult<
         'vir,
         (
@@ -1225,10 +1265,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
         let ty_out = self.ty_use_impure(ty.ty);
         let result = self.encode_place(place)?;
-        let snap = result
-            .expr
-            .snap
-            .unwrap_or_else(|| ty_out.ref_to_deep_snap(result.expr.address));
+        let snap = result.expr.snap.unwrap_or_else(|| match depth {
+            SnapDepth::Deep => ty_out.ref_to_deep_snap(result.expr.address),
+            SnapDepth::Shallow => ty_out.ref_to_shallow_snap(result.expr.address),
+        });
         Ok((result, snap, ty, ty_out))
     }
 
@@ -2580,7 +2620,7 @@ impl<'vir, 'enc, E: TaskEncoder> PureRvalueEnc<'vir> for ImpureEncVisitor<'vir, 
             return Ok(*snap);
         }
         match operand {
-            mir::Operand::Move(_) => self.capture_operand_snap(operand),
+            mir::Operand::Move(_) => self.capture_operand_snap(operand, SnapDepth::Deep),
             _ => self.encode_operand_snap_immediate(operand),
         }
     }

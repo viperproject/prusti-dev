@@ -409,6 +409,10 @@ impl<'vir> TyUseImpureData<'vir> {
         self.impure.ref_to_deep_snap.result()
     }
 
+    pub fn shallow_snapshot(&self) -> vir::TypeSnap<'vir> {
+        self.impure.ref_to_shallow_snap.result()
+    }
+
     /// Calls the predicate (heap) dependent shallow snapshot construction function.
     pub fn ref_to_shallow_snap<Curr, Next>(
         &self,
