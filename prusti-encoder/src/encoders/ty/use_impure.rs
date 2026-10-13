@@ -668,34 +668,19 @@ impl<'vir> TyUseImpureEnum<'vir> {
 impl<'vir> TyUseImpureImmRef<'vir> {}
 
 impl<'vir> TyUseImpureMutRef<'vir> {
-    /// The referent's address. Only reads the shallow snapshot, so it needs
-    /// no permission to the referent.
     pub fn deref(
         &self,
         self_ref: vir::ExprRef<'vir>,
         label: Option<vir::OldLabel<'vir>>,
     ) -> vir::ExprRef<'vir> {
+        // Only the address is read, so the shallow snapshot suffices: the
+        // referent's predicate (required by the deep snapshot) may not be
+        // held in the right form, e.g. while casting it.
         let snap =
             self.ref_to_shallow_snap.call()(self_ref, self.args.get_ty(), self.args.get_const())
                 .downcast_ty();
-        let deref = self.impure.pure.deref_access.call()(snap);
+        let deref = self.impure.pure.addr.call()(snap);
         vir::with_vcx(|vcx| vcx.maybe_apply_label(deref, label))
-    }
-
-    pub fn prim_to_snap_assign(
-        &self,
-        self_ref: vir::ExprRef<'vir>,
-        metadata: vir::ExprSnap<'vir>,
-    ) -> vir::ExprCSnap<'vir> {
-        // A fresh borrow: its shallow snapshot, as assigned by `method_assign`
-        // and returned by the shallow snapshot function.
-        let metadata = self.metadata_caster.cast_to_callee_ctx(metadata);
-        (self.impure.arbitrary_value)(
-            self_ref,
-            metadata.downcast_ty(),
-            self.args.get_ty(),
-            self.args.get_const(),
-        )
     }
 
     fn fold(

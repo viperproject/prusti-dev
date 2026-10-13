@@ -156,7 +156,7 @@ impl<'vir, D: TyDatas<'vir, PrimitiveData = TyPurePrimData<'vir>>> TyData<'vir, 
 #[derive(Debug, Clone, Copy)]
 pub struct TyPureImmRefData<'vir> {
     /// Construct deep domain from a `Ref` value.
-    pub(super) prim_to_deep_snap: FunctionIdn<'vir, (vir::Ref, vir::PSnap, vir::PSnap), vir::CSnap>,
+    pub(super) prim_to_snap: FunctionIdn<'vir, (vir::Ref, vir::PSnap, vir::PSnap), vir::CSnap>,
     /// Function to access the referee.
     pub(super) deref_access: AdtDestructor<'vir, vir::CSnap, vir::Ref>,
     /// Function to access the reference metadata (fat pointer).
@@ -171,12 +171,23 @@ pub struct TyPureImmRefData<'vir> {
 pub struct TyPureMutRefData<'vir> {
     /// Construct deep domain from a `Ref` value.
     pub(super) prim_to_deep_snap: FunctionIdn<'vir, (vir::Ref, vir::PSnap, vir::PSnap), vir::CSnap>,
-    /// Function to access the referee.
-    pub(super) deref_access: AdtDestructor<'vir, vir::CSnap, vir::Ref>,
-    /// Function to access the reference metadata (fat pointer).
-    pub(super) metadata_access: AdtDestructor<'vir, vir::CSnap, vir::PSnap>,
-    /// Function to access the value (beware that this may not be set).
-    pub(super) value_access: AdtDestructor<'vir, vir::CSnap, vir::PSnap>,
+    /// Construct shallow domain from a `Ref` value.
+    pub(super) prim_to_shallow_snap: FunctionIdn<'vir, (vir::Ref, vir::PSnap), vir::CSnap>,
+    /// Functions to access the fields of the deep snapshot.
+    pub(super) deep_snap_fields: (
+        AdtDestructor<'vir, vir::CSnap, vir::Ref>,
+        AdtDestructor<'vir, vir::CSnap, vir::PSnap>,
+        AdtDestructor<'vir, vir::CSnap, vir::PSnap>,
+    ),
+    /// Functions to access the fields of the shallow snapshot.
+    pub(super) shallow_snap_fields: (
+        AdtDestructor<'vir, vir::CSnap, vir::Ref>,
+        AdtDestructor<'vir, vir::CSnap, vir::PSnap>,
+    ),
+    /// The address of a deep or shallow snapshot.
+    pub(super) addr: FunctionIdn<'vir, vir::CSnap, vir::Ref>,
+    /// The metadata of a deep or shallow snapshot.
+    pub(super) metadata: FunctionIdn<'vir, vir::CSnap, vir::PSnap>,
 }
 
 /// The hardcoded extras of a `Box`: its pointer metadata, read out of the raw

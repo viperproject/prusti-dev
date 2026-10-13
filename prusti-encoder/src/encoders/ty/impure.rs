@@ -48,13 +48,6 @@ pub struct TyImpureRawData {}
 #[derive(Debug, Clone, Copy)]
 pub struct TyImpureMutRefData<'vir> {
     pub pure: <PureTyDatas as TyDatas<'vir>>::MutRefData,
-    /// The value slot of the *shallow* snapshot: a shallow snapshot holds no
-    /// permission to the referent, so its value is unconstrained. Takes the
-    /// referent's type arguments so that it is not shared between
-    /// instantiations at different types. Only the deep snapshot (see
-    /// `ref_to_deep_snap`) carries the referent's actual value.
-    pub arbitrary_value:
-        vir::FunctionIdn<'vir, (vir::Ref, vir::PSnap, vir::ManyTyVal, vir::ManyCSnap), vir::CSnap>,
 }
 
 #[derive(Debug, Clone, Copy)]

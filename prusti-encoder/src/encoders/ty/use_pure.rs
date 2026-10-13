@@ -405,7 +405,7 @@ impl<'vir> TyUsePureImmRef<'vir> {
     ) -> vir::ExprGenCSnap<'vir, Curr, Next> {
         let metadata = self.metadata_caster.cast_to_callee_ctx(metadata);
         let inner = self.referent_caster.cast_to_callee_ctx(inner);
-        self.pure.prim_to_deep_snap.call()(ref_, metadata.downcast_ty(), inner.downcast_ty())
+        self.pure.prim_to_snap.call()(ref_, metadata.downcast_ty(), inner.downcast_ty())
     }
 
     pub fn addr_access<Curr, Next>(
@@ -483,28 +483,42 @@ impl<'vir> TyUsePureMutRef<'vir> {
         self.pure.prim_to_deep_snap.call()(ref_, metadata, self.cast_to_callee_ctx(val))
     }
 
+    /// Construct the shallow snapshot (address and metadata only), e.g. for
+    /// assigning a new reference.
+    pub fn prim_to_shallow_snap<Curr, Next>(
+        &self,
+        ref_: vir::ExprGenRef<'vir, Curr, Next>,
+        metadata: vir::ExprGenSnap<'vir, Curr, Next>,
+    ) -> vir::ExprGenCSnap<'vir, Curr, Next> {
+        let metadata = self
+            .metadata_caster
+            .cast_to_callee_ctx(metadata)
+            .downcast_ty();
+        self.pure.prim_to_shallow_snap.call()(ref_, metadata)
+    }
+
     pub fn deref_access<Curr, Next>(
         &self,
         snap: vir::ExprGenCSnap<'vir, Curr, Next>,
     ) -> vir::ExprGenRef<'vir, Curr, Next> {
-        self.pure.deref_access.call()(snap)
+        self.pure.addr.call()(snap)
     }
 
     pub fn metadata_access<Curr, Next>(
         &self,
         snap: vir::ExprGenCSnap<'vir, Curr, Next>,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
-        let metadata = self.pure.metadata_access.call()(snap);
+        let metadata = self.pure.metadata.call()(snap);
         self.metadata_caster
             .cast_to_caller_ctx(metadata.upcast_ty())
     }
 
-    /// Function to access the value (beware that this may not be set).
+    /// Function to access the value.
     pub fn value_access<Curr, Next>(
         &self,
         snap: vir::ExprGenCSnap<'vir, Curr, Next>,
     ) -> vir::ExprGenSnap<'vir, Curr, Next> {
-        self.cast_to_caller_ctx(self.pure.value_access.call()(snap))
+        self.cast_to_caller_ctx(self.pure.deep_snap_fields.2.call()(snap))
     }
 
     pub fn cast_to_caller_ctx<Curr, Next>(
