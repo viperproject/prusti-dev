@@ -53,6 +53,7 @@ where
 {
     #[trusted]
     #[pure]
+    #[requires(index.get(self.as_slice()).is_some())]
     #[ensures(result === SliceIndex::index(index, self.as_slice()))]
     fn index(&self, index: I) -> &I::Output;
 }
@@ -64,6 +65,7 @@ where
     A: Allocator,
 {
     #[trusted]
+    #[requires(index.get(self.as_slice()).is_some())]
     #[ensures(*result === *old(&self[index]))]
     #[after_expiry(self[index] === *before_expiry(&*result))]
     #[after_expiry(self.len() == old(self.len()))]

@@ -34,6 +34,12 @@ impl<T> SliceIndex<[T]> for usize {
     #[ensures(slice_index_touches(&self, 1) == (self == 1))]
     #[ensures(slice_index_touches(&self, 2) == (self == 2))]
     fn index(self, slice: &[T]) -> &T;
+
+    #[trusted]
+    #[pure]
+    #[ensures(self < slice.len() ==> result.is_some())]
+    #[ensures(self >= slice.len() ==> result.is_none())]
+    fn get(self, slice: &[T]) -> Option<&Self::Output>;
 }
 
 #[extern_spec]
@@ -43,5 +49,10 @@ where
 {
     #[trusted]
     #[pure]
+    #[requires(self.get(slice).is_some())]
     fn index(self, slice: &T) -> &Self::Output;
+
+    #[trusted]
+    #[pure]
+    fn get(self, slice: &T) -> Option<&Self::Output>;
 }
