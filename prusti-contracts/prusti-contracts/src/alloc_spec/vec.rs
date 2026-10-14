@@ -38,7 +38,10 @@ impl<T, A: core::alloc::Allocator> Vec<T, A> {
     #[trusted]
     #[ensures(self.len() == old(self.len()) + 1)]
     #[ensures(self[self.len() - 1] === value)]
-    #[ensures(forall(|i: usize| i < old(self.len()) ==> &self[i] === old(&self[i])))]
+    // TODO: Convert to quantifier once custom triggers are supported
+    #[ensures(0 < old(self.len()) ==> &self[0] === old(&self[0]))]
+    #[ensures(1 < old(self.len()) ==> &self[1] === old(&self[1]))]
+    #[ensures(2 < old(self.len()) ==> &self[2] === old(&self[2]))]
     fn push(&mut self, value: T);
 }
 

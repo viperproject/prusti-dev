@@ -56,7 +56,11 @@ pub struct MirPureEncOutput<'vir> {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum PureKind {
-    Closure,
+    /// A specification's closure (e.g. of a quantifier), within an impure
+    /// method's specification or spec block if `in_impure_context`.
+    Closure {
+        in_impure_context: bool,
+    },
     /// A specification, attached to the item `context` specifies. That is
     /// not the specified item itself when an `impl` refines the
     /// specification of a trait: there the trait's parameters (notably
@@ -128,7 +132,7 @@ impl TaskEncoder for MirPureEnc {
             // instantiated with the arguments of the encoding.
             let identity = ty::GenericArgs::identity_for_item(vcx.tcx(), def_id);
             let body = match kind {
-                PureKind::Closure => vcx.body_mut().get_closure_body(def_id, identity, None),
+                PureKind::Closure { .. } => vcx.body_mut().get_closure_body(def_id, identity, None),
                 PureKind::Spec { context, .. } => {
                     let substs = vcx.tcx().mk_args(gargs.args());
                     vcx.body_mut().get_spec_body(def_id, substs, Some(context))
@@ -293,6 +297,11 @@ struct Enc<'vir: 'enc, 'enc> {
     rel1_mode: bool,
     before_expiry_mode: bool,
     impure_context: bool,
+    /// Whether a dereferenced mutable reference may have a shallow snapshot,
+    /// which holds no value for its referent (see `encode_place_with_ref`).
+    /// Not in an impure context, which reads the referent from the heap, nor
+    /// in a closure there, whose snapshots are those of the specification.
+    check_mut_derefs: bool,
 }
 
 struct EncodedPlace<'vir> {
@@ -403,6 +412,16 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     mode: MirSpecEncMode::Impure,
                     ..
                 } | PureKind::SpecBlock(..)
+            ),
+            check_mut_derefs: !matches!(
+                kind,
+                PureKind::Spec {
+                    mode: MirSpecEncMode::Impure,
+                    ..
+                } | PureKind::SpecBlock(..)
+                    | PureKind::Closure {
+                        in_impure_context: true
+                    }
             ),
         }
     }
@@ -1159,9 +1178,10 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                                 .unwrap();
                             caster.cast_to_caller_ctx(inner_ty.ref_to_deep_snap(ref_expr))
                         } else {
-                            // Elsewhere snapshots are deep, so the value behind
-                            // the mutable reference is part of the snapshot.
-                            // (Reading the heap would not work in axioms.)
+                            // Elsewhere the snapshot is deep (see
+                            // `encode_place_with_ref`), so the value behind the
+                            // mutable reference is part of it. (Reading the
+                            // heap would not work in axioms.)
                             e_ty.value_access(snap)
                         };
                         EncodedPlace::new(val_expr, Some(ref_expr)).with_metadata(metadata)
@@ -1254,17 +1274,54 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
         };
 
         let expr = if should_wrap {
+            // In `old`, a specification over two states reads the argument's
+            // pre-state snapshot.
+            let pre_state_key = self
+                .old_mode
+                .then(|| crate::encoders::pure::spec::pre_state_key(place.local));
             self.vcx.mk_lazy_expr(
                 vir::vir_format!(self.vcx, "wrapped in {:?}", place.local),
                 self.get_ty_for_local(place.local),
-                Box::new(move |_vcx, lctx: ExprInput<'vir>| lctx.1[&place.local].kind),
+                Box::new(move |_vcx, lctx: ExprInput<'vir>| {
+                    pre_state_key
+                        .and_then(|key| lctx.1.get(&key))
+                        .unwrap_or(&lctx.1[&place.local])
+                        .kind
+                }),
             )
         } else {
             self.mk_local_ex(place.local, curr_ver[&place.local])
         };
         let mut encoded_place = EncodedPlace::new(expr, None);
+        // Outside of an impure context, the value behind a mutable reference
+        // is read out of the reference's snapshot. Only a deep snapshot holds
+        // it, i.e. one whose enclosing places' types all construct deep
+        // snapshots (in a tuple, for example, the reference's snapshot is
+        // shallow).
+        let context = self.context;
+        let constructs_deep_snapshot = move |ty| {
+            RustTyDecomposition::from_ty(ty, context)
+                .ty
+                .construct_deep_snapshot
+        };
+        let mut deep = constructs_deep_snapshot(place_ty.ty);
         // TODO: factor this out (duplication with impure encoder)?
         for elem in place.projection {
+            if self.check_mut_derefs
+                && !deep
+                && matches!(elem, mir::ProjectionElem::Deref)
+                && matches!(place_ty.ty.kind(), TyKind::Ref(.., ty::Mutability::Mut))
+            {
+                return Err(self.unsupported_rvalue(
+                    format!(
+                        "dereference of the mutable reference `{}` in pure code, unless it is \
+                         in an argument or the result outside of shared references, tuples, \
+                         and other types without lifetime parameters",
+                        place_ty.ty
+                    ),
+                    self.current_span(),
+                ));
+            }
             // The snapshots of the arguments and the result are pinned to a
             // state, so the only read of the heap is the dereference of a
             // mutable reference in an impure context; only that is wrapped.
@@ -1278,6 +1335,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 && matches!(place_ty.ty.kind(), TyKind::Ref(.., ty::Mutability::Mut));
             encoded_place = self.encode_place_element(curr_ver, place_ty, *elem, encoded_place)?;
             place_ty = place_ty.projection_ty(self.vcx.tcx(), *elem);
+            deep &= constructs_deep_snapshot(place_ty.ty);
             if heap_read && self.old_mode {
                 let inner = encoded_place.snap;
                 encoded_place.snap = self.vcx.mk_lazy_expr(
@@ -1378,7 +1436,9 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
             .deps
             .require_dep::<MirPureEnc>(MirPureEncTask {
                 encoding_depth: self.encoding_depth + 1,
-                kind: PureKind::Closure,
+                kind: PureKind::Closure {
+                    in_impure_context: !self.check_mut_derefs,
+                },
                 parent_def_id: cl_def_id,
                 gargs: GParams::from(cl_def_id).identity_args(),
             })?

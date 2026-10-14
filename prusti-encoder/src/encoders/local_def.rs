@@ -75,6 +75,20 @@ impl<'vir> MirLocalDefEncOutput<'vir> {
     pub fn local_decl_ret(&self) -> vir::LocalDeclSnap<'vir> {
         self.ret().local_snap
     }
+
+    /// The variables of the arguments' snapshots in a later state (after the
+    /// call, or once a borrow of the result expires), for specifications
+    /// over two states (see `PledgeArgs::two_state`).
+    pub fn local_decl_args_later(&self) -> Vec<vir::LocalDeclSnap<'vir>> {
+        vir::with_vcx(|vcx| {
+            self.args()
+                .map(|arg| {
+                    let name = vir::vir_format!(vcx, "{}_later", arg.local_snap.name);
+                    vcx.mk_local_decl(name, arg.local_snap.ty())
+                })
+                .collect()
+        })
+    }
 }
 
 pub type MirLocalDefEncError = ();

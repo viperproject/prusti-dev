@@ -1,9 +1,10 @@
 use crate::encoders::{
-    EncodeResult, ImpureEncVisitor, MirLocalDefEncOutput, MirSpecEnc,
+    EncodeResult, ImpureEncVisitor, MirLocalDefEncOutput, MirSpecEnc, Pure,
+    mir_fn::RustSignature,
     pure::spec::{EncodedPledge, MirSpecEncMode, PledgeArgs, PledgeExpr},
     ty::{
         RustTyDecomposition,
-        generics::{GArgs, GArgsTyEnc, GParams, GenericParamsEnc},
+        generics::{GArgs, GArgsCastEnc, GArgsTyEnc, GParams, GenericParamsEnc, trait_fn},
         indirect::{IndirectPredicatesEnc, projection_for_generalized_idx},
     },
 };
@@ -47,7 +48,7 @@ impl<'vir, E: TaskEncoder> ImpureEncVisitor<'vir, '_, E> {
         for wand_data in self.wands.viper_wands() {
             let Some(wand) = self
                 .wands
-                .mk_wand(&wand_data, args, None, None, self.vcx, self.deps)
+                .mk_wand(&wand_data, args, None, None, false, self.vcx, self.deps)
             else {
                 continue;
             };
@@ -254,18 +255,31 @@ impl<'vir> WandEncOutput<'vir> {
             .collect::<Vec<_>>()
             .into_iter();
 
-        let output_posts = self.outputs().filter_map(|g| {
+        unblocked_input_posts.chain(self.indirect_output_posts(vcx, local_defs, deps))
+    }
+
+    /// The part of `indirect_posts` for what the result points to.
+    pub fn indirect_output_posts<'a, E: TaskEncoder>(
+        &'a self,
+        vcx: &'vir vir::VirCtxt<'vir>,
+        local_defs: &'a MirLocalDefEncOutput<'vir>,
+        deps: &'a mut TaskEncoderDependencies<'vir, E>,
+    ) -> impl Iterator<Item = vir::ExprBool<'vir>> + 'a {
+        self.outputs().filter_map(|g| {
             self.encode_predicates_for_function_shape_node(vcx, deps, g, None, |i| {
                 local_defs[i].impure_shallow_snap
             })
-        });
-        unblocked_input_posts.chain(output_posts)
+        })
     }
 
+    /// The wands of the function's contract. `via_trait` is whether it is
+    /// the contract of a call through the trait (see `WandData::trait_pledge`)
+    /// rather than of the function's own body.
     pub fn wand_posts<'a, E: TaskEncoder>(
         &'a self,
         vcx: &'vir vir::VirCtxt<'vir>,
         local_defs: &'a MirLocalDefEncOutput<'vir>,
+        via_trait: bool,
         deps: &'a mut TaskEncoderDependencies<'vir, E>,
     ) -> impl Iterator<Item = vir::ExprBool<'vir>> + 'a {
         let wand_result =
@@ -278,7 +292,7 @@ impl<'vir> WandEncOutput<'vir> {
 
         // TODO: wands for late-bound regions
         self.viper_wands().into_iter().filter_map(move |wand_data| {
-            let wand = self.mk_wand(&wand_data, args, None, None, vcx, deps)?;
+            let wand = self.mk_wand(&wand_data, args, None, None, via_trait, vcx, deps)?;
             Some(vcx.mk_let_expr(
                 wand_result,
                 local_defs[mir::RETURN_PLACE].impure_snap,
@@ -304,12 +318,18 @@ impl<'vir> WandEncOutput<'vir> {
                 .mk_local_labelled_old_expr(arguments[l], label_pre)
         });
         let args = PledgeExpr::pledge_args(result, args);
+        // A call of a trait function goes through the trait (see `TraitFnEnc`).
+        let tcx = visitor.vcx.tcx();
+        let via_trait = tcx
+            .opt_associated_item(self.function_data.def_id())
+            .is_some_and(|item| item.trait_container(tcx).is_some());
         for wand_data in self.viper_wands() {
             let Some(wand) = self.mk_wand(
                 &wand_data,
                 args,
                 Some(label_pre),
                 Some(call_ctx),
+                via_trait,
                 visitor.vcx,
                 visitor.deps,
             ) else {
@@ -319,36 +339,59 @@ impl<'vir> WandEncOutput<'vir> {
         }
     }
 
+    /// The wand of `wand_data`. `via_trait` is whether the wand is that of a
+    /// call through the trait, which carries the trait pledge instead of the
+    /// function's own pledges (see `WandData::trait_pledge`).
+    #[allow(clippy::too_many_arguments)]
     fn mk_wand<E: TaskEncoder>(
         &self,
         wand_data: &WandData<'vir>,
         pledge_args: PledgeArgs<'vir>,
         pledge_old_label: Option<&'vir str>,
         call_ctx: WandCallContext<'vir>,
+        via_trait: bool,
         vcx: &'vir vir::VirCtxt<'vir>,
         deps: &mut TaskEncoderDependencies<'vir, E>,
     ) -> Option<vir::Wand<'vir>> {
         debug_assert!(!wand_data.lhs.is_empty());
         let generics = self.generics_subst(call_ctx, vcx, deps);
-        let pledge_expr = |pledge: &PledgeExpr<'vir>| match pledge_old_label {
+        let pledge_expr = |pledge: &PledgeExpr<'vir>, pledge_args| match pledge_old_label {
             Some(label) => {
                 vcx.with_local_subst(generics, || pledge.expr_at_label(pledge_args, label))
             }
             None => pledge.expr(pledge_args),
         };
-        let rhs = wand_data.rhs.iter().filter_map(|g| {
-            self.encode_predicates_for_function_shape_node(vcx, deps, *g, call_ctx, |i| {
-                pledge_args[i]
+        let rhs = wand_data
+            .rhs
+            .iter()
+            .filter_map(|g| {
+                self.encode_predicates_for_function_shape_node(vcx, deps, *g, call_ctx, |i| {
+                    pledge_args[i]
+                })
             })
-        });
-        let rhs = rhs
-            .chain(
-                wand_data
-                    .pledges
-                    .iter()
-                    .map(|pledge| pledge_expr(&pledge.expiry_postcondition)),
-            )
             .collect::<Vec<_>>();
+        let pledges = if via_trait {
+            // The trait pledge is a function of the trait, so it takes the
+            // arguments and the result in the callee's generic context.
+            let trait_pledge = wand_data.trait_pledge.as_ref();
+            let callee_args = match (trait_pledge, call_ctx) {
+                (Some(_), Some(call_args)) => {
+                    self.cast_to_callee_ctx(pledge_args, call_args, deps)?
+                }
+                _ => pledge_args,
+            };
+            trait_pledge
+                .map(|pledge| pledge_expr(&pledge.expiry_postcondition, callee_args))
+                .into_iter()
+                .collect::<Vec<_>>()
+        } else {
+            wand_data
+                .pledges
+                .iter()
+                .map(|pledge| pledge_expr(&pledge.expiry_postcondition, pledge_args))
+                .collect()
+        };
+        let rhs = rhs.into_iter().chain(pledges).collect::<Vec<_>>();
         if rhs.is_empty() {
             // We skip emitting the wand when there is nothing on the RHS, i.e.,
             // nothing would be unblocked by applying this wand, nor are there
@@ -366,11 +409,40 @@ impl<'vir> WandEncOutput<'vir> {
                 wand_data
                     .pledges
                     .iter()
-                    .filter_map(|pledge| pledge.expiry_obligation.as_ref().map(pledge_expr)),
+                    .filter(|_| !via_trait)
+                    .filter_map(|pledge| {
+                        let obligation = pledge.expiry_obligation.as_ref()?;
+                        Some(pledge_expr(obligation, pledge_args))
+                    }),
             )
             .collect::<Vec<_>>();
         let lhs = vcx.mk_conj(&lhs);
         Some(vcx.mk_wand(lhs, rhs))
+    }
+
+    /// `pledge_args`, given at a call with `call_args`, cast to the callee's
+    /// generic context.
+    fn cast_to_callee_ctx<E: TaskEncoder>(
+        &self,
+        pledge_args: PledgeArgs<'vir>,
+        call_args: GArgs<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, E>,
+    ) -> Option<PledgeArgs<'vir>> {
+        let signature = RustSignature::new(self.function_data.def_id());
+        let tys = signature.inputs.iter().chain([&signature.output]);
+        let mut args = Vec::with_capacity(signature.inputs.len() + 1);
+        for (idx, ty) in tys.enumerate() {
+            let local = if idx < signature.inputs.len() {
+                mir::Local::from_usize(idx + 1)
+            } else {
+                mir::RETURN_PLACE
+            };
+            let normalized = ty.decompose_compare_normalize(signature.gparams, call_args);
+            let caster = deps.require_dep::<GArgsCastEnc<Pure>>(normalized).ok()?;
+            args.push(caster.cast_to_callee_ctx(pledge_args[local]));
+        }
+        let result = args.pop()?;
+        Some(PledgeExpr::pledge_args(result, args))
     }
 
     /// The pledges are encoded once, at the callee's identity substitution,
@@ -434,13 +506,23 @@ pub struct WandData<'vir> {
     /// non-empty.
     lhs: Vec<WandLhsKey>,
     pledges: EncodedPledges<'vir>,
+    /// For a trait function, the pledge of a call through the trait (see
+    /// `trait_fn::trait_pledge`), which a call cannot know otherwise: the
+    /// impl it resolves to is unknown. It replaces the function's own
+    /// pledges, which only its default body, if any, establishes.
+    trait_pledge: Option<EncodedPledge<'vir>>,
 }
 
 impl<'vir> WandData<'vir> {
     pub fn new(lhs: Vec<WandLhsKey>, rhs: Vec<WandRhsKey>, pledges: EncodedPledges<'vir>) -> Self {
         debug_assert!(!lhs.is_empty());
         debug_assert!(!rhs.is_empty());
-        Self { rhs, lhs, pledges }
+        Self {
+            rhs,
+            lhs,
+            pledges,
+            trait_pledge: None,
+        }
     }
 }
 
@@ -531,6 +613,17 @@ impl TaskEncoder for WandEnc {
             output.wands = output
                 .select_wands(wands, !pledges.is_empty(), &edges, vcx, deps)
                 .map_err(|err| EncodeFullError::EncodingError(err, None))?;
+            // The trait pledge refers to a single expiry, so it is only
+            // attached if there is a single wand.
+            let tcx = vcx.tcx();
+            if let [wand] = output.wands.as_mut_slice()
+                && tcx
+                    .opt_associated_item(def_id)
+                    .is_some_and(|item| item.trait_container(tcx).is_some())
+            {
+                let given_back = wand.rhs.iter().map(|g| g.mir_local()).collect();
+                wand.trait_pledge = Some(trait_fn::trait_pledge(vcx, deps, def_id, &given_back)?);
+            }
             Ok(((), output))
         })
     }
@@ -607,6 +700,15 @@ impl<'vir> WandEncOutput<'vir> {
         self.wands
             .iter()
             .flat_map(|wand| wand.rhs.iter().copied())
+            .collect()
+    }
+
+    /// The arguments with a lifetime projection blocked by the result, which
+    /// are only given back once a borrow of the result expires.
+    pub fn blocked_args(&self) -> FxHashSet<mir::Local> {
+        self.blocked_inputs()
+            .iter()
+            .map(|input| input.mir_local())
             .collect()
     }
 
