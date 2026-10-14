@@ -438,7 +438,7 @@ impl<'vir> WandEncOutput<'vir> {
                 mir::RETURN_PLACE
             };
             let normalized = ty.decompose_compare_normalize(signature.gparams, call_args);
-            let caster = deps.require_dep::<GArgsCastEnc<Pure>>(normalized).ok()?;
+            let caster = deps.require_dep::<GArgsCastEnc<Pure>>(normalized).unwrap();
             args.push(caster.cast_to_callee_ctx(pledge_args[local]));
         }
         let result = args.pop()?;

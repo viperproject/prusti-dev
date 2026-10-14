@@ -111,12 +111,6 @@ pub(crate) fn ty_impure<'vir>(
     let ref_self = builder.vcx.mk_local_ex(ref_self_decl);
     let vcx = builder.vcx;
 
-    // fields: the referent's address and the pointer metadata. Unlike a
-    // shared reference, no permission to the referent is held, so the value
-    // of the shallow snapshot stays unconstrained -- `arbitrary_value`
-    // supplies it, keyed on the address so that it is at least stable across
-    // reborrows. The deep snapshot additionally requires the referent's
-    // predicate and reads the value from it.
     let addr_field = builder.field("addr", vir::TYPE_REF);
     let metadata_field = builder.field("metadata", metadata_type);
 

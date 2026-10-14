@@ -226,10 +226,7 @@ enum SnapDepth {
     /// Only the addresses (and metadata) of the mutable references in the
     /// place, like what the compiler copies. Used for a value that is
     /// assigned, as `method_assign` sets the *shallow* snapshot of the
-    /// destination: assigning a deep snapshot would equate the referent's
-    /// current value with the heap-independent `arbitrary_value` of the
-    /// shallow snapshot, which contradicts a later assignment of the same
-    /// reference after the referent changed.
+    /// destination
     Shallow,
 }
 

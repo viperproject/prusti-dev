@@ -12,6 +12,7 @@ use crate::encoders::{
 use itertools::Itertools;
 use pcg::utils::Place;
 use prusti_rustc_interface::{
+    abi,
     data_structures::graph::{self, Successors},
     index::IndexVec,
     middle::{
@@ -1316,7 +1317,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     format!(
                         "dereference of the mutable reference `{}` in pure code, unless it is \
                          in an argument or the result outside of shared references, tuples, \
-                         and other types without lifetime parameters",
+                         other types without lifetime parameters, and fields of generic type",
                         place_ty.ty
                     ),
                     self.current_span(),
@@ -1333,9 +1334,26 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 && self.impure_context
                 && matches!(elem, mir::ProjectionElem::Deref)
                 && matches!(place_ty.ty.kind(), TyKind::Ref(.., ty::Mutability::Mut));
+            // An ADT is encoded once over its generic parameters, so a field
+            // whose declared type is a type parameter (or an alias of one)
+            // is read through the parameter's snapshot, which is the shallow
+            // snapshot of the instantiated type, even if the ADT's snapshot
+            // is deep.
+            // We currently do not allow this case to stay sound.
+            // TODO: Enable deep snapshots of generic types or nested mutrefs
+            let generic_field = match (elem, place_ty.ty.kind()) {
+                (mir::ProjectionElem::Field(field, _), TyKind::Adt(adt, _)) => {
+                    let tcx = self.vcx.tcx();
+                    let variant = place_ty.variant_index.unwrap_or(abi::FIRST_VARIANT);
+                    let identity = ty::GenericArgs::identity_for_item(tcx, adt.did());
+                    let declared = adt.variant(variant).fields[*field].ty(tcx, identity);
+                    matches!(declared.kind(), TyKind::Param(_) | TyKind::Alias(..))
+                }
+                _ => false,
+            };
             encoded_place = self.encode_place_element(curr_ver, place_ty, *elem, encoded_place)?;
             place_ty = place_ty.projection_ty(self.vcx.tcx(), *elem);
-            deep &= constructs_deep_snapshot(place_ty.ty);
+            deep &= !generic_field && constructs_deep_snapshot(place_ty.ty);
             if heap_read && self.old_mode {
                 let inner = encoded_place.snap;
                 encoded_place.snap = self.vcx.mk_lazy_expr(
