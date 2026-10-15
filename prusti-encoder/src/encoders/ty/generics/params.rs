@@ -3,6 +3,7 @@ use prusti_rustc_interface::{
     middle::ty,
     span::{def_id::DefId, symbol},
 };
+use rustc_hash::FxHashMap;
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{CastType, HasType};
 
@@ -165,17 +166,18 @@ impl<'tcx> GParams<'tcx> {
             // doesn't know about ReVars from the original type-checking
             // context.
             let ifctxt: InferCtxt = vcx.tcx().infer_ctxt().build(ty::TypingMode::PostAnalysis);
-            let mut revars: Vec<(ty::RegionVid, ty::Region<'tcx>)> = Vec::new();
+            // Each original ReVar is replaced by a fresh region var of
+            // `ifctxt`; `originals` maps the fresh vars back so that the
+            // result does not leak `ifctxt`'s vars (whose ids would alias
+            // unrelated regions of the original context).
+            let mut fresh_vars: FxHashMap<ty::RegionVid, ty::Region<'tcx>> = FxHashMap::default();
+            let mut originals: FxHashMap<ty::RegionVid, ty::Region<'tcx>> = FxHashMap::default();
             let ty = ty::fold_regions(vcx.tcx(), ty, |r, _| match r.kind() {
-                ty::RegionKind::ReVar(vid) => revars
-                    .iter()
-                    .find(|(v, _)| *v == vid)
-                    .map(|(_, fresh)| *fresh)
-                    .unwrap_or_else(|| {
-                        let fresh = ifctxt.next_region_var(RegionVariableOrigin::Misc(DUMMY_SP));
-                        revars.push((vid, fresh));
-                        fresh
-                    }),
+                ty::RegionKind::ReVar(vid) => *fresh_vars.entry(vid).or_insert_with(|| {
+                    let fresh = ifctxt.next_region_var(RegionVariableOrigin::Misc(DUMMY_SP));
+                    originals.insert(fresh.as_var(), r);
+                    fresh
+                }),
                 _ => r,
             });
             let mut fulfill_cx: FulfillmentEngine<'tcx, FulfillmentError<'tcx>> =
@@ -197,7 +199,17 @@ impl<'tcx> GParams<'tcx> {
             let nty = ifctxt
                 .at(&ObligationCause::dummy(), self.env)
                 .deeply_normalize(Unnormalized::new(ty), &mut fulfill_cx);
-            nty.ok().map(|nty| nty.skip_binder())
+            // Restore the original ReVars; any other region var of `ifctxt`
+            // (e.g. introduced while normalizing) is erased.
+            nty.ok().map(|nty| {
+                ty::fold_regions(vcx.tcx(), nty.skip_binder(), |r, _| match r.kind() {
+                    ty::RegionKind::ReVar(vid) => originals
+                        .get(&vid)
+                        .copied()
+                        .unwrap_or(vcx.tcx().lifetimes.re_erased),
+                    _ => r,
+                })
+            })
         })
     }
 
