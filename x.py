@@ -17,9 +17,12 @@ import os
 import platform
 import subprocess
 import glob
+import json
 import logging
 from pathlib import Path
 import shutil
+import urllib.request
+import zipfile
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'scripts'))
 import reporting
@@ -77,6 +80,54 @@ def viper_version():
         return file.read().strip()
 
 
+# The Z3 version bundled in the Linux `ViperToolsLinux.zip` for the current
+# `viper-toolchain` pin. ViperTools builds its Linux Z3 against a much newer
+# glibc than our oldest-supported baseline (e.g. Ubuntu 22.04's glibc 2.35),
+# so it fails to even start there ("GLIBC_2.38' not found"). Z3's own release
+# also publishes a `manylinux` Python wheel containing the same Z3 version
+# built against a much older glibc baseline; `replace_linux_z3_with_portable_build`
+# swaps that binary in instead. Update this whenever `viper-toolchain` is bumped
+# and the bundled Z3 version changes (check with `./viper_tools/z3/bin/z3
+# --version` after `x.py setup` on mac or Windows, where the bundled binary runs).
+Z3_VERSION_FOR_LINUX_SETUP = "4.16.0"
+
+
+def replace_linux_z3_with_portable_build(viper_tools_dir):
+    """Swap the Linux Z3 binary in `viper_tools_dir` for Z3's manylinux wheel build.
+
+    Only done on x86-64, the only Linux architecture we currently ship for;
+    other architectures keep whatever ViperTools bundled.
+    """
+    if platform.machine().lower() not in ('x86_64', 'amd64'):
+        logging.warning(
+            "Not replacing the bundled Z3 with a more portable build: "
+            "unsupported architecture '{}'.".format(platform.machine())
+        )
+        return
+
+    tag = f"z3-{Z3_VERSION_FOR_LINUX_SETUP}"
+    with urllib.request.urlopen(
+        f"https://api.github.com/repos/Z3Prover/z3/releases/tags/{tag}"
+    ) as response:
+        release = json.load(response)
+    asset = next(
+        asset for asset in release["assets"]
+        if "manylinux" in asset["name"]
+        and "x86_64" in asset["name"]
+        and "aarch64" not in asset["name"]
+    )
+
+    wheel_path = "z3-manylinux.whl"
+    shell(f"curl {asset['browser_download_url']} -Lo {wheel_path}")
+    z3_exe_path = os.path.join(viper_tools_dir, "z3", "bin", "z3")
+    with zipfile.ZipFile(wheel_path) as wheel:
+        member = next(name for name in wheel.namelist() if name.endswith("/bin/z3"))
+        with wheel.open(member) as src, open(z3_exe_path, "wb") as dst:
+            shutil.copyfileobj(src, dst)
+    os.chmod(z3_exe_path, 0o755)
+    os.remove(wheel_path)
+
+
 def setup_ubuntu(install_deps: bool):
     """Install the dependencies on Ubuntu."""
     # Install dependencies.
@@ -94,6 +145,7 @@ def setup_ubuntu(install_deps: bool):
         shutil.rmtree('viper_tools')
     shell('unzip ViperToolsLinux.zip -d viper_tools')
     os.remove('ViperToolsLinux.zip')
+    replace_linux_z3_with_portable_build('viper_tools')
 
 
 def setup_linux():
@@ -106,6 +158,7 @@ def setup_linux():
         shutil.rmtree('viper_tools')
     shell('unzip ViperToolsLinux.zip -d viper_tools')
     os.remove('ViperToolsLinux.zip')
+    replace_linux_z3_with_portable_build('viper_tools')
 
 
 def setup_mac():
