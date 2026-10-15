@@ -5,7 +5,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_utils::{config, launch};
-use std::{env, fs, io, path::PathBuf, process::Command};
+use std::{
+    env, fs, io,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 fn main() {
     if let Err(code) = process(env::args().skip(1)) {
@@ -78,6 +82,8 @@ where
         };
     }
 
+    clean_if_stale_specs(&cargo_path, args_manifest_path, &cargo_target)?;
+
     let mut cargo_command = Command::new(cargo_path);
     cargo_command
         .arg(&command)
@@ -128,13 +134,53 @@ where
     }
 }
 
-/// Copy specs from '{cargo_target}/*/deps/*.specs' to '{cargo_target}/*/*.specs'
+/// Runs `cargo clean` on `cargo_target` if the `.specs` files in it were
+/// written with a different specs format version (or by a Prusti version
+/// before the version was recorded). Cargo would not rebuild them by itself,
+/// since it does not know that Prusti changed, and Prusti could not read them.
+fn clean_if_stale_specs(
+    cargo_path: &str,
+    manifest_path: Option<&str>,
+    cargo_target: &Path,
+) -> Result<(), i32> {
+    let stamp = cargo_target.join(launch::SPECS_FORMAT_VERSION_STAMP);
+    let version = launch::SPECS_FORMAT_VERSION.to_string();
+    if cargo_target.exists() && fs::read_to_string(&stamp).ok().as_deref() != Some(&version) {
+        eprintln!(
+            "cargo-prusti: the specs format changed, cleaning {}",
+            cargo_target.display()
+        );
+        let mut clean_command = Command::new(cargo_path);
+        clean_command
+            .arg("clean")
+            .env("RUSTUP_TOOLCHAIN", launch::get_rust_toolchain_channel())
+            .env("CARGO_TARGET_DIR", cargo_target);
+        if let Some(manifest_path) = manifest_path {
+            clean_command.args(["--manifest-path", manifest_path]);
+        }
+        let exit_status = clean_command.status().expect("could not run cargo");
+        if !exit_status.success() {
+            return Err(exit_status.code().unwrap_or(-1));
+        }
+    }
+    fs::create_dir_all(cargo_target)
+        .and_then(|()| fs::write(&stamp, version))
+        .unwrap_or_else(|err| panic!("could not write {}: {err}", stamp.display()));
+    Ok(())
+}
+
+/// Copy specs from '{cargo_target}/*/deps/*.specs' (Cargo's classic layout) and
+/// '{cargo_target}/*/build/*/*/out/*.specs' (Cargo's newer build-dir layout, which
+/// no longer populates `deps/`) to '{cargo_target}/*/*.specs'.
 fn copy_exported_specs(cargo_target: PathBuf) -> io::Result<()> {
     for de in fs::read_dir(cargo_target)? {
         let build_dir = de?.path();
-        let deps_dir = build_dir.join("deps");
-        if build_dir.is_dir() && deps_dir.is_dir() {
-            for entry in fs::read_dir(deps_dir)? {
+        if !build_dir.is_dir() {
+            continue;
+        }
+
+        for specs_dir in launch::build_unit_dirs(&build_dir) {
+            for entry in fs::read_dir(specs_dir)? {
                 let entry = entry?.path();
                 if let Some(ext) = entry.extension()
                     && ext == "specs"
@@ -144,7 +190,7 @@ fn copy_exported_specs(cargo_target: PathBuf) -> io::Result<()> {
                     if let Some(pkg_name) = pkg_name.split('-').next() {
                         let mut tgt = build_dir.join(pkg_name);
                         tgt.set_extension("specs");
-                        fs::copy(entry, tgt)?;
+                        fs::copy(&entry, tgt)?;
                     }
                 }
             }

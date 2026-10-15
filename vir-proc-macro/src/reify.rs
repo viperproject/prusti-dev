@@ -42,7 +42,7 @@ pub fn derive_reify(input: TokenStream) -> TokenStream {
                 .map(|field| {
                     let name = field.ident.as_ref().unwrap();
                     if ReifyKind::of_field(field).should_reify() {
-                        quote! { #name: #name }
+                        quote! { #name }
                     } else {
                         quote! { #name: self.#name }
                     }

@@ -1,3 +1,5 @@
+#![feature(allocator_api)]
+
 use prusti_contracts::*;
 
 #[extern_spec]
@@ -8,7 +10,10 @@ impl<T> std::option::Option<T> {
 }
 
 #[extern_spec]
-impl<K, V, S: std::hash::BuildHasher> std::collections::HashMap<K, V, S> {
+impl<K, V, S: std::hash::BuildHasher, A> std::collections::HashMap<K, V, S, A>
+where
+    A: std::alloc::Allocator,
+{
     #[trusted]
     #[pure]
     #[ensures(result.is_some() == self.contains_key(k))]
@@ -31,5 +36,4 @@ fn go(key: u32, m: &std::collections::HashMap<u32, bool>) {
     assert!(result.is_some())
 }
 
-fn main(){
-}
+fn main() {}

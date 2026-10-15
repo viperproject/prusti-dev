@@ -7,7 +7,7 @@
 #![deny(unused_must_use)]
 use serde::Deserialize;
 use std::{
-    env,
+    env, fs,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -17,6 +17,49 @@ pub mod job;
 /// Determines which crates in `./prusti-contracts` have their specs re-exported
 /// for `prusti-rustc`.
 pub const PRUSTI_LIBS: [&str; 1] = ["prusti-contracts"];
+
+/// Magic bytes at the start of every `.specs` file.
+pub const SPECS_MAGIC: &[u8] = b"prusti-specs";
+
+/// Version of the `.specs` file format, written after `SPECS_MAGIC`. Bump this
+/// whenever the encoding in `prusti-interface/src/specs/{encoder,decoder}.rs`
+/// or any of the serialized types change: `cargo-prusti` then cleans its
+/// target directory, since cargo does not rebuild dependencies (and hence
+/// their `.specs` files) when only Prusti changes.
+pub const SPECS_FORMAT_VERSION: u32 = 1;
+
+/// Name of the file in `cargo-prusti`'s target directory that records the
+/// `SPECS_FORMAT_VERSION` of the `.specs` files in it.
+pub const SPECS_FORMAT_VERSION_STAMP: &str = "specs-format-version";
+
+/// The directories under `profile_dir` (e.g. `{cargo_target}/debug`) holding
+/// Cargo's per-build-unit artifacts, and hence the `.specs` files Prusti writes
+/// next to each crate's metadata.
+///
+/// Cargo's classic layout collects them all in `deps/`. Its newer build-dir
+/// layout no longer populates `deps/` and gives every build unit its own
+/// `build/{pkg}/{hash}/out/` instead, so both have to be searched.
+pub fn build_unit_dirs(profile_dir: &Path) -> Vec<PathBuf> {
+    let mut dirs = Vec::new();
+    let deps_dir = profile_dir.join("deps");
+    if deps_dir.is_dir() {
+        dirs.push(deps_dir);
+    }
+    if let Ok(pkg_entries) = fs::read_dir(profile_dir.join("build")) {
+        for pkg_entry in pkg_entries.flatten() {
+            let Ok(hash_entries) = fs::read_dir(pkg_entry.path()) else {
+                continue;
+            };
+            for hash_entry in hash_entries.flatten() {
+                let out_dir = hash_entry.path().join("out");
+                if out_dir.is_dir() {
+                    dirs.push(out_dir);
+                }
+            }
+        }
+    }
+    dirs
+}
 
 pub fn get_current_executable_dir() -> PathBuf {
     env::current_exe()
@@ -176,56 +219,53 @@ fn get_sysroot_from_rustup() -> Result<PathBuf, String> {
         .map(|s| PathBuf::from(s.trim().to_owned()))
 }
 
-/// Find Viper home
-pub fn find_viper_home(base_dir: &Path) -> Option<PathBuf> {
-    let candidates = vec![
-        base_dir.join("viper_tools").join("server"),
-        base_dir
-            .join("..")
-            .join("..")
-            .join("viper_tools")
-            .join("server"),
-        base_dir.join("viper_tools").join("backends"),
-        base_dir
-            .join("..")
-            .join("..")
-            .join("viper_tools")
-            .join("backends"),
-        base_dir
-            .join("..")
-            .join("..")
-            .join("..")
-            .join("viper_tools")
-            .join("backends"),
-    ];
+/// `base_dir` and its ancestors up to and including the enclosing root, i.e. the
+/// first directory holding a `rust-toolchain` (the Prusti artifact) or a
+/// `Cargo.toml` (a source checkout).
+///
+/// A fixed number of `../` hops used to be enough to get from a binary to the
+/// `viper_tools` next to it, but Cargo's build-dir layout nests binaries (e.g.
+/// test harnesses) at varying, sometimes hash-suffixed depths. Walking up to the
+/// root instead of guessing a depth copes with that, while still refusing to look
+/// outside the artifact or checkout: anything found above it belongs to something
+/// else and would silently be the wrong Viper version.
+fn dirs_up_to_root(base_dir: &Path) -> impl Iterator<Item = &'_ Path> + '_ {
+    let mut done = false;
+    base_dir.ancestors().take(7).take_while(move |dir| {
+        let cont = !done;
+        done = dir.join("rust-toolchain").is_file() || dir.join("Cargo.toml").is_file();
+        cont
+    })
+}
 
-    candidates.into_iter().find(|candidate| candidate.is_dir())
+/// Find Viper home
+///
+/// Searches for a `viper_tools/server` or `viper_tools/backends` directory in
+/// [`dirs_up_to_root`].
+pub fn find_viper_home(base_dir: &Path) -> Option<PathBuf> {
+    for dir in dirs_up_to_root(base_dir) {
+        for sub in ["server", "backends"] {
+            let candidate = dir.join("viper_tools").join(sub);
+            if candidate.is_dir() {
+                return Some(candidate);
+            }
+        }
+    }
+    None
 }
 
 /// Find Z3 executable
 pub fn find_z3_exe(base_dir: &Path) -> Option<PathBuf> {
-    let mut candidates = vec![
-        base_dir
-            .join("viper_tools")
-            .join("z3")
-            .join("bin")
-            .join("z3"),
-        base_dir
-            .join("..")
-            .join("..")
-            .join("viper_tools")
-            .join("z3")
-            .join("bin")
-            .join("z3"),
-    ];
-
-    if cfg!(windows) {
-        candidates.iter_mut().for_each(|x| {
-            x.set_extension("exe");
-        });
+    for dir in dirs_up_to_root(base_dir) {
+        let mut candidate = dir.join("viper_tools").join("z3").join("bin").join("z3");
+        if cfg!(windows) {
+            candidate.set_extension("exe");
+        }
+        if candidate.is_file() {
+            return Some(candidate);
+        }
     }
-
-    candidates.into_iter().find(|candidate| candidate.is_file())
+    None
 }
 
 pub fn set_environment_settings(

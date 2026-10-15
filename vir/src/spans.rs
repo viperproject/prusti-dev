@@ -266,7 +266,7 @@ impl<'tcx> VirCtxt<'tcx> {
         format!(
             "{}::{}",
             self.tcx().crate_name(def_id.krate),
-            self.tcx().def_path_str(def_id),
+            self.tcx().def_path_str(*def_id),
         )
         .to_string()
     }

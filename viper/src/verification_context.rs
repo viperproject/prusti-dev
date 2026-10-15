@@ -90,7 +90,7 @@ impl<'a> VerificationContext<'a> {
         if let VerificationBackend::Carbon = backend {
             let boogie_exe =
                 boogie_exe.expect("the BOOGIE_EXE environment variable should not be empty");
-            info!("Using BOOGIE exe: '{}'", &boogie_exe);
+            info!("Using BOOGIE exe: '{}'", boogie_exe);
             assert!(
                 Path::new(&boogie_exe).is_file(),
                 "The BOOGIE_EXE environment variable ({boogie_exe:?}) does not point to a valid file."

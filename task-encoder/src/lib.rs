@@ -527,7 +527,7 @@ pub trait TaskEncoder {
                             output_ref: output_ref.clone(),
                             deps,
                             error: TaskEncoderError::EncodingError(err.clone()),
-                            output_dep: maybe_output_dep,
+                            output_dep: maybe_output_dep.map(|dep| *dep),
                             spans: vec![span],
                         },
                     )

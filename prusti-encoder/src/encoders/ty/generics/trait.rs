@@ -69,7 +69,7 @@ impl TaskEncoder for TraitEnc {
             let mut assoc_types = FxHashMap::default();
             let mut assoc_consts = FxHashMap::default();
 
-            for item in tcx.associated_items(task_key).in_definition_order() {
+            for item in tcx.associated_items(*task_key).in_definition_order() {
                 let item_did = item.def_id;
 
                 // item_generics also includes parameters of trait itself

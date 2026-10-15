@@ -110,16 +110,18 @@ fn main() {
 /// reexport specs if any of the `cargo-prusti`/`prusti-{rustc,driver}` changed, and so
 /// we manually force that here by deleting the `PRUSTI_LIBS` files.
 fn force_reexport_specs(target: &std::path::Path) {
-    let deps_dir = if cfg!(debug_assertions) {
-        target.join("debug").join("deps")
+    let profile_dir = if cfg!(debug_assertions) {
+        target.join("debug")
     } else {
-        target.join("release").join("deps")
+        target.join("release")
     };
-    if let Ok(files) = std::fs::read_dir(deps_dir) {
-        let libs =
-            prusti_utils::launch::PRUSTI_LIBS.map(|lib| format!("lib{}-", lib.replace('-', "_")));
-        for file in files {
-            let file = file.unwrap();
+    let libs =
+        prusti_utils::launch::PRUSTI_LIBS.map(|lib| format!("lib{}-", lib.replace('-', "_")));
+    for dir in prusti_utils::launch::build_unit_dirs(&profile_dir) {
+        let Ok(files) = std::fs::read_dir(dir) else {
+            continue;
+        };
+        for file in files.flatten() {
             let filename = file.file_name();
             let filename = filename.to_string_lossy();
             if libs.iter().any(|lib| filename.starts_with(lib)) {

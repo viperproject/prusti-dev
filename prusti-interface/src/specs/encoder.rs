@@ -1,6 +1,7 @@
 use std::{
     collections::hash_map::Entry,
-    io::{self, Error},
+    fs::File,
+    io::{self, Error, Seek, Write},
     path::{Path, PathBuf},
 };
 
@@ -8,7 +9,7 @@ use prusti_rustc_interface::{
     data_structures::fx::{FxHashMap, FxIndexSet},
     hir::def_id::{CrateNum, DefId, DefIndex, LOCAL_CRATE},
     middle::{
-        mir::interpret::AllocId,
+        mir::interpret::{self, AllocId},
         ty::{self, codec::TyEncoder, PredicateKind, Ty, TyCtxt},
     },
     serialize::{opaque, Encodable, Encoder},
@@ -17,6 +18,7 @@ use prusti_rustc_interface::{
         ByteSymbol, ExpnId, Span, SpanEncoder, StableSourceFileId, Symbol, SyntaxContext,
     },
 };
+use prusti_utils::launch::{SPECS_FORMAT_VERSION, SPECS_MAGIC};
 
 // Tags for encoding Symbol's
 pub(super) const SYMBOL_STR: u8 = 0;
@@ -29,7 +31,7 @@ pub(super) const BYTE_SYMBOL_PREINTERNED: u8 = 2;
 
 pub struct DefSpecsEncoder<'a, 'tcx> {
     tcx: TyCtxt<'tcx>,
-    opaque: opaque::FileEncoder,
+    opaque: opaque::FileEncoder<'a>,
     type_shorthands: FxHashMap<Ty<'tcx>, usize>,
     predicate_shorthands: FxHashMap<PredicateKind<'tcx>, usize>,
     interpret_allocs: FxIndexSet<AllocId>,
@@ -49,9 +51,17 @@ impl<'a, 'tcx> DefSpecsEncoder<'a, 'tcx> {
 
         let hygiene_context = HygieneEncodeContext::default();
 
+        let mut opaque = opaque::FileEncoder::new(path)?;
+        opaque.emit_raw_bytes(SPECS_MAGIC);
+        opaque.emit_raw_bytes(&SPECS_FORMAT_VERSION.to_le_bytes());
+        // Will be filled with the position of the allocation index after
+        // encoding everything (same as the crate root position in rustc's
+        // metadata encoder).
+        opaque.emit_raw_bytes(&0u64.to_le_bytes());
+
         let mut encoder = DefSpecsEncoder {
             tcx,
-            opaque: opaque::FileEncoder::new(path)?,
+            opaque,
             type_shorthands: Default::default(),
             predicate_shorthands: Default::default(),
             interpret_allocs: Default::default(),
@@ -61,13 +71,52 @@ impl<'a, 'tcx> DefSpecsEncoder<'a, 'tcx> {
         };
 
         meta.encode(&mut encoder);
-        encoder.finish().map_err(|e| e.1)
+        let alloc_index_pos = encoder.encode_interpret_alloc_index();
+        encoder.finish(alloc_index_pos).map_err(|e| e.1)
     }
 
-    pub fn finish(mut self) -> Result<(), (PathBuf, Error)> {
-        self.opaque.finish()?;
-        Ok(())
+    /// Encodes the allocations referenced by the already encoded data,
+    /// followed by an index with the position of each one (indexed like
+    /// `interpret_allocs`). Returns the position of that index.
+    /// Encoding an allocation can reference further allocations, so we loop
+    /// until no new ones show up (same as rustc's metadata encoder).
+    fn encode_interpret_alloc_index(&mut self) -> usize {
+        let tcx = self.tcx;
+        let mut alloc_index = Vec::new();
+        let mut n = 0;
+        while n < self.interpret_allocs.len() {
+            let new_n = self.interpret_allocs.len();
+            for idx in n..new_n {
+                let id = self.interpret_allocs[idx];
+                alloc_index.push(self.position() as u64);
+                interpret::specialized_encode_alloc_id(self, tcx, id);
+            }
+            n = new_n;
+        }
+        let alloc_index_pos = self.position();
+        alloc_index.encode(self);
+        alloc_index_pos
     }
+
+    pub fn finish(mut self, alloc_index_pos: usize) -> Result<(), (PathBuf, Error)> {
+        self.opaque.finish()?;
+        encode_alloc_index_position(self.opaque.file(), alloc_index_pos)
+            .map_err(|err| (self.opaque.path().to_path_buf(), err))
+    }
+}
+
+// Same as `encode_root_position` in rustc's metadata encoder
+fn encode_alloc_index_position(mut file: &File, pos: usize) -> Result<(), Error> {
+    // We will return to this position after writing the index position.
+    let pos_before_seek = file.stream_position()?;
+
+    let header = SPECS_MAGIC.len() + size_of_val(&SPECS_FORMAT_VERSION);
+    file.seek(io::SeekFrom::Start(header as u64))?;
+    file.write_all(&(pos as u64).to_le_bytes())?;
+
+    // Return to the position where we were before writing the index position.
+    file.seek(io::SeekFrom::Start(pos_before_seek))?;
+    Ok(())
 }
 
 // Taken from rustc:

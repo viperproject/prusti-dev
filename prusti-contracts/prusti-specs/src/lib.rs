@@ -1,8 +1,6 @@
 #![deny(unused_must_use)]
 #![feature(box_patterns)]
 #![feature(proc_macro_span)]
-#![feature(if_let_guard)]
-#![feature(assert_matches)]
 // This Clippy chcek seems to be always wrong.
 #![allow(clippy::iter_with_drain)]
 #![warn(clippy::disallowed_types)]
@@ -1122,7 +1120,7 @@ pub fn rewrite_prusti_attributes_for_types(
     }
 
     // we order the attributes to ensure a model attribute is processed first
-    prusti_attributes.sort_by(|(ak1, _), (ak2, _)| ak1.cmp(ak2));
+    prusti_attributes.sort_by_key(|(ak1, _)| *ak1);
 
     let (generated_spec_items, generated_attributes) = handle_result!(
         generate_spec_and_assertions_for_types(prusti_attributes, &mut item)

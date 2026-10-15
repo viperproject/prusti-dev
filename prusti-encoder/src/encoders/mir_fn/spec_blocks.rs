@@ -7,7 +7,7 @@ use prusti_rustc_interface::{
         fx::{FxHashMap, FxHashSet},
         graph::dominators::Dominators,
     },
-    hir,
+    hir::attrs::LangItem,
     middle::mir::{self, BasicBlock},
     span::{Span, def_id::DefId},
 };
@@ -195,8 +195,8 @@ impl SpecArms {
                     if dest.as_local() != Some(operand) {
                         return None;
                     }
-                    let (mir::Rvalue::Use(mir::Operand::Copy(source))
-                    | mir::Rvalue::Use(mir::Operand::Move(source))) = rvalue
+                    let (mir::Rvalue::Use(mir::Operand::Copy(source), _)
+                    | mir::Rvalue::Use(mir::Operand::Move(source), _)) = rvalue
                     else {
                         return None;
                     };
@@ -310,7 +310,7 @@ impl SpecArms {
             let mir::StatementKind::Assign(box (dest, rvalue)) = &statement.kind else {
                 continue;
             };
-            let mir::Rvalue::Use(mir::Operand::Constant(constant)) = rvalue else {
+            let mir::Rvalue::Use(mir::Operand::Constant(constant), _) = rvalue else {
                 continue;
             };
             if constant.ty().is_unit() {
@@ -811,7 +811,7 @@ impl<'enc, 'vir: 'enc> mir::visit::Visitor<'vir> for SpecVisitor<'enc, 'vir> {
                             .ty_adt_def()
                             .is_some_and(|adt| vcx
                                 .tcx()
-                                .is_lang_item(adt.did(), hir::LangItem::PhantomData)),
+                                .is_lang_item(adt.did(), LangItem::PhantomData)),
                         "closure spec marker: argument is not a `PhantomData`"
                     );
                     self.phantom_operands.push(local);

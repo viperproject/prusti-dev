@@ -3,10 +3,11 @@ use std::fmt::Debug;
 use crate::data::ProcedureDefId;
 use log::debug;
 use prusti_rustc_interface::{
-    hir::{hir_id::HirId, Attribute},
-    infer::infer::InferCtxt,
+    hir::{Attribute, HirId},
+    infer::infer::{InferCtxt, TypeFreshener},
     middle::ty::{
-        self, GenericArgsRef, ParamEnv, PredicatePolarity, TraitPredicate, TyCtxt, TypeVisitableExt,
+        self, GenericArgsRef, ParamEnv, PredicatePolarity, TraitPredicate, TyCtxt,
+        TypeVisitableExt, Unnormalized,
     },
     span::{
         def_id::{DefId, LocalDefId},
@@ -21,6 +22,7 @@ use prusti_rustc_interface::{
         },
     },
 };
+use rustc_type_ir::TypeFoldable;
 use sealed::{IntoParam, IntoParamTcx};
 
 #[derive(Copy, Clone)]
@@ -72,7 +74,7 @@ impl<'tcx> EnvQuery<'tcx> {
         if let Some(local_def_id) = def_id.as_local() {
             self.get_local_attributes(local_def_id)
         } else {
-            self.tcx.get_all_attrs(def_id)
+            self.tcx.attrs_for_def(def_id)
         }
     }
 
@@ -135,7 +137,7 @@ impl<'tcx> EnvQuery<'tcx> {
     pub fn is_trait_method_impl(self, def_id: impl IntoParam<ProcedureDefId>) -> bool {
         self.tcx
             .impl_of_assoc(def_id.into_param())
-            .and_then(|impl_id| self.tcx.trait_id_of_impl(impl_id))
+            .and_then(|impl_id| self.tcx.impl_opt_trait_id(impl_id))
             .is_some()
     }
 
@@ -144,6 +146,7 @@ impl<'tcx> EnvQuery<'tcx> {
         self.tcx
             .fn_sig(def_id.into_param())
             .instantiate_identity()
+            .skip_normalization()
             .safety()
             == prusti_rustc_interface::hir::Safety::Unsafe
     }
@@ -156,11 +159,11 @@ impl<'tcx> EnvQuery<'tcx> {
     ) -> ty::PolyFnSig<'tcx> {
         let def_id = def_id.into_param();
         let sig = if self.tcx.is_closure_like(def_id) {
-            ty::EarlyBinder::bind(substs.as_closure().sig())
+            ty::EarlyBinder::bind(self.tcx, substs.as_closure().sig())
         } else {
             self.tcx.fn_sig(def_id)
         };
-        sig.instantiate(self.tcx, substs)
+        sig.instantiate(self.tcx, substs).skip_normalization()
     }
 
     /// Computes the signature of the function with subst applied and associated types resolved.
@@ -190,7 +193,7 @@ impl<'tcx> EnvQuery<'tcx> {
     ) -> Option<(ProcedureDefId, GenericArgsRef<'tcx>)> {
         let impl_method_def_id = impl_method_def_id.into_param();
         let impl_def_id = self.tcx.impl_of_assoc(impl_method_def_id)?;
-        let trait_ref = self.tcx.impl_trait_ref(impl_def_id)?.skip_binder();
+        let trait_ref = self.tcx.impl_opt_trait_ref(impl_def_id)?.skip_binder();
 
         // At this point, we know that the given method:
         // - belongs to an impl block and
@@ -234,11 +237,12 @@ impl<'tcx> EnvQuery<'tcx> {
         // above) with call substs, so that we get the trait's type parameters
         // more precisely. We can do this directly with `impl_method_substs`
         // because they contain the substs for the `impl` block as a prefix.
-        let call_trait_substs =
-            ty::EarlyBinder::bind(trait_ref.args).instantiate(self.tcx, impl_method_substs);
+        let call_trait_substs = ty::EarlyBinder::bind(self.tcx, trait_ref.args)
+            .instantiate(self.tcx, impl_method_substs);
         let impl_substs = self.identity_substs(impl_def_id);
         let trait_method_substs = self.tcx.mk_args_from_iter(
             call_trait_substs
+                .skip_normalization()
                 .iter()
                 .chain(impl_method_substs.iter().skip(impl_substs.len())),
         );
@@ -278,7 +282,7 @@ impl<'tcx> EnvQuery<'tcx> {
             !substs.has_non_region_infer(),
             "trait selection on substs with inference variables: {substs:?}"
         );
-        let substs = self.tcx.erase_regions(substs);
+        let substs = self.tcx.erase_and_anonymize_regions(substs);
         let infcx = self.infer_ctxt();
         let mut sc = SelectionContext::new(&infcx);
         let trait_ref = ty::TraitRef::new(self.tcx, trait_id, substs);
@@ -311,7 +315,7 @@ impl<'tcx> EnvQuery<'tcx> {
         let typing_env = ty::TypingEnv::post_analysis(self.tcx, caller_def_id.into_param());
         let impl_def_id = self.find_trait_impl_of_method_call(typing_env, proc_def_id, substs)?;
         for item in self.tcx.associated_items(impl_def_id).in_definition_order() {
-            if let Some(id) = item.trait_item_def_id {
+            if let Some(id) = item.trait_item_def_id() {
                 if id == proc_def_id {
                     return Some(item.def_id);
                 }
@@ -372,7 +376,7 @@ impl<'tcx> EnvQuery<'tcx> {
 
         (|| {
             // trait resolution does not depend on lifetimes, and in fact fails in the presence of uninferred regions
-            let clean_substs = self.tcx.erase_regions(call_substs);
+            let clean_substs = self.tcx.erase_and_anonymize_regions(call_substs);
 
             let typing_env = ty::TypingEnv::post_analysis(self.tcx, caller_def_id.into_param());
             let instance = self
@@ -403,13 +407,10 @@ impl<'tcx> EnvQuery<'tcx> {
         param_env: impl IntoParamTcx<'tcx, ParamEnv<'tcx>>,
     ) -> bool {
         let param_env = param_env.into_param(self.tcx);
-        let typing_env = ty::TypingEnv {
-            param_env,
-            typing_mode: ty::TypingMode::PostAnalysis,
-        };
+        let typing_env = ty::TypingEnv::new(param_env, ty::TypingMode::PostAnalysis);
         // Normalize the type to account for associated types
         let ty = self.resolve_assoc_types(ty, param_env).skip_binder();
-        let ty = self.tcx.erase_regions_ty(ty);
+        let ty = self.tcx.erase_and_anonymize_regions(ty);
         self.tcx.is_copy_raw(typing_env.as_query_input(ty))
     }
 
@@ -439,6 +440,7 @@ impl<'tcx> EnvQuery<'tcx> {
     ) -> bool {
         assert!(self.tcx.is_trait(trait_def_id));
         let infcx = self.infer_ctxt();
+        let mut type_freshener = TypeFreshener::new(&infcx);
         infcx
             .type_implements_trait(
                 trait_def_id,
@@ -446,7 +448,9 @@ impl<'tcx> EnvQuery<'tcx> {
                 // the freshly-created `InferCtxt` (i.e. `tcx.infer_ctxt().enter(..)`) will cause
                 // a panic, since those inference variables don't exist in the new `InferCtxt`.
                 // See: https://rust-lang.zulipchat.com/#narrow/stream/182449-t-compiler.2Fhelp/topic/.E2.9C.94.20Panic.20in.20is_copy_modulo_regions
-                trait_substs.into_iter().map(|ty| infcx.freshen(ty.into())),
+                trait_substs
+                    .into_iter()
+                    .map(|ty| ty.into().fold_with(&mut type_freshener)),
                 param_env.into_param(self.tcx),
             )
             .must_apply_considering_regions()
@@ -494,13 +498,10 @@ impl<'tcx> EnvQuery<'tcx> {
         param_env: impl IntoParamTcx<'tcx, ParamEnv<'tcx>> + Debug,
     ) -> T {
         let param_env = param_env.into_param(self.tcx);
-        let typing_env = ty::TypingEnv {
-            param_env,
-            typing_mode: ty::TypingMode::PostAnalysis,
-        };
+        let typing_env = ty::TypingEnv::new(param_env, ty::TypingMode::PostAnalysis);
         let norm_res = self
             .tcx
-            .try_normalize_erasing_regions(typing_env, normalizable);
+            .try_normalize_erasing_regions(typing_env, Unnormalized::new(normalizable));
 
         match norm_res {
             Ok(normalized) => {
@@ -517,7 +518,7 @@ impl<'tcx> EnvQuery<'tcx> {
 
 mod sealed {
     use prusti_rustc_interface::{
-        hir::hir_id::{HirId, OwnerId},
+        hir::{HirId, OwnerId},
         middle::ty::{ParamEnv, TyCtxt},
         span::def_id::{DefId, LocalDefId},
     };

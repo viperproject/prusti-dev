@@ -173,11 +173,11 @@ impl<'tcx> EnvBody<'tcx> {
         {
             let typing_env = TypingEnv::post_analysis(self.tcx, caller_def_id.unwrap_or(def_id));
             // TODO: figure out some other way to substitute without losing the region information
-            let body = self.tcx.erase_regions((*body.0).clone());
+            let body = self.tcx.erase_and_anonymize_regions((*body.0).clone());
             let monomorphised = self.tcx.instantiate_and_normalize_erasing_regions(
                 substs,
                 typing_env,
-                ty::EarlyBinder::bind(body),
+                ty::EarlyBinder::bind(self.tcx, body),
             );
             v.insert(MirBody(Rc::new(monomorphised))).clone()
         } else {

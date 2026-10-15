@@ -18,7 +18,7 @@ use prusti_rustc_interface::{
         mir,
         ty::{self, TyKind},
     },
-    span::{Span, def_id::DefId, source_map::Spanned},
+    span::{Span, Spanned, def_id::DefId},
 };
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::fmt;
@@ -360,6 +360,7 @@ impl<'vir: 'enc, 'enc> PureRvalueEnc<'vir> for Enc<'vir, 'enc> {
             mir::Operand::Constant(box constant) => {
                 self.encode_constant_snap(constant)?.upcast_ty().lift()
             }
+            mir::Operand::RuntimeChecks(_) => todo!(),
         })
     }
 }
@@ -995,7 +996,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
     ) -> EncodeResult<'vir, ExprRet<'vir>, MirPureEnc> {
         let rvalue_ty = rvalue.ty(self.body, self.vcx.tcx());
         match rvalue {
-            mir::Rvalue::Use(op) => self.encode_operand_snap(op, curr_ver),
+            mir::Rvalue::Use(op, _) => self.encode_operand_snap(op, curr_ver),
             mir::Rvalue::Ref(_, kind, place) => {
                 let rvalue_snapshot_encoding = self.ty_use(rvalue_ty);
                 // Reading a mutable reference's referent needs an address
@@ -1073,7 +1074,6 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .encode_cast_snap(rvalue_ty, *kind, operand, curr_ver)?
                     .1)
             }
-            mir::Rvalue::Len(place) => self.encode_len_snap((*place).into(), curr_ver),
             mir::Rvalue::RawPtr(_, place) => {
                 let encoded_place = self.encode_place_with_ref(curr_ver, (*place).into())?;
                 // As for `Rvalue::Ref`: a raw pointer built in pure code never

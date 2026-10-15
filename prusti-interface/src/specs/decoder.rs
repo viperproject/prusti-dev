@@ -5,6 +5,7 @@ use prusti_rustc_interface::{
     hir::def_id::{CrateNum, DefId, DefIndex, DefPathHash},
     middle::{
         implement_ty_decoder,
+        mir::interpret::{AllocDecodingSession, AllocDecodingState, AllocId},
         ty::{codec::TyDecoder, Ty, TyCtxt},
     },
     serialize::{opaque, Decodable, Decoder},
@@ -13,20 +14,69 @@ use prusti_rustc_interface::{
         BytePos, ByteSymbol, ExpnId, Span, SpanDecoder, StableSourceFileId, Symbol, SyntaxContext,
     },
 };
+use prusti_utils::launch::{SPECS_FORMAT_VERSION, SPECS_MAGIC};
 use rustc_hash::FxHashMap;
+
+use prusti_rustc_interface::{middle::ty::InternerDecoder, span::BlobDecoder};
 
 pub struct DefSpecsDecoder<'a, 'tcx> {
     opaque: opaque::MemDecoder<'a>,
     tcx: TyCtxt<'tcx>,
     ty_rcache: FxHashMap<usize, Ty<'tcx>>,
+    alloc_decoding_session: AllocDecodingSession<'a>,
+}
+
+/// Size of the header written by `DefSpecsEncoder::serialize`: magic bytes,
+/// format version and position of the allocation index.
+const HEADER_LEN: usize = SPECS_MAGIC.len() + size_of::<u32>() + size_of::<u64>();
+
+fn invalid_data(msg: impl Into<String>) -> io::Error {
+    io::Error::new(io::ErrorKind::InvalidData, msg.into())
 }
 
 impl<'a, 'tcx> DefSpecsDecoder<'a, 'tcx> {
-    pub fn new(tcx: TyCtxt<'tcx>, data: &'a [u8]) -> io::Result<Self> {
+    /// Checks the header and reads the allocation index (see
+    /// `DefSpecsEncoder::serialize`). Like in rustc's metadata decoder, the
+    /// resulting state is owned by the caller and borrowed by the decoder.
+    pub fn alloc_decoding_state(data: &[u8]) -> io::Result<AllocDecodingState> {
+        let stale = || {
+            invalid_data(format!(
+                "the file was not written by this version of Prusti (expected specs format \
+                 version {SPECS_FORMAT_VERSION}); run `cargo clean` to rebuild it"
+            ))
+        };
+        let header = data.get(..HEADER_LEN).ok_or_else(stale)?;
+        let (magic, rest) = header.split_at(SPECS_MAGIC.len());
+        let (version, pos) = rest.split_at(size_of::<u32>());
+        if magic != SPECS_MAGIC
+            || u32::from_le_bytes(version.try_into().unwrap()) != SPECS_FORMAT_VERSION
+        {
+            return Err(stale());
+        }
+        let pos = u64::from_le_bytes(pos.try_into().unwrap()) as usize;
+
+        let decoder = opaque::MemDecoder::new(data, 0)
+            .map_err(|_| invalid_data("missing end-of-file marker"))?;
+        if !(HEADER_LEN..decoder.len()).contains(&pos) {
+            return Err(invalid_data("allocation index position out of bounds"));
+        }
+        Ok(AllocDecodingState::new(Vec::<u64>::decode(
+            &mut decoder.split_at(pos),
+        )))
+    }
+
+    pub fn new(
+        tcx: TyCtxt<'tcx>,
+        data: &'a [u8],
+        alloc_decoding_state: &'a AllocDecodingState,
+    ) -> io::Result<Self> {
         Ok(DefSpecsDecoder {
-            opaque: opaque::MemDecoder::new(data, 0).unwrap(),
+            // Skip the header
+            opaque: opaque::MemDecoder::new(data, HEADER_LEN)
+                .map_err(|_| invalid_data("missing end-of-file marker"))?,
             tcx,
             ty_rcache: Default::default(),
+            alloc_decoding_session: alloc_decoding_state.new_decoding_session(),
         })
     }
 }
@@ -36,22 +86,7 @@ impl<'a, 'tcx> DefSpecsDecoder<'a, 'tcx> {
 //const TAG_FULL_SPAN: u8 = 0;
 //const TAG_PARTIAL_SPAN: u8 = 1;
 
-impl<'a, 'tcx> SpanDecoder for DefSpecsDecoder<'a, 'tcx> {
-    fn decode_span(&mut self) -> Span {
-        let sm = self.tcx.sess.source_map();
-        let pos = [(); 2].map(|_| {
-            let ssfi = StableSourceFileId::decode(self);
-            let rel_bp = BytePos::decode(self);
-            sm.source_file_by_stable_id(ssfi)
-                // See comment in 'encoder.rs'
-                .map(|sf| sf.start_pos + rel_bp)
-                // This should hopefully never fail,
-                // so maybe could be an `unwrap` instead?
-                .unwrap_or(BytePos(0))
-        });
-        Span::new(pos[0], pos[1], SyntaxContext::root(), None)
-    }
-
+impl<'a, 'tcx> BlobDecoder for DefSpecsDecoder<'a, 'tcx> {
     fn decode_symbol(&mut self) -> Symbol {
         let tag = self.read_u8();
 
@@ -80,32 +115,8 @@ impl<'a, 'tcx> SpanDecoder for DefSpecsDecoder<'a, 'tcx> {
         }
     }
 
-    fn decode_expn_id(&mut self) -> ExpnId {
-        todo!()
-    }
-
-    fn decode_syntax_context(&mut self) -> SyntaxContext {
-        todo!()
-    }
-
-    fn decode_crate_num(&mut self) -> CrateNum {
-        let stable_id = StableCrateId::decode(self);
-        self.tcx.stable_crate_id_to_crate_num(stable_id)
-    }
     fn decode_def_index(&mut self) -> DefIndex {
         panic!("trying to decode `DefIndex` outside the context of a `DefId`")
-    }
-
-    // Both the `CrateNum` and the `DefIndex` of a `DefId` can change in between two
-    // compilation sessions. We use the `DefPathHash`, which is stable across
-    // sessions, to map the old `DefId` to the new one.
-    fn decode_def_id(&mut self) -> DefId {
-        let def_path_hash = DefPathHash::decode(self);
-        self.tcx.def_path_hash_to_def_id(def_path_hash).unwrap()
-    }
-
-    fn decode_attr_id(&mut self) -> AttrId {
-        todo!()
     }
 
     fn decode_byte_symbol(&mut self) -> ByteSymbol {
@@ -137,14 +148,60 @@ impl<'a, 'tcx> SpanDecoder for DefSpecsDecoder<'a, 'tcx> {
     }
 }
 
+impl<'a, 'tcx> SpanDecoder for DefSpecsDecoder<'a, 'tcx> {
+    fn decode_span(&mut self) -> Span {
+        let sm = self.tcx.sess.source_map();
+        let pos = [(); 2].map(|_| {
+            let ssfi = StableSourceFileId::decode(self);
+            let rel_bp = BytePos::decode(self);
+            sm.source_file_by_stable_id(ssfi)
+                // See comment in 'encoder.rs'
+                .map(|sf| sf.start_pos + rel_bp)
+                // This should hopefully never fail,
+                // so maybe could be an `unwrap` instead?
+                .unwrap_or(BytePos(0))
+        });
+        Span::new(pos[0], pos[1], SyntaxContext::root(), None)
+    }
+
+    fn decode_expn_id(&mut self) -> ExpnId {
+        todo!()
+    }
+
+    fn decode_syntax_context(&mut self) -> SyntaxContext {
+        todo!()
+    }
+
+    fn decode_crate_num(&mut self) -> CrateNum {
+        let stable_id = StableCrateId::decode(self);
+        self.tcx.stable_crate_id_to_crate_num(stable_id)
+    }
+
+    // Both the `CrateNum` and the `DefIndex` of a `DefId` can change in between two
+    // compilation sessions. We use the `DefPathHash`, which is stable across
+    // sessions, to map the old `DefId` to the new one.
+    fn decode_def_id(&mut self) -> DefId {
+        let def_path_hash = DefPathHash::decode(self);
+        self.tcx.def_path_hash_to_def_id(def_path_hash).unwrap()
+    }
+
+    fn decode_attr_id(&mut self) -> AttrId {
+        todo!()
+    }
+}
+
 implement_ty_decoder!(DefSpecsDecoder<'a, 'tcx>);
 
-impl<'a, 'tcx> TyDecoder<'tcx> for DefSpecsDecoder<'a, 'tcx> {
-    const CLEAR_CROSS_CRATE: bool = true;
+impl<'a, 'tcx> InternerDecoder for DefSpecsDecoder<'a, 'tcx> {
+    type Interner = TyCtxt<'tcx>;
 
     fn interner(&self) -> TyCtxt<'tcx> {
         self.tcx
     }
+}
+
+impl<'a, 'tcx> TyDecoder<'tcx> for DefSpecsDecoder<'a, 'tcx> {
+    const CLEAR_CROSS_CRATE: bool = true;
 
     fn cached_ty_for_shorthand<F>(&mut self, shorthand: usize, or_insert_with: F) -> Ty<'tcx>
     where
@@ -170,7 +227,8 @@ impl<'a, 'tcx> TyDecoder<'tcx> for DefSpecsDecoder<'a, 'tcx> {
         r
     }
 
-    fn decode_alloc_id(&mut self) -> rustc_middle::mir::interpret::AllocId {
-        unimplemented!("decode_alloc_id")
+    fn decode_alloc_id(&mut self) -> AllocId {
+        let ads = self.alloc_decoding_session;
+        ads.decode_alloc_id(self)
     }
 }

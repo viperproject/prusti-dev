@@ -1,8 +1,9 @@
 use crate::{
     environment::Environment,
     utils::{
-        has_abstract_predicate_attr, has_extern_spec_attr, has_prusti_attr, has_to_model_fn_attr,
-        prusti_annotation_spans, read_prusti_attr, read_prusti_attrs,
+        get_prusti_attr_of, has_abstract_predicate_attr, has_extern_spec_attr, has_prusti_attr,
+        has_to_model_fn_attr, prusti_annotation_spans, read_prusti_attr, read_prusti_attr_value,
+        read_prusti_attrs,
     },
     PrustiError,
 };
@@ -152,7 +153,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         let Some(impl_def_id) = tcx.impl_of_assoc(method_def_id) else {
             return;
         };
-        if tcx.impl_trait_ref(impl_def_id).is_none() {
+        if tcx.impl_opt_trait_ref(impl_def_id).is_none() {
             return;
         }
         let Some(impl_local) = impl_def_id.as_local() else {
@@ -499,8 +500,9 @@ fn parse_spec_id(spec_id: String, def_id: DefId) -> SpecificationId {
 /// Returns true iff def_id points to a spec function (i.e. a function for
 /// which we don't need polonius/borrowck facts)
 pub fn is_spec_fn(tcx: ty::TyCtxt, def_id: DefId) -> bool {
-    let attrs = tcx.get_all_attrs(def_id);
-    read_prusti_attr("spec_id", attrs).is_some()
+    get_prusti_attr_of(tcx, def_id, "spec_id")
+        .and_then(read_prusti_attr_value)
+        .is_some()
 }
 
 /// Returns true iff def_id points to a specification-only item: a spec
@@ -511,8 +513,11 @@ pub fn is_spec_fn(tcx: ty::TyCtxt, def_id: DefId) -> bool {
 pub fn is_spec_item(tcx: ty::TyCtxt, def_id: DefId) -> bool {
     let mut def_id = def_id;
     loop {
-        let attrs = tcx.get_all_attrs(def_id);
-        if has_prusti_attr(attrs, "spec_only") || read_prusti_attr("spec_id", attrs).is_some() {
+        if get_prusti_attr_of(tcx, def_id, "spec_only").is_some()
+            || get_prusti_attr_of(tcx, def_id, "spec_id")
+                .and_then(read_prusti_attr_value)
+                .is_some()
+        {
             return true;
         }
         if !tcx.is_closure_like(def_id) {

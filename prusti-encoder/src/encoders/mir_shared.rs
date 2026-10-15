@@ -9,7 +9,7 @@ use crate::encoders::{
     r#const::ConstEncTask,
     ty::{
         RustTyDecomposition,
-        generics::{GArgs, GArgsTyEnc, GParams},
+        generics::{GArgs, GParams},
         use_pure::TyUsePure,
     },
 };
@@ -17,7 +17,7 @@ use prusti_rustc_interface::{
     abi,
     index::IndexVec,
     middle::{mir, ty},
-    span::{Span, def_id::DefId, source_map::Spanned, sym},
+    span::{Span, Spanned, def_id::DefId, sym},
 };
 
 #[allow(type_alias_bounds)]
@@ -241,7 +241,7 @@ pub(crate) trait PureRvalueEnc<'vir> {
                 def_id,
                 args: gargs,
                 is_pure,
-                span: Some(span).filter(|_| !is_pure),
+                span: (!is_pure).then_some(span),
             })?;
         let operands = args
             .iter()
@@ -267,29 +267,6 @@ pub(crate) trait PureRvalueEnc<'vir> {
             _ => e_rvalue_ty.expect_structlike(),
         };
         Ok(sl.field_snaps_to_snap(encoded_fields).upcast_ty())
-    }
-
-    // TODO: this is removed in the latest rustc version
-    fn encode_len_snap(
-        &mut self,
-        place: Place<'vir>,
-        _ctxt: &Self::EncodePlaceCtxt,
-    ) -> ExprResult<'vir, Self> {
-        let place_ty = (*place).ty(self.body(), self.vcx().tcx());
-        assert!(place_ty.variant_index.is_none());
-        match place_ty.ty.kind() {
-            ty::TyKind::Array(..) => {
-                // An array's length is its (static) const generic argument.
-                let decomp = RustTyDecomposition::from_ty(place_ty.ty, self.context());
-                let generics = self.deps().require_dep::<GArgsTyEnc>(decomp.args)?;
-                Ok(generics.get_const()[0].upcast_ty())
-            }
-            // A slice's length is its fat-pointer metadata, which is carried by the
-            // (wide) reference the place is reached through, not by the slice place
-            // itself; slice `.len()` is instead handled via `PrustiBuiltin::SliceLen`.
-            ty::TyKind::Slice(..) => todo!("Rvalue::Len on a slice place"),
-            kind => unreachable!("Rvalue::Len on non-array/slice type {kind:?}"),
-        }
     }
 
     fn encode_intrinsic(
