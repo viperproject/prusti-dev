@@ -357,7 +357,19 @@ impl TraitImplEnc {
             .flat_map(|arg| arg.walk().filter_map(generic_idx))
             .collect();
 
-        let produced = projection.term.walk().filter_map(generic_idx).collect();
+        // Generics nested inside an alias are not bound by
+        // `discover_bind_points`, so they must not count as produced.
+        let mut produced = FxIndexSet::default();
+        let mut walker = projection.term.walk();
+        while let Some(arg) = walker.next() {
+            if let ty::GenericArgKind::Type(ty) = arg.kind()
+                && let ty::TyKind::Alias(..) = ty.kind()
+            {
+                walker.skip_current_subtree();
+                continue;
+            }
+            produced.extend(generic_idx(arg));
+        }
 
         (required, produced)
     }
