@@ -81,6 +81,15 @@ fn main() {
     let mut cmd = Command::new(cargo_prusti_to_run);
     cmd.env("CARGO_TARGET_DIR", target.as_os_str());
     cmd.current_dir(&prusti_contracts);
+    // Restrict to the `prusti-contracts` package: building the whole workspace
+    // (the default) also builds `prusti-contracts-proc-macros` as its own
+    // top-level unit, in addition to the separate unit Cargo builds for it as
+    // a host-side dependency of `prusti-contracts`. The two units can end up
+    // with different `Profile`s (and hence different build-dir hashes), and
+    // Cargo's uplift of the proc-macro artifact to the flat, unhashed path in
+    // `target_dir` isn't guaranteed to pick the one actually linked into
+    // `prusti-contracts`'s rlib -- which is the one `x.py package` ships.
+    cmd.args(["-p", "prusti-contracts"]);
     if !cfg!(debug_assertions) {
         cmd.arg("--release");
     }
