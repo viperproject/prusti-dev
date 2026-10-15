@@ -206,7 +206,7 @@ pub fn find_trait_method_substs<'tcx>(
     impl_method_substs: &'tcx [GenericArg<'tcx>], // what are the substs on the call?
 ) -> Option<(ProcedureDefId, &'tcx [GenericArg<'tcx>])> {
     let impl_def_id = tcx.impl_of_assoc(impl_method_def_id)?;
-    let trait_ref = tcx.impl_trait_ref(impl_def_id)?.skip_binder();
+    let trait_ref = tcx.impl_opt_trait_ref(impl_def_id)?.skip_binder();
 
     // At this point, we know that the given method:
     // - belongs to an impl block and
@@ -249,10 +249,11 @@ pub fn find_trait_method_substs<'tcx>(
     // above) with call substs, so that we get the trait's type parameters
     // more precisely.
     let call_trait_substs =
-        ty::EarlyBinder::bind(trait_ref.args).instantiate(tcx, impl_method_substs);
+        ty::EarlyBinder::bind(tcx, trait_ref.args).instantiate(tcx, impl_method_substs);
     let impl_substs = ty::List::identity_for_item(tcx, impl_def_id);
     let trait_method_substs = tcx.mk_args_from_iter(
         call_trait_substs
+            .skip_normalization()
             .iter()
             .chain(impl_method_substs.iter().copied().skip(impl_substs.len())),
     );

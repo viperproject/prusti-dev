@@ -58,22 +58,25 @@ impl TaskEncoder for TraitImplEnc {
 
             let impl_context = GParams::from(*task_key);
 
-            let trait_ref = tcx.impl_trait_ref(task_key).unwrap().instantiate_identity();
-            let trait_did = trait_ref.def_id;
+            let trait_ref = tcx.impl_trait_ref(*task_key).instantiate_identity();
+            let trait_did = trait_ref.skip_normalization().def_id;
             let trait_data = deps.require_ref::<TraitEnc>(trait_did)?;
             let trait_name = trait_data.trait_name;
 
             let mut methods = Vec::new();
 
-            let implementing_ty = tcx.type_of(task_key).instantiate_identity();
+            let implementing_ty = tcx
+                .type_of(*task_key)
+                .instantiate_identity()
+                .skip_normalization();
             let implementing_ty = RustTyDecomposition::from_ty(implementing_ty, impl_context);
             let implementing_ty = implementing_ty.ty.name();
 
-            for impl_item in tcx.associated_items(task_key).in_definition_order() {
+            for impl_item in tcx.associated_items(*task_key).in_definition_order() {
                 let ty::AssocKind::Fn { .. } = impl_item.kind else {
                     continue;
                 };
-                let trait_item_def_id = impl_item.trait_item_def_id.unwrap();
+                let trait_item_def_id = impl_item.trait_item_def_id().unwrap();
                 let impl_item_def_id = impl_item.def_id;
                 let impl_span = vcx.tcx().def_span(impl_item_def_id);
                 let item_name = ViperIdent::from_def_id(vcx, impl_item_def_id);
@@ -294,7 +297,10 @@ impl TaskEncoder for TraitImplConditionEnc {
             let impl_name = impl_name(vcx, *task_key);
 
             let impl_context = GParams::from(*task_key);
-            let trait_ref = tcx.impl_trait_ref(task_key).unwrap().instantiate_identity();
+            let trait_ref = tcx
+                .impl_trait_ref(*task_key)
+                .instantiate_identity()
+                .skip_normalization();
             let trait_ = deps.require_ref::<TraitEnc>(trait_ref.def_id)?;
             let args = deps.require_dep::<GArgsTyEnc>(GArgs::new(impl_context, trait_ref.args))?;
             let impl_check = (trait_.impl_fun)(args.get_ty(), args.get_const());
@@ -526,7 +532,10 @@ impl TraitImplEnc {
                 ty::TermKind::Const(const_) => {
                     let projection =
                         trait_.assoc_consts[&proj_pred.def_id()](gargs.get_ty(), gargs.get_const());
-                    let ty = tcx.type_of(proj_pred.def_id()).instantiate_identity();
+                    let ty = tcx
+                        .type_of(proj_pred.def_id())
+                        .instantiate_identity()
+                        .skip_normalization();
                     let const_task = ConstEncTask::Ty {
                         const_,
                         ty,
@@ -606,8 +615,8 @@ impl TraitImplEnc {
         let trait_ref = vcx
             .tcx()
             .impl_trait_ref(impl_did)
-            .unwrap()
-            .instantiate_identity();
+            .instantiate_identity()
+            .skip_normalization();
         let item_args = &item_ctx.rust_params()[impl_ctx.rust_params().len()..];
         let pinned = trait_ref.args.iter().chain(item_args.iter().copied());
 
@@ -704,8 +713,8 @@ impl TraitImplEnc {
         let trait_ref = vcx
             .tcx()
             .impl_trait_ref(impl_did)
-            .unwrap()
-            .instantiate_identity();
+            .instantiate_identity()
+            .skip_normalization();
 
         let mut bind_points = FxIndexMap::default();
         for (&expr, ty) in std::iter::zip(trait_tys, trait_ref.args.types()) {
@@ -778,7 +787,7 @@ pub(super) fn final_leaf_def(
     trait_item: DefId,
 ) -> Option<specialization_graph::LeafDef> {
     debug_assert!(implements_trait(tcx, impl_did));
-    let trait_did = tcx.impl_trait_ref(impl_did).unwrap().skip_binder().def_id;
+    let trait_did = tcx.impl_trait_ref(impl_did).skip_binder().def_id;
     specialization_graph::ancestors(tcx, trait_did, impl_did)
         .ok()?
         .leaf_def(tcx, trait_item)
@@ -792,9 +801,12 @@ fn impl_name<'vir>(vcx: &'vir vir::VirCtxt<'vir>, impl_did: DefId) -> &'vir str 
     let all_impls = tcx.trait_impls_in_crate(impl_did.krate);
     let idx = all_impls.iter().position(|did| *did == impl_did).unwrap();
     let krate = tcx.crate_name(impl_did.krate);
-    let trait_did = tcx.impl_trait_ref(impl_did).unwrap().skip_binder().def_id;
+    let trait_did = tcx.impl_trait_ref(impl_did).skip_binder().def_id;
     let trait_name = ViperIdent::from_def_id(vcx, trait_did);
-    let implementing_ty = tcx.type_of(impl_did).instantiate_identity();
+    let implementing_ty = tcx
+        .type_of(impl_did)
+        .instantiate_identity()
+        .skip_normalization();
     let implementing_ty = RustTyDecomposition::from_ty(implementing_ty, GParams::from(impl_did));
     let implementing_ty = implementing_ty.ty.name();
     vir::vir_format!(vcx, "{trait_name}_impl_{krate}_{implementing_ty}_{idx}")
@@ -815,7 +827,10 @@ fn impl_name<'vir>(vcx: &'vir vir::VirCtxt<'vir>, impl_did: DefId) -> &'vir str 
 pub(super) fn impl_unlock_keys<'vir>(impl_did: DefId) -> Vec<RustTy<'vir>> {
     vir::with_vcx(|vcx| {
         let tcx = vcx.tcx();
-        let impl_trait_ref = tcx.impl_trait_ref(impl_did).unwrap().instantiate_identity();
+        let impl_trait_ref = tcx
+            .impl_trait_ref(impl_did)
+            .instantiate_identity()
+            .skip_normalization();
         fn collect_ctor_keys<'vir>(ty: ty::Ty<'vir>, ctx: DefId, out: &mut Vec<RustTy<'vir>>) {
             let decomp = RustTyDecomposition::from_ty(ty, ctx);
             if decomp.ty.specifics.is_param() {
@@ -878,14 +893,17 @@ impl TaskEncoder for TraitImplItemEnc {
             let (applying_impl, impl_item_def_id) = *task_key;
             let impl_did = tcx.impl_of_assoc(impl_item_def_id).unwrap();
             let impl_item = tcx.associated_item(impl_item_def_id);
-            let trait_item_def_id = impl_item.trait_item_def_id.unwrap();
+            let trait_item_def_id = impl_item.trait_item_def_id().unwrap();
             let impl_span = tcx.def_span(impl_item_def_id);
             let item_name = ViperIdent::from_def_id(vcx, impl_item_def_id);
             let impl_name = impl_name(vcx, applying_impl);
 
             let impl_context = GParams::from(impl_did);
             let impl_params = deps.require_dep::<GenericParamsEnc>(impl_context)?;
-            let trait_ref = tcx.impl_trait_ref(impl_did).unwrap().instantiate_identity();
+            let trait_ref = tcx
+                .impl_trait_ref(impl_did)
+                .instantiate_identity()
+                .skip_normalization();
 
             let impl_item_context = GParams::from(impl_item_def_id);
             let impl_item_params = deps.require_dep::<GenericParamsEnc>(impl_item_context)?;
@@ -957,7 +975,9 @@ impl TaskEncoder for TraitImplItemEnc {
                     let assoc_type_expr = impl_item_params.ty_expr(
                         deps,
                         RustTyDecomposition::from_ty(
-                            tcx.type_of(impl_item_def_id).instantiate_identity(),
+                            tcx.type_of(impl_item_def_id)
+                                .instantiate_identity()
+                                .skip_normalization(),
                             impl_item_context,
                         ),
                     )?;
@@ -1137,8 +1157,8 @@ impl TaskEncoder for TraitImplDefaultFnEnc {
             let trait_ref = vcx
                 .tcx()
                 .impl_trait_ref(impl_did)
-                .unwrap()
-                .instantiate_identity();
+                .instantiate_identity()
+                .skip_normalization();
 
             // The trait fn's parameters: the trait's, then the fn's own.
             let item_params = GParams::from(trait_fn);

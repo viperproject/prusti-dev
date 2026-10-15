@@ -1187,7 +1187,7 @@ mod tests {
     }
 
     mod type_cond_specs {
-        use std::assert_matches::assert_matches;
+        use std::assert_matches;
 
         use super::*;
 

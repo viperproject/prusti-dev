@@ -2,8 +2,6 @@
 #![feature(associated_type_defaults)]
 #![feature(box_patterns)]
 #![feature(never_type)]
-#![feature(allocator_api)]
-#![feature(if_let_guard)]
 #![allow(clippy::needless_lifetimes)]
 
 mod encoders;

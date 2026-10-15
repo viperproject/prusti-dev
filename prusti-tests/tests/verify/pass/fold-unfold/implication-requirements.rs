@@ -1,7 +1,8 @@
 //! From https://github.com/viperproject/prusti-dev/issues/471
+#![feature(allocator_api)]
 
 use prusti_contracts::*;
-use std::collections::HashSet;
+use std::{alloc::Allocator, collections::HashSet};
 
 struct TwoPSet {
     add_set: HashSet<u64>,
@@ -9,10 +10,11 @@ struct TwoPSet {
 }
 
 #[extern_spec]
-impl<T, S> HashSet<T, S>
+impl<T, S, A> HashSet<T, S, A>
 where
     T: Eq + std::hash::Hash,
     S: std::hash::BuildHasher,
+    A: Allocator,
 {
     #[trusted]
     #[pure]

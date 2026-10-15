@@ -81,7 +81,7 @@ fn parse_predicate_internal(
     in_spec_refinement: bool,
 ) -> syn::Result<ParsedPredicate> {
     let span = tokens.span();
-    let input: PredicateFnInput = syn::parse2(tokens).map_err(|e| {
+    let mut input: PredicateFnInput = syn::parse2(tokens).map_err(|e| {
         syn::Error::new(
             e.span(),
             "`predicate!` can only be used on function definitions; it supports no attributes",
@@ -97,19 +97,14 @@ fn parse_predicate_internal(
         syn::ReturnType::Type(_, box typ) => typ.to_token_stream(),
     };
 
-    if input.body.is_some() {
+    if let Some(body) = input.body.take() {
         let mut rewriter = rewriter::AstRewriter::new();
         let spec_id = rewriter.generate_spec_id();
-
         if in_spec_refinement {
             let patched_function: syn::ImplItemMethod =
                 patch_predicate_macro_body(&input, span, spec_id);
-            let spec_function = generate_spec_function(
-                input.body.unwrap(),
-                return_type,
-                spec_id,
-                &patched_function,
-            )?;
+            let spec_function =
+                generate_spec_function(body, return_type, spec_id, &patched_function)?;
 
             Ok(ParsedPredicate::Impl(PredicateWithBody {
                 spec_function,
@@ -117,12 +112,8 @@ fn parse_predicate_internal(
             }))
         } else {
             let patched_function: syn::ItemFn = patch_predicate_macro_body(&input, span, spec_id);
-            let spec_function = generate_spec_function(
-                input.body.unwrap(),
-                return_type,
-                spec_id,
-                &patched_function,
-            )?;
+            let spec_function =
+                generate_spec_function(body, return_type, spec_id, &patched_function)?;
 
             Ok(ParsedPredicate::FreeStanding(PredicateWithBody {
                 spec_function,

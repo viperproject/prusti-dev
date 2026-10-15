@@ -13,7 +13,7 @@ pub fn verify<'tcx>(
     if env.diagnostic.has_errors() {
         warn!("The compiler reported an error, so the program will not be verified.");
     } else {
-        debug!("Verification task: {:?}", &verification_task);
+        debug!("Verification task: {:?}", verification_task);
         user::message(format!(
             "{}erification of {} items...",
             if verification_task.selective {

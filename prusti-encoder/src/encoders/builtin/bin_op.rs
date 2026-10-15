@@ -440,6 +440,18 @@ impl MirBuiltinBinOpEnc {
         let val_decl = vcx.mk_local_decl("val", prim_type);
         let val = vcx.mk_local_ex(val_decl);
         // Wrapped value
+        //
+        // The eager `mod` below is costly when `val` is nonlinear: under Z3's
+        // legacy arithmetic solver (`smt.arith.solver=2`) the checks around it
+        // can exhaust their resource budget, so the server selects solver 6.
+        // Should that ever need reverting, an encoding that stayed robust
+        // under solver 2 is to keep `mod` out of the in-range path entirely:
+        //   wrapped_val = in_range(val) ? val : wrap_N(val)
+        //   overflowed  = !in_range(val)
+        // with `wrap_N` an uninterpreted domain function axiomatised as
+        // `forall x :: {wrap_N(x)} wrap_N(x) == get_wrapped_val(x)`. The flag
+        // must not mention `wrapped_val`, or `mod` is pulled back in; any
+        // form that leaves a `mod` term on the in-range path stays fragile.
         let wrapped_val_decl = vcx.mk_local_decl("wrapped_val", prim_type);
         let wrapped_val_exp = vcx.get_wrapped_val(val, res_ty_int.kind());
         let wrapped_val = vcx.mk_local_ex(wrapped_val_decl);

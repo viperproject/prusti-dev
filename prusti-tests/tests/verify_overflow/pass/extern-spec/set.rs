@@ -1,10 +1,14 @@
+#![feature(allocator_api)]
+
 use prusti_contracts::*;
 
-use std::collections::HashSet;
-use std::borrow::Borrow;
-use std::hash::{BuildHasher, Hash};
-use std::cmp::Eq;
-use std::option::Option;
+use std::{
+    borrow::Borrow,
+    cmp::Eq,
+    collections::HashSet,
+    hash::{BuildHasher, Hash},
+    option::Option,
+};
 
 #[extern_spec]
 impl<T> Option<T> {
@@ -31,7 +35,10 @@ impl<T> HashSet<T> {
 }
 
 #[extern_spec]
-impl<T, S> HashSet<T, S> {
+impl<T, S, A> HashSet<T, S, A>
+where
+    A: std::alloc::Allocator,
+{
     #[trusted]
     #[pure]
     pub fn len(&self) -> usize;
@@ -47,17 +54,18 @@ impl<T, S> HashSet<T, S> {
 }
 
 #[extern_spec]
-impl<T, S> HashSet<T, S>
+impl<T, S, A> HashSet<T, S, A>
 where
     T: Eq + Hash,
     S: BuildHasher,
+    A: std::alloc::Allocator,
 {
     #[trusted]
     #[pure]
     pub fn contains<Q: ?Sized>(&self, value: &Q) -> bool
-        where
-            T: std::borrow::Borrow<Q>,
-            Q: std::hash::Hash + std::cmp::Eq;
+    where
+        T: std::borrow::Borrow<Q>,
+        Q: std::hash::Hash + std::cmp::Eq;
 
     #[trusted]
     #[ensures(self.len() == old(self.len()) + 1)]

@@ -10,7 +10,6 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![warn(clippy::disallowed_types)]
 #![feature(rustc_private)]
-#![feature(box_patterns)]
 #![feature(min_specialization)]
 // We may want to remove this in the future.
 #![allow(clippy::needless_lifetimes)]

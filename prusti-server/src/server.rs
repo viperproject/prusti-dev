@@ -162,7 +162,7 @@ where
                 Some(mut result) => {
                     info!(
                         "Using cached result {:?} for program {}",
-                        &result, &program_name
+                        result, program_name
                     );
                     result.cached = true;
                     futures::stream::once(async move { ServerMessage::Termination(result) })
@@ -187,7 +187,7 @@ where
                 {
                     info!(
                         "Storing new cached result {:?} for program {}",
-                        &result, &program_name
+                        result, program_name
                     );
                     CACHE.insert(request_hash, result.clone());
                 }

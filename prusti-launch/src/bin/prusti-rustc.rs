@@ -43,7 +43,12 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
             );
         }
 
-        // This is where the files we'll link against live
+        // This is where the files we'll link against live.
+        // Under Cargo's newer build-dir layout, `deps/` is no longer populated;
+        // instead, workspace members (e.g. `prusti-contracts-proc-macros`) get their
+        // final artifact placed directly in `target_dir`, so we search both.
+        args.push("-L".into());
+        args.push(format!("dependency={}", target_dir.to_str().unwrap()));
         args.push("-L".into());
         args.push(format!(
             "dependency={}",

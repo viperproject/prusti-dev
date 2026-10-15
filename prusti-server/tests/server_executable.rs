@@ -1,5 +1,4 @@
 use std::{
-    env,
     process::{Command, Stdio},
     thread,
     time::Duration,
@@ -38,12 +37,10 @@ fn system_assigned_port() {
 
 /// runs the server for a short duration and returns its stdout as a string
 fn run_server_with_port(port: u16) -> String {
-    let server_path = env::current_exe()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .with_file_name("prusti-server-driver") // can't run prusti-server itself because we need to kill it later, and that wouldn't kill the driver
-        .with_extension(env::consts::EXE_EXTENSION);
+    // Can't run prusti-server itself because we need to kill it later, and that
+    // wouldn't kill the driver. Cargo points us at the binary directly, so this
+    // does not depend on where the test harness itself ends up.
+    let server_path = env!("CARGO_BIN_EXE_prusti-server-driver");
 
     let mut server = Command::new(server_path)
         .arg("--port")

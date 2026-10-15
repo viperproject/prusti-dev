@@ -5,7 +5,7 @@ use std::{collections::HashMap, fmt};
 use crate::ProcDef;
 use prusti_rustc_interface::{
     hir::{def::DefKind, def_id::DefId},
-    middle::ty::{ClauseKind, ImplSubject, TyCtxt},
+    middle::ty::{ClauseKind, TyCtxt},
 };
 
 /// Data structure used to generate an external specification template.
@@ -53,13 +53,12 @@ impl ExternSpecBlock {
                     Some(impl_defid) => {
                         // function is part of impl block
                         let mut trait_name = None;
-                        let impl_subj = tcx.impl_subject(impl_defid).skip_binder();
-                        let self_ty = match impl_subj {
-                            ImplSubject::Trait(tref) => {
-                                trait_name = Some(format!("{}", tref.print_only_trait_name()));
-                                tref.self_ty()
-                            }
-                            ImplSubject::Inherent(ty) => ty,
+                        let self_ty = if let Some(tref) = tcx.impl_opt_trait_ref(impl_defid) {
+                            let tref = tref.skip_binder();
+                            trait_name = Some(format!("{}", tref.print_only_trait_name()));
+                            tref.self_ty()
+                        } else {
+                            tcx.type_of(impl_defid).skip_binder()
                         }
                         .to_string();
                         let generics = generic_params(tcx, impl_defid);
@@ -333,9 +332,9 @@ fn generic_params(tcx: TyCtxt<'_>, defid: DefId) -> Vec<GenericArg> {
 
 fn trait_bounds(tcx: TyCtxt<'_>, defid: DefId) -> HashMap<String, Vec<TraitBound>> {
     let mut traitbounds: HashMap<String, Vec<TraitBound>> = HashMap::new();
-    let predicates = tcx.predicates_of(defid);
+    let predicates = tcx.clauses_of(defid);
 
-    for (predicate, _) in predicates.predicates {
+    for (predicate, _) in predicates.clauses {
         let kind: ClauseKind = predicate.kind().skip_binder();
         match kind {
             ClauseKind::Trait(t) => {
@@ -363,7 +362,7 @@ fn trait_bounds(tcx: TyCtxt<'_>, defid: DefId) -> HashMap<String, Vec<TraitBound
                 }
             }
             ClauseKind::Projection(p) => {
-                let item_id = p.projection_term.def_id;
+                let item_id = p.projection_term.expect_projection_def_id();
                 let self_ty = format!("{}", p.projection_term.self_ty());
                 let trait_defid: DefId = p.projection_term.trait_def_id(tcx);
                 let trait_defpath = tcx.def_path_str(trait_defid);

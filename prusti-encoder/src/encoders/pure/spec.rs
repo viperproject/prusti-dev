@@ -293,7 +293,7 @@ impl TaskEncoder for MirSpecEnc {
             let posts: Vec<(vir::ExprBool<'_>, Span)> = posts
                 .iter()
                 .filter_map(|spec_def_id| {
-                    let span = vcx.tcx().def_span(spec_def_id);
+                    let span = vcx.tcx().def_span(*spec_def_id);
                     vcx.with_span(span, |vcx| {
                         let spec =
                             Self::encode_pure(vcx, deps, post_ctx, *spec_def_id, "postcondition")?;
@@ -337,7 +337,7 @@ impl TaskEncoder for MirSpecEnc {
                         let spec =
                             Self::encode_pure(vcx, deps, pledge_ctx, *rhs_def_id, "pledge rhs")?;
                         let rhs = spec.expr.downcast_ty::<vir::Bool>();
-                        let rhs_span = vcx.tcx().def_span(rhs_def_id);
+                        let rhs_span = vcx.tcx().def_span(*rhs_def_id);
                         let rhs_expr = vcx.with_span(rhs_span, move |vcx| {
                             vcx.handle_error("exhale.failed:assertion.false", move |_| {
                                 Some(vec![PrustiError::verification(

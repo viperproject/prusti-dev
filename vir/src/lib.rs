@@ -1,6 +1,5 @@
 #![feature(rustc_private)]
 #![feature(never_type)]
-#![feature(iter_intersperse)]
 #![feature(unboxed_closures, fn_traits, tuple_trait)]
 #![feature(macro_metavar_expr)]
 #![allow(clippy::needless_lifetimes)]

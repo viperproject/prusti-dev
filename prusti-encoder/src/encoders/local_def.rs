@@ -249,7 +249,7 @@ impl TaskEncoder for MirLocalDefEnc {
                 let sig = vcx.tcx().instantiate_and_normalize_erasing_regions(
                     task_key.substs(vcx),
                     typing_env,
-                    ty::EarlyBinder::bind(sig),
+                    ty::EarlyBinder::bind(vcx.tcx(), sig),
                 );
                 deps.emit_output_ref(
                     *task_key,

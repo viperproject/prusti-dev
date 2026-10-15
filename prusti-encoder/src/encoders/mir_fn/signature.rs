@@ -28,7 +28,7 @@ impl<'tcx> RustSignature<'tcx> {
 
     pub fn get_def_id_and_caller_substs(ty: ty::Ty<'tcx>) -> (DefId, ty::GenericArgsRef<'tcx>) {
         match ty.kind() {
-            ty::TyKind::FnDef(def_id, substs) => (*def_id, substs),
+            ty::TyKind::FnDef(def_id, substs) => (*def_id, substs.skip_binder()),
             ty::TyKind::Closure(def_id, substs) => (*def_id, substs),
             _ => todo!(),
         }

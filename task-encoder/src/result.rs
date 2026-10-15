@@ -36,7 +36,7 @@ pub enum EncodeFullError<'vir, E: TaskEncoder + 'vir + ?Sized> {
     /// An actual error occurred during encoding.
     EncodingError(
         <E as TaskEncoder>::EncodingError,
-        Option<E::OutputFullDependency<'vir>>,
+        Option<Box<E::OutputFullDependency<'vir>>>,
     ),
 
     DependencyError(Vec<(&'static str, String, Vec<Span>)>),

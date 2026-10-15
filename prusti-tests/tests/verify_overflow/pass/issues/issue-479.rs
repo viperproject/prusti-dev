@@ -1,19 +1,27 @@
+#![feature(allocator_api)]
+
 use prusti_contracts::*;
-use std::collections::HashMap;
-use std::hash::{Hash, BuildHasher};
+use std::{
+    collections::HashMap,
+    hash::{BuildHasher, Hash},
+};
 
 #[extern_spec]
-impl<K, V, S> HashMap<K, V, S> {
+impl<K, V, S, A> HashMap<K, V, S, A>
+where
+    A: std::alloc::Allocator,
+{
     #[trusted]
     #[pure]
     fn len(&self) -> usize;
 }
 
 #[extern_spec]
-impl<K, V, S> HashMap<K, V, S>
+impl<K, V, S, A> HashMap<K, V, S, A>
 where
     K: Eq + Hash,
     S: BuildHasher,
+    A: std::alloc::Allocator,
 {
     #[trusted]
     #[ensures(result === None ==> self.len() == old(self.len()) + 1)]

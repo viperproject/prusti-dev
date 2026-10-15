@@ -153,12 +153,10 @@ impl<'tcx> GParams<'tcx> {
     /// returns None.
     pub fn try_normalize(self, ty: ty::Ty<'tcx>) -> Option<ty::Ty<'tcx>> {
         use prusti_rustc_interface::{
-            middle::ty,
+            middle::{ty, ty::Unnormalized},
             trait_selection::{
                 infer::{InferCtxt, TyCtxtInferExt},
-                traits::{
-                    NormalizeExt, ObligationCause, ScrubbedTraitError, TraitEngine, TraitEngineExt,
-                },
+                traits::{FulfillmentEngine, FulfillmentError, NormalizeExt, ObligationCause},
             },
         };
         vir::with_vcx(|vcx| {
@@ -174,9 +172,8 @@ impl<'tcx> GParams<'tcx> {
             });
             // Normalize associated types
             let ifctxt: InferCtxt = vcx.tcx().infer_ctxt().build(ty::TypingMode::PostAnalysis);
-            let mut fulfill_cx = <dyn TraitEngine<ScrubbedTraitError> as TraitEngineExt<
-                ScrubbedTraitError,
-            >>::new(&ifctxt);
+            let mut fulfill_cx: FulfillmentEngine<'tcx, FulfillmentError<'tcx>> =
+                FulfillmentEngine::new(&ifctxt);
             // TODO: is this correct?
             let kinds = self
                 .params
@@ -193,7 +190,7 @@ impl<'tcx> GParams<'tcx> {
             let ty = ty::Binder::bind_with_vars(ty, kinds);
             let nty = ifctxt
                 .at(&ObligationCause::dummy(), self.env)
-                .deeply_normalize(ty, &mut *fulfill_cx);
+                .deeply_normalize(Unnormalized::new(ty), &mut fulfill_cx);
             nty.ok().map(|nty| nty.skip_binder())
         })
     }
@@ -325,11 +322,14 @@ impl<'vir> GenericParams<'vir> {
                 GParamVariant::Param(p) => self.ty_exprs[self.map_idx(p.index).unwrap()],
                 GParamVariant::Alias(alias) => vir::with_vcx(|vcx| {
                     let tcx = vcx.tcx();
-                    let trait_did = tcx.associated_item(alias.def_id).container_id(tcx);
+                    let ty::AliasTyKind::Projection { def_id } = alias.kind else {
+                        panic!("expected a projection")
+                    };
+                    let trait_did = tcx.associated_item(def_id).container_id(tcx);
                     let trait_data = deps.require_ref::<TraitEnc>(trait_did).unwrap();
                     let args = GArgs::new(ty.args.context, alias.args);
                     let args = deps.require_dep::<GArgsTyEnc>(args).unwrap();
-                    (trait_data.assoc_types[&alias.def_id])(args.get_ty(), args.get_const())
+                    (trait_data.assoc_types[&def_id])(args.get_ty(), args.get_const())
                 }),
             });
         }
