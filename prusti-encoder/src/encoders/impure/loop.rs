@@ -20,7 +20,11 @@ use vir::Reify;
 
 use crate::encoders::{
     EncodeResult, ImpureEncVisitor, TyUseImpureEnc,
-    ty::{RustTyDecomposition, indirect::IndirectPredicatesEnc, use_impure::TyUseImpure},
+    ty::{
+        RustTyDecomposition,
+        indirect::{IndirectPredicatesEnc, projection_for_pcg_projection},
+        use_impure::TyUseImpure,
+    },
 };
 
 pub(super) enum WandOldOuter<'vir> {
@@ -64,9 +68,14 @@ impl<'vir: 'a, 'a, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             // an invariant for *x
             let projs = ctxt.extract_lifetime_projections(place.with_inherent_region(ctxt));
             for proj in projs {
+                let Some(proj) =
+                    projection_for_pcg_projection(proj, ty.ty, task, self.vcx.tcx())
+                else {
+                    continue;
+                };
                 let indirect = self
                     .deps
-                    .require_dep::<IndirectPredicatesEnc>(proj.with_base(task))
+                    .require_dep::<IndirectPredicatesEnc>(proj)
                     .unwrap();
                 inv.extend(indirect.predicate_applications.iter().map(|p| {
                     p.reify(
@@ -150,10 +159,13 @@ impl<'vir: 'a, 'a, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             }
             PcgLifetimeProjectionBase::Const(c) => todo!("{c:?}"),
         };
-        let ty = RustTyDecomposition::from_ty(ty.ty, self.def_id);
+        let decomp = RustTyDecomposition::from_ty(ty.ty, self.def_id);
+        let Some(proj) = projection_for_pcg_projection(r, ty.ty, decomp, self.vcx.tcx()) else {
+            return Ok(Vec::new());
+        };
         let indirect = self
             .deps
-            .require_dep::<IndirectPredicatesEnc>(r.with_base(ty))
+            .require_dep::<IndirectPredicatesEnc>(proj)
             .unwrap();
         Ok(indirect
             .predicate_applications

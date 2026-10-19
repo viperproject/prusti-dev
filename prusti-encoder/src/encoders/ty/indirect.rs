@@ -259,3 +259,25 @@ pub fn projection_for_generalized_idx<'tcx>(
     };
     LifetimeProjection::new(decomp, region, None, PrustiPcgCtxt)
 }
+
+/// Rebases a lifetime projection produced by the PCG onto `decomp`.
+///
+/// The region index of `proj` refers to the PCG's region list of the rustc
+/// type `ty`, which need not match `PrustiPcgCtxt`'s list for `decomp` (e.g.
+/// the PCG includes the regions of a closure's captures, which are not part of
+/// the closure's decomposition). We therefore look up the region itself and
+/// find it in `decomp`. Returns `None` if `decomp` does not contain the region,
+/// i.e. there is nothing behind the projection that Prusti encodes.
+///
+/// The label is dropped: `IndirectPredicatesEnc` does not depend on it.
+pub fn projection_for_pcg_projection<'tcx, T>(
+    proj: LifetimeProjection<'tcx, T, Region>,
+    ty: ty::Ty<'tcx>,
+    decomp: RustTyDecomposition<'tcx>,
+    tcx: TyCtxt<'tcx>,
+) -> Option<LifetimeProjection<'tcx, RustTyDecomposition<'tcx>, Region>> {
+    let regions: IndexVec<LifetimeProjectionIdx<Region>, PcgRegion<'tcx>> =
+        tcx.extract_regions(ty);
+    let region = regions[proj.region_idx()];
+    LifetimeProjection::new(decomp, region, None, PrustiPcgCtxt)
+}
