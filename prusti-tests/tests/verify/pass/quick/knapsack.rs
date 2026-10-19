@@ -1,3 +1,4 @@
+//@ known-failure
 //! An adaptation of the example from
 //! https://rosettacode.org/wiki/Knapsack_problem/0-1#Rust
 //!

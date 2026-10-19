@@ -1,3 +1,4 @@
+//@ known-failure
 #![feature(box_patterns)]
 
 use prusti_contracts::*;

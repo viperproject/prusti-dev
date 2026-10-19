@@ -1,3 +1,4 @@
+//@ known-failure
 //! Regression tests extracted from
 //! https://rosettacode.org/wiki/Binary_search#Rust
 

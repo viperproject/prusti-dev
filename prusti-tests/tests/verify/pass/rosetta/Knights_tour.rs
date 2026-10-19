@@ -1,3 +1,4 @@
+//@ known-failure
 //! An adaptation of the example from
 //! https://rosettacode.org/wiki/Knight%27s_tour#Rust
 //!

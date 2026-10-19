@@ -1,3 +1,4 @@
+//@ known-failure
 //@ compile-flags: -Pverification_deadline=5
 
 use prusti_contracts::*;

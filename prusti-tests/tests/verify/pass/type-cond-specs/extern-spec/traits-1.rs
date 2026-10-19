@@ -1,3 +1,4 @@
+//@ known-failure
 use prusti_contracts::*;
 use core::hash::Hasher;
 

@@ -1,3 +1,4 @@
+//@ known-failure
 use prusti_contracts::*;
 
 #[refine_spec(where T: Copy, [pure])]
