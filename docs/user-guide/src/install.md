@@ -13,10 +13,10 @@ The easiest way to try out Prusti is by using the ["Prusti Assistant"](https://m
 > `File → Preferences → Settings → Prusti Assistant → Build Channel`.
 
 In case you experience difficulties or encounter bugs while using Prusti Assistant, please [open an issue in Prusti Assistant's repository](https://github.com/viperproject/prusti-assistant/issues) or contact us in the [Zulip chat](https://prusti.zulipchat.com/).
-Bugs with Prusti itself can be reported on the [prusti-dev repository](https://github.com/viperproject/prusti-dev/issues).
+Bugs with Prusti itself can be reported on the [Prusti repository](https://github.com/prusti/prusti/issues).
 
 ## Command-line setup
 
-Alternatively, Prusti can be set up by downloading the [precompiled binaries](https://github.com/viperproject/prusti-dev/releases) available from the project page. We currently provide binaries for Windows and macOS (both x64 and arm64), and Ubuntu. Releases marked as "Pre-release" may contain unstable or experimental features.
+Alternatively, Prusti can be set up by downloading the [precompiled binaries](https://github.com/prusti/prusti/releases) available from the project page. We currently provide binaries for Windows and macOS (both x64 and arm64), and Ubuntu. Releases marked as "Pre-release" may contain unstable or experimental features.
 
-For a command-line setup with Prusti built from source, please confer the [developer guide](https://viperproject.github.io/prusti-dev/dev-guide/development/setup.html).
+For a command-line setup with Prusti built from source, please confer the [developer guide](https://prusti.github.io/prusti/dev-guide/development/setup.html).

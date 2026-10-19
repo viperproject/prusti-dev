@@ -27,4 +27,4 @@ Note: The current error message returned when `#[refine_trait_spec]` is missing 
 method `prusti_pre_item_trait_fn_d5ce99cd719545e8adb9de778a953ec2`
 is not a member of trait `TestTrait`.
 ```
-See [issue #625](https://github.com/viperproject/prusti-dev/issues/625) for more details.
+See [issue #625](https://github.com/prusti/prusti/issues/625) for more details.

@@ -9,4 +9,4 @@ This is a short stage responsible for setting up the correct environment variabl
  - `-L`, adding Prusti's `target/*/deps` directory into the library search path.
  - `--extern prusti_contracts=...` and `--extern prusti_contracts_internal=...`, specifying the path for the dynamic libraries containing the procedural macros for Prusti specifications.
 
-> - [`prusti/src/bin/prusti-rustc.rs`](https://github.com/viperproject/prusti-dev/blob/143e673dc19b4c1363efade90ffee4f77641ec11/prusti/src/bin/prusti-rustc.rs)
+> - [`prusti/src/bin/prusti-rustc.rs`](https://github.com/prusti/prusti/blob/143e673dc19b4c1363efade90ffee4f77641ec11/prusti/src/bin/prusti-rustc.rs)

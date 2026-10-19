@@ -49,7 +49,7 @@ On macOS, [Java JDK 11](https://www.oracle.com/java/technologies/javase-download
 
 ## `rustup` setup
 
-Rust versions and components are managed with `rustup`. The toolchain version in use is listed in the [`rust-toolchain`](https://github.com/viperproject/prusti-dev/blob/master/rust-toolchain) file. Additional components used are:
+Rust versions and components are managed with `rustup`. The toolchain version in use is listed in the [`rust-toolchain`](https://github.com/prusti/prusti/blob/main/rust-toolchain) file. Additional components used are:
 
  - `rust-src`
  - `rustc-dev`

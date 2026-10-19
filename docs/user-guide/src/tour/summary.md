@@ -1,7 +1,7 @@
 # Guided Tour
 
 > **Disclaimer:** All code shown in this tutorial has been tested with 
-> [Prusti version 0.2.1, 2023-01-26](https://github.com/viperproject/prusti-dev/releases/tag/v-2023-01-26-1935)
+> [Prusti version 0.2.1, 2023-01-26](https://github.com/prusti/prusti/releases/tag/v-2023-01-26-1935)
 >
 > Unless stated otherwise, all code listings should be put in their own file 
 > and can be verified with 

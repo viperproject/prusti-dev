@@ -1,6 +1,6 @@
 # Specification entailments
 
-> **NOT YET SUPPORTED:** This feature is not yet supported in Prusti. See [PR #138](https://github.com/viperproject/prusti-dev/pull/138) for the status of this feature as well as a prototype. The syntax described here is subject to change.
+> **NOT YET SUPPORTED:** This feature is not yet supported in Prusti. See [PR #138](https://github.com/prusti/prusti/pull/138) for the status of this feature as well as a prototype. The syntax described here is subject to change.
 
 The contract for a closure or function pointer variable can be given using the specification entailment syntax:
 

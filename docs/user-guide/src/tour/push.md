@@ -110,7 +110,7 @@ An important thing to note here is that Prusti does ***not*** check if `replace`
 There is currently new functionality planned for Prusti-assistant, which should enable the user to automatically generate parts of the `extern_spec` syntax.
 
 There is also work being done for providing external specifications for the Rust standard library. Depending on when you are reading this, the `std::mem::replace` function might be annotated already, in that case this `extern_spec` may not be needed anymore.
-You can track the progress and find some already completed specifications [in this Pull Request](https://github.com/viperproject/prusti-dev/pull/1249).
+You can track the progress and find some already completed specifications [in this Pull Request](https://github.com/prusti/prusti/pull/1249).
 
 Specifications for the standard library should eventually be available in the [prusti-std crate](https://crates.io/crates/prusti-std). Any specifications in this crate will be available by adding it to your project's dependencies.
 

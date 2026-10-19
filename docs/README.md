@@ -1,6 +1,6 @@
 # Documentation
 
-This is the source directory for Prusti's GitHub page (<https://viperproject.github.io/prusti-dev/>). Modifications should consist of pushes or pull requests to the `master` branch. Deployment on the `gh-pages` branch is done automatically via GitHub actions.
+This is the source directory for Prusti's GitHub page (<https://prusti.github.io/prusti/>). Modifications should consist of pushes or pull requests to the `main` branch. Deployment on the `gh-pages` branch is done automatically via GitHub actions.
 
 The books in this documentation use [mdbook](https://rust-lang.github.io/mdBook/index.html).
 
