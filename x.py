@@ -34,9 +34,48 @@ import verify_test
 
 dry_run = False
 
-PRUSTI_WORKSPACES = [
-    '.',
-    'prusti-contracts',
+RUSTFMT_CRATES = [
+    'analysis',
+    'jni-gen',
+    'prusti',
+    'prusti-common',
+    'prusti-contracts/prusti-contracts',
+    'prusti-contracts/prusti-contracts-proc-macros',
+    'prusti-contracts/prusti-specs',
+    'prusti-contracts/prusti-std',
+    'prusti-contracts-build',
+    'prusti-interface',
+    'prusti-launch',
+    'prusti-rustc-interface',
+    'prusti-server',
+    'prusti-smt-solver',
+    'prusti-tests',
+    'prusti-utils',
+    #'prusti-viper',
+    'smt-log-analyzer',
+    #'test-crates',
+    'viper',
+    'viper-sys',
+    'vir',
+    'vir-gen',
+]
+
+RUSTFMT_PATHS = [
+    'prusti-common/src/report/mod.rs',
+    'prusti-common/src/utils/mod.rs',
+    'prusti-common/src/vir/to_viper.rs',
+    'prusti-common/src/vir/low_to_viper/mod.rs',
+    'prusti-common/src/vir/optimizations/mod.rs',
+    'prusti-viper/src/encoder/foldunfold/mod.rs',
+    'prusti-viper/src/encoder/mir/mod.rs',
+    'prusti-viper/src/encoder/high/mod.rs',
+    'prusti-viper/src/encoder/typed/mod.rs',
+    'prusti-viper/src/encoder/middle/mod.rs',
+    'prusti-viper/src/encoder/snapshot/mod.rs',
+    'prusti-viper/src/encoder/lifetimes/mod.rs',
+    'prusti-viper/src/encoder/definition_collector.rs',
+    'prusti-viper/src/encoder/counterexamples/mod.rs',
+    'vir/defs/mod.rs',
 ]
 
 
@@ -169,23 +208,33 @@ def run_viper_server(port=None):
     run_command(command)
 
 
-def clippy_all():
-    """Run clippy in all workspaces."""
-    for workspace_path in PRUSTI_WORKSPACES:
-        run_command(['cargo', 'clippy', '--', '-D', 'warnings'], cwd=workspace_path)
+def clippy_in(cwd):
+    """Run cargo clippy in given subproject."""
+    run_command(['cargo', 'clippy', '--', '-D', 'warnings'], cwd=cwd)
 
+def fmt_in(cwd):
+    """Run cargo fmt in given subproject."""
+    run_command(['cargo', 'fmt'], cwd=cwd)
 
 def fmt_all():
-    """Run rustfmt in all workspaces."""
-    for workspace_path in PRUSTI_WORKSPACES:
-        run_command(['cargo', 'fmt', '--all'], cwd=workspace_path)
+    """Run rustfmt on all formatted files."""
+    for crate in RUSTFMT_CRATES:
+        fmt_in(crate)
+    for path in RUSTFMT_PATHS:
+        for file in glob.glob(path, recursive=True):
+            run_command(['rustfmt', file])
 
+def fmt_check_in(cwd):
+    """Run cargo fmt check in the given subproject."""
+    run_command(['cargo', 'fmt', '--', '--check'], cwd=cwd)
 
 def fmt_check_all():
-    """Run rustfmt check in all workspaces."""
-    for workspace_path in PRUSTI_WORKSPACES:
-        run_command(['cargo', 'fmt', '--all', '--', '--check'], cwd=workspace_path)
-
+    """Run rustfmt check on all formatted files."""
+    for crate in RUSTFMT_CRATES:
+        fmt_check_in(crate)
+    for path in RUSTFMT_PATHS:
+        for file in glob.glob(path, recursive=True):
+            run_command(['rustfmt', '--check', file])
 
 def check_smir():
     """Check that `extern crate` is used only in `prusti_rustc_interface` (TODO: `prusti_interface` is also ignored for now)."""
@@ -208,7 +257,6 @@ def check_smir():
                     '\n'.join(lines)
                 )
             )
-
 
 def package(mode: str, package_path: str):
     """Packages Prusti artifacts in the `package_path` folder.
@@ -311,11 +359,6 @@ def test_package(package_path: str):
 
 def main(argv):
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
-
-    # Check the working directory, because this script uses a lot of relative paths.
-    if os.path.abspath(os.getcwd()) != os.path.abspath(os.path.dirname(__file__)):
-        error(f'Please run this script from the root folder of the repository.')
-
     for i, arg in enumerate(argv):
         if arg.startswith('+'):
             if arg == '+v' or arg == '++verbose':
@@ -342,30 +385,30 @@ def main(argv):
         elif arg == 'exec':
             run_command(argv[i+1:])
             break
-        # Run `cargo clippy --all` in all workspaces.
-        elif arg == 'clippy-all':
-            clippy_all()
+        elif arg == 'clippy-in':
+            clippy_in(*argv[i+1:])
             break
-        # Check `cargo fmt --all` in all workspaces.
+        elif arg == 'fmt-check':
+            fmt_check_in(*argv[i+1:])
+            break
         elif arg == 'fmt-check-all':
-            fmt_check_all()
+            fmt_check_all(*argv[i+1:])
+            break
+        elif arg == 'fmt':
+            fmt_in(*argv[i+1:])
+            break
+        elif arg == 'fmt-all':
+            fmt_all(*argv[i+1:])
             break
         elif arg == 'check-smir':
             check_smir(*argv[i+1:])
             break
-        # Run `cargo fmt --all` in all workspaces.
-        elif arg == 'fmt-all':
-            fmt_all()
-            break
-        # Packages Prusti artifacts in the given folder.
         elif arg == 'package':
             package(*argv[i+1:])
             break
-        # Quickly test that a Prusti release has been packaged correctly in the given folder.
         elif arg == 'test-package':
             test_package(*argv[i+1:])
             break
-        # Run whatever is left as a cargo command.
         else:
             cargo(argv[i:])
             break
