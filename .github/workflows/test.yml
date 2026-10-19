@@ -2,16 +2,16 @@ name: Test
 
 on:
   push:
-    branches: [master, rewrite-2023, staging, trying]
+    branches: [main, rewrite-2023, staging, trying]
     paths-ignore: 'docs/**'
   pull_request:
-    branches: [master, rewrite-2023]
+    branches: [main, rewrite-2023]
     paths-ignore: 'docs/**'
 
 # Cancel previous runs in a PR when pushing new commits
 concurrency:
   group: worflow-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  # Do not cancel when testing the master branch
+  # Do not cancel when testing the main branch
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 
 env:
@@ -227,7 +227,7 @@ jobs:
   #    - name: Test Prusti on a collection of crates
   #      run: ./target/release/test-crates --fail-fast --num-shards=4 --shard-index=${{ matrix.shard_index }}
 
-  # Dummy job to specify the jobs that must pass before merging on master
+  # Dummy job to specify the jobs that must pass before merging on main
   can-merge:
     runs-on: ubuntu-latest
     needs: [check-deps, all-tests] #, test-crates]

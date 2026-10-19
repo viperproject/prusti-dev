@@ -1,9 +1,9 @@
 Prusti
 ======
 
-[![Test](https://github.com/viperproject/prusti-dev/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/viperproject/prusti-dev/actions/workflows/test.yml?query=branch%3Amaster)
-[![Deploy](https://github.com/viperproject/prusti-dev/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/viperproject/prusti-dev/actions/workflows/deploy.yml?query=branch%3Amaster)
-[![Test coverage](https://codecov.io/gh/viperproject/prusti-dev/branch/master/graph/badge.svg)](https://codecov.io/gh/viperproject/prusti-dev)
+[![Test](https://github.com/viperproject/prusti-dev/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/viperproject/prusti-dev/actions/workflows/test.yml?query=branch%3Amain)
+[![Deploy](https://github.com/viperproject/prusti-dev/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/viperproject/prusti-dev/actions/workflows/deploy.yml?query=branch%3Amain)
+[![Test coverage](https://codecov.io/gh/viperproject/prusti-dev/branch/main/graph/badge.svg)](https://codecov.io/gh/viperproject/prusti-dev)
 [![Project chat](https://img.shields.io/badge/Zulip-join_chat-brightgreen.svg)](https://prusti.zulipchat.com/)
 
 [Prusti](http://www.pm.inf.ethz.ch/research/prusti.html) is a prototype verifier for Rust that makes it possible to formally prove absence of bugs and correctness of code contracts. Internally, Prusti builds upon the [Viper verification infrastructure](http://www.pm.inf.ethz.ch/research/viper.html).
