@@ -111,7 +111,7 @@ Semantically, a biconditional is equivalent to a Boolean `==`. However, it has l
 ## Snapshot Equality
 
 Snapshot equality (`===`) compares the
-[snapshots](https://viperproject.github.io/prusti-dev/dev-guide/encoding/types-snap.html)
+[snapshots](https://prusti.github.io/prusti/dev-guide/encoding/types-snap.html)
 of two values; essentially checking if the two values are structurally equal. In
 contrast, the standard equality (`==`) between values is determined by the
 implementation of

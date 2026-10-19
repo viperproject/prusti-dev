@@ -27,7 +27,7 @@ use tracing_chrome::{ChromeLayerBuilder, FlushGuard};
 use tracing_subscriber::{filter::EnvFilter, prelude::*};
 
 /// Link to report Prusti bugs
-const BUG_REPORT_URL: &str = "https://github.com/viperproject/prusti-dev/issues/new";
+const BUG_REPORT_URL: &str = "https://github.com/prusti/prusti/issues/new";
 
 fn get_prusti_version_info() -> String {
     format!(

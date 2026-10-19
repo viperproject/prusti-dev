@@ -28,7 +28,7 @@ use prusti_contracts::*;
 
 
 To simplify the tutorial, overflow checks by Prusti will be disabled. To do that, create a file called `Prusti.toml` in your project's root directory (where `Cargo.toml` is located).
-In this file, you can set [configuration flags](https://viperproject.github.io/prusti-dev/dev-guide/config/flags.html) used by Prusti. To disable overflow checking, add the following line:
+In this file, you can set [configuration flags](https://prusti.github.io/prusti/dev-guide/config/flags.html) used by Prusti. To disable overflow checking, add the following line:
 ```toml
 check_overflows = false
 ```
@@ -39,7 +39,7 @@ check_overflows = false
 
 ## Standard library annotations
 
-Annotations for functions and types in the Rust standard library will be available in the [`prusti-std` crate](https://crates.io/crates/prusti-std) after [this PR](https://github.com/viperproject/prusti-dev/pull/1249) is merged.
+Annotations for functions and types in the Rust standard library will be available in the [`prusti-std` crate](https://crates.io/crates/prusti-std) after [this PR](https://github.com/prusti/prusti/pull/1249) is merged.
 
 Adding this crate works the same as for the `prusti-contracts` crate:
 ```sh

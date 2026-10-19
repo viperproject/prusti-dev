@@ -3,9 +3,9 @@ name: Build GitHub pages
 on:
   workflow_dispatch:
   push:
-    branches: 'master'
+    branches: 'main'
   pull_request:
-    branches: 'master'
+    branches: 'main'
 
 env:
   RUST_BACKTRACE: 1
@@ -39,12 +39,17 @@ jobs:
       - name: Setup mdBook
         uses: peaceiris/actions-mdbook@v1
         with:
-          mdbook-version: "latest"
+          # mdBook 0.5 rejects the books' configuration (e.g. `multilingual`)
+          mdbook-version: "0.4.52"
 
       - name: Build dummy crate to get dependencies
         run: |
           cd repo/docs/dummy/
           cargo build --target-dir ./target
+          # Cargo keeps each crate's artifacts in a separate directory
+          echo "DOCTEST_DEPS=$(ls -d $PWD/target/debug/build/*/*/out | paste -sd, -)" >> $GITHUB_ENV
+          # mdbook runs rustdoc outside of the repository, where `rust-toolchain` does not apply
+          echo "DOCTEST_TOOLCHAIN=$(rustup show active-toolchain | cut -d' ' -f1)" >> $GITHUB_ENV
 
       - name: Build user guide
         run: |
@@ -59,12 +64,12 @@ jobs:
       - name: Doctest user guide
         run: |
           cd repo/docs/user-guide
-          mdbook test -L ../dummy/target/debug/deps
+          RUSTUP_TOOLCHAIN=$DOCTEST_TOOLCHAIN mdbook test -L "$DOCTEST_DEPS"
 
       - name: Doctest dev guide
         run: |
           cd repo/docs/dev-guide
-          mdbook test -L ../dummy/target/debug/deps
+          RUSTUP_TOOLCHAIN=$DOCTEST_TOOLCHAIN mdbook test -L "$DOCTEST_DEPS"
 
       - name: Set up the environment
         run: |
@@ -77,10 +82,10 @@ jobs:
           python x.py doc --all --no-deps
           cp -r ./target/doc ../output/doc
 
-      # Only deploy on push to master
+      # Only deploy on push to main
       - name: Publish to GitHub pages
         uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./output

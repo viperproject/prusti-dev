@@ -1,6 +1,6 @@
 # Documentation
 
-This is the source directory for Prusti's GitHub page (<https://viperproject.github.io/prusti-dev/>). Modifications should consist of pushes or pull requests to the `master` branch. Deployment on the `gh-pages` branch is done automatically via GitHub actions.
+This is the source directory for Prusti's GitHub page (<https://prusti.github.io/prusti/>). Modifications should consist of pushes or pull requests to the `main` branch. Deployment on the `gh-pages` branch is done automatically via GitHub actions.
 
 The books in this documentation use [mdbook](https://rust-lang.github.io/mdBook/index.html).
 
@@ -40,11 +40,13 @@ See more on documentation tests [here](https://doc.rust-lang.org/rustdoc/write-d
 Doctests should also run automatically as part of the Prusti CI.
 
 To run doctests locally with code that uses `prusti_contracts`, you will have to supply mdbook with a path containing the needed dependencies.
-One (not very nice way) to do this, is taking any Rust crate that uses `prusti_contracts`, building it, then passing the path to that crate to mdbook: `mdbook test -L "(Path_to_crate)/target/debug/deps/"`
+One (not very nice way) to do this, is taking any Rust crate that uses `prusti_contracts`, building it, then passing the paths to the built dependencies to mdbook.
+Cargo puts each of them in its own directory, `(Path_to_crate)/target/debug/build/(crate)/(hash)/out/`.
+mdbook runs `rustdoc` outside of the repository, so it has to be told to use the repository's toolchain.
 
 The crate `docs/dummy` is provided just to provide the dependencies.
 To run the doctests (in this case for the user guide):
 - `cd docs/dummy/`
 - `cargo build`
 - `cd ../user-guide/`
-- `mdbook test -L ../dummy/target/debug/deps/`
+- `RUSTUP_TOOLCHAIN=$(rustup show active-toolchain | cut -d' ' -f1) mdbook test -L $(ls -d ../dummy/target/debug/build/*/*/out | paste -sd, -)`

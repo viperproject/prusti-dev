@@ -177,4 +177,4 @@ When running Prusti on this example, it highlights the failing assertion and thu
 
 ## Configuration
 
-Prusti offers a many flags to configure its behavior. See [Providing Flags](https://viperproject.github.io/prusti-dev/dev-guide/config/providing.html) for how to provide these flags and [List of Configuration Flags](https://viperproject.github.io/prusti-dev/dev-guide/config/flags.html) in the developer guide.
+Prusti offers a many flags to configure its behavior. See [Providing Flags](https://prusti.github.io/prusti/dev-guide/config/providing.html) for how to provide these flags and [List of Configuration Flags](https://prusti.github.io/prusti/dev-guide/config/flags.html) in the developer guide.
