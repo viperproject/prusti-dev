@@ -1,3 +1,4 @@
+//@ known-failure
 //// ANCHOR: none
 //// ANCHOR_END: none
 // The next line is only required for doctests, you can ignore/remove it

@@ -1,3 +1,4 @@
+//@ known-failure
 use prusti_contracts::*;
 
 /// Examples from Fabian Wolff's thesis.

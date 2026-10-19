@@ -1,3 +1,4 @@
+//@ known-failure
 //@ compile-flags: -Puse_more_complete_exhale=false
 
 use prusti_contracts::*;

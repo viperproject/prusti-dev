@@ -1,3 +1,4 @@
+//@ known-failure
 // ignore-test
 // TODO: spec entailment and function item (`FnDef`) types are not supported yet
 

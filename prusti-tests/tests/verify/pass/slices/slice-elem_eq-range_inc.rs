@@ -1,3 +1,4 @@
+//@ known-failure
 // ignore-test: slicing with RangeInclusive (e.g. [x..=y]) currently not supported
 
 #![feature(const_panic)]

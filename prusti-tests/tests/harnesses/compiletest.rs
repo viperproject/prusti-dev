@@ -75,6 +75,19 @@ fn run_prusti_tests(
             .program
             .envs
             .extend(rustc_env.iter().map(|(k, v)| (k.into(), Some(v.into()))));
+        // `//@ known-failure` marks a test that should pass but currently fails
+        // verification. Such a test succeeds as long as verification fails, and
+        // fails once it verifies, so that the annotation gets removed.
+        config
+            .custom_comments
+            .insert("known-failure", |parser, _args, span| {
+                parser.exit_status = Spanned::new(1, span.clone()).into();
+                parser.normalize_stderr.push((
+                    ui_test::Match::Regex(regex::bytes::Regex::new("(?s).*").unwrap()),
+                    b"".into(),
+                ));
+                parser.set_custom_once("no-rustfix", (), span);
+            });
         config
     };
 

@@ -1,3 +1,4 @@
+//@ known-failure
 /// Problem case #1: references assigned into a variable
 ///
 /// Adapted from

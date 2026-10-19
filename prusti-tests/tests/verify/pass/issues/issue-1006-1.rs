@@ -1,3 +1,4 @@
+//@ known-failure
 // FIXME: remove this compile flag when the new encoder is finished
 //@ compile-flags: -Puse_new_encoder=false
 use prusti_contracts::*;

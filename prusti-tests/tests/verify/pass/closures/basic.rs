@@ -1,3 +1,4 @@
+//@ known-failure
 // ignore-test
 // TODO: spec entailment and calls of specified closures are not supported yet
 

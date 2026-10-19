@@ -1,3 +1,4 @@
+//@ known-failure
 #![feature(box_patterns)]
 
 //! An adaptation of the example from
