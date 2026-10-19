@@ -27,7 +27,7 @@ Useful links
 Getting Prusti
 --------------
 
-The easiest way to try out Prusti is by using the ["Prusti Assistant"](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant) extension for VS Code. See the **requirements** and the troubleshooting section in its [readme](https://github.com/viperproject/prusti-assistant/blob/master/README.md).
+The easiest way to try out Prusti is by using the ["Prusti Assistant"](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant) extension for VS Code. See the **requirements** and the troubleshooting section in its [readme](https://github.com/prusti/prusti-assistant/blob/master/README.md).
 
 Alternatively, if you wish to use Prusti from the command line there are three options:
 * Download the precompiled binaries for Ubuntu, Windows, or macOS from a [GitHub release](https://github.com/prusti/prusti/releases).

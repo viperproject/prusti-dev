@@ -74,7 +74,7 @@ Prepare a Prusti package in a new folder:
 
 Open VS Code and change its settings as follows:
 
- - Set `prusti-assistant.buildChannel` to `Local`.
+ - Set `prusti-assistant.prustiVersion` to `Local`.
  - Set `prusti-assistant.localPrustiPath` to the `<prusti-package-path>` that you chose.
 
 Now, you should be able to verify Rust programs with a locally built version of Prusti.
