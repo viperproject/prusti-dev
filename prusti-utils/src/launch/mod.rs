@@ -18,12 +18,6 @@ pub mod job;
 /// for `prusti-rustc`.
 pub const PRUSTI_LIBS: [&str; 2] = ["prusti-contracts", "prusti-std"];
 
-#[cfg(debug_assertions)]
-pub const BUILD_MODE: &str = "debug";
-
-#[cfg(not(debug_assertions))]
-pub const BUILD_MODE: &str = "release";
-
 pub fn get_current_executable_dir() -> PathBuf {
     env::current_exe()
         .expect("current executable path invalid")
@@ -32,42 +26,29 @@ pub fn get_current_executable_dir() -> PathBuf {
         .to_path_buf()
 }
 
-/// Finds the closest `target` directory in the current path.
-/// This should be the target directory at the root of the repository,
-/// i.e. `prusti-dev/target`.
-fn get_target_dir(exe_dir: &Path) -> Option<PathBuf> {
-    let mut root_dir = exe_dir;
-    loop {
-        if root_dir.file_name().unwrap() == "target" {
-            return Some(root_dir.to_path_buf());
-        }
-        match root_dir.parent() {
-            Some(parent) => root_dir = parent,
-            None => return None,
-        }
-    }
-}
-
-pub fn get_prusti_contracts_build_target_dir(target_dir: &Path) -> PathBuf {
-    target_dir.join("prusti-contracts").join(BUILD_MODE)
-}
-
 pub fn get_prusti_contracts_dir(exe_dir: &Path) -> Option<PathBuf> {
     let a_prusti_contracts_file = format!("lib{}.rlib", PRUSTI_LIBS[0].replace('-', "_"));
-
-    if exe_dir.join(&a_prusti_contracts_file).exists() {
-        // If this branch is entered, then this is the Prusti Artifact
-        return Some(exe_dir.to_path_buf());
-    } else if let Some(target_dir) = get_target_dir(exe_dir) {
-        // If this branch is entered, then we're building Prusti
-        let candidate = get_prusti_contracts_build_target_dir(&target_dir)
+    let target_dir = if cfg!(debug_assertions) {
+        "debug"
+    } else {
+        "release"
+    };
+    let candidates = [
+        // Libraries in the Prusti artifact will show up here
+        exe_dir.to_path_buf(),
+        // Libraries when building Prusti will show up here
+        exe_dir
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("target")
             .join("verify")
-            .join(BUILD_MODE);
-        if candidate.join(&a_prusti_contracts_file).exists() {
-            return Some(candidate);
-        }
-    }
-    None
+            .join(target_dir),
+    ];
+    candidates
+        .into_iter()
+        .find(|candidate| candidate.join(&a_prusti_contracts_file).exists())
 }
 
 /// Append paths to the loader environment variable
@@ -197,24 +178,28 @@ fn get_sysroot_from_rustup() -> Option<PathBuf> {
 
 /// Find Viper home
 pub fn find_viper_home(base_dir: &Path) -> Option<PathBuf> {
-    let mut dir = base_dir;
-    loop {
-        if dir.join("viper_tools").is_dir() {
-            let viper_tools_dir = dir.join("viper_tools");
-            let backends_dir = viper_tools_dir.join("backends");
-            if backends_dir.is_dir() {
-                return Some(backends_dir);
-            }
-            let server_dir = viper_tools_dir.join("server");
-            if server_dir.is_dir() {
-                return Some(server_dir);
-            }
-        }
-        match dir.parent() {
-            Some(parent) => dir = parent,
-            None => return None,
-        }
-    }
+    let candidates = vec![
+        base_dir.join("viper_tools").join("server"),
+        base_dir
+            .join("..")
+            .join("..")
+            .join("viper_tools")
+            .join("server"),
+        base_dir.join("viper_tools").join("backends"),
+        base_dir
+            .join("..")
+            .join("..")
+            .join("viper_tools")
+            .join("backends"),
+        base_dir
+            .join("..")
+            .join("..")
+            .join("..")
+            .join("viper_tools")
+            .join("backends"),
+    ];
+
+    candidates.into_iter().find(|candidate| candidate.is_dir())
 }
 
 /// Find Z3 executable

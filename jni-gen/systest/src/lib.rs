@@ -1,4 +1,3 @@
-#[rustfmt::skip]
 #[path = "../gen/mod.rs"]
 pub mod wrappers;
 
