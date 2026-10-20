@@ -25,30 +25,41 @@ pub struct Program<'vir> {
     methods: Vec<vir::Method<'vir>>,
     literal_inverses: Vec<vir::simplify::LiteralInverse<'vir>>,
 
-    code: String,
+    code: Vec<CodeItem>,
     encoder_errors: Vec<(String, Span)>,
+}
+
+/// An entry of [`Program::code`], in the order the program was built: a
+/// section header, or an item by its index.
+#[derive(Debug)]
+enum CodeItem {
+    Header(String),
+    Field(usize),
+    Adt(usize),
+    Domain(usize),
+    Predicate(usize),
+    Function(usize),
+    Method(usize),
 }
 
 impl<'vir> Program<'vir> {
     pub fn header(&mut self, title: &str) {
-        self.code.push_str("// -----------------------------\n");
-        self.code.push_str(&format!("// {title}\n"));
-        self.code.push_str("// -----------------------------\n");
+        self.code.push(CodeItem::Header(title.to_string()));
     }
 
     pub fn add_field(&mut self, field: vir::FieldDyn<'vir>) {
+        self.code.push(CodeItem::Field(self.fields.len()));
         self.fields.push(field);
-        self.code.push_str(&format!("{field:?}\n"));
     }
 
     pub fn add_adt(&mut self, adt: vir::Adt<'vir>) {
+        self.code.push(CodeItem::Adt(self.adts.len()));
         self.adts.push(adt);
-        self.code.push_str(&format!("{adt:?}\n"));
     }
 
     pub fn add_domain(&mut self, domain: vir::Domain<'vir>) {
+        self.code.push(CodeItem::Domain(self.domains.len()));
         self.domains.push(domain);
-        self.code.push_str(&format!("{domain:?}\n"));
     }
 
     /// Declares a literal inverse, which [`Self::simplify`] then folds.
@@ -57,23 +68,41 @@ impl<'vir> Program<'vir> {
     }
 
     pub fn add_predicate(&mut self, predicate: vir::Predicate<'vir>) {
+        self.code.push(CodeItem::Predicate(self.predicates.len()));
         self.predicates.push(predicate);
-        self.code.push_str(&format!("{predicate:?}\n"));
     }
 
     pub fn add_function(&mut self, function: vir::Function<'vir>) {
+        self.code.push(CodeItem::Function(self.functions.len()));
         self.functions.push(function);
-        self.code.push_str(&format!("{function:?}\n"));
     }
 
     pub fn add_method(&mut self, method: vir::Method<'vir>) {
+        self.code.push(CodeItem::Method(self.methods.len()));
         self.methods.push(method);
-        self.code.push_str(&format!("{method:?}\n"));
     }
 
-    /// The program as added, before any [`Self::simplify`].
-    pub fn code(&self) -> &str {
-        &self.code
+    /// The program in Viper syntax, with section headers.
+    pub fn code(&self) -> String {
+        let mut code = String::new();
+        for item in &self.code {
+            match item {
+                CodeItem::Header(title) => {
+                    code.push_str("// -----------------------------\n");
+                    code.push_str(&format!("// {title}\n"));
+                    code.push_str("// -----------------------------\n");
+                }
+                CodeItem::Field(idx) => code.push_str(&format!("{:?}\n", self.fields[*idx])),
+                CodeItem::Adt(idx) => code.push_str(&format!("{:?}\n", self.adts[*idx])),
+                CodeItem::Domain(idx) => code.push_str(&format!("{:?}\n", self.domains[*idx])),
+                CodeItem::Predicate(idx) => {
+                    code.push_str(&format!("{:?}\n", self.predicates[*idx]))
+                }
+                CodeItem::Function(idx) => code.push_str(&format!("{:?}\n", self.functions[*idx])),
+                CodeItem::Method(idx) => code.push_str(&format!("{:?}\n", self.methods[*idx])),
+            }
+        }
+        code
     }
 
     /// Simplifies the expressions of all domain axioms, predicates, functions

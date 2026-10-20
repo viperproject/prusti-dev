@@ -101,12 +101,11 @@ macro_rules! build_adt_node {
 macro_rules! build_adt_node_with_pos {
     ($self:expr, $wrapper:ident, $($java_class:ident)::+, $($args1:expr),+ ; $($args2:expr),+ ; $pos:expr) => {
          {
-            let pos = $pos.to_jobject();
             let obj = $self.jni.unwrap_result(
                 $self.env.with_local_frame(16, move || {
                     $($java_class)::+::with($self.env).new(
                         $($args1),+ ,
-                        pos,
+                        $pos.to_jobject(),
                         $self.no_info(),
                         $($args2),+ ,
                         $self.no_trafos(),

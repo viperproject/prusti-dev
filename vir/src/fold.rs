@@ -80,18 +80,17 @@ impl<'vir, Curr, Next, X: Foldable<'vir, Curr, Next> + Copy> Foldable<'vir, Curr
     for &'vir [X]
 {
     fn fold_with<F: Folder<'vir, Curr, Next> + ?Sized>(&self, f: &mut F) -> Option<Self> {
-        let folded = self
+        let (idx, first) = self
             .iter()
-            .map(|elem| elem.fold_with(f))
-            .collect::<Vec<_>>();
-        if folded.iter().all(Option::is_none) {
-            return None;
-        }
-        let elems = folded
-            .into_iter()
-            .zip(self.iter())
-            .map(|(new, old)| new.unwrap_or(*old))
-            .collect::<Vec<_>>();
+            .enumerate()
+            .find_map(|(idx, elem)| Some((idx, elem.fold_with(f)?)))?;
+        let mut elems = self[..idx].to_vec();
+        elems.push(first);
+        elems.extend(
+            self[idx + 1..]
+                .iter()
+                .map(|elem| elem.fold_with(f).unwrap_or(*elem)),
+        );
         Some(crate::with_vcx(|vcx| vcx.alloc_slice(&elems)))
     }
 }
