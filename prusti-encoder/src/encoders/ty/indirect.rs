@@ -276,8 +276,7 @@ pub fn projection_for_pcg_projection<'tcx, T>(
     decomp: RustTyDecomposition<'tcx>,
     tcx: TyCtxt<'tcx>,
 ) -> Option<LifetimeProjection<'tcx, RustTyDecomposition<'tcx>, Region>> {
-    let regions: IndexVec<LifetimeProjectionIdx<Region>, PcgRegion<'tcx>> =
-        tcx.extract_regions(ty);
+    let regions: IndexVec<LifetimeProjectionIdx<Region>, PcgRegion<'tcx>> = tcx.extract_regions(ty);
     let region = regions[proj.region_idx()];
     LifetimeProjection::new(decomp, region, None, PrustiPcgCtxt)
 }

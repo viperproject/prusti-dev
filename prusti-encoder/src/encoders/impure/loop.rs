@@ -68,8 +68,7 @@ impl<'vir: 'a, 'a, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             // an invariant for *x
             let projs = ctxt.extract_lifetime_projections(place.with_inherent_region(ctxt));
             for proj in projs {
-                let Some(proj) =
-                    projection_for_pcg_projection(proj, ty.ty, task, self.vcx.tcx())
+                let Some(proj) = projection_for_pcg_projection(proj, ty.ty, task, self.vcx.tcx())
                 else {
                     continue;
                 };
