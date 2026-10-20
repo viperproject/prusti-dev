@@ -1347,7 +1347,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     let variant = place_ty.variant_index.unwrap_or(abi::FIRST_VARIANT);
                     let identity = ty::GenericArgs::identity_for_item(tcx, adt.did());
                     let declared = adt.variant(variant).fields[*field].ty(tcx, identity);
-                    matches!(declared.kind(), TyKind::Param(_) | TyKind::Alias(..))
+                    matches!(declared.skip_normalization().kind(), TyKind::Param(_) | TyKind::Alias(..))
                 }
                 _ => false,
             };
