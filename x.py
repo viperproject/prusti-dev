@@ -282,11 +282,22 @@ def package(mode: str, package_path: str):
         (f"target/{mode}/prusti-rustc*", "."),
         (f"target/{mode}/cargo-prusti*", "."),
         (f"target/verify/{mode}/libprusti_contracts.*", "."),
-        (f"target/verify/{mode}/*prusti_contracts_proc_macros.*", "."),
+        # `prusti-contracts-proc-macros` is only ever built as a dependency of
+        # `prusti-contracts` (see `prusti-contracts-build/build.rs`, which builds
+        # with `-p prusti-contracts`), so Cargo never uplifts its artifact to the
+        # flat, unhashed `target/verify/{mode}` directory; it only ever exists in
+        # its per-unit build directory. There's exactly one such directory, since
+        # restricting the build to `-p prusti-contracts` avoids Cargo building
+        # `prusti-contracts-proc-macros` a second time (as its own top-level unit),
+        # which previously could leave two differently-profiled copies around with
+        # no guarantee that the flat, uplifted one was the one actually linked into
+        # `libprusti_contracts.rlib`.
+        (f"target/verify/{mode}/build/prusti-contracts-proc-macros/*/out/*prusti_contracts_proc_macros-*.*", "."),
     ]
     exclude_paths = [
         f"target/{mode}/*.d",
         f"target/verify/{mode}/*.d",
+        f"target/verify/{mode}/build/prusti-contracts-proc-macros/*/out/*.d",
     ]
     actual_exclude_set = set(path for pattern in exclude_paths for path in glob.glob(pattern))
     logging.debug(f"The number of excluded paths is: {len(actual_exclude_set)}")

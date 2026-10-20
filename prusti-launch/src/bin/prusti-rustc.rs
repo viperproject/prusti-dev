@@ -45,8 +45,8 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
 
         // This is where the files we'll link against live.
         // Under Cargo's newer build-dir layout, `deps/` is no longer populated;
-        // instead, workspace members (e.g. `prusti-contracts-proc-macros`) get their
-        // final artifact placed directly in `target_dir`, so we search both.
+        // instead, workspace members (e.g. `prusti-contracts`) get their final
+        // artifact placed directly in `target_dir`, so we search both.
         args.push("-L".into());
         args.push(format!("dependency={}", target_dir.to_str().unwrap()));
         args.push("-L".into());
@@ -54,6 +54,15 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
             "dependency={}",
             target_dir.join("deps").to_str().unwrap()
         ));
+        // `prusti-contracts-proc-macros` is only ever built as a dependency of
+        // `prusti-contracts`, not as its own top-level unit (see
+        // `prusti-contracts-build/build.rs`), so Cargo never uplifts its
+        // artifact to `target_dir` or `target_dir/deps`; it only exists in its
+        // own per-unit build directory. Search those too.
+        for build_unit_dir in launch::build_unit_dirs(&target_dir) {
+            args.push("-L".into());
+            args.push(format!("dependency={}", build_unit_dir.to_str().unwrap()));
+        }
 
         for prusti_lib in launch::PRUSTI_LIBS.map(|c| c.replace('-', "_")) {
             if let Some(illegal_arg) = args
