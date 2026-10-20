@@ -45,36 +45,42 @@ pub(crate) fn ty_pure<'vir>(
                 forall s: [builder.self_type()] :: {[value_ident](s)} ([cons_ident]([value_ident](s))) == (s)
             });
 
-            match ty_kind {
-                ty::TyKind::Int(_) | ty::TyKind::Uint(_) => {
-                    let min = builder.vcx.get_min_int(ty_kind);
-                    let max = builder.vcx.get_max_int(ty_kind);
-                    builder.axiom("bounds", vir::expr! {
-                        forall s: [builder.self_type()] :: {[value_ident](s)} (([min]) <= (([value_ident](s)) as Int)) && ((([value_ident](s)) as Int) <= ([max]))
-                    });
-                    builder.axiom(
-                        "value",
-                        vir::expr! {
-                            forall value: [prim_type] :: {[cons_ident](value)}
-                                ((([min]) <= ((value) as Int)) && (((value) as Int) <= ([max])))
-                                    ==> (([value_ident]([cons_ident](value))) == (value))
-                        },
-                    );
-                }
-                _ => {
-                    builder.axiom("value", vir::expr! {
-                        forall value: [prim_type] :: {[cons_ident](value)} ([value_ident]([cons_ident](value))) == (value)
-                    });
-                }
+            // The values of the type, as inclusive ranges: those of a `char`
+            // are the Unicode scalar values, all code points but surrogates.
+            let ranges = match ty_kind {
+                ty::TyKind::Char => vec![
+                    (vcx.mk_uint::<0>(), vcx.mk_uint::<0xD7FF>()),
+                    (vcx.mk_uint::<0xE000>(), vcx.mk_uint::<0x10FFFF>()),
+                ],
+                _ => vec![(vcx.get_min_int(ty_kind), vcx.get_max_int(ty_kind))],
             };
-            let (bits, signed) = VirCtxt::get_int_data(ty_kind);
-            let shift = 128 - bits;
-            let (min, max) = if signed {
-                (i128::MIN >> shift, i128::MAX >> shift)
-            } else {
-                (0, i128::try_from(u128::MAX >> shift).unwrap_or(i128::MAX))
+            let in_range = |x: vir::ExprInt<'vir>| {
+                let ranges = ranges
+                    .iter()
+                    .map(|&(min, max)| vir::expr! { (([min]) <= ([x])) && (([x]) <= ([max])) })
+                    .collect::<Vec<_>>();
+                vcx.mk_disj(&ranges)
             };
-            builder.literal_inverse(value_ident, cons_ident, min, max);
+            let s_decl = vcx.mk_local_decl("s", builder.self_type());
+            let s = vcx.mk_local_ex(s_decl);
+            let s_value = vir::expr! { ([value_ident](s)) as Int };
+            builder.axiom(
+                "bounds",
+                vir::expr! {
+                    forall [s_decl] :: {[value_ident](s)} [in_range(s_value)]
+                },
+            );
+            let value_decl = vcx.mk_local_decl("value", prim_type);
+            let value = vcx.mk_local_ex(value_decl);
+            builder.axiom(
+                "value",
+                vir::expr! {
+                    forall [value_decl] :: {[cons_ident](value)}
+                        ([in_range(vir::expr! { (value) as Int })])
+                            ==> (([value_ident]([cons_ident](value))) == (value))
+                },
+            );
+            builder.literal_inverse(value_ident, cons_ident, vcx.alloc_slice(&ranges));
             TyPurePrimDataKind::Int(TyPurePrimDataInt {
                 prim_to_snap: cons_ident,
                 snap_to_prim: value_ident,

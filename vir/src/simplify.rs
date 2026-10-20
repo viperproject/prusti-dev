@@ -59,14 +59,14 @@ use crate::{
 };
 
 /// A declaration that `outer(inner(k))` is `k` for every integer literal `k`
-/// in `min..=max`, such as for the value and constructor of a primitive
-/// snapshot domain, whose axiom only holds within the type's bounds.
+/// in one of the inclusive `ranges` (pairs of literal bounds), such as for the
+/// value and constructor of a primitive snapshot domain, whose axiom only
+/// holds for the values of the type.
 #[derive(Clone, Copy, Debug)]
 pub struct LiteralInverse<'vir> {
     pub outer: ViperIdent<'vir>,
     pub inner: ViperIdent<'vir>,
-    pub min: i128,
-    pub max: i128,
+    pub ranges: &'vir [(ExprInt<'vir>, ExprInt<'vir>)],
 }
 
 /// What the simplification knows about the program: its adt constructors and
@@ -742,8 +742,17 @@ impl<'enc, 'vir, 'tcx> Simplifier<'enc, 'vir, 'tcx> {
             return None;
         };
         let v = int_lit(k)?;
-        (app.target == inverse.inner.to_str() && (inverse.min..=inverse.max).contains(&v))
-            .then_some(*k)
+        // A bound beyond `i128` (the maximum of `u128`) bounds no literal.
+        let below = |max: ExprInt<'vir>| match max.kind {
+            ExprKindGenData::Const(ConstData::Int(max)) => {
+                i128::try_from(*max).ok().is_none_or(|max| v <= max)
+            }
+            _ => int_lit(max.as_dyn()).is_some_and(|max| v <= max),
+        };
+        let in_range = |&(min, max): &(ExprInt<'vir>, ExprInt<'vir>)| {
+            int_lit(min.as_dyn()).is_some_and(|min| min <= v) && below(max)
+        };
+        (app.target == inverse.inner.to_str() && inverse.ranges.iter().any(in_range)).then_some(*k)
     }
 
     /// Simplified equality of two snapshots, if a rule applies: applications
@@ -1258,11 +1267,14 @@ mod tests {
             ]);
             let cons = vcx.mk_adt_constructor::<(), !, _>("P_cons", fields);
             let adt = vcx.mk_adt(crate::ViperIdent::new("P"), &[], vcx.alloc_slice(&[cons]));
+            // Like a byte without 10..=19.
             let byte = LiteralInverse {
                 outer: crate::ViperIdent::new("value"),
                 inner: crate::ViperIdent::new("cons"),
-                min: 0,
-                max: 255,
+                ranges: vcx.alloc_slice(&[
+                    (vcx.mk_uint::<0>(), vcx.mk_uint::<9>()),
+                    (vcx.mk_uint::<20>(), vcx.mk_uint::<255>()),
+                ]),
             };
             let ctx = SimplifyCtx::new(&[adt], &[], &[], &[byte]);
             let p_ty = vcx.alloc(TypeData::<Dyn>::new(TypeKind::Domain("P", &[])));
@@ -1358,7 +1370,11 @@ mod tests {
     #[test]
     fn literal_inverses() {
         check("7", |c| c.app("value", &[c.app("cons", &[c.int(7)])]));
-        // `250 + 10` folds to a literal out of the declared range.
+        check("20", |c| c.app("value", &[c.app("cons", &[c.int(20)])]));
+        check("value(cons(15))", |c| {
+            c.app("value", &[c.app("cons", &[c.int(15)])])
+        });
+        // `250 + 10` folds to a literal out of the declared ranges.
         check("value(cons(260))", |c| {
             let sum = c.bin(Add, c.int(250), c.int(10));
             c.app("value", &[c.app("cons", &[sum])])

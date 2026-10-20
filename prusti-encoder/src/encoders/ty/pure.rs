@@ -765,20 +765,23 @@ impl<'vir> DomainBuilder<'vir> {
     }
 
     /// Declares that `outer(inner(k)) == k` for every integer literal `k` in
-    /// `min..=max`, so that the simplifier can fold such applications (see
-    /// [`vir::simplify::LiteralInverse`]).
+    /// one of the inclusive `ranges`, so that the simplifier can fold such
+    /// applications (see [`vir::simplify::LiteralInverse`]).
     pub(crate) fn literal_inverse<A1: Arity, T1: CompType, A2: Arity, T2: CompType>(
         &mut self,
         outer: FunctionIdn<'vir, A1, T1>,
         inner: FunctionIdn<'vir, A2, T2>,
-        min: i128,
-        max: i128,
+        ranges: &'vir [(vir::ExprInt<'vir>, vir::ExprInt<'vir>)],
     ) {
-        self.data().literal_inverse = Some(vir::simplify::LiteralInverse {
+        let data = self.data();
+        assert!(
+            data.literal_inverse.is_none(),
+            "a domain declares at most one literal inverse"
+        );
+        data.literal_inverse = Some(vir::simplify::LiteralInverse {
             outer: outer.name(),
             inner: inner.name(),
-            min,
-            max,
+            ranges,
         });
     }
 
