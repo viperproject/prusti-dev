@@ -975,7 +975,11 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 mir::StatementKind::StorageDead(..)
                 | mir::StatementKind::FakeRead(..)
                 | mir::StatementKind::AscribeUserType(..)
-                | mir::StatementKind::PlaceMention(..) => {} // nop
+                | mir::StatementKind::PlaceMention(..)
+                | mir::StatementKind::Coverage(..)
+                | mir::StatementKind::ConstEvalCounter
+                | mir::StatementKind::Nop
+                | mir::StatementKind::BackwardIncompatibleDropHint { .. } => {} // nop
                 mir::StatementKind::Assign(box (dest, rvalue)) => {
                     //assert!(dest.projection.is_empty());
                     let span = stmt.source_info.span;
