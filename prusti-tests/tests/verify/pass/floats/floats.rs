@@ -1,6 +1,9 @@
+//@ignore-target: windows
+// Verification hangs on Windows CI, probably in Z3 (from ViperToolsWin.zip)
+
 use prusti_contracts::*;
 
-/*#[requires(f == 2.0)]
+#[requires(f == 2.0)]
 #[ensures(result == f)]
 fn foo(f: f32) -> f32 {
     f
@@ -72,7 +75,4 @@ fn foo10(x: f32) -> f32 {
 #[ensures((result - (2.0 * x)).abs() <= 0.01)]
 fn times_two(x: f32) -> f32 {
     x + x
-}*/
-
-// TRY WITHOUT EXECUTING FLOAT TESTS
-fn foo() {}
+}
