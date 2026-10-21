@@ -849,8 +849,9 @@ impl<'vir, 'v> ToViper<'vir, 'v> for vir::Old<'vir> {
     // `pos` coming from the parent `Expr` is used
     fn to_viper(&self, ctx: &ToViperContext<'vir, 'v>, pos: Position) -> Self::Output {
         let label = match self.label {
-            // TODO: position
-            vir::OldLabel::None => return ctx.ast.old(self.expr.to_viper_no_pos(ctx)),
+            vir::OldLabel::None => {
+                return ctx.ast.old_with_pos(self.expr.to_viper_no_pos(ctx), pos)
+            }
             vir::OldLabel::Lhs => "lhs".to_string(),
             vir::OldLabel::Block(block) => block.name(),
             vir::OldLabel::Label(label) => label.to_string(),

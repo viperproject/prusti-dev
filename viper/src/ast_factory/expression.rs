@@ -1223,8 +1223,12 @@ impl<'a> AstFactory<'a> {
         )
     }
 
+    pub fn old_with_pos(&self, expr: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(self, Expr, ast::Old, expr.to_jobject(), pos.to_jobject())
+    }
+
     pub fn old(&self, expr: Expr) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::Old, expr.to_jobject())
+        self.old_with_pos(expr, self.no_position())
     }
 
     pub fn labelled_old_with_pos(&self, expr: Expr, old_label: &str, pos: Position) -> Expr<'a> {
@@ -1291,7 +1295,7 @@ impl<'a> AstFactory<'a> {
         variables: &[LocalVarDecl],
         triggers: &[Trigger],
         expr: Expr,
-        _pos: Position, // FIXME: Why???
+        pos: Position,
     ) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,
@@ -1300,7 +1304,7 @@ impl<'a> AstFactory<'a> {
             self.jni.new_seq(&map_to_jobjects!(variables)),
             self.jni.new_seq(&map_to_jobjects!(triggers)),
             expr.to_jobject(),
-            self.no_position().to_jobject()
+            pos.to_jobject()
         )
     }
 
