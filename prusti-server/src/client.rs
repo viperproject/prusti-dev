@@ -6,6 +6,7 @@
 
 use crate::{ServerMessage, VerificationRequest};
 use futures_util::{
+    future,
     sink::SinkExt,
     stream::{Stream, StreamExt},
 };
@@ -63,16 +64,13 @@ impl PrustiClient {
                 panic!("Invalid response from the server.");
             }
         };
-        let filter_close = |msg_result: Result<Message, Error>| async {
-            let msg = msg_result.unwrap();
-            match msg {
-                Message::Close(_) => None,
-                _ => Some(msg),
-            }
-        };
-
+        // Stop reading at the server's Close frame. Polling the socket after it
+        // makes tungstenite send its Close reply, which fails if the server has
+        // already dropped the connection (always the case on Windows, where the
+        // dropped connection is reset).
         socket
-            .filter_map(filter_close)
+            .map(|msg_result: Result<Message, Error>| msg_result.unwrap())
+            .take_while(|msg| future::ready(!msg.is_close()))
             .map(if use_json { json_map } else { bin_map })
     }
 }
