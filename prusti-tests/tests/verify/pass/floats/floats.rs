@@ -1,6 +1,3 @@
-//@ignore-target: windows
-// Verification hangs on Windows CI, probably in Z3 (from ViperToolsWin.zip)
-
 use prusti_contracts::*;
 
 #[requires(f == 2.0)]
