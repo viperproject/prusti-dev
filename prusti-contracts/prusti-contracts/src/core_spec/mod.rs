@@ -3,6 +3,8 @@ use crate::*;
 pub mod eq;
 pub mod float;
 pub mod slice;
+pub mod ops;
+pub mod option;
 
 pub use eq::PureEq;
 
