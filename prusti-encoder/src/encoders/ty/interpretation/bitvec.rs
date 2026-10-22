@@ -150,7 +150,7 @@ impl TaskEncoder for BitVecEnc {
                 self_type,
                 vir::TYPE_INT.upcast_ty(),
             );
-            let ubv_to_int_data = vcx.mk_domain_function(ubv_to_int, false, Some("ubv_to_int"));
+            let ubv_to_int_data = vcx.mk_domain_function(ubv_to_int, false, Some("bv2nat"));
 
             let sbv_to_int_name = vir::vir_format!(vcx, "{}_sbv_to_int", domain_name);
             let sbv_to_int = FunctionIdn::new(
