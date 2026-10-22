@@ -4,7 +4,10 @@ use vir::{CastType, FunctionIdn};
 
 use crate::encoders::ty::{
     RustTy, RustTyDecomposition, TySpecifics,
-    interpretation::float::FloatDomain,
+    interpretation::{
+        bitvec::{BitVecEnc, BitVecSize},
+        float::FloatDomain,
+    },
     pure::{TyPurePrimData, TyPurePrimDataKind},
     use_pure::TyUsePureEnc,
 };
@@ -123,7 +126,7 @@ impl TaskEncoder for MirBuiltinBinOpEnc {
                     } else {
                         let res_ty = *result_ty.ty.expect_primitive();
                         let (pres, val) =
-                            Self::handle_bin_op_native(vcx, lhs, rhs, res_ty, op, l_ty)?;
+                            Self::handle_bin_op_native(vcx, lhs, rhs, res_ty, op, l_ty, deps)?;
                         (pres, res_ty_data.expect_primitive().prim_to_snap(val))
                     }
                 }
@@ -159,29 +162,46 @@ impl MirBuiltinBinOpEnc {
         res_ty: ty::Ty<'vir>,
         op: mir::BinOp,
         in_ty: ty::Ty<'vir>,
+        deps: &mut TaskEncoderDependencies<'vir, Self>,
     ) -> EncodeResult<'vir, (Vec<vir::ExprBool<'vir>>, vir::ExprPrim<'vir>)> {
         use mir::BinOp::*;
-        if matches!(op, BitXor | BitAnd | BitOr) && !in_ty.is_bool() {
-            // Viper `Int`s have no native bitwise operations; the `BinOpKind`
-            // mapping (`!=`/`&&`/`||`) is only correct for `bool` operands.
-            return Err(EncodeFullError::EncodingError(
-                MirBuiltinBinOpEncError::Unsupported(format!(
-                    "bitwise operation `{op:?}` on `{in_ty}`"
-                )),
-                None,
-            ));
-        }
-        if matches!(op, Shl | Shr) {
-            // RHS must be smaller than the bit width of the LHS, this is
-            // implicit in the `Shl` and `Shr` operators.
-            rhs = vcx.mk_bin_op_expr(
-                vir::BinOpKind::Mod,
-                rhs.downcast_ty(),
-                vcx.get_bit_width_int(in_ty.kind()),
-            );
-        }
+        if matches!(op, BitXor | BitAnd | BitOr | Shl | Shr) && !in_ty.is_bool() {
+            if matches!(op, Shl | Shr) {
+                // RHS must be smaller than the bit width of the LHS, this is
+                // implicit in the `Shl` and `Shr` operators.
+                rhs = vcx.mk_bin_op_expr(
+                    vir::BinOpKind::Mod,
+                    rhs.downcast_ty(),
+                    vcx.get_bit_width_int(in_ty.kind()),
+                );
+            }
 
-        if matches!(op, Cmp) {
+            let (size, is_signed) = vir::VirCtxt::get_int_data(in_ty.kind());
+            let bv_domain = deps.require_dep::<BitVecEnc>(match size {
+                8 => BitVecSize::BitVec8,
+                16 => BitVecSize::BitVec16,
+                32 => BitVecSize::BitVec32,
+                64 => BitVecSize::BitVec64,
+                128 => BitVecSize::BitVec128,
+                _ => unreachable!("Invalid bitvec size"),
+            })?;
+            let lhs_bv = (bv_domain.from_int)(lhs);
+            let rhs_bv = (bv_domain.from_int)(rhs);
+            let res_bv = match op {
+                BitXor => (bv_domain.bv_xor)(lhs_bv, rhs_bv),
+                BitAnd => (bv_domain.bv_and)(lhs_bv, rhs_bv),
+                BitOr => (bv_domain.bv_or)(lhs_bv, rhs_bv),
+                Shl => (bv_domain.bv_shl)(lhs_bv, rhs_bv),
+                Shr => (bv_domain.bv_shr)(lhs_bv, rhs_bv),
+                _ => unreachable!(),
+            };
+            let to_int = if is_signed {
+                bv_domain.sbv_to_int
+            } else {
+                bv_domain.ubv_to_int
+            };
+            Ok((vec![], (to_int)(res_bv)))
+        } else if matches!(op, Cmp) {
             // Cmp does not have a direct analogue to VIR binary operations,
             // so we treat it specially.
             // a > b ? 1 : (b > a ? -1 : 0)
