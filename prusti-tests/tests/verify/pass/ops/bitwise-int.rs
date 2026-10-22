@@ -56,4 +56,25 @@ fn main() {
     let x: u8 = 255;
     let y: u8 = 1;
     prusti_assert!(x >> y == 127);
+
+    let x: i8 = -3;
+    let y: i8 = 1;
+    prusti_assert!(x << y == -6);
+
+    let x = 0;
+    let y = 1;
+    prusti_assert!(x << 1 == 0);
+    prusti_assert!(x >> 1 == 0);
+}
+
+#[requires(x >= -127 && x <= 127)]
+#[ensures(result == x * 2)]
+fn mul2(x: i16) -> i16 {
+    x << 1
+}
+
+#[requires(x <= 127)]
+#[ensures(result == x / 2)]
+fn div2(x: u16) -> u16 {
+    x >> 1
 }

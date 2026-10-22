@@ -183,14 +183,7 @@ impl MirBuiltinBinOpEnc {
                 32 => BitVecSize::BitVec32,
                 64 => BitVecSize::BitVec64,
                 128 => BitVecSize::BitVec128,
-                _ => {
-                    return Err(EncodeFullError::EncodingError(
-                        MirBuiltinBinOpEncError::Unsupported(format!(
-                            "unsupported bit width {size} for binary op {op:?}"
-                        )),
-                        None,
-                    ));
-                }
+                _ => unreachable!("Invalid bitvec size"),
             })?;
             let lhs_bv = (bv_domain.from_int)(lhs);
             let rhs_bv = (bv_domain.from_int)(rhs);
@@ -202,14 +195,12 @@ impl MirBuiltinBinOpEnc {
                 Shr => (bv_domain.bv_shr)(lhs_bv, rhs_bv),
                 _ => unreachable!(),
             };
-            Ok((
-                vec![],
-                (if is_signed {
-                    bv_domain.sbv_to_int
-                } else {
-                    bv_domain.ubv_to_int
-                })(res_bv),
-            ))
+            let to_int = if is_signed {
+                bv_domain.sbv_to_int
+            } else {
+                bv_domain.ubv_to_int
+            };
+            Ok((vec![], (to_int)(res_bv)))
         } else if matches!(op, Cmp) {
             // Cmp does not have a direct analogue to VIR binary operations,
             // so we treat it specially.
