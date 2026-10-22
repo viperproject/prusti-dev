@@ -27,6 +27,26 @@ pub struct BitVecDomain<'vir> {
 
 pub struct BitVecEnc;
 
+impl BitVecEnc {
+    /// Creates a binary domain function `<domain_name>_<suffix>` on the
+    /// bitvector domain, interpreted as the given SMT-LIB function.
+    fn mk_binop<'vir>(
+        vcx: &'vir vir::VirCtxt<'_>,
+        domain_name: &str,
+        self_type: vir::Type<'vir, vir::CSnap>,
+        suffix: &str,
+        interpretation: &'vir str,
+    ) -> (
+        FunctionIdn<'vir, (vir::CSnap, vir::CSnap), vir::CSnap>,
+        vir::DomainFunction<'vir>,
+    ) {
+        let name = vir::vir_format!(vcx, "{}_{}", domain_name, suffix);
+        let ident = FunctionIdn::new(ViperIdent::new(name), (self_type, self_type), self_type);
+        let data = vcx.mk_domain_function(ident, false, Some(interpretation));
+        (ident, data)
+    }
+}
+
 impl TaskEncoder for BitVecEnc {
     task_encoder::encoder_cache!(BitVecEnc);
     const ENCODER_NAME: &'static str = "bitvec encoder";
@@ -102,45 +122,15 @@ impl TaskEncoder for BitVecEnc {
             );
             let sbv_to_int_data = vcx.mk_domain_function(sbv_to_int, false, Some("sbv_to_int"));
 
-            let bv_and_name = vir::vir_format!(vcx, "{}_bv_and", domain_name);
-            let bv_and = FunctionIdn::new(
-                ViperIdent::new(bv_and_name),
-                (self_type, self_type),
-                self_type,
-            );
-            let bv_and_data = vcx.mk_domain_function(bv_and, false, Some("bvand"));
-
-            let bv_xor_name = vir::vir_format!(vcx, "{}_bv_xor", domain_name);
-            let bv_xor = FunctionIdn::new(
-                ViperIdent::new(bv_xor_name),
-                (self_type, self_type),
-                self_type,
-            );
-            let bv_xor_data = vcx.mk_domain_function(bv_xor, false, Some("bvxor"));
-
-            let bv_or_name = vir::vir_format!(vcx, "{}_bv_or", domain_name);
-            let bv_or = FunctionIdn::new(
-                ViperIdent::new(bv_or_name),
-                (self_type, self_type),
-                self_type,
-            );
-            let bv_or_data = vcx.mk_domain_function(bv_or, false, Some("bvor"));
-
-            let bv_shl_name = vir::vir_format!(vcx, "{}_bv_shl", domain_name);
-            let bv_shl = FunctionIdn::new(
-                ViperIdent::new(bv_shl_name),
-                (self_type, self_type),
-                self_type,
-            );
-            let bv_shl_data = vcx.mk_domain_function(bv_shl, false, Some("bvshl"));
-
-            let bv_shr_name = vir::vir_format!(vcx, "{}_bv_shr", domain_name);
-            let bv_shr = FunctionIdn::new(
-                ViperIdent::new(bv_shr_name),
-                (self_type, self_type),
-                self_type,
-            );
-            let bv_shr_data = vcx.mk_domain_function(bv_shr, false, Some("bvlshr"));
+            let (bv_and, bv_and_data) =
+                Self::mk_binop(vcx, domain_name, self_type, "bv_and", "bvand");
+            let (bv_xor, bv_xor_data) =
+                Self::mk_binop(vcx, domain_name, self_type, "bv_xor", "bvxor");
+            let (bv_or, bv_or_data) = Self::mk_binop(vcx, domain_name, self_type, "bv_or", "bvor");
+            let (bv_shl, bv_shl_data) =
+                Self::mk_binop(vcx, domain_name, self_type, "bv_shl", "bvshl");
+            let (bv_shr, bv_shr_data) =
+                Self::mk_binop(vcx, domain_name, self_type, "bv_shr", "bvlshr");
 
             let functions = &[
                 from_int_data,
