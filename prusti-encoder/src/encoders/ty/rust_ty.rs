@@ -467,7 +467,11 @@ impl<'tcx> TyData<'tcx, RustTyDatas> {
             ty::TyKind::Array(..) => String::from("Array"),
             ty::TyKind::Slice(..) => String::from("Slice"),
             ty::TyKind::Dynamic(..) => String::from("Dyn"),
-            ty::TyKind::Foreign(def_id) | ty::TyKind::FnDef(def_id, _) => def_id_name(*def_id),
+            // we add FnDef_ because otherwise in case we encode, e.g., a tuple struct and use the constructor
+            // fn as a type, the constructor fn will receive the same Viper domain name as the Viper domain
+            // of the struct.
+            ty::TyKind::FnDef(def_id, _) => format!("FnDef_{}", def_id_name(*def_id)),
+            ty::TyKind::Foreign(def_id) => def_id_name(*def_id),
             ty::TyKind::Pat(ty, _) => Self::ty_name(*ty),
             other => unimplemented!("ty_name for {:?}", other),
         }

@@ -1,3 +1,5 @@
+use core::ops::ControlFlow;
+
 use itertools::Itertools;
 use pcg::{
     PcgOutput,
@@ -2238,7 +2240,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     .encode_place(Place::from(*destination))?
                     .expr
                     .expect_predicate();
-                self.vcx.with_span(span, |vcx| {
+                let control_flow = self.vcx.with_span(span, |vcx| {
                     let pure =
                         self.pure_call_result(func_def_id, caller_substs, args, is_pure, span)?;
                     if let Some((can_fail, pure)) = pure {
@@ -2273,7 +2275,17 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                                 self.vcx
                                     .mk_dummy_stmt(vir::vir_format!(self.vcx, "recursion",)),
                             );
-                            return Ok(());
+                            // returning Ok here, only returns Ok from the closure, so the ? sees success.
+                            // therefore, returning Ok without further data from the closure would mean that
+                            // we do not differentiate between the Ok here and the actual Ok at the end
+                            // of the closure. the control flow would then be unchanged
+                            // and the terminator would get set a second time.
+                            // therefore, returning Ok(()) would lead to a panic.
+                            // instead, return Ok(ControlFlow::Break(())), so we can
+                            // directly (early) return Ok(()) from visit_terminator.
+                            // the actual errors will still be there but we'll see those handled errors
+                            // instead of panicking
+                            return Ok(ControlFlow::Break(()));
                         };
 
                         let method_in = args
@@ -2302,8 +2314,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         self.call_labels
                             .insert(location.block, (label_pre, label_post));
                     }
-                    Ok(())
+                    Ok(ControlFlow::Continue(()))
                 })?;
+
+                if let ControlFlow::Break(()) = control_flow {
+                    return Ok(());
+                }
 
                 match *target {
                     Some(target) => self.goto_single_succ(location, target)?,
