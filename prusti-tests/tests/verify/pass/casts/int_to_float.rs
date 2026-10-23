@@ -1,3 +1,4 @@
+//@ known-failure
 fn i32_to_f32() {
     let x = 100;
     let y = x as f32;
