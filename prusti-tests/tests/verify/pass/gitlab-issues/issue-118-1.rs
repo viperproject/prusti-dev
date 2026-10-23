@@ -1,4 +1,3 @@
-//@ known-failure
 #![feature(nll)]
 #![feature(box_patterns)]
 
