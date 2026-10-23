@@ -1,4 +1,3 @@
-//@ known-failure
 // Figure 3: Function Calls (max and dec_max_alt)
 
 struct Pos2D<T> { x: T, y: T }
