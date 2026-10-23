@@ -3,7 +3,7 @@ use prusti_rustc_interface::{
     span::symbol,
 };
 use task_encoder::{EncodeFullError, EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
-use vir::{CastType, FunctionIdn, MethodIdn};
+use vir::{CastType, ConstData, FunctionIdn, MethodIdn};
 
 use crate::encoders::{
     TyUseImpureEnc,
@@ -11,6 +11,10 @@ use crate::encoders::{
     ty::{
         LazyRustTy, RustTy, RustTyDecomposition, RustTySpecial, TySpecifics,
         generics::{GParams, GenericParamsEnc},
+        interpretation::{
+            bitvec::BitVecSize,
+            float_conv::{FloatBitVecConvEnc, float_pow2_bits},
+        },
         use_pure::TyUsePureEnc,
     },
 };
@@ -101,6 +105,8 @@ impl TaskEncoder for MirBuiltinCastEnc {
             mir::CastKind::PointerCoercion(ty::adjustment::PointerCoercion::Unsize, ..) => "unsize",
             mir::CastKind::IntToInt => "i2i",
             mir::CastKind::PtrToPtr => "p2p",
+            mir::CastKind::IntToFloat => "i2f",
+            mir::CastKind::FloatToInt => "f2i",
             other => todo!("cast kind {other:?}"),
         };
         // The unsize cast/methods don't depend on the pointee type (the methods
@@ -178,6 +184,115 @@ impl TaskEncoder for MirBuiltinCastEnc {
                     let expr = e_res_ty.prim_to_snap(
                         e_op_ty.address_access(arg_ex),
                         e_op_ty.metadata_access(arg_ex),
+                    );
+
+                    let fn_idn = FunctionIdn::new(name, op_ty_snap, res_ty_snap);
+                    let function = vcx.mk_function(fn_idn, (arg_decl,), &[], &[], None, Some(expr));
+                    (
+                        MirBuiltinCastLocal {
+                            cast: function,
+                            unsize: None,
+                            undo: None,
+                        },
+                        MirBuiltinCastOutput::Simple(fn_idn),
+                    )
+                }
+                mir::CastKind::IntToFloat => {
+                    let e_op_ty = op_ty.expect_primitive();
+                    let e_res_ty = res_ty.expect_float();
+                    let (bits, signed) =
+                        vir::VirCtxt::get_int_data(operand_ty.expect_primitive().kind());
+                    // Convert at the width of the source type, which keeps `int2bv` cheaper for Z3.
+                    let ty::Float(float) = *result_ty.expect_primitive().kind() else {
+                        unreachable!()
+                    };
+                    let conv = deps
+                        .require_dep::<FloatBitVecConvEnc>((float, BitVecSize::from_bits(bits)))?;
+                    let from_nat = |nat| (conv.from_ubv)((conv.bitvec.from_int)(nat));
+
+                    let arg_prim = e_op_ty.snap_to_prim(arg_ex);
+                    let expr = if signed {
+                        // Convert the magnitude and negate the result for
+                        // negative values: Z3 handles `int2bv` of negative
+                        // integers poorly, and since RNE rounding is symmetric
+                        // `-round(-x) == round(x)`. The magnitude of `iN::MIN`
+                        // still fits into an unsigned `N`-bit vector.
+                        let zero = vcx.mk_int::<0>();
+                        let arg_int = arg_prim.downcast_ty::<vir::Int>();
+                        vcx.mk_ternary_expr(
+                            vir::expr!((arg_int) < (zero)),
+                            (e_res_ty.fp_neg)(from_nat(
+                                vcx.mk_unary_op_expr(vir::UnOpKind::Neg, arg_prim),
+                            )),
+                            from_nat(arg_prim),
+                        )
+                    } else {
+                        from_nat(arg_prim)
+                    };
+
+                    let fn_idn = FunctionIdn::new(name, op_ty_snap, res_ty_snap);
+                    let function = vcx.mk_function(fn_idn, (arg_decl,), &[], &[], None, Some(expr));
+                    (
+                        MirBuiltinCastLocal {
+                            cast: function,
+                            unsize: None,
+                            undo: None,
+                        },
+                        MirBuiltinCastOutput::Simple(fn_idn),
+                    )
+                }
+                mir::CastKind::FloatToInt => {
+                    let e_op_ty = op_ty.expect_float();
+                    let e_res_ty = res_ty.expect_primitive();
+                    let result_kind = result_ty.expect_primitive().kind();
+                    let ty::Float(float) = *operand_ty.expect_primitive().kind() else {
+                        unreachable!()
+                    };
+                    let (bits, signed) = vir::VirCtxt::get_int_data(result_kind);
+                    // Convert at the width of the target type, so that every
+                    // in-range value is representable.
+                    let conv = deps
+                        .require_dep::<FloatBitVecConvEnc>((float, BitVecSize::from_bits(bits)))?;
+                    let float_const = |bits: u128| {
+                        (e_op_ty.prim_to_snap)(vcx.mk_const_expr(ConstData::Int(bits)))
+                    };
+
+                    // `as` rounds towards zero, which the `RTZ` conversions
+                    // already do. They are unspecified for values whose rounded
+                    // value is out of range, so saturate first. The bounds
+                    // `-2^(N-1)`/`0` and `2^(N-1)`/`2^N` are integers, so
+                    // comparing the untruncated value against them gives the
+                    // same result as comparing the truncated one. They are also
+                    // powers of two and therefore exact (or infinite if out of
+                    // the float's range, in which case only the infinities reach
+                    // them). The bounds are compared as floats: going via
+                    // `fp.to_real` makes symbolic casts unprovable with Z3's
+                    // arithmetic solver.
+                    let (lower, upper, in_range) = if signed {
+                        (
+                            float_pow2_bits(float, bits - 1, true),
+                            float_pow2_bits(float, bits - 1, false),
+                            (conv.bitvec.sbv_to_int)((conv.to_sbv)(arg_ex)),
+                        )
+                    } else {
+                        (
+                            0,
+                            float_pow2_bits(float, bits, false),
+                            (conv.bitvec.ubv_to_int)((conv.to_ubv)(arg_ex)),
+                        )
+                    };
+                    let expr = vcx.mk_ternary_expr(
+                        (e_op_ty.fp_is_nan)(arg_ex),
+                        e_res_ty.prim_to_snap(vcx.mk_int::<0>().upcast_ty()),
+                        vcx.mk_ternary_expr(
+                            (e_op_ty.fp_leq)(arg_ex, float_const(lower)),
+                            e_res_ty.prim_to_snap(vcx.get_min_int(result_kind).upcast_ty()),
+                            vcx.mk_ternary_expr(
+                                (e_op_ty.fp_geq)(arg_ex, float_const(upper)),
+                                e_res_ty.prim_to_snap(vcx.get_max_int(result_kind).upcast_ty()),
+                                e_res_ty.prim_to_snap(in_range.upcast_ty()),
+                            ),
+                        ),
                     );
 
                     let fn_idn = FunctionIdn::new(name, op_ty_snap, res_ty_snap);

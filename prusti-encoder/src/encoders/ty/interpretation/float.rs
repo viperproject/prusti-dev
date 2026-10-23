@@ -39,7 +39,7 @@ pub(crate) fn ty_pure_float<'vir>(
     float: ty::FloatTy,
     prim_to_snap: FunctionIdn<'vir, vir::Prim, vir::CSnap>,
 ) -> Result<FloatDomainData<'vir>, EncodeFullError<'vir, TyPureEnc>> {
-    let i = match float {
+    let backend_type = match float {
         ty::FloatTy::F16 => vcx.alloc_slice(&[
             vcx.alloc(BackendInterpretationPair {
                 key: "SMTLIB",
@@ -81,7 +81,7 @@ pub(crate) fn ty_pure_float<'vir>(
             }),
         ]),
     };
-    builder.set_interpretation(i);
+    builder.set_interpretation(backend_type);
 
     let fp_eq = builder.backend_func(
         "eq",
@@ -184,13 +184,18 @@ pub(crate) fn ty_pure_float<'vir>(
         ty::FloatTy::F128 => BitVecSize::BitVec128,
     })?;
 
-    let i = match float {
+    let from_bv_name = match float {
         ty::FloatTy::F16 => "(_ to_fp 5 11)",
         ty::FloatTy::F32 => "(_ to_fp 8 24)",
         ty::FloatTy::F64 => "(_ to_fp 11 53)",
         ty::FloatTy::F128 => "(_ to_fp 15 113)",
     };
-    let from_bv = builder.backend_func("from_bv", (bit_vec.domain)(), builder.self_type(), Some(i));
+    let from_bv = builder.backend_func(
+        "from_bv",
+        (bit_vec.domain)(),
+        builder.self_type(),
+        Some(from_bv_name),
+    );
 
     let fp_to_real = builder.backend_func(
         "to_real",
