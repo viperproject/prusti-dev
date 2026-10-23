@@ -153,45 +153,57 @@ impl<'tcx> GParams<'tcx> {
     /// returns None.
     pub fn try_normalize(self, ty: ty::Ty<'tcx>) -> Option<ty::Ty<'tcx>> {
         use prusti_rustc_interface::{
-            middle::{ty, ty::Unnormalized},
+            middle::{
+                ty,
+                ty::{RegionExt, Unnormalized},
+            },
             trait_selection::{
                 infer::{InferCtxt, TyCtxtInferExt},
-                traits::{FulfillmentEngine, FulfillmentError, NormalizeExt, ObligationCause},
+                traits::{
+                    FulfillmentEngine, FulfillmentError, NormalizeExt, ObligationCause,
+                    with_replaced_escaping_bound_vars,
+                },
             },
+            type_ir::Flags,
         };
         vir::with_vcx(|vcx| {
-            // Erase ReVars before normalizing with a fresh InferCtxt that
-            // doesn't know about ReVars from the original type-checking
-            // context.
-            let ty = ty::fold_regions(vcx.tcx(), ty, |r, _| {
-                if r.is_var() {
-                    vcx.tcx().lifetimes.re_erased
-                } else {
-                    r
-                }
-            });
-            // Normalize associated types
-            let ifctxt: InferCtxt = vcx.tcx().infer_ctxt().build(ty::TypingMode::PostAnalysis);
+            let tcx = vcx.tcx();
+            let ifctxt: InferCtxt = tcx.infer_ctxt().build(ty::TypingMode::PostAnalysis);
             let mut fulfill_cx: FulfillmentEngine<'tcx, FulfillmentError<'tcx>> =
                 FulfillmentEngine::new(&ifctxt);
-            // TODO: is this correct?
-            let kinds = self
-                .params
-                .iter()
-                .map(|param| match param.kind() {
-                    ty::GenericArgKind::Lifetime(_) => {
-                        ty::BoundVariableKind::Region(ty::BoundRegionKind::Anon)
+            // The fresh InferCtxt doesn't know the ReVars of the original
+            // type-checking context, so replace each `'?n` with placeholder `n`
+            // and restore them afterwards.
+            let universe = ifctxt.create_next_universe();
+            let ty = ty::fold_regions(tcx, ty, |r, _| match r.kind() {
+                ty::RegionKind::ReVar(vid) => {
+                    let p = ty::PlaceholderRegion::new_anon(
+                        universe,
+                        ty::BoundVar::from_u32(vid.as_u32()),
+                    );
+                    ty::Region::new_placeholder(tcx, p)
+                }
+                _ => r,
+            });
+            // The normalizer rejects escaping bound vars (e.g. late-bound
+            // regions of a signature after `skip_binder`); this replaces them
+            // with placeholders as well. It needs one (lazily created) universe
+            // per escaping binder level.
+            let mut universes = vec![None; ty.outer_exclusive_binder().as_usize()];
+            let nty = with_replaced_escaping_bound_vars(&ifctxt, &mut universes, ty, |ty| {
+                ifctxt
+                    .at(&ObligationCause::dummy(), self.env)
+                    .deeply_normalize(Unnormalized::new(ty), &mut fulfill_cx)
+                    .ok()
+            });
+            nty.map(|nty| {
+                ty::fold_regions(tcx, nty, |r, _| match r.kind() {
+                    ty::RegionKind::RePlaceholder(p) if p.universe == universe => {
+                        ty::Region::new_var(tcx, ty::RegionVid::from_u32(p.bound.var.as_u32()))
                     }
-                    ty::GenericArgKind::Type(_) => ty::BoundVariableKind::Ty(ty::BoundTyKind::Anon),
-                    ty::GenericArgKind::Const(_) => ty::BoundVariableKind::Const,
+                    _ => r,
                 })
-                .collect::<Vec<_>>();
-            let kinds = vcx.tcx().mk_bound_variable_kinds(&kinds);
-            let ty = ty::Binder::bind_with_vars(ty, kinds);
-            let nty = ifctxt
-                .at(&ObligationCause::dummy(), self.env)
-                .deeply_normalize(Unnormalized::new(ty), &mut fulfill_cx);
-            nty.ok().map(|nty| nty.skip_binder())
+            })
         })
     }
 
