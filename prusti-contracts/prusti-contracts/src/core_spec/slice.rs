@@ -19,3 +19,14 @@ where
     #[pure]
     fn index(self, slice: &T) -> &Self::Output;
 }
+
+#[extern_spec]
+impl<T, I> core::ops::Index<I> for [T]
+where
+    I: SliceIndex<[T]>,
+{
+    #[trusted]
+    #[pure]
+    #[ensures(result === SliceIndex::index(index, self))]
+    fn index(&self, index: I) -> &I::Output;
+}
