@@ -20,8 +20,9 @@ struct Node {
 }
 
 #[extern_spec(std::mem)]
-#[ensures(snap(dest) === src)]
-#[ensures(result === old(snap(dest)))]
+#[trusted]
+#[ensures(*dest === src)]
+#[ensures(result === *old(&*dest))]
 fn replace<T>(dest: &mut T, src: T) -> T;
 
 // Specs for std::option::Option<T>::unwrap(self) (and others) can be found here (work in progress):
@@ -29,14 +30,17 @@ fn replace<T>(dest: &mut T, src: T) -> T;
 
 #[extern_spec]
 impl<T> std::option::Option<T> {
+    #[trusted]
     #[requires(self.is_some())]
     #[ensures(old(self) === Some(result))]
     pub fn unwrap(self) -> T;
     
+    #[trusted]
     #[pure]
     #[ensures(result == matches!(self, None))]
     pub const fn is_none(&self) -> bool;
 
+    #[trusted]
     #[pure]
     #[ensures(result == matches!(self, Some(_)))]
     pub const fn is_some(&self) -> bool;
@@ -92,9 +96,9 @@ impl List {
         self.is_empty()
     )]
     #[ensures(!old(self.is_empty()) ==>
-        self.head_removed(&old(snap(self)))
+        self.head_removed(old(&*self))
         &&
-        result === Some(old(snap(self)).lookup(0))
+        result === Some(old(self.lookup(0)))
     )]
     pub fn try_pop(&mut self) -> Option<i32> {
         match std::mem::replace(&mut self.head, Link::Empty) {
@@ -107,8 +111,8 @@ impl List {
     }
 
     #[requires(!self.is_empty())]
-    #[ensures(self.head_removed(&old(snap(self))))]
-    #[ensures(result === old(snap(self)).lookup(0))]
+    #[ensures(self.head_removed(old(&*self)))]
+    #[ensures(result === old(self.lookup(0)))]
     pub fn pop(&mut self) -> i32 {
         self.try_pop().unwrap()
     }
@@ -192,13 +196,13 @@ mod prusti_tests {
         let x1 = list_0.pop();
         let x2 = list_0.pop();
         let x3 = list_0.pop();
-        prusti_assert!(x0 == old(snap(list_0)).lookup(0));
-        prusti_assert!(x1 == old(snap(list_0)).lookup(1) && x1 == 42);
-        prusti_assert!(x2 == old(snap(list_0)).lookup(2));
-        prusti_assert!(x3 == old(snap(list_0)).lookup(3));
+        prusti_assert!(x0 == old(list_0.lookup(0)));
+        prusti_assert!(x1 == old(list_0.lookup(1)) && x1 == 42);
+        prusti_assert!(x2 == old(list_0.lookup(2)));
+        prusti_assert!(x3 == old(list_0.lookup(3)));
         
         let y0 = list_1.pop();
-        prusti_assert!(y0 == old(snap(list_1)).lookup(0));
+        prusti_assert!(y0 == old(list_1.lookup(0)));
         prusti_assert!(y0 == x3);
     }
     //// ANCHOR: test_1

@@ -82,7 +82,7 @@ This specification ensures that for empty lists, the list will still be empty af
 
 ### Checking if the correct result is returned
 
-Now we can add the specification for checking if the correct result is returned. Like with `push`, we will use the `lookup` function to check that `result` was the first element of the list. For this we call `lookup(0)` on a snapshot of `self` before the function call: `old(snap(self)).lookup(0)`.
+Now we can add the specification for checking if the correct result is returned. Like with `push`, we will use the `lookup` function to check that `result` was the first element of the list. For this we evaluate `lookup(0)` in the state before the function call: `old(self.lookup(0))`.
 
 We can check this condition for snapshot equality ([`===`](../syntax.md#snapshot-equality)) with `result`. This will always hold for `pop`, since the list is never empty:
 
@@ -151,7 +151,7 @@ We combine these two properties into a single expression using `&&`:
 
 Here we are able to call `.len()` and `.lookup()` on both references, because they are pure functions.
 
-To use this predicate, we call it on the list `self`, and then pass in a snapshot of the `self` from before the function call. Like with the condition for correctness of the `result`, we can just add this `predicate` to `pop`, but we need to restrict it to non-empty lists for `try_pop`:
+To use this predicate, we call it on the list `self`, and then pass in a reference to `self` from before the function call: `old(&*self)`. Like with the condition for correctness of the `result`, we can just add this `predicate` to `pop`, but we need to restrict it to non-empty lists for `try_pop`:
 
 ```rust,noplaypen
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/pop.rs:predicate_use}}

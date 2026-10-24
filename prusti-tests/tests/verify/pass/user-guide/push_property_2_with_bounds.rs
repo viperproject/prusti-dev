@@ -20,8 +20,9 @@ struct Node {
 }
 
 #[extern_spec(std::mem)]
-#[ensures(snap(dest) === src)]
-#[ensures(result === old(snap(dest)))]
+#[trusted]
+#[ensures(*dest === src)]
+#[ensures(result === *old(&*dest))]
 fn replace<T>(dest: &mut T, src: T) -> T;
 
 //// ANCHOR: bounds

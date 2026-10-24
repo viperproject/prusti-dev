@@ -11,7 +11,6 @@ Prusti specifications are a superset of Rust Boolean expressions. They must be d
 | [`... <==> ...`](#implications) | Biconditional |
 | [`... === ...`](#snapshot-equality) | Snapshot equality |
 | [`... !== ...`](#snapshot-equality) | Snapshot inequality |
-| [`snap(...)`](#snap-function) | Snapshot clone function |
 | [`forall(...)`](#quantifiers) | Universal quantifier |
 | [`exists(...)`](#quantifiers) | Existential quantifier |
 | [<code>... &#x7C;= ...</code>](#specification-entailments) | Specification entailment |
@@ -54,6 +53,22 @@ Old expressions are used to refer to the value that a memory location pointed at
 pub fn inc(x: &mut u32) {
     *x += 1;
 }
+```
+
+Like any Rust expression, `old(...)` cannot move a value out from behind a reference. For a type that is not `Copy`, take a reference in the old state and dereference it instead:
+
+```rust,noplaypen,ignore
+# use prusti_contracts::*;
+# 
+struct NonCopyInt {
+    value: i32
+}
+
+#[ensures(*x === old(*x))] // Error: cannot move out of `*x`
+fn do_nothing_1(x: &mut NonCopyInt) {}
+
+#[ensures(*x === *old(&*x))]
+fn do_nothing_2(x: &mut NonCopyInt) {}
 ```
 
 
@@ -135,33 +150,6 @@ fn main() {
 ```
 
 There is also the counterpart for `!=` for checking structural inequality: `!==`.
-
-## `snap` Function
-The function `snap` can be used to take a snapshot of a reference in specifications.
-Its functionality is similar to the `clone` function, but `snap` is only intended for use in specifications. It also does not require the type behind the reference to implement the `Clone` trait:
-```rust,noplaypen,ignore
-fn snap<T>(input: &T) -> T {
-    // ...
-}
-```
-
-The `snap` function enables writing specifications that would otherwise break Rusts ownership rules:
-```rust,noplaypenm,ignore
-# use prusti_contracts::*;
-# 
-struct NonCopyInt {
-    value: i32
-}
-
-#[ensures(x === old(x))] // Error: Cannot borrow "*x" mutably
-fn do_nothing_1(x: &mut NonCopyInt) {}
-
-#[ensures(snap(x) === old(snap(x)))]
-fn do_nothing_2(x: &mut NonCopyInt) {}
-```
-
-In the first function, `x` will be borrowed by the `old` function, and can therefore not be used in the snapshot equality `===` at the same time.
-Using `snap(x)` will create a snapshot of `x`, almost like using `x.clone()`, but only for specifications and even for `x` that cannot be cloned normally.
 
 ## Quantifiers
 

@@ -19,8 +19,9 @@ struct Node<T> {
 }
 
 #[extern_spec(std::mem)]
-#[ensures(snap(dest) === src)]
-#[ensures(result === old(snap(dest)))]
+#[trusted]
+#[ensures(*dest === src)]
+#[ensures(result === *old(&*dest))]
 fn replace<T>(dest: &mut T, src: T) -> T;
 
 // Specs for std::option::Option<T>::unwrap(self) (and others) can be found here (work in progress):
@@ -28,19 +29,23 @@ fn replace<T>(dest: &mut T, src: T) -> T;
 
 #[extern_spec]
 impl<T> std::option::Option<T> {
+    #[trusted]
     #[requires(self.is_some())]
     #[ensures(old(self) === Some(result))]
     pub fn unwrap(self) -> T;
     
+    #[trusted]
     #[pure]
     #[ensures(result == matches!(self, None))]
     pub const fn is_none(&self) -> bool;
 
+    #[trusted]
     #[pure]
     #[ensures(result == matches!(self, Some(_)))]
     pub const fn is_some(&self) -> bool;
 
-    #[ensures(result === old(snap(self)))]
+    #[trusted]
+    #[ensures(result === *old(&*self))]
     #[ensures(self.is_none())]
     pub fn take(&mut self) -> Option<T>;
 }
@@ -69,7 +74,7 @@ impl<T> List<T> {
     }
 
     #[ensures(self.len() == old(self.len()) + 1)]
-    #[ensures(snap(self.lookup(0)) === elem)]
+    #[ensures(*self.lookup(0) === elem)]
     #[ensures(forall(|i: usize| (i < old(self.len())) ==>
                  old(self.lookup(i)) === self.lookup(i + 1)))]
     pub fn push(&mut self, elem: T) {
@@ -96,9 +101,9 @@ impl<T> List<T> {
         self.is_empty()
     )]
     #[ensures(!old(self.is_empty()) ==>
-        self.head_removed(&old(snap(self)))
+        self.head_removed(old(&*self))
         &&
-        result === Some(snap(old(snap(self)).lookup(0)))
+        match &result { Some(r) => r === old(self.lookup(0)), None => false }
     )]
     pub fn try_pop(&mut self) -> Option<T> {
         match self.head.take() { // Replace mem::swap with the buildin Option::take
@@ -111,8 +116,8 @@ impl<T> List<T> {
     }
 
     #[requires(!self.is_empty())]
-    #[ensures(self.head_removed(&old(snap(self))))]
-    #[ensures(result === old(snap(self)).lookup(0))]
+    #[ensures(self.head_removed(old(&*self)))]
+    #[ensures(result === *old(self.lookup(0)))]
     pub fn pop(&mut self) -> T {
         self.try_pop().unwrap()
     }
@@ -130,13 +135,13 @@ impl<T> List<T> {
 
     #[trusted] // required due to unsupported reference in enum
     #[requires(!self.is_empty())]
-    #[ensures(snap(result) === old(snap(self.peek())))]
+    #[ensures(*result === *old(self.peek()))]
     //// ANCHOR: pledge
     #[after_expiry(
         old(self.len()) === self.len() // (1.)
         && forall(|i: usize| 1 <= i && i < self.len() // (2.)
-            ==> old(snap(self.lookup(i))) === snap(self.lookup(i)))
-        && snap(self.peek()) === before_expiry(snap(result)) // (3.)
+            ==> old(self.lookup(i)) === self.lookup(i))
+        && *self.peek() === *before_expiry(&*result) // (3.)
     )]
     pub fn peek_mut(&mut self) -> &mut T {
         //// ANCHOR_END: pledge
@@ -170,14 +175,14 @@ impl List<i32> {
     #[trusted] // required due to unsupported reference in enum
     #[requires(!self.is_empty())]
     #[requires(self.is_valid())]
-    #[ensures(snap(result) === old(snap(self.peek())))]
+    #[ensures(*result === *old(self.peek()))]
     #[assert_on_expiry(
         0 <= *result && *result < 16,
         self.is_valid()
         && old(self.len()) === self.len() // (1.)
         && forall(|i: usize| 1 <= i && i < self.len() // (2.)
-            ==> old(snap(self.lookup(i))) === snap(self.lookup(i)))
-        && snap(self.peek()) === before_expiry(snap(result)) // (3.)
+            ==> old(self.lookup(i)) === self.lookup(i))
+        && *self.peek() === *before_expiry(&*result) // (3.)
     )]
     pub fn peek_mut_16(&mut self) -> &mut i32 {
         if let Some(node) = &mut self.head {

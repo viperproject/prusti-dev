@@ -20,8 +20,9 @@ struct Node {
 
 //// ANCHOR: option_take_extern_spec
 #[extern_spec(std::mem)]
-#[ensures(snap(dest) === src)]
-#[ensures(result === old(snap(dest)))]
+#[trusted]
+#[ensures(*dest === src)]
+#[ensures(result === *old(&*dest))]
 fn replace<T>(dest: &mut T, src: T) -> T;
 
 //// ANCHOR_END: option_take_extern_spec
@@ -32,20 +33,24 @@ fn replace<T>(dest: &mut T, src: T) -> T;
 #[extern_spec]
 impl<T> std::option::Option<T> {
     //// ANCHOR_END: option_take_extern_spec
+    #[trusted]
     #[requires(self.is_some())]
     #[ensures(old(self) === Some(result))]
     pub fn unwrap(self) -> T;
     
+    #[trusted]
     #[pure]
     #[ensures(result == matches!(self, None))]
     pub const fn is_none(&self) -> bool;
 
+    #[trusted]
     #[pure]
     #[ensures(result == matches!(self, Some(_)))]
     pub const fn is_some(&self) -> bool;
 
     //// ANCHOR: option_take_extern_spec
-    #[ensures(result === old(snap(self)))]
+    #[trusted]
+    #[ensures(result === *old(&*self))]
     #[ensures(self.is_none())]
     pub fn take(&mut self) -> Option<T>;
 }
@@ -107,9 +112,9 @@ impl List {
         self.is_empty()
     )]
     #[ensures(!old(self.is_empty()) ==>
-        self.head_removed(&old(snap(self)))
+        self.head_removed(old(&*self))
         &&
-        result === Some(old(snap(self)).lookup(0))
+        result === Some(old(self.lookup(0)))
     )]
     //// ANCHOR: try_pop_rewrite
     pub fn try_pop(&mut self) -> Option<i32> {
@@ -135,8 +140,8 @@ impl List {
     //// ANCHOR_END: try_pop_rewrite
 
     #[requires(!self.is_empty())]
-    #[ensures(self.head_removed(&old(snap(self))))]
-    #[ensures(result === old(snap(self)).lookup(0))]
+    #[ensures(self.head_removed(old(&*self)))]
+    #[ensures(result === old(self.lookup(0)))]
     pub fn pop(&mut self) -> i32 {
         self.try_pop().unwrap()
         //// ANCHOR: rewrite_len

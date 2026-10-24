@@ -90,20 +90,20 @@ Let's break this snippet down step by step:
 - First, we write the Prusti annotation `#[extern_spec]` to denote that we are writing an external specification. This requires `prusti_contracts::*` to be imported first.
 - Next, we need to declare where the original function is located. In this case it is the module `std::mem`, so we put its path in  the parameter: `#[extern_spec(std::mem)]`
 - After a quick search for *\"rust std mem replace\"* we can find the [documentation for std::mem::replace](https://doc.rust-lang.org/std/mem/fn.replace.html). Here we can get the function signature: `pub fn replace<T>(dest: &mut T, src: T) -> T`. We then write down the signature in the inner module, followed by a `;`.
+- Prusti cannot check that `replace` actually satisfies the specification we are about to write, so we have to mark it as [`#[trusted]`](../verify/trusted.md). Every function in an external specification must be marked like this.
 - Since there are no preconditions to `replace`, we can use the (implicit) default `#[requires(true)]`.
-- For writing the postcondition, we use four pieces of Prusti syntax:
+- For writing the postcondition, we use three pieces of Prusti syntax:
   - [`===`](../syntax.md#snapshot-equality) is called **snapshot equality** or **logical equality**. Is means that the left and right operands are structurally equal. `===` does not require the type of the compared elements to implement [PartialEq](https://doc.rust-lang.org/std/cmp/trait.PartialEq.html), which would be required if we used the standard equality operator `==`.
-  - The [`snap()`](../syntax.md#snap-function) function takes a snapshot of a reference. It has a similar functionality to the [`clone()`](https://doc.rust-lang.org/std/clone/trait.Clone.html) method, but does not require the type of the reference it is called on to implement the `Clone` trait. `snap` should only be used in specifications, since it ignores the borrow checker.
-  - Lastly, we have the [`old()` function](../syntax.md#old-expressions), which denotes that we want to refer to the state of `snap(dest)` from before the function was called.
+  - The [`old()` expression](../syntax.md#old-expressions) denotes that we want to refer to the state from before the function was called. `old(&*dest)` is a reference to the element that `dest` referenced at that point, which we dereference to compare the element itself. Writing `old(*dest)` would not compile, as it would move the element out from behind the reference, which Rust does not allow for a type `T` that might not implement `Copy`.
   - The identifier [`result`](../syntax.md#result-variable) is used to refer to the return parameter of the function.
 - The postcondition consists of two parts, which can either be written in one condition with `&&`, or in multiple `#[ensures(...)]` annotations like in the example above.
-  - The first condition `snap(dest) === src` means: *After the function returns, the location referenced by `dest` is structurally equal to the parameter `src`*
-  - The second part of the postcondition is `result === old(snap(dest))`. This means: *The `result` returned by the function is structurally equal to the the element that was referenced by `dest` **before** the function was called.*
+  - The first condition `*dest === src` means: *After the function returns, the location referenced by `dest` is structurally equal to the parameter `src`*
+  - The second part of the postcondition is `result === *old(&*dest)`. This means: *The `result` returned by the function is structurally equal to the the element that was referenced by `dest` **before** the function was called.*
 
 Since `result` is structurally equal to `dest` from before the function call, Prusti knows that the pure function `len()` called on `result` returns the same value as it would have for `dest`.
 
 
-An important thing to note here is that Prusti does ***not*** check if `replace` actually does what the external specification says it does. `#[extern_spec]` implicitly implies the `#[trusted]` annotation, which means that any postconditions are just accepted and used by Prusti.
+An important thing to note here is that Prusti does ***not*** check if `replace` actually does what the external specification says it does. This is what the `#[trusted]` annotation states: any postconditions are just accepted and used by Prusti.
 
 ### Future
 
@@ -116,7 +116,7 @@ Specifications for the standard library should eventually be available in the [p
 
 ## Trusted functions
 
-As mentioned above, `extern_specs` are implicitly `#[trusted]` by Prusti.
+As mentioned above, functions in `extern_specs` must be marked `#[trusted]`.
 Trusted functions can be used for verifying projects containing external code that does not have Prusti annotations, or projects using Rust features that are not yet supported by Prusti.
 An example is printing a string slice (not supported yet):
 ```rust,noplaypen

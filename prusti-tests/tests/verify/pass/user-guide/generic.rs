@@ -22,8 +22,9 @@ struct Node<T> {
 
 //// ANCHOR_END: generic_types
 #[extern_spec(std::mem)]
-#[ensures(snap(dest) === src)]
-#[ensures(result === old(snap(dest)))]
+#[trusted]
+#[ensures(*dest === src)]
+#[ensures(result === *old(&*dest))]
 fn replace<T>(dest: &mut T, src: T) -> T;
 
 // Specs for std::option::Option<T>::unwrap(self) (and others) can be found here (work in progress):
@@ -31,19 +32,23 @@ fn replace<T>(dest: &mut T, src: T) -> T;
 
 #[extern_spec]
 impl<T> std::option::Option<T> {
+    #[trusted]
     #[requires(self.is_some())]
     #[ensures(old(self) === Some(result))]
     pub fn unwrap(self) -> T;
     
+    #[trusted]
     #[pure]
     #[ensures(result == matches!(self, None))]
     pub const fn is_none(&self) -> bool;
 
+    #[trusted]
     #[pure]
     #[ensures(result == matches!(self, Some(_)))]
     pub const fn is_some(&self) -> bool;
 
-    #[ensures(result === old(snap(self)))]
+    #[trusted]
+    #[ensures(result === *old(&*self))]
     #[ensures(self.is_none())]
     pub fn take(&mut self) -> Option<T>;
 }
@@ -81,7 +86,7 @@ impl<T> List<T> {
 
     #[ensures(self.len() == old(self.len()) + 1)]
     //// ANCHOR: lookup_reference
-    #[ensures(snap(self.lookup(0)) === elem)] // Here we add a `snap`
+    #[ensures(*self.lookup(0) === elem)] // Here we add a dereference
     //// ANCHOR_END: lookup_reference
     #[ensures(forall(|i: usize| (i < old(self.len())) ==>
         old(self.lookup(i)) === self.lookup(i + 1)))]
@@ -112,9 +117,9 @@ impl<T> List<T> {
         self.is_empty()
     )]
     #[ensures(!old(self.is_empty()) ==>
-        self.head_removed(&old(snap(self)))
+        self.head_removed(old(&*self))
         &&
-        result === Some(snap(old(snap(self)).lookup(0)))
+        match &result { Some(r) => r === old(self.lookup(0)), None => false }
     )]
     //// ANCHOR: generic_types
     // Return type changed from `Option<i32>`
@@ -133,8 +138,8 @@ impl<T> List<T> {
 
     //// ANCHOR_END: generic_types
     #[requires(!self.is_empty())]
-    #[ensures(self.head_removed(&old(snap(self))))]
-    #[ensures(result === old(snap(self)).lookup(0))]
+    #[ensures(self.head_removed(old(&*self)))]
+    #[ensures(result === *old(self.lookup(0)))]
     //// ANCHOR: generic_types
     // Return type changed from `i32`
     pub fn pop(&mut self) -> T {
