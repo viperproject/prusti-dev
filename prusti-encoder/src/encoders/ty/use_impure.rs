@@ -92,13 +92,21 @@ pub struct TyUseImpureArrayData<'vir> {
     element_caster: FieldCaster<'vir>,
 }
 
+/// Use-side data for the hardcoded extras of a `Box`.
+#[derive(Debug, Clone, Copy)]
+pub struct TyUseImpureBoxData<'vir> {
+    metadata_caster: GArgCaster<'vir, crate::encoders::Pure>,
+    /// The types of the `Unique` pointer and of the allocator.
+    unique: TyUseImpure<'vir>,
+    alloc: TyUseImpure<'vir>,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct TyUseImpureStructData<'vir> {
     args: GArgsTy<'vir>,
     ref_to_pred: PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>,
     impure: <ImpureTyDatas as TyDatas<'vir>>::StructData,
-    /// The pointer metadata caster when this struct is a `Box`.
-    box_metadata_caster: Option<GArgCaster<'vir, crate::encoders::Pure>>,
+    box_data: Option<TyUseImpureBoxData<'vir>>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -218,17 +226,24 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
                 TySpecifics::ArrayLike(self.encode_array(data, ty.1.ref_to_pred, ty.0.params)?)
             }
             TySpecifics::StructLike(data) => {
-                let box_metadata_caster = match ty.0.special {
-                    RustTySpecial::Box => {
-                        Some(self.encode_normalized_pure(ty.box_metadata_ty(), ty.0.params)?)
-                    }
+                let box_data = match ty.0.special {
+                    RustTySpecial::Box => Some(TyUseImpureBoxData {
+                        metadata_caster: self
+                            .encode_normalized_pure(ty.box_metadata_ty(), ty.0.params)?,
+                        unique: self.deps.require_dep::<TyUseImpureEnc>(
+                            ty.box_unique_ty().decompose_normalize(self.args),
+                        )?,
+                        alloc: self.deps.require_dep::<TyUseImpureEnc>(
+                            ty.box_alloc_ty().decompose_normalize(self.args),
+                        )?,
+                    }),
                     RustTySpecial::None => None,
                 };
                 TySpecifics::StructLike(self.encode_structlike(
                     data,
                     ty.1.ref_to_pred,
                     ty.0.params,
-                    box_metadata_caster,
+                    box_data,
                 )?)
             }
             TySpecifics::EnumLike(data) => {
@@ -284,7 +299,7 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
         data: &StructData<'vir, (RustTyDatas, ImpureTyDatas)>,
         ref_to_pred: PredicateIdn<'vir, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap)>,
         params: GParams<'vir>,
-        box_metadata_caster: Option<GArgCaster<'vir, crate::encoders::Pure>>,
+        box_data: Option<TyUseImpureBoxData<'vir>>,
     ) -> EncResult<'vir, StructData<'vir, UseImpureTyDatas>> {
         let fields = data
             .fields
@@ -302,7 +317,7 @@ impl<'a, 'vir> TyUseImpureWalker<'a, 'vir> {
             args: self.args_t,
             ref_to_pred,
             impure: *data.1,
-            box_metadata_caster,
+            box_data,
         };
         Ok(StructData::new(data, fields))
     }
@@ -412,6 +427,43 @@ impl<'vir> TyUseImpureData<'vir> {
 impl<'vir> TyData<'vir, UseImpureTyDatas> {
     pub fn inhabited<Curr, Next>(&self) -> vir::ExprGenBool<'vir, Curr, Next> {
         self.data.inhabited.inhabited()
+    }
+
+    /// The predicates that `fold` consumes besides those of the places the
+    /// predicate is expanded into (its fields, variant, element, or the value
+    /// of a `Box`): the discriminant of an enum, the rest of an array whose
+    /// element is folded back, and the other fields of a `Box`.
+    pub fn fold_residue(
+        &self,
+        variant: Option<abi::VariantIdx>,
+        self_ref: vir::ExprRef<'vir>,
+        index: Option<vir::ExprInt<'vir>>,
+    ) -> Vec<vir::ExprBool<'vir>> {
+        if variant.is_some() {
+            return Vec::new();
+        }
+        vir::with_vcx(|vcx| match &self.specifics {
+            TySpecifics::EnumLike(data) => {
+                let discr = data.discr(self_ref);
+                vec![data.discr_ty().ref_to_pred(vcx, discr, None)]
+            }
+            TySpecifics::ArrayLike(array) => index
+                .map(|index| array.ref_to_index_frame_pred(self_ref, index))
+                .into_iter()
+                .collect(),
+            TySpecifics::StructLike(data) => match data.data.box_data {
+                Some(box_data) => vec![
+                    box_data
+                        .unique
+                        .ref_to_pred(vcx, data.fields[0].field_ref(self_ref), None),
+                    box_data
+                        .alloc
+                        .ref_to_pred(vcx, data.fields[1].field_ref(self_ref), None),
+                ],
+                None => Vec::new(),
+            },
+            _ => Vec::new(),
+        })
     }
 
     /// Fold the predicate (including generic casts).
@@ -545,6 +597,22 @@ impl<'vir> TyUseImpureArray<'vir> {
     ) -> vir::ExprGenRef<'vir, Curr, Next> {
         self.data.impure.ref_to_index_ref.call()(self_ref, index, self.args.get_ty())
     }
+
+    /// The predicate of the array without its element at `index`, which
+    /// folding the element back consumes.
+    fn ref_to_index_frame_pred(
+        &self,
+        self_ref: vir::ExprRef<'vir>,
+        index: vir::ExprInt<'vir>,
+    ) -> vir::ExprBool<'vir> {
+        let pred_app = (self.data.impure.index_predicate)(
+            self_ref,
+            index,
+            self.args.get_ty(),
+            self.args.get_const(),
+        )(None);
+        vir::with_vcx(|vcx| vcx.mk_predicate_app_expr(pred_app))
+    }
 }
 
 impl<'vir> TyUseImpureStruct<'vir> {
@@ -559,8 +627,9 @@ impl<'vir> TyUseImpureStruct<'vir> {
             self.data.args.get_const(),
         );
         self.data
-            .box_metadata_caster
+            .box_data
             .expect("expected box")
+            .metadata_caster
             .cast_to_caller_ctx(metadata.upcast_ty())
     }
 

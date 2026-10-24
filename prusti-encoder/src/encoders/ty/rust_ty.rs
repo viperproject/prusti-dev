@@ -604,6 +604,18 @@ impl<'tcx, D: TyDatas<'tcx>> TyData<'tcx, (RustTyDatas, D)> {
         let box_value_ty = self.expect_structlike().fields.last().unwrap().0.ty();
         box_value_ty.pointee_metadata()
     }
+
+    /// The type of the `Unique` pointer of a `Box` (its first field).
+    pub fn box_unique_ty(&self) -> LazyRustTy<'tcx> {
+        assert_eq!(self.0.special, RustTySpecial::Box);
+        self.expect_structlike().fields[0].0.ty()
+    }
+
+    /// The type of the allocator of a `Box` (its second field).
+    pub fn box_alloc_ty(&self) -> LazyRustTy<'tcx> {
+        assert_eq!(self.0.special, RustTySpecial::Box);
+        self.expect_structlike().fields[1].0.ty()
+    }
 }
 
 impl RustTySpecial {

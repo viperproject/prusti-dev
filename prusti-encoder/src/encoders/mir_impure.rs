@@ -4,16 +4,17 @@ use pcg::{
     action::{BorrowPcgAction, PcgAction, PcgActions},
     borrow_pcg::{
         action::BorrowPcgActionKind,
-        borrow_pcg_edge::BorrowPcgEdge,
+        borrow_pcg_edge::{BlockedNode, BorrowPcgEdge},
         borrow_pcg_expansion::BorrowPcgExpansion,
         edge::{
             abstraction::{AbstractionEdge, FunctionCallOrLoop},
             borrow_flow::BorrowFlowEdgeKind,
             kind::BorrowPcgEdgeKind,
         },
+        edge_data::EdgeData,
         region_projection::PlaceOrConst,
         state::BorrowsState,
-        unblock_graph::BorrowPcgUnblockAction,
+        unblock_graph::{BorrowPcgUnblockAction, UnblockGraph},
     },
     coupling::PcgCoupledEdgeKind,
     free_pcs::{RepackGuide, RepackOp},
@@ -43,6 +44,7 @@ use vir::{CastType, CompType, LocalDeclData};
 use crate::encoders::{
     self, FunctionCallEnc, MirBuiltinUseCastEnc, MirBuiltinUseCastTask, MirPureEnc, MirPureEncTask,
     PrustiBuiltin, PureKind, TyUseImpureEnc, WandEnc, WandEncTask,
+    impure::WandOldOuter,
     mir_fn::{CallTaskDescription, RustSignature, SpecBlockKind, SpecBlocks},
     mir_shared::{EncodeResult, PureRvalueEnc, RustcIntrinsic},
     ty::{
@@ -260,6 +262,15 @@ impl<'vir> From<vir::ExprSnap<'vir>> for EncodedRvalue<'vir> {
             post_assign_folds: None,
         }
     }
+}
+
+/// The resources that a package script takes from the state outside the
+/// package (see `pcs_package_script`), collected while unblocking with
+/// `actions`.
+pub(crate) struct Footprint<'a, 'vir> {
+    actions: &'a [BorrowPcgUnblockAction<'vir>],
+    label: &'vir str,
+    pub(crate) parts: Vec<vir::ExprBool<'vir>>,
 }
 
 enum EncodeRvalueError<'vir, E: TaskEncoder> {
@@ -523,7 +534,8 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         base: MaybeLabelledPlace<'vir>,
         label: Option<&'vir str>,
     ) -> EncodeResult<'vir, (), E> {
-        self.fold_or_unfold(base, FoldOrUnfold::Unfold, None, label)
+        self.fold_or_unfold(base, FoldOrUnfold::Unfold, None, label)?;
+        Ok(())
     }
 
     /// The index argument for folding or unfolding an array-typed place,
@@ -563,13 +575,16 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         }
     }
 
+    /// Returns what a fold consumes besides the places the predicate is
+    /// expanded into (see `fold_residue`), `None` if the place is not
+    /// (un)folded.
     pub(crate) fn fold_or_unfold(
         &mut self,
         base: MaybeLabelledPlace<'vir>,
         fold_or_unfold: FoldOrUnfold,
         expansion: Option<&BorrowPcgExpansion>,
         label: Option<&'vir str>,
-    ) -> EncodeResult<'vir, (), E> {
+    ) -> EncodeResult<'vir, Option<Vec<vir::ExprBool<'vir>>>, E> {
         let place = base.place();
         let label = if let MaybeLabelledPlace::Labelled(snap) = base {
             Some(self.get_location_label(snap.at()))
@@ -579,7 +594,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
         // We don't want to unfold because for immutable refs we only use snapshot read/writes
         if place.is_shared_ref(self.pcg_ctxt()) || place.projects_shared_ref(self.pcg_ctxt()) {
-            return Ok(());
+            return Ok(None);
         }
 
         let ref_p = self.encode_place(place)?;
@@ -594,29 +609,28 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             .and_then(|expansion| expansion.guide())
             .and_then(|guide| self.expansion_index(guide));
 
-        let stmts = match fold_or_unfold {
-            FoldOrUnfold::Unfold => data.unfold(place_ty.variant_index, ref_p, index, None, label),
-            FoldOrUnfold::Fold => data.fold(place_ty.variant_index, ref_p, index, None, label),
+        let (stmts, residue) = match fold_or_unfold {
+            FoldOrUnfold::Unfold => (
+                data.unfold(place_ty.variant_index, ref_p, index, None, label),
+                Vec::new(),
+            ),
+            FoldOrUnfold::Fold => (
+                data.fold(place_ty.variant_index, ref_p, index, None, label),
+                data.fold_residue(place_ty.variant_index, ref_p, index),
+            ),
         };
         self.stmts(stmts);
-        Ok(())
+        Ok(Some(residue))
     }
 
-    fn pcs_handle_edge(
-        &mut self,
-        borrows_state: &BorrowsState<'_, 'vir>,
-        edge: &BorrowPcgEdge<'vir>,
-        edge_action: EdgeAction,
-        label: Option<&'vir str>,
-        edge_to_loop: bool,
-        to_skip: &mut Vec<mir::BasicBlock>,
-    ) -> EncodeResult<'vir, (), E> {
+    /// The conjuncts of the condition under which `edge` is valid.
+    fn edge_condition(&mut self, edge: &BorrowPcgEdge<'vir>) -> Vec<vir::ExprBool<'vir>> {
         let conditions = edge.conditions();
 
         // For each block `b` where the edge is only valid if control flow
         // continues from `b` to a specified subset of its successors, `cond`
         // contains the corresponding VIR expression.
-        let cond_conjuncts = conditions
+        conditions
             .all_branch_choices()
             .map(|choices| {
                 let successors = choices.successors(self.body);
@@ -628,20 +642,47 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 // Control flow must continue from `choices.from()` to any one of the `successors`
                 self.vcx.mk_disj(self.vcx.alloc_slice(&conj))
             })
-            .collect::<Vec<_>>();
+            .collect()
+    }
+
+    /// Handles the edge under its condition, also for the parts of the
+    /// footprint it adds. A `footprint` is given in a package script.
+    fn pcs_handle_edge(
+        &mut self,
+        borrows_state: &BorrowsState<'_, 'vir>,
+        edge: &BorrowPcgEdge<'vir>,
+        edge_action: EdgeAction,
+        edge_to_loop: bool,
+        to_skip: &mut Vec<mir::BasicBlock>,
+        mut footprint: Option<&mut Footprint<'_, 'vir>>,
+    ) -> EncodeResult<'vir, (), E> {
+        let cond_conjuncts = self.edge_condition(edge);
         // For each block `b` where the edge validity depends on the successor taken from `b`,
         // every successor must be valid.
         let cond = self.vcx.mk_conj(self.vcx.alloc_slice(&cond_conjuncts));
+        let parts = footprint
+            .as_ref()
+            .map_or(0, |footprint| footprint.parts.len());
         let stmts = self.block(|self_| {
             self_.pcs_handle_edge_conditionless(
                 borrows_state,
                 edge,
                 edge_action,
-                label,
                 edge_to_loop,
                 to_skip,
+                footprint.as_deref_mut(),
             )
         })?;
+        if let Some(footprint) = footprint
+            && !cond_conjuncts.is_empty()
+            && footprint.parts.len() > parts
+        {
+            let added = self.vcx.mk_conj(&footprint.parts.split_off(parts));
+            let guarded = self
+                .vcx
+                .mk_bin_op_expr(vir::BinOpKind::Implies, cond, added);
+            footprint.parts.push(guarded.downcast_ty());
+        }
         if stmts.is_empty()
             || stmts
                 .iter()
@@ -661,10 +702,13 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         borrows_state: &BorrowsState<'_, 'vir>,
         edge: &BorrowPcgEdge<'vir>,
         edge_action: EdgeAction,
-        label: Option<&'vir str>,
         edge_to_loop: bool,
         to_skip: &mut Vec<mir::BasicBlock>,
+        mut footprint: Option<&mut Footprint<'_, 'vir>>,
     ) -> EncodeResult<'vir, (), E> {
+        // In a package script, current places are read in the state before the
+        // package.
+        let label = footprint.as_ref().map(|footprint| footprint.label);
         match edge.kind() {
             BorrowPcgEdgeKind::Borrow(borrow) if borrow.is_mut() && edge_action.is_remove() => {
                 // For a borrow e.g. let x = &mut y; the capability to `y` is
@@ -740,23 +784,33 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 return Ok(());
             }
             BorrowPcgEdgeKind::Deref(deref) => {
-                self.fold_or_unfold(
+                let residue = self.fold_or_unfold(
                     deref.blocked_place(),
                     FoldOrUnfold::for_action(edge_action),
                     None,
                     label,
                 )?;
+                if let Some(footprint) = footprint
+                    && let Some(residue) = residue
+                {
+                    self.fold_footprint(footprint, edge, residue)?;
+                }
             }
             // Ignore expansions of lifetime projections for now
             BorrowPcgEdgeKind::BorrowPcgExpansion(expansion)
                 if let PcgNode::Place(base) = expansion.base() =>
             {
-                self.fold_or_unfold(
+                let residue = self.fold_or_unfold(
                     base,
                     FoldOrUnfold::for_action(edge_action),
                     Some(expansion),
                     label,
                 )?;
+                if let Some(footprint) = footprint
+                    && let Some(residue) = residue
+                {
+                    self.fold_footprint(footprint, edge, residue)?;
+                }
             }
             BorrowPcgEdgeKind::Coupled(PcgCoupledEdgeKind(FunctionCallOrLoop::FunctionCall(
                 call_edge,
@@ -806,7 +860,14 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                                 .collect::<EncodeResult<'vir, Vec<_>, E>>()?;
                         let (label_pre, label_post) = self.call_labels[&call.location().block];
                         let call_ctx = self.gargs(caller_substs);
-                        wands.apply_wands(&wand_args, label_pre, label_post, call_ctx, self);
+                        let wands =
+                            wands.call_wands(&wand_args, label_pre, label_post, call_ctx, self);
+                        for wand in wands {
+                            if let Some(footprint) = &mut footprint {
+                                footprint.parts.push(self.vcx.mk_wand_expr(wand));
+                            }
+                            self.stmt(self.vcx.mk_apply_stmt(wand));
+                        }
                     }
                     _ => unreachable!(),
                 }
@@ -818,6 +879,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     &at.clone().into_singleton_coupled_edge(),
                     label,
                     edge_to_loop,
+                    footprint,
                 )?;
             }
             other => comment!(self, "(ignoring) {edge_action:?} {other:?}"),
@@ -830,24 +892,132 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         Ok(())
     }
 
-    pub(crate) fn pcs_unblock_actions(
+    fn pcs_unblock_actions(
         &mut self,
         borrows_state: &BorrowsState<'_, 'vir>,
-        actions: &[BorrowPcgUnblockAction<'vir>],
-        label: Option<&'vir str>,
+        footprint: &mut Footprint<'_, 'vir>,
     ) -> EncodeResult<'vir, (), E> {
         let mut to_skip = Vec::new();
+        let actions = footprint.actions;
         for action in actions {
             self.pcs_handle_edge(
                 borrows_state,
                 action.edge(),
                 EdgeAction::Remove,
-                label,
                 false,
                 &mut to_skip,
+                Some(footprint),
             )?;
         }
         Ok(())
+    }
+
+    /// The proof script of a package giving back the nodes of `rhs`, each with
+    /// the resources it is given back as: unblocking the nodes, after asserting
+    /// the footprint of the wand. Statements in the script only see resources
+    /// in the package state, and a resource of the state outside is only moved
+    /// there when consumed. Asserting the footprint first moves it there before
+    /// any statement, which may need it earlier (e.g. to read the address of a
+    /// `Box` that is folded).
+    pub(crate) fn pcs_package_script<N: Into<BlockedNode<'vir>>>(
+        &mut self,
+        borrows_state: &BorrowsState<'_, 'vir>,
+        rhs: Vec<(N, Vec<vir::ExprBool<'vir>>)>,
+        label: &'vir str,
+    ) -> EncodeResult<'vir, Vec<vir::Stmt<'vir>>, E> {
+        let mut parts = Vec::new();
+        let mut unblock = Vec::new();
+        for (node, resources) in rhs {
+            let node = node.into();
+            let ug = UnblockGraph::for_node(node, borrows_state, self.pcg_ctxt());
+            let actions = ug.actions(self.pcg_ctxt()).unwrap();
+            let mut footprint = Footprint {
+                actions: &actions,
+                label,
+                parts: Vec::new(),
+            };
+            // Where nothing unblocks the node, it is given back as it is.
+            if !resources.is_empty() {
+                let resources = self.vcx.mk_conj(&resources);
+                let part = self.unless_unblocked(&footprint, node, None, resources);
+                footprint.parts.extend(part);
+            }
+            unblock.extend(
+                self.block(|visitor| visitor.pcs_unblock_actions(borrows_state, &mut footprint))?,
+            );
+            parts.extend(footprint.parts);
+        }
+        let mut script = Vec::new();
+        if !parts.is_empty() {
+            script.push(self.vcx.mk_assert_stmt(self.vcx.mk_conj(&parts)));
+        }
+        script.extend(unblock);
+        Ok(script)
+    }
+
+    /// Adds what folding along `edge` takes from the state outside the
+    /// package: the `residue` of the fold (see `fold_or_unfold`), and the
+    /// children of the edge, unless (or except under the conditions where) the
+    /// footprint's actions unblock them.
+    fn fold_footprint(
+        &mut self,
+        footprint: &mut Footprint<'_, 'vir>,
+        edge: &BorrowPcgEdge<'vir>,
+        residue: Vec<vir::ExprBool<'vir>>,
+    ) -> EncodeResult<'vir, (), E> {
+        footprint.parts.extend(residue);
+        for child in edge.blocked_by_nodes(self.pcg_ctxt()) {
+            if !matches!(child, PcgNode::Place(_)) {
+                continue;
+            }
+            let mut resources = Vec::new();
+            let mut old_outer = WandOldOuter::Label(Some(footprint.label));
+            self.encode_pcg_node(&child, &mut resources, &mut old_outer)?;
+            let resources = self.vcx.mk_conj(&resources);
+            let part = self.unless_unblocked(footprint, child.into(), Some(edge), resources);
+            footprint.parts.extend(part);
+        }
+        Ok(())
+    }
+
+    /// `resource` under the conditions where none of the footprint's actions
+    /// unblock `node`, `None` if one always does (or does whenever `edge` is
+    /// valid).
+    fn unless_unblocked(
+        &mut self,
+        footprint: &Footprint<'_, 'vir>,
+        node: BlockedNode<'vir>,
+        edge: Option<&BorrowPcgEdge<'vir>>,
+        resource: vir::ExprBool<'vir>,
+    ) -> Option<vir::ExprBool<'vir>> {
+        let ctxt = self.pcg_ctxt();
+        let mut unblocked_under = Vec::new();
+        for action in footprint.actions {
+            let unblocking = action.edge();
+            if !unblocking.blocks_node(node, ctxt) {
+                continue;
+            }
+            let cond_conjuncts = self.edge_condition(unblocking);
+            if cond_conjuncts.is_empty()
+                || edge.is_some_and(|edge| unblocking.conditions() == edge.conditions())
+            {
+                return None;
+            }
+            unblocked_under.push(self.vcx.mk_conj(&cond_conjuncts));
+        }
+        if unblocked_under.is_empty() {
+            return Some(resource);
+        }
+        let unblocked = self.vcx.mk_disj(&unblocked_under);
+        let outside = self
+            .vcx
+            .mk_unary_op_expr(vir::UnOpKind::Not, unblocked.upcast_ty())
+            .downcast_ty();
+        Some(
+            self.vcx
+                .mk_bin_op_expr(vir::BinOpKind::Implies, outside, resource)
+                .downcast_ty(),
+        )
     }
 
     fn pcg_actions(
@@ -894,17 +1064,17 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 pcg.borrow_pcg(),
                 edge,
                 EdgeAction::Remove,
-                None,
                 edge_to_loop,
                 &mut to_skip,
+                None,
             ),
             BorrowPcgActionKind::AddEdge { edge } => self.pcs_handle_edge(
                 pcg.borrow_pcg(),
                 edge,
                 EdgeAction::Add,
-                None,
                 edge_to_loop,
                 &mut to_skip,
+                None,
             ),
             BorrowPcgActionKind::Weaken(weaken)
                 if matches!(

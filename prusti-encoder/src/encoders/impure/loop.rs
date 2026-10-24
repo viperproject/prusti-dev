@@ -23,7 +23,7 @@ use crate::encoders::{
     ty::{RustTyDecomposition, indirect::IndirectPredicatesEnc, use_impure::TyUseImpure},
 };
 
-pub(super) enum WandOldOuter<'vir> {
+pub(crate) enum WandOldOuter<'vir> {
     LetBind(Vec<LetBind<'vir>>),
     Label(Option<&'vir str>),
 }
@@ -77,25 +77,9 @@ impl<'vir: 'a, 'a, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
             }
         }
 
-        for (inputs, outputs) in self.get_abstraction_edges(state.borrow_pcg().graph()) {
+        for edge in state.borrow_pcg().graph().coupled_edges() {
             let mut let_bind = WandOldOuter::LetBind(Vec::new());
-            let mut wand_rhs = Vec::new();
-            for i in inputs {
-                self.encode_pcg_node(&i, &mut wand_rhs, &mut let_bind)?;
-            }
-            let mut wand_lhs = Vec::new();
-            for i in outputs {
-                let i = match *i {
-                    PcgNode::LifetimeProjection(region_projection) => region_projection,
-                    PcgNode::Place(_) => unreachable!(),
-                };
-                let exprs = self.encode_lifetime_projection(i, &mut let_bind)?;
-                wand_lhs.extend(exprs);
-            }
-            let wand = self.vcx.mk_wand(
-                self.vcx.mk_conj(self.vcx.alloc_slice(&wand_lhs)),
-                self.vcx.mk_conj(self.vcx.alloc_slice(&wand_rhs)),
-            );
+            let (wand, _) = self.coupled_wand(edge.value(), &mut let_bind)?;
             let mut wand = self.vcx.mk_wand_expr(wand);
             let WandOldOuter::LetBind(let_bind) = let_bind else {
                 unreachable!()
@@ -112,7 +96,7 @@ impl<'vir: 'a, 'a, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         Ok((inv, loop_invariant_place_capabilities.into_iter().collect()))
     }
 
-    pub(super) fn encode_pcg_node<T: PcgLifetimeProjectionBaseLike<'vir>>(
+    pub(crate) fn encode_pcg_node<T: PcgLifetimeProjectionBaseLike<'vir>>(
         &mut self,
         node: &PcgNode<'vir, MaybeLabelledPlace<'vir>, T>,
         wand_rhs: &mut Vec<vir::ExprBool<'vir>>,
