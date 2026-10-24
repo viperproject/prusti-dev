@@ -10,13 +10,14 @@
 use prusti_server::spawn_server_thread;
 use std::{
     env,
-    path::PathBuf,
+    io::Write,
+    path::{Path, PathBuf},
     sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc, Mutex,
+        atomic::{AtomicUsize, Ordering},
+        Mutex,
     },
 };
-use ui_test::{run_tests, spanned::Spanned, Config};
+use ui_test::{run_tests, spanned::Spanned, AbortCheck, Config};
 
 /// Silicon's time limit (in seconds) per test file, so that a slow test cannot hold up the suite.
 const EXTRA_VERIFIER_ARGS: &str = "--timeout=90";
@@ -38,12 +39,6 @@ fn find_prusti_rustc_path() -> PathBuf {
     if local_prusti_rustc_path.exists() {
         return local_prusti_rustc_path;
     }
-    let workspace_prusti_rustc_path: PathBuf = ["..", "target", target_directory, executable_name]
-        .iter()
-        .collect();
-    if workspace_prusti_rustc_path.exists() {
-        return workspace_prusti_rustc_path;
-    }
     panic!(
         "Could not find the {target_directory:?} prusti-rustc binary to be used in tests. \
         It might be that Prusti has not been compiled correctly."
@@ -55,15 +50,17 @@ fn run_prusti_tests(
     rustc_flags: &[&str],
     rustc_env: &[(&str, &str)],
 ) -> ui_test::color_eyre::Result<()> {
-    static ABORT_CHECK: Mutex<Option<Arc<AtomicBool>>> = Mutex::new(None);
+    static ABORT_CHECK: Mutex<Option<AbortCheck>> = Mutex::new(None);
     _ = ctrlc::try_set_handler(move || {
-        if let Some(flag) = &*ABORT_CHECK.lock().unwrap() {
-            flag.store(true, Ordering::Relaxed);
+        if let Some(abort_check) = &*ABORT_CHECK.lock().unwrap() {
+            abort_check.abort();
         }
     });
+    static KNOWN_FAILURES: AtomicUsize = AtomicUsize::new(0);
 
     let prusti_config = |path| {
         let mut config = Config::rustc(&path);
+        config.out_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/ui");
         *ABORT_CHECK.lock().unwrap() = Some(config.abort_check.clone());
         config.program.program = find_prusti_rustc_path();
         config
@@ -84,6 +81,7 @@ fn run_prusti_tests(
         config
             .custom_comments
             .insert("known-failure", |parser, _args, span| {
+                KNOWN_FAILURES.fetch_add(1, Ordering::Relaxed);
                 parser.exit_status = Spanned::new(1, span.clone()).into();
                 parser.normalize_stderr.push((
                     ui_test::Match::Regex(regex::bytes::Regex::new("(?s).*").unwrap()),
@@ -97,14 +95,14 @@ fn run_prusti_tests(
     /*
     // UI
     {
-        let config = prusti_config(format!("tests/{group_name}/ui"));
+        let config = prusti_config(format!("prusti-tests/tests/{group_name}/ui"));
         // "--color=never {}"
         run_tests(config)?;
     }
 
     // fail
     {
-        let mut config = prusti_config(format!("tests/{group_name}/fail"));
+        let mut config = prusti_config(format!("prusti-tests/tests/{group_name}/fail"));
         config.comment_defaults.base().normalize_stderr.push((
             ui_test::Match::Regex(regex::bytes::Regex::new(".*\n").unwrap()),
             b"".into(),
@@ -115,10 +113,19 @@ fn run_prusti_tests(
 
     // pass
     {
-        let mut config = prusti_config(format!("tests/{group_name}/pass"));
+        let mut config = prusti_config(format!("prusti-tests/tests/{group_name}/pass"));
         config.comment_defaults.base().exit_status = Spanned::dummy(0).into();
         config.comment_defaults.base().require_annotations = Spanned::dummy(false).into();
-        run_tests(config)?;
+        let result = run_tests(config);
+        let known_failures = format!(
+            "Test files still marked `//@ known-failure`: {}",
+            KNOWN_FAILURES.swap(0, Ordering::Relaxed)
+        );
+        println!("{known_failures}");
+        if let Some(mut summary) = ui_test::github_actions::summary() {
+            writeln!(summary, "\n{known_failures}")?;
+        }
+        result?;
     }
 
     Ok(())
@@ -193,6 +200,9 @@ fn run_lifetimes_dump(group_name: &str) {
 }
 
 pub(crate) fn run() {
+    // Run from the repository root, so that reported test paths are relative to it.
+    env::set_current_dir(Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap()).unwrap();
+
     // Spawn server process as child (so it stays around until main function terminates)
     let server_address = spawn_server_thread();
     env::set_var("PRUSTI_SERVER_ADDRESS", server_address.to_string());
