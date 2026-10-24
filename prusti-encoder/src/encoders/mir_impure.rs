@@ -1870,11 +1870,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 .borrow_pcg()
                 .validity_conditions()
                 .all_branch_choices()
-                .filter(|choices| {
-                    self.loop_analysis()
-                        .loops(choices.from())
-                        .any(|l| l == loop_id)
-                })
+                .filter(|choices| self.loop_analysis().in_loop(choices.from(), loop_id))
                 .collect::<Vec<_>>();
             let branch_choices = loop_branch_choices
                 .into_iter()
