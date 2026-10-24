@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["body","mir_storage"],"struct":["CollectClosureDefsVisitor","CollectPrustiSpecVisitor","EnvDiagnostic","EnvName","EnvQuery","Environment"]};

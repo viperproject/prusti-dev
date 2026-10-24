@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["RustBorrowCheckerImpl"],"fn":["in_cargo","in_cargo_crate"]};

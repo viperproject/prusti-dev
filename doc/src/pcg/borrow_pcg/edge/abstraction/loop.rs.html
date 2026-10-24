@@ -1,0 +1,99 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pcg/src/borrow_pcg/edge/abstraction/loop.rs`."><title>loop.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-0c87338a.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="pcg" data-themes="" data-resource-suffix="" data-rustdoc-version="1.99.0-nightly (d453bdd8f 2026-08-14)" data-channel="nightly" data-search-js="search-cf4fc35e.js" data-stringdex-js="stringdex-b5109af9.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-9f56287d.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">pcg/borrow_pcg/edge/abstraction/</div>loop.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-2"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>derive_more::From;
+<a href=#2 id=2 data-nosnippet>2</a>
+<a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span><span class="kw">super</span>::AbstractionBlockEdge;
+<a href=#4 id=4 data-nosnippet>4</a><span class="kw">use crate</span>::{
+<a href=#5 id=5 data-nosnippet>5</a>    borrow_pcg::{
+<a href=#6 id=6 data-nosnippet>6</a>        borrow_pcg_edge::{BlockedNode, LocalNode},
+<a href=#7 id=7 data-nosnippet>7</a>        domain::LoopAbstractionOutput,
+<a href=#8 id=8 data-nosnippet>8</a>        edge::abstraction::{LoopAbstractionInput, function::AbstractionBlockEdgeWithMetadata},
+<a href=#9 id=9 data-nosnippet>9</a>        edge_data::{
+<a href=#10 id=10 data-nosnippet>10</a>            EdgeData, LabelEdgeLifetimeProjections, LabelEdgePlaces, LabelNodePredicate,
+<a href=#11 id=11 data-nosnippet>11</a>            NodeReplacement, label_edge_lifetime_projections_wrapper, label_edge_places_wrapper,
+<a href=#12 id=12 data-nosnippet>12</a>        },
+<a href=#13 id=13 data-nosnippet>13</a>        has_pcs_elem::{LabelLifetimeProjectionResult, PlaceLabeller},
+<a href=#14 id=14 data-nosnippet>14</a>        region_projection::LifetimeProjectionLabel,
+<a href=#15 id=15 data-nosnippet>15</a>    },
+<a href=#16 id=16 data-nosnippet>16</a>    rustc_interface::middle::mir::{BasicBlock, Location},
+<a href=#17 id=17 data-nosnippet>17</a>    utils::{
+<a href=#18 id=18 data-nosnippet>18</a>        DebugCtxt, PcgPlace, Place,
+<a href=#19 id=19 data-nosnippet>19</a>        data_structures::HashSet,
+<a href=#20 id=20 data-nosnippet>20</a>        display::{DisplayOutput, DisplayWithCtxt, OutputMode},
+<a href=#21 id=21 data-nosnippet>21</a>        validity::{HasValidityCheck, has_validity_check_node_wrapper},
+<a href=#22 id=22 data-nosnippet>22</a>    },
+<a href=#23 id=23 data-nosnippet>23</a>};
+<a href=#24 id=24 data-nosnippet>24</a>
+<a href=#25 id=25 data-nosnippet>25</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>LoopAbstractionEdge&lt;<span class="lifetime">'tcx</span>, P = Place&lt;<span class="lifetime">'tcx</span>&gt;&gt; =
+<a href=#26 id=26 data-nosnippet>26</a>    AbstractionBlockEdge&lt;<span class="lifetime">'tcx</span>, LoopAbstractionInput&lt;<span class="lifetime">'tcx</span>, P&gt;, LoopAbstractionOutput&lt;<span class="lifetime">'tcx</span>&gt;&gt;;
+<a href=#27 id=27 data-nosnippet>27</a>
+<a href=#28 id=28 data-nosnippet>28</a><span class="attr">#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, From)]
+<a href=#29 id=29 data-nosnippet>29</a></span><span class="kw">pub struct </span>LoopAbstractionEdgeMetadata(BasicBlock);
+<a href=#30 id=30 data-nosnippet>30</a>
+<a href=#31 id=31 data-nosnippet>31</a><span class="kw">impl </span>LoopAbstractionEdgeMetadata {
+<a href=#32 id=32 data-nosnippet>32</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>loop_head_block(<span class="self">self</span>) -&gt; BasicBlock {
+<a href=#33 id=33 data-nosnippet>33</a>        <span class="self">self</span>.<span class="number">0
+<a href=#34 id=34 data-nosnippet>34</a>    </span>}
+<a href=#35 id=35 data-nosnippet>35</a>}
+<a href=#36 id=36 data-nosnippet>36</a>
+<a href=#37 id=37 data-nosnippet>37</a><span class="kw">impl</span>&lt;Ctxt&gt; DisplayWithCtxt&lt;Ctxt&gt; <span class="kw">for </span>LoopAbstractionEdgeMetadata {
+<a href=#38 id=38 data-nosnippet>38</a>    <span class="kw">fn </span>display_output(<span class="kw-2">&amp;</span><span class="self">self</span>, _ctxt: Ctxt, _mode: OutputMode) -&gt; DisplayOutput {
+<a href=#39 id=39 data-nosnippet>39</a>        DisplayOutput::Text(<span class="macro">format!</span>(<span class="string">"Loop({:?})"</span>, <span class="self">self</span>.<span class="number">0</span>).into())
+<a href=#40 id=40 data-nosnippet>40</a>    }
+<a href=#41 id=41 data-nosnippet>41</a>}
+<a href=#42 id=42 data-nosnippet>42</a>
+<a href=#43 id=43 data-nosnippet>43</a><span class="kw">pub type </span>LoopAbstraction&lt;<span class="lifetime">'tcx</span>, P = Place&lt;<span class="lifetime">'tcx</span>&gt;&gt; =
+<a href=#44 id=44 data-nosnippet>44</a>    AbstractionBlockEdgeWithMetadata&lt;LoopAbstractionEdgeMetadata, LoopAbstractionEdge&lt;<span class="lifetime">'tcx</span>, P&gt;&gt;;
+<a href=#45 id=45 data-nosnippet>45</a>
+<a href=#46 id=46 data-nosnippet>46</a><span class="macro">label_edge_places_wrapper!</span>(LoopAbstraction&lt;<span class="lifetime">'tcx</span>, P&gt;);
+<a href=#47 id=47 data-nosnippet>47</a><span class="macro">label_edge_lifetime_projections_wrapper!</span>(LoopAbstraction&lt;<span class="lifetime">'tcx</span>, P&gt;);
+<a href=#48 id=48 data-nosnippet>48</a>
+<a href=#49 id=49 data-nosnippet>49</a><span class="kw">impl</span>&lt;<span class="lifetime">'tcx</span>, Ctxt: Copy + DebugCtxt, P: PcgPlace&lt;<span class="lifetime">'tcx</span>, Ctxt&gt;&gt; EdgeData&lt;<span class="lifetime">'tcx</span>, Ctxt, P&gt;
+<a href=#50 id=50 data-nosnippet>50</a>    <span class="kw">for </span>LoopAbstraction&lt;<span class="lifetime">'tcx</span>, P&gt;
+<a href=#51 id=51 data-nosnippet>51</a><span class="kw">where
+<a href=#52 id=52 data-nosnippet>52</a>    </span>LoopAbstractionEdge&lt;<span class="lifetime">'tcx</span>, P&gt;: EdgeData&lt;<span class="lifetime">'tcx</span>, Ctxt, P&gt;,
+<a href=#53 id=53 data-nosnippet>53</a>{
+<a href=#54 id=54 data-nosnippet>54</a>    <span class="kw">fn </span>blocks_node&lt;<span class="lifetime">'slf</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, node: BlockedNode&lt;<span class="lifetime">'tcx</span>, P&gt;, ctxt: Ctxt) -&gt; bool {
+<a href=#55 id=55 data-nosnippet>55</a>        <span class="self">self</span>.edge.blocks_node(node, ctxt)
+<a href=#56 id=56 data-nosnippet>56</a>    }
+<a href=#57 id=57 data-nosnippet>57</a>
+<a href=#58 id=58 data-nosnippet>58</a>    <span class="kw">fn </span>blocked_nodes&lt;<span class="lifetime">'slf</span>&gt;(
+<a href=#59 id=59 data-nosnippet>59</a>        <span class="kw-2">&amp;</span><span class="lifetime">'slf </span><span class="self">self</span>,
+<a href=#60 id=60 data-nosnippet>60</a>        ctxt: Ctxt,
+<a href=#61 id=61 data-nosnippet>61</a>    ) -&gt; Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = BlockedNode&lt;<span class="lifetime">'tcx</span>, P&gt;&gt; + <span class="lifetime">'slf</span>&gt;
+<a href=#62 id=62 data-nosnippet>62</a>    <span class="kw">where
+<a href=#63 id=63 data-nosnippet>63</a>        </span><span class="lifetime">'tcx</span>: <span class="lifetime">'slf</span>,
+<a href=#64 id=64 data-nosnippet>64</a>    {
+<a href=#65 id=65 data-nosnippet>65</a>        <span class="self">self</span>.edge.blocked_nodes(ctxt)
+<a href=#66 id=66 data-nosnippet>66</a>    }
+<a href=#67 id=67 data-nosnippet>67</a>
+<a href=#68 id=68 data-nosnippet>68</a>    <span class="kw">fn </span>blocked_by_nodes&lt;<span class="lifetime">'slf</span>&gt;(
+<a href=#69 id=69 data-nosnippet>69</a>        <span class="kw-2">&amp;</span><span class="lifetime">'slf </span><span class="self">self</span>,
+<a href=#70 id=70 data-nosnippet>70</a>        ctxt: Ctxt,
+<a href=#71 id=71 data-nosnippet>71</a>    ) -&gt; Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = LocalNode&lt;<span class="lifetime">'tcx</span>, P&gt;&gt; + <span class="lifetime">'slf</span>&gt;
+<a href=#72 id=72 data-nosnippet>72</a>    <span class="kw">where
+<a href=#73 id=73 data-nosnippet>73</a>        </span><span class="lifetime">'tcx</span>: <span class="lifetime">'slf</span>,
+<a href=#74 id=74 data-nosnippet>74</a>    {
+<a href=#75 id=75 data-nosnippet>75</a>        <span class="self">self</span>.edge.blocked_by_nodes(ctxt)
+<a href=#76 id=76 data-nosnippet>76</a>    }
+<a href=#77 id=77 data-nosnippet>77</a>}
+<a href=#78 id=78 data-nosnippet>78</a>
+<a href=#79 id=79 data-nosnippet>79</a><span class="macro">has_validity_check_node_wrapper!</span>(LoopAbstraction&lt;<span class="lifetime">'tcx</span>, P&gt;);
+<a href=#80 id=80 data-nosnippet>80</a>
+<a href=#81 id=81 data-nosnippet>81</a><span class="kw">impl</span>&lt;<span class="lifetime">'tcx</span>&gt; LoopAbstraction&lt;<span class="lifetime">'tcx</span>&gt; {
+<a href=#82 id=82 data-nosnippet>82</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
+<a href=#83 id=83 data-nosnippet>83</a>        edge: AbstractionBlockEdge&lt;<span class="lifetime">'tcx</span>, LoopAbstractionInput&lt;<span class="lifetime">'tcx</span>&gt;, LoopAbstractionOutput&lt;<span class="lifetime">'tcx</span>&gt;&gt;,
+<a href=#84 id=84 data-nosnippet>84</a>        block: BasicBlock,
+<a href=#85 id=85 data-nosnippet>85</a>    ) -&gt; <span class="self">Self </span>{
+<a href=#86 id=86 data-nosnippet>86</a>        <span class="self">Self </span>{
+<a href=#87 id=87 data-nosnippet>87</a>            edge,
+<a href=#88 id=88 data-nosnippet>88</a>            metadata: block.into(),
+<a href=#89 id=89 data-nosnippet>89</a>        }
+<a href=#90 id=90 data-nosnippet>90</a>    }
+<a href=#91 id=91 data-nosnippet>91</a>
+<a href=#92 id=92 data-nosnippet>92</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Location {
+<a href=#93 id=93 data-nosnippet>93</a>        Location {
+<a href=#94 id=94 data-nosnippet>94</a>            block: <span class="self">self</span>.metadata.<span class="number">0</span>,
+<a href=#95 id=95 data-nosnippet>95</a>            statement_index: <span class="number">0</span>,
+<a href=#96 id=96 data-nosnippet>96</a>        }
+<a href=#97 id=97 data-nosnippet>97</a>    }
+<a href=#98 id=98 data-nosnippet>98</a>}
+</code></pre></div></section></main></body></html>

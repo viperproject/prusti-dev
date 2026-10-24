@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["run_pcg"],"macro":[["capability_gte",1],["log",1]],"mod":["action","borrow_checker","borrow_pcg","coupling","error","loop","owned_pcg","pcg","results","rustc_interface","utils","visualization"],"struct":["PcgCtxt","PcgCtxtCreator","RestoreCapability","Weaken"],"trait":["BodyAndBorrows","HasSettings"],"type":["PcgOutput"]};

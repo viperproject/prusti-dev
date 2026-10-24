@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["LabelNodePredicate"],"struct":["NodeReplacement"],"trait":["EdgeData","LabelEdgeLifetimeProjections","LabelEdgePlaces"]};

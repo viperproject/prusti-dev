@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["PcgErrorKind","PcgUnsupportedError"],"struct":["PcgError","PcgInternalError","PlaceContainingPtrWithNestedLifetime"]};

@@ -1,0 +1,240 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-encoder/src/encoders/builtin/use_metadata.rs`."><title>use_metadata.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-0c87338a.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="prusti_encoder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.99.0-nightly (d453bdd8f 2026-08-14)" data-channel="nightly" data-search-js="search-cf4fc35e.js" data-stringdex-js="stringdex-b5109af9.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-9f56287d.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">prusti_encoder/encoders/builtin/</div>use_metadata.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
+<a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span>vir::CastType;
+<a href=#3 id=3 data-nosnippet>3</a>
+<a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::encoders::{
+<a href=#5 id=5 data-nosnippet>5</a>    Pure,
+<a href=#6 id=6 data-nosnippet>6</a>    builtin::{MetadataCastEnc, ValueCastEnc},
+<a href=#7 id=7 data-nosnippet>7</a>    ty::{
+<a href=#8 id=8 data-nosnippet>8</a>        RustTy, RustTyDecomposition, RustTyNormalized, TySpecifics,
+<a href=#9 id=9 data-nosnippet>9</a>        generics::{GArgs, GArgsCastEnc, GenericParamsEnc},
+<a href=#10 id=10 data-nosnippet>10</a>        lifted::TyConstructorEnc,
+<a href=#11 id=11 data-nosnippet>11</a>        use_pure::TyUsePureEnc,
+<a href=#12 id=12 data-nosnippet>12</a>    },
+<a href=#13 id=13 data-nosnippet>13</a>};
+<a href=#14 id=14 data-nosnippet>14</a>
+<a href=#15 id=15 data-nosnippet>15</a><span class="doccomment">/// Emits the metadata rewrite for a concrete `[T; N] -&gt; [T]` (array-to-slice)
+<a href=#16 id=16 data-nosnippet>16</a>/// coercion: an axiom defining `metadata_cast(_, [T; N], [T])` as the array's
+<a href=#17 id=17 data-nosnippet>17</a>/// static length `N` - the fat-pointer metadata of the resulting slice. Like
+<a href=#18 id=18 data-nosnippet>18</a>/// `ValueCastAxiomEnc`, it is keyed on the *generic* array/slice shapes (the
+<a href=#19 id=19 data-nosnippet>19</a>/// `RustTy`, shared by every `[T; N]`), so it is encoded once and is itself
+<a href=#20 id=20 data-nosnippet>20</a>/// generic over the element type and length. The abstract `metadata_cast`
+<a href=#21 id=21 data-nosnippet>21</a>/// function and its identity axiom live in `MetadataCastEnc`; this encoder
+<a href=#22 id=22 data-nosnippet>22</a>/// attaches only the array-&gt;slice specialization (so `MetadataCastEnc` no longer
+<a href=#23 id=23 data-nosnippet>23</a>/// has to assume that array/slice types exist in the program).
+<a href=#24 id=24 data-nosnippet>24</a></span><span class="kw">pub struct </span>MetadataCastAxiomEnc;
+<a href=#25 id=25 data-nosnippet>25</a>
+<a href=#26 id=26 data-nosnippet>26</a><span class="kw">impl </span>TaskEncoder <span class="kw">for </span>MetadataCastAxiomEnc {
+<a href=#27 id=27 data-nosnippet>27</a>    <span class="macro">task_encoder::encoder_cache!</span>(MetadataCastAxiomEnc);
+<a href=#28 id=28 data-nosnippet>28</a>    <span class="kw">const </span>ENCODER_NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"metadata cast axiom encoder"</span>;
+<a href=#29 id=29 data-nosnippet>29</a>
+<a href=#30 id=30 data-nosnippet>30</a>    <span class="kw">type </span>TaskDescription&lt;<span class="lifetime">'vir</span>&gt; = (RustTy&lt;<span class="lifetime">'vir</span>&gt;, RustTy&lt;<span class="lifetime">'vir</span>&gt;);
+<a href=#31 id=31 data-nosnippet>31</a>    <span class="kw">type </span>OutputFullLocal&lt;<span class="lifetime">'vir</span>&gt; = <span class="prelude-ty">Option</span>&lt;vir::Domain&lt;<span class="lifetime">'vir</span>&gt;&gt;;
+<a href=#32 id=32 data-nosnippet>32</a>
+<a href=#33 id=33 data-nosnippet>33</a>    <span class="kw">fn </span>task_to_key&lt;<span class="lifetime">'vir</span>&gt;(task: <span class="kw-2">&amp;</span><span class="self">Self</span>::TaskDescription&lt;<span class="lifetime">'vir</span>&gt;) -&gt; <span class="self">Self</span>::TaskKey&lt;<span class="lifetime">'vir</span>&gt; {
+<a href=#34 id=34 data-nosnippet>34</a>        <span class="kw-2">*</span>task
+<a href=#35 id=35 data-nosnippet>35</a>    }
+<a href=#36 id=36 data-nosnippet>36</a>
+<a href=#37 id=37 data-nosnippet>37</a>    <span class="kw">fn </span>do_encode_full&lt;<span class="lifetime">'vir</span>&gt;(
+<a href=#38 id=38 data-nosnippet>38</a>        task_key: <span class="kw-2">&amp;</span><span class="self">Self</span>::TaskKey&lt;<span class="lifetime">'vir</span>&gt;,
+<a href=#39 id=39 data-nosnippet>39</a>        deps: <span class="kw-2">&amp;mut </span>TaskEncoderDependencies&lt;<span class="lifetime">'vir</span>, <span class="self">Self</span>&gt;,
+<a href=#40 id=40 data-nosnippet>40</a>    ) -&gt; EncodeFullResult&lt;<span class="lifetime">'vir</span>, <span class="self">Self</span>&gt; {
+<a href=#41 id=41 data-nosnippet>41</a>        deps.emit_output_ref(<span class="kw-2">*</span>task_key, ())<span class="question-mark">?</span>;
+<a href=#42 id=42 data-nosnippet>42</a>        <span class="kw">let </span>(array_ty, slice_ty) = <span class="kw-2">*</span>task_key;
+<a href=#43 id=43 data-nosnippet>43</a>        <span class="kw">match </span>(<span class="kw-2">&amp;</span>array_ty.specifics, <span class="kw-2">&amp;</span>slice_ty.specifics) {
+<a href=#44 id=44 data-nosnippet>44</a>            (TySpecifics::ArrayLike(ad), TySpecifics::ArrayLike(sd)) <span class="kw">if </span>!ad.slice &amp;&amp; sd.slice =&gt; {}
+<a href=#45 id=45 data-nosnippet>45</a>            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="prelude-val">None</span>, ())),
+<a href=#46 id=46 data-nosnippet>46</a>        }
+<a href=#47 id=47 data-nosnippet>47</a>
+<a href=#48 id=48 data-nosnippet>48</a>        <span class="kw">let </span>metadata_cast = deps.require_dep::&lt;MetadataCastEnc&gt;(())<span class="question-mark">?</span>;
+<a href=#49 id=49 data-nosnippet>49</a>        <span class="kw">let </span>array_ctor = deps.require_ref::&lt;TyConstructorEnc&gt;(array_ty)<span class="question-mark">?</span>;
+<a href=#50 id=50 data-nosnippet>50</a>        <span class="kw">let </span>slice_ctor = deps.require_ref::&lt;TyConstructorEnc&gt;(slice_ty)<span class="question-mark">?</span>;
+<a href=#51 id=51 data-nosnippet>51</a>        <span class="comment">// Quantify over the array's own params (`T`, `N`), so the axiom is generic
+<a href=#52 id=52 data-nosnippet>52</a>        // over every `[T; N]` rather than baking in a concrete element/length.
+<a href=#53 id=53 data-nosnippet>53</a>        </span><span class="kw">let </span>array_gen = deps.require_dep::&lt;GenericParamsEnc&gt;(array_ty.params)<span class="question-mark">?</span>;
+<a href=#54 id=54 data-nosnippet>54</a>        <span class="comment">// The slice metadata is the array's length `N`, held generically (as a
+<a href=#55 id=55 data-nosnippet>55</a>        // `p_Param` snapshot); cast the concrete `usize` length into the generic
+<a href=#56 id=56 data-nosnippet>56</a>        // context via `usize`'s pure caster.
+<a href=#57 id=57 data-nosnippet>57</a>        </span><span class="kw">let </span>usize = RustTyDecomposition::from_prim_ty(vir::with_vcx(|vcx| vcx.tcx().types.usize));
+<a href=#58 id=58 data-nosnippet>58</a>        <span class="kw">let </span>len_caster = deps.require_dep::&lt;GArgsCastEnc&lt;Pure&gt;&gt;(<span class="prelude-val">Some</span>(RustTyNormalized {
+<a href=#59 id=59 data-nosnippet>59</a>            param: RustTyDecomposition::param(),
+<a href=#60 id=60 data-nosnippet>60</a>            concrete: usize,
+<a href=#61 id=61 data-nosnippet>61</a>        }))<span class="question-mark">?</span>;
+<a href=#62 id=62 data-nosnippet>62</a>
+<a href=#63 id=63 data-nosnippet>63</a>        vir::with_vcx(|vcx| {
+<a href=#64 id=64 data-nosnippet>64</a>            <span class="comment">// The (generic) array/slice referent type values `[T; N]` / `[T]`, in the
+<a href=#65 id=65 data-nosnippet>65</a>            // same form the `cast` fn passes as `metadata_cast`'s `[U, V]`.
+<a href=#66 id=66 data-nosnippet>66</a>            </span><span class="kw">let </span>u_ty = (array_ctor.ty_constructor)(array_gen.ty_exprs(), array_gen.const_exprs());
+<a href=#67 id=67 data-nosnippet>67</a>            <span class="kw">let </span>v_ty = (slice_ctor.ty_constructor)(array_gen.ty_exprs(), <span class="kw-2">&amp;</span>[]);
+<a href=#68 id=68 data-nosnippet>68</a>            <span class="comment">// The array's single const param `N`, made generic.
+<a href=#69 id=69 data-nosnippet>69</a>            </span><span class="kw">let </span>len = array_gen.const_exprs()[<span class="number">0</span>];
+<a href=#70 id=70 data-nosnippet>70</a>            <span class="kw">let </span>len_generic = len_caster
+<a href=#71 id=71 data-nosnippet>71</a>                .cast_to_callee_ctx(len.upcast_ty())
+<a href=#72 id=72 data-nosnippet>72</a>                .downcast_ty::&lt;vir::PSnap&gt;();
+<a href=#73 id=73 data-nosnippet>73</a>
+<a href=#74 id=74 data-nosnippet>74</a>            <span class="kw">let </span>input_decl = vcx.mk_local_decl(<span class="string">"input"</span>, vir::TYPE_PSNAP);
+<a href=#75 id=75 data-nosnippet>75</a>            <span class="kw">let </span>input = vcx.mk_local_ex(input_decl);
+<a href=#76 id=76 data-nosnippet>76</a>            <span class="kw">let </span>call = metadata_cast(input, u_ty, v_ty);
+<a href=#77 id=77 data-nosnippet>77</a>            <span class="kw">let </span>body = vcx.mk_eq_expr(call, len_generic);
+<a href=#78 id=78 data-nosnippet>78</a>            <span class="comment">// forall input, T, N :: { metadata_cast(input, [T; N], [T]) }
+<a href=#79 id=79 data-nosnippet>79</a>            //     metadata_cast(input, [T; N], [T]) == make_generic_usize(N)
+<a href=#80 id=80 data-nosnippet>80</a>            </span><span class="kw">let </span>axiom_expr = <span class="macro">vir::expr!</span> {
+<a href=#81 id=81 data-nosnippet>81</a>                forall [input_decl], ..[array_gen.ty_decls()], ..[array_gen.const_decls()]
+<a href=#82 id=82 data-nosnippet>82</a>                    :: { [call] }
+<a href=#83 id=83 data-nosnippet>83</a>                    [body]
+<a href=#84 id=84 data-nosnippet>84</a>            };
+<a href=#85 id=85 data-nosnippet>85</a>            <span class="kw">let </span>axiom = vcx.mk_domain_axiom(
+<a href=#86 id=86 data-nosnippet>86</a>                vir::ViperIdent::new(<span class="string">"metadata_cast_array_slice"</span>),
+<a href=#87 id=87 data-nosnippet>87</a>                axiom_expr,
+<a href=#88 id=88 data-nosnippet>88</a>            );
+<a href=#89 id=89 data-nosnippet>89</a>            <span class="kw">let </span>domain = vcx.mk_domain(
+<a href=#90 id=90 data-nosnippet>90</a>                vir::ViperIdent::new(<span class="string">"MetadataCastArraySlice"</span>),
+<a href=#91 id=91 data-nosnippet>91</a>                <span class="kw-2">&amp;</span>[],
+<a href=#92 id=92 data-nosnippet>92</a>                vcx.alloc_slice(<span class="kw-2">&amp;</span>[axiom]),
+<a href=#93 id=93 data-nosnippet>93</a>                <span class="kw-2">&amp;</span>[],
+<a href=#94 id=94 data-nosnippet>94</a>                <span class="prelude-val">None</span>,
+<a href=#95 id=95 data-nosnippet>95</a>            );
+<a href=#96 id=96 data-nosnippet>96</a>            <span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(domain), ()))
+<a href=#97 id=97 data-nosnippet>97</a>        })
+<a href=#98 id=98 data-nosnippet>98</a>    }
+<a href=#99 id=99 data-nosnippet>99</a>
+<a href=#100 id=100 data-nosnippet>100</a>    <span class="kw">fn </span>emit_outputs&lt;<span class="lifetime">'vir</span>&gt;(program: <span class="kw-2">&amp;mut </span>task_encoder::Program&lt;<span class="lifetime">'vir</span>&gt;) {
+<a href=#101 id=101 data-nosnippet>101</a>        <span class="kw">for </span>domain <span class="kw">in </span><span class="self">Self</span>::all_outputs_local_no_errors(program) {
+<a href=#102 id=102 data-nosnippet>102</a>            <span class="kw">let </span><span class="prelude-val">Some</span>(domain) = domain <span class="kw">else </span>{
+<a href=#103 id=103 data-nosnippet>103</a>                <span class="kw">continue</span>;
+<a href=#104 id=104 data-nosnippet>104</a>            };
+<a href=#105 id=105 data-nosnippet>105</a>            program.add_domain(domain);
+<a href=#106 id=106 data-nosnippet>106</a>        }
+<a href=#107 id=107 data-nosnippet>107</a>    }
+<a href=#108 id=108 data-nosnippet>108</a>}
+<a href=#109 id=109 data-nosnippet>109</a>
+<a href=#110 id=110 data-nosnippet>110</a><span class="doccomment">/// Emits the functional specification of `unsize_value_cast` for a concrete
+<a href=#111 id=111 data-nosnippet>111</a>/// `[T; N] -&gt; [T]` (array-to-slice) coercion: an axiom stating that the coerced
+<a href=#112 id=112 data-nosnippet>112</a>/// slice has the same elements as the original array (the length is carried by
+<a href=#113 id=113 data-nosnippet>113</a>/// the fat-pointer metadata, set by `metadata_cast`). The coercion's referent
+<a href=#114 id=114 data-nosnippet>114</a>/// value is held as a generic `p_Param`, so the relation is expressed by
+<a href=#115 id=115 data-nosnippet>115</a>/// `make_concrete`-ing both sides to their `[T; N]`/`[T]` snapshots and comparing
+<a href=#116 id=116 data-nosnippet>116</a>/// elements. Keyed on the *generic* array/slice shapes (the `RustTy`, shared by
+<a href=#117 id=117 data-nosnippet>117</a>/// every `[T; N]`), so it is encoded once and is itself generic over the element
+<a href=#118 id=118 data-nosnippet>118</a>/// type `T` and length `N`. The abstract `unsize_value_cast` function and its
+<a href=#119 id=119 data-nosnippet>119</a>/// identity axiom live in `ValueCastEnc`; this encoder attaches only the
+<a href=#120 id=120 data-nosnippet>120</a>/// array-&gt;slice specialization.
+<a href=#121 id=121 data-nosnippet>121</a></span><span class="kw">pub struct </span>ValueCastAxiomEnc;
+<a href=#122 id=122 data-nosnippet>122</a>
+<a href=#123 id=123 data-nosnippet>123</a><span class="kw">impl </span>TaskEncoder <span class="kw">for </span>ValueCastAxiomEnc {
+<a href=#124 id=124 data-nosnippet>124</a>    <span class="macro">task_encoder::encoder_cache!</span>(ValueCastAxiomEnc);
+<a href=#125 id=125 data-nosnippet>125</a>    <span class="kw">const </span>ENCODER_NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"value cast axiom encoder"</span>;
+<a href=#126 id=126 data-nosnippet>126</a>
+<a href=#127 id=127 data-nosnippet>127</a>    <span class="kw">type </span>TaskDescription&lt;<span class="lifetime">'vir</span>&gt; = (RustTy&lt;<span class="lifetime">'vir</span>&gt;, RustTy&lt;<span class="lifetime">'vir</span>&gt;);
+<a href=#128 id=128 data-nosnippet>128</a>    <span class="kw">type </span>OutputFullLocal&lt;<span class="lifetime">'vir</span>&gt; = <span class="prelude-ty">Option</span>&lt;vir::Domain&lt;<span class="lifetime">'vir</span>&gt;&gt;;
+<a href=#129 id=129 data-nosnippet>129</a>
+<a href=#130 id=130 data-nosnippet>130</a>    <span class="kw">fn </span>task_to_key&lt;<span class="lifetime">'vir</span>&gt;(task: <span class="kw-2">&amp;</span><span class="self">Self</span>::TaskDescription&lt;<span class="lifetime">'vir</span>&gt;) -&gt; <span class="self">Self</span>::TaskKey&lt;<span class="lifetime">'vir</span>&gt; {
+<a href=#131 id=131 data-nosnippet>131</a>        <span class="kw-2">*</span>task
+<a href=#132 id=132 data-nosnippet>132</a>    }
+<a href=#133 id=133 data-nosnippet>133</a>
+<a href=#134 id=134 data-nosnippet>134</a>    <span class="kw">fn </span>do_encode_full&lt;<span class="lifetime">'vir</span>&gt;(
+<a href=#135 id=135 data-nosnippet>135</a>        task_key: <span class="kw-2">&amp;</span><span class="self">Self</span>::TaskKey&lt;<span class="lifetime">'vir</span>&gt;,
+<a href=#136 id=136 data-nosnippet>136</a>        deps: <span class="kw-2">&amp;mut </span>TaskEncoderDependencies&lt;<span class="lifetime">'vir</span>, <span class="self">Self</span>&gt;,
+<a href=#137 id=137 data-nosnippet>137</a>    ) -&gt; EncodeFullResult&lt;<span class="lifetime">'vir</span>, <span class="self">Self</span>&gt; {
+<a href=#138 id=138 data-nosnippet>138</a>        deps.emit_output_ref(<span class="kw-2">*</span>task_key, ())<span class="question-mark">?</span>;
+<a href=#139 id=139 data-nosnippet>139</a>        <span class="kw">let </span>(array_ty, slice_ty) = <span class="kw-2">*</span>task_key;
+<a href=#140 id=140 data-nosnippet>140</a>        <span class="kw">match </span>(<span class="kw-2">&amp;</span>array_ty.specifics, <span class="kw-2">&amp;</span>slice_ty.specifics) {
+<a href=#141 id=141 data-nosnippet>141</a>            (TySpecifics::ArrayLike(ad), TySpecifics::ArrayLike(sd)) <span class="kw">if </span>!ad.slice &amp;&amp; sd.slice =&gt; {}
+<a href=#142 id=142 data-nosnippet>142</a>            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="prelude-val">None</span>, ())),
+<a href=#143 id=143 data-nosnippet>143</a>        }
+<a href=#144 id=144 data-nosnippet>144</a>
+<a href=#145 id=145 data-nosnippet>145</a>        <span class="comment">// The most-generic array/slice (identity args), so the axiom quantifies
+<a href=#146 id=146 data-nosnippet>146</a>        // over the element/length params rather than baking in a concrete `[T; N]`.
+<a href=#147 id=147 data-nosnippet>147</a>        </span><span class="kw">let </span>array_inner = RustTyDecomposition::identity(array_ty);
+<a href=#148 id=148 data-nosnippet>148</a>        <span class="kw">let </span><span class="kw-2">mut </span>slice_inner = RustTyDecomposition::identity(slice_ty);
+<a href=#149 id=149 data-nosnippet>149</a>
+<a href=#150 id=150 data-nosnippet>150</a>        <span class="comment">// Re-base the slice's element onto the array's element type parameter: a
+<a href=#151 id=151 data-nosnippet>151</a>        // valid `[T; N] -&gt; [T]` coercion always has matching element types, so
+<a href=#152 id=152 data-nosnippet>152</a>        // the axiom quantifies over the array's params only (`U`, `M`) and the
+<a href=#153 id=153 data-nosnippet>153</a>        // slice reuses the array's element `U`. This is also what lets the
+<a href=#154 id=154 data-nosnippet>154</a>        // concrete-keyed axiom below trigger without a free slice-element var.
+<a href=#155 id=155 data-nosnippet>155</a>        </span>slice_inner.args = GArgs::new(
+<a href=#156 id=156 data-nosnippet>156</a>            array_ty.params,
+<a href=#157 id=157 data-nosnippet>157</a>            vir::with_vcx(|vcx| vcx.tcx().mk_args(<span class="kw-2">&amp;</span>[array_ty.params.rust_params()[<span class="number">1</span>]])),
+<a href=#158 id=158 data-nosnippet>158</a>        );
+<a href=#159 id=159 data-nosnippet>159</a>
+<a href=#160 id=160 data-nosnippet>160</a>        <span class="kw">let </span>value_cast = deps.require_dep::&lt;ValueCastEnc&gt;(())<span class="question-mark">?</span>;
+<a href=#161 id=161 data-nosnippet>161</a>        <span class="kw">let </span>array_use = deps.require_dep::&lt;TyUsePureEnc&gt;(array_inner)<span class="question-mark">?</span>;
+<a href=#162 id=162 data-nosnippet>162</a>        <span class="kw">let </span>slice_use = deps.require_dep::&lt;TyUsePureEnc&gt;(slice_inner)<span class="question-mark">?</span>;
+<a href=#163 id=163 data-nosnippet>163</a>        <span class="kw">let </span>array_ctor = deps.require_ref::&lt;TyConstructorEnc&gt;(array_ty)<span class="question-mark">?</span>;
+<a href=#164 id=164 data-nosnippet>164</a>        <span class="kw">let </span>slice_ctor = deps.require_ref::&lt;TyConstructorEnc&gt;(slice_ty)<span class="question-mark">?</span>;
+<a href=#165 id=165 data-nosnippet>165</a>        <span class="kw">let </span>array_gen = deps.require_dep::&lt;GenericParamsEnc&gt;(array_ty.params)<span class="question-mark">?</span>;
+<a href=#166 id=166 data-nosnippet>166</a>        <span class="kw">let </span>param = RustTyDecomposition::param();
+<a href=#167 id=167 data-nosnippet>167</a>        <span class="kw">let </span>array_caster = deps.require_dep::&lt;GArgsCastEnc&lt;Pure&gt;&gt;(<span class="prelude-val">Some</span>(RustTyNormalized {
+<a href=#168 id=168 data-nosnippet>168</a>            param,
+<a href=#169 id=169 data-nosnippet>169</a>            concrete: array_inner,
+<a href=#170 id=170 data-nosnippet>170</a>        }))<span class="question-mark">?</span>;
+<a href=#171 id=171 data-nosnippet>171</a>        <span class="kw">let </span>slice_caster = deps.require_dep::&lt;GArgsCastEnc&lt;Pure&gt;&gt;(<span class="prelude-val">Some</span>(RustTyNormalized {
+<a href=#172 id=172 data-nosnippet>172</a>            param,
+<a href=#173 id=173 data-nosnippet>173</a>            concrete: slice_inner,
+<a href=#174 id=174 data-nosnippet>174</a>        }))<span class="question-mark">?</span>;
+<a href=#175 id=175 data-nosnippet>175</a>
+<a href=#176 id=176 data-nosnippet>176</a>        vir::with_vcx(|vcx| {
+<a href=#177 id=177 data-nosnippet>177</a>            <span class="kw">let </span>array_pure = array_use.expect_array();
+<a href=#178 id=178 data-nosnippet>178</a>            <span class="kw">let </span>slice_pure = slice_use.expect_array();
+<a href=#179 id=179 data-nosnippet>179</a>            <span class="comment">// The (generic) referent type values `[T; N]` and `[T]`, in the same
+<a href=#180 id=180 data-nosnippet>180</a>            // form `MirBuiltinUseCastEnc` passes as the `unsize`/`undo` method's
+<a href=#181 id=181 data-nosnippet>181</a>            // `U`/`V` type arguments. The slice element is the array's element `U`
+<a href=#182 id=182 data-nosnippet>182</a>            // (see `slice_args`).
+<a href=#183 id=183 data-nosnippet>183</a>            </span><span class="kw">let </span>u_ty = (array_ctor.ty_constructor)(array_gen.ty_exprs(), array_gen.const_exprs());
+<a href=#184 id=184 data-nosnippet>184</a>            <span class="kw">let </span>v_ty = (slice_ctor.ty_constructor)(array_gen.ty_exprs(), <span class="kw-2">&amp;</span>[]);
+<a href=#185 id=185 data-nosnippet>185</a>
+<a href=#186 id=186 data-nosnippet>186</a>            <span class="kw">let </span>arr_decl = vcx.mk_local_decl(<span class="string">"arr"</span>, array_use.snapshot.downcast_ty());
+<a href=#187 id=187 data-nosnippet>187</a>            <span class="kw">let </span>arr = vcx.mk_local_ex(arr_decl);
+<a href=#188 id=188 data-nosnippet>188</a>            <span class="kw">let </span>arr_generic = array_caster
+<a href=#189 id=189 data-nosnippet>189</a>                .cast_to_callee_ctx(arr.upcast_ty())
+<a href=#190 id=190 data-nosnippet>190</a>                .downcast_ty::&lt;vir::PSnap&gt;();
+<a href=#191 id=191 data-nosnippet>191</a>            <span class="kw">let </span>arr_vc = value_cast(arr_generic, u_ty, v_ty);
+<a href=#192 id=192 data-nosnippet>192</a>            <span class="kw">let </span>sli = slice_caster
+<a href=#193 id=193 data-nosnippet>193</a>                .cast_to_caller_ctx(arr_vc.upcast_ty())
+<a href=#194 id=194 data-nosnippet>194</a>                .downcast_ty::&lt;vir::CSnap&gt;();
+<a href=#195 id=195 data-nosnippet>195</a>
+<a href=#196 id=196 data-nosnippet>196</a>            <span class="kw">let </span>idx_decl = vcx.mk_local_decl(<span class="string">"idx"</span>, vir::TYPE_INT);
+<a href=#197 id=197 data-nosnippet>197</a>            <span class="kw">let </span>idx = vcx.mk_local_ex(idx_decl);
+<a href=#198 id=198 data-nosnippet>198</a>            <span class="comment">// Compare the elements in their generic (`p_Param`) form: the array and
+<a href=#199 id=199 data-nosnippet>199</a>            // slice share the same element type, so the concrete element conversion
+<a href=#200 id=200 data-nosnippet>200</a>            // would be redundant.
+<a href=#201 id=201 data-nosnippet>201</a>            </span><span class="kw">let </span>idx_body = vcx.mk_eq_expr(
+<a href=#202 id=202 data-nosnippet>202</a>                array_pure.index_generic(arr, idx),
+<a href=#203 id=203 data-nosnippet>203</a>                slice_pure.index_generic(sli, idx),
+<a href=#204 id=204 data-nosnippet>204</a>            );
+<a href=#205 id=205 data-nosnippet>205</a>            <span class="kw">let </span>idx_forall = vcx.mk_forall_expr(
+<a href=#206 id=206 data-nosnippet>206</a>                vcx.alloc_slice(<span class="kw-2">&amp;</span>[idx_decl]),
+<a href=#207 id=207 data-nosnippet>207</a>                vcx.alloc_slice(<span class="kw-2">&amp;</span>[vcx.mk_trigger(<span class="kw-2">&amp;</span>[array_pure.index_generic(arr, idx)])]),
+<a href=#208 id=208 data-nosnippet>208</a>                idx_body,
+<a href=#209 id=209 data-nosnippet>209</a>            );
+<a href=#210 id=210 data-nosnippet>210</a>            <span class="kw">let </span>axiom_expr = <span class="macro">vir::expr!</span> {
+<a href=#211 id=211 data-nosnippet>211</a>                forall [arr_decl], ..[array_gen.ty_decls()], ..[array_gen.const_decls()]
+<a href=#212 id=212 data-nosnippet>212</a>                    :: { [arr_vc] }
+<a href=#213 id=213 data-nosnippet>213</a>                    [idx_forall]
+<a href=#214 id=214 data-nosnippet>214</a>            };
+<a href=#215 id=215 data-nosnippet>215</a>            <span class="kw">let </span>axiom = vcx.mk_domain_axiom(
+<a href=#216 id=216 data-nosnippet>216</a>                vir::ViperIdent::new(<span class="string">"unsize_value_cast_array_slice"</span>),
+<a href=#217 id=217 data-nosnippet>217</a>                axiom_expr,
+<a href=#218 id=218 data-nosnippet>218</a>            );
+<a href=#219 id=219 data-nosnippet>219</a>
+<a href=#220 id=220 data-nosnippet>220</a>            <span class="kw">let </span>domain = vcx.mk_domain(
+<a href=#221 id=221 data-nosnippet>221</a>                vir::ViperIdent::new(<span class="string">"UnsizeValueCastArraySlice"</span>),
+<a href=#222 id=222 data-nosnippet>222</a>                <span class="kw-2">&amp;</span>[],
+<a href=#223 id=223 data-nosnippet>223</a>                vcx.alloc_slice(<span class="kw-2">&amp;</span>[axiom]),
+<a href=#224 id=224 data-nosnippet>224</a>                <span class="kw-2">&amp;</span>[],
+<a href=#225 id=225 data-nosnippet>225</a>                <span class="prelude-val">None</span>,
+<a href=#226 id=226 data-nosnippet>226</a>            );
+<a href=#227 id=227 data-nosnippet>227</a>            <span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(domain), ()))
+<a href=#228 id=228 data-nosnippet>228</a>        })
+<a href=#229 id=229 data-nosnippet>229</a>    }
+<a href=#230 id=230 data-nosnippet>230</a>
+<a href=#231 id=231 data-nosnippet>231</a>    <span class="kw">fn </span>emit_outputs&lt;<span class="lifetime">'vir</span>&gt;(program: <span class="kw-2">&amp;mut </span>task_encoder::Program&lt;<span class="lifetime">'vir</span>&gt;) {
+<a href=#232 id=232 data-nosnippet>232</a>        <span class="kw">for </span>domain <span class="kw">in </span><span class="self">Self</span>::all_outputs_local_no_errors(program) {
+<a href=#233 id=233 data-nosnippet>233</a>            <span class="kw">let </span><span class="prelude-val">Some</span>(domain) = domain <span class="kw">else </span>{
+<a href=#234 id=234 data-nosnippet>234</a>                <span class="kw">continue</span>;
+<a href=#235 id=235 data-nosnippet>235</a>            };
+<a href=#236 id=236 data-nosnippet>236</a>            program.add_domain(domain);
+<a href=#237 id=237 data-nosnippet>237</a>        }
+<a href=#238 id=238 data-nosnippet>238</a>    }
+<a href=#239 id=239 data-nosnippet>239</a>}
+</code></pre></div></section></main></body></html>

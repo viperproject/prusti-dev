@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["place_id"],"mod":["bc_facts_graph","dot_graph","drawer","graph_constructor","legend","mir_graph"],"struct":["Graph","GraphNode","NodeId"]};

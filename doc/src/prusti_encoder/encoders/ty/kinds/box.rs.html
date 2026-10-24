@@ -1,0 +1,155 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-encoder/src/encoders/ty/kinds/box.rs`."><title>box.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-0c87338a.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="prusti_encoder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.99.0-nightly (d453bdd8f 2026-08-14)" data-channel="nightly" data-search-js="search-cf4fc35e.js" data-stringdex-js="stringdex-b5109af9.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-9f56287d.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">prusti_encoder/encoders/ty/kinds/</div>box.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! The hardcoded extras of `Box` on top of its regular struct encoding: the
+<a href=#2 id=2 data-nosnippet>2</a>//! address/metadata of (and permission to) the boxed `T` at the raw pointer it
+<a href=#3 id=3 data-nosnippet>3</a>//! stores, exposed as its `value` field (see `RustTySpecial::Box`).
+<a href=#4 id=4 data-nosnippet>4</a>
+<a href=#5 id=5 data-nosnippet>5</a></span><span class="kw">use </span>prusti_rustc_interface::abi;
+<a href=#6 id=6 data-nosnippet>6</a>
+<a href=#7 id=7 data-nosnippet>7</a><span class="kw">use </span><span class="kw">crate</span>::encoders::ty::{
+<a href=#8 id=8 data-nosnippet>8</a>    RustTyDatas, RustTyDecomposition,
+<a href=#9 id=9 data-nosnippet>9</a>    data::{StructData, TyData},
+<a href=#10 id=10 data-nosnippet>10</a>    impure::{PredicateBuilder, TyImpureBoxData},
+<a href=#11 id=11 data-nosnippet>11</a>    pure::{AdtBuilder, PureTyDatas, TyPureBoxData, TyPureEnc, TyPureFieldRef},
+<a href=#12 id=12 data-nosnippet>12</a>    use_impure::TyUseImpure,
+<a href=#13 id=13 data-nosnippet>13</a>    use_pure::TyUsePureEnc,
+<a href=#14 id=14 data-nosnippet>14</a>};
+<a href=#15 id=15 data-nosnippet>15</a><span class="kw">use </span>task_encoder::{EncodeFullError, TaskEncoderDependencies};
+<a href=#16 id=16 data-nosnippet>16</a><span class="kw">use </span>vir::{CastType, HasType};
+<a href=#17 id=17 data-nosnippet>17</a>
+<a href=#18 id=18 data-nosnippet>18</a><span class="doccomment">/// The address/metadata of the boxed `T` (the value field of a `Box`), read
+<a href=#19 id=19 data-nosnippet>19</a>/// out of the raw pointer's snapshot down the `Unique`/`NonNull` chain, and
+<a href=#20 id=20 data-nosnippet>20</a>/// the reverse: the `Unique` snapshot rebuilt around a new pointer. All are
+<a href=#21 id=21 data-nosnippet>21</a>/// functions of the `Unique` field's snapshot: that is where the pointer
+<a href=#22 id=22 data-nosnippet>22</a>/// lives, and (unlike the whole box) it is what the impure side has a
+<a href=#23 id=23 data-nosnippet>23</a>/// snapshot of when the address is needed. Returns the box data and the
+<a href=#24 id=24 data-nosnippet>24</a>/// address (of the value field).
+<a href=#25 id=25 data-nosnippet>25</a></span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>mk_pure_box_data&lt;<span class="lifetime">'vir</span>&gt;(
+<a href=#26 id=26 data-nosnippet>26</a>    task_key: <span class="kw-2">&amp;</span>TyData&lt;<span class="lifetime">'vir</span>, RustTyDatas&gt;,
+<a href=#27 id=27 data-nosnippet>27</a>    data: <span class="kw-2">&amp;</span>StructData&lt;<span class="lifetime">'vir</span>, RustTyDatas&gt;,
+<a href=#28 id=28 data-nosnippet>28</a>    deps: <span class="kw-2">&amp;mut </span>TaskEncoderDependencies&lt;<span class="lifetime">'vir</span>, TyPureEnc&gt;,
+<a href=#29 id=29 data-nosnippet>29</a>    builder: <span class="kw-2">&amp;mut </span>AdtBuilder&lt;<span class="lifetime">'vir</span>&gt;,
+<a href=#30 id=30 data-nosnippet>30</a>) -&gt; <span class="prelude-ty">Result</span>&lt;
+<a href=#31 id=31 data-nosnippet>31</a>    (
+<a href=#32 id=32 data-nosnippet>32</a>        TyPureBoxData&lt;<span class="lifetime">'vir</span>&gt;,
+<a href=#33 id=33 data-nosnippet>33</a>        vir::FunctionIdn&lt;<span class="lifetime">'vir</span>, vir::CSnap, vir::Ref&gt;,
+<a href=#34 id=34 data-nosnippet>34</a>    ),
+<a href=#35 id=35 data-nosnippet>35</a>    EncodeFullError&lt;<span class="lifetime">'vir</span>, TyPureEnc&gt;,
+<a href=#36 id=36 data-nosnippet>36</a>&gt; {
+<a href=#37 id=37 data-nosnippet>37</a>    <span class="kw">let </span>first = |ty: <span class="kw-2">&amp;</span>RustTyDecomposition&lt;<span class="lifetime">'vir</span>&gt;| {
+<a href=#38 id=38 data-nosnippet>38</a>        ty.ty.expect_structlike().fields[abi::FieldIdx::ZERO.as_usize()]
+<a href=#39 id=39 data-nosnippet>39</a>            .decompose_context(ty.ty.params, ty.args)
+<a href=#40 id=40 data-nosnippet>40</a>    };
+<a href=#41 id=41 data-nosnippet>41</a>    <span class="kw">let </span>unique_ty = data.fields[<span class="number">0</span>].ty().decompose(task_key.params);
+<a href=#42 id=42 data-nosnippet>42</a>    <span class="kw">let </span>nonnull_ty = first(<span class="kw-2">&amp;</span>unique_ty);
+<a href=#43 id=43 data-nosnippet>43</a>    <span class="kw">let </span>raw_ty = first(<span class="kw-2">&amp;</span>nonnull_ty);
+<a href=#44 id=44 data-nosnippet>44</a>    <span class="kw">let </span>unique_use = deps.require_dep::&lt;TyUsePureEnc&gt;(unique_ty)<span class="question-mark">?</span>;
+<a href=#45 id=45 data-nosnippet>45</a>    <span class="kw">let </span>nonnull_use = deps.require_dep::&lt;TyUsePureEnc&gt;(nonnull_ty)<span class="question-mark">?</span>;
+<a href=#46 id=46 data-nosnippet>46</a>    <span class="kw">let </span>raw_use = deps.require_dep::&lt;TyUsePureEnc&gt;(raw_ty)<span class="question-mark">?</span>;
+<a href=#47 id=47 data-nosnippet>47</a>
+<a href=#48 id=48 data-nosnippet>48</a>    <span class="kw">let </span>unique_decl = builder
+<a href=#49 id=49 data-nosnippet>49</a>        .vcx
+<a href=#50 id=50 data-nosnippet>50</a>        .mk_local_decl(<span class="string">"ptr"</span>, unique_use.snapshot.downcast_ty::&lt;vir::CSnap&gt;());
+<a href=#51 id=51 data-nosnippet>51</a>    <span class="kw">let </span>unique_snap = builder.vcx.mk_local_ex(unique_decl);
+<a href=#52 id=52 data-nosnippet>52</a>    <span class="kw">let </span>unique = unique_use.expect_structlike();
+<a href=#53 id=53 data-nosnippet>53</a>    <span class="kw">let </span>nonnull = nonnull_use.expect_structlike();
+<a href=#54 id=54 data-nosnippet>54</a>    <span class="kw">let </span>raw = raw_use.expect_raw();
+<a href=#55 id=55 data-nosnippet>55</a>    <span class="kw">let </span>nonnull_snap = unique[abi::FieldIdx::ZERO].read(unique_snap).downcast_ty();
+<a href=#56 id=56 data-nosnippet>56</a>    <span class="kw">let </span>raw_snap = nonnull[abi::FieldIdx::ZERO]
+<a href=#57 id=57 data-nosnippet>57</a>        .read(nonnull_snap)
+<a href=#58 id=58 data-nosnippet>58</a>        .downcast_ty();
+<a href=#59 id=59 data-nosnippet>59</a>
+<a href=#60 id=60 data-nosnippet>60</a>    <span class="kw">let </span>address_access = builder.function(
+<a href=#61 id=61 data-nosnippet>61</a>        <span class="string">"address"</span>,
+<a href=#62 id=62 data-nosnippet>62</a>        unique_decl.ty(),
+<a href=#63 id=63 data-nosnippet>63</a>        vir::TYPE_REF,
+<a href=#64 id=64 data-nosnippet>64</a>        (unique_decl,),
+<a href=#65 id=65 data-nosnippet>65</a>        <span class="kw-2">&amp;</span>[],
+<a href=#66 id=66 data-nosnippet>66</a>        <span class="kw-2">&amp;</span>[],
+<a href=#67 id=67 data-nosnippet>67</a>        <span class="prelude-val">Some</span>(raw.address_access(raw_snap)),
+<a href=#68 id=68 data-nosnippet>68</a>    );
+<a href=#69 id=69 data-nosnippet>69</a>    <span class="kw">let </span>metadata_access = builder.function(
+<a href=#70 id=70 data-nosnippet>70</a>        <span class="string">"metadata"</span>,
+<a href=#71 id=71 data-nosnippet>71</a>        unique_decl.ty(),
+<a href=#72 id=72 data-nosnippet>72</a>        vir::TYPE_PSNAP,
+<a href=#73 id=73 data-nosnippet>73</a>        (unique_decl,),
+<a href=#74 id=74 data-nosnippet>74</a>        <span class="kw-2">&amp;</span>[],
+<a href=#75 id=75 data-nosnippet>75</a>        <span class="kw-2">&amp;</span>[],
+<a href=#76 id=76 data-nosnippet>76</a>        <span class="prelude-val">Some</span>(raw.metadata_access(raw_snap).downcast_ty()),
+<a href=#77 id=77 data-nosnippet>77</a>    );
+<a href=#78 id=78 data-nosnippet>78</a>
+<a href=#79 id=79 data-nosnippet>79</a>    <span class="comment">// The `Unique` with its raw pointer replaced (its other fields kept).
+<a href=#80 id=80 data-nosnippet>80</a>    </span><span class="kw">let </span>address_decl = builder.vcx.mk_local_decl(<span class="string">"address"</span>, vir::TYPE_REF);
+<a href=#81 id=81 data-nosnippet>81</a>    <span class="kw">let </span>metadata_decl = builder.vcx.mk_local_decl(<span class="string">"metadata"</span>, vir::TYPE_PSNAP);
+<a href=#82 id=82 data-nosnippet>82</a>    <span class="kw">let </span>new_raw = raw.prim_to_snap(
+<a href=#83 id=83 data-nosnippet>83</a>        builder.vcx.mk_local_ex(address_decl),
+<a href=#84 id=84 data-nosnippet>84</a>        builder.vcx.mk_local_ex(metadata_decl).upcast_ty(),
+<a href=#85 id=85 data-nosnippet>85</a>    );
+<a href=#86 id=86 data-nosnippet>86</a>    <span class="kw">let </span>new_nonnull = nonnull.field_snaps_to_snap(<span class="macro">vec!</span>[new_raw.upcast_ty()]);
+<a href=#87 id=87 data-nosnippet>87</a>    <span class="kw">let </span><span class="kw-2">mut </span>unique_snaps = <span class="macro">vec!</span>[new_nonnull.upcast_ty()];
+<a href=#88 id=88 data-nosnippet>88</a>    unique_snaps.extend(unique.fields[<span class="number">1</span>..].iter().map(|f| f.read(unique_snap)));
+<a href=#89 id=89 data-nosnippet>89</a>    <span class="kw">let </span>mk_unique = builder.function(
+<a href=#90 id=90 data-nosnippet>90</a>        <span class="string">"mk_unique"</span>,
+<a href=#91 id=91 data-nosnippet>91</a>        (unique_decl.ty(), address_decl.ty(), metadata_decl.ty()),
+<a href=#92 id=92 data-nosnippet>92</a>        unique_decl.ty(),
+<a href=#93 id=93 data-nosnippet>93</a>        (unique_decl, address_decl, metadata_decl),
+<a href=#94 id=94 data-nosnippet>94</a>        <span class="kw-2">&amp;</span>[],
+<a href=#95 id=95 data-nosnippet>95</a>        <span class="kw-2">&amp;</span>[],
+<a href=#96 id=96 data-nosnippet>96</a>        <span class="prelude-val">Some</span>(unique.field_snaps_to_snap(unique_snaps)),
+<a href=#97 id=97 data-nosnippet>97</a>    );
+<a href=#98 id=98 data-nosnippet>98</a>
+<a href=#99 id=99 data-nosnippet>99</a>    <span class="prelude-val">Ok</span>((
+<a href=#100 id=100 data-nosnippet>100</a>        TyPureBoxData {
+<a href=#101 id=101 data-nosnippet>101</a>            metadata_access,
+<a href=#102 id=102 data-nosnippet>102</a>            mk_unique,
+<a href=#103 id=103 data-nosnippet>103</a>        },
+<a href=#104 id=104 data-nosnippet>104</a>        address_access,
+<a href=#105 id=105 data-nosnippet>105</a>    ))
+<a href=#106 id=106 data-nosnippet>106</a>}
+<a href=#107 id=107 data-nosnippet>107</a>
+<a href=#108 id=108 data-nosnippet>108</a><span class="doccomment">/// The heap-dependent `address`/`metadata` functions of a `Box`: the pure
+<a href=#109 id=109 data-nosnippet>109</a>/// accessors applied to the `Unique` field's snapshot, read out of its
+<a href=#110 id=110 data-nosnippet>110</a>/// (folded) predicate. Returns the box data and the `address` accessor.
+<a href=#111 id=111 data-nosnippet>111</a></span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>mk_impure_box_data&lt;<span class="lifetime">'vir</span>&gt;(
+<a href=#112 id=112 data-nosnippet>112</a>    data: <span class="kw-2">&amp;</span>StructData&lt;<span class="lifetime">'vir</span>, (RustTyDatas, PureTyDatas)&gt;,
+<a href=#113 id=113 data-nosnippet>113</a>    fields: <span class="kw-2">&amp;</span>[TyUseImpure&lt;<span class="lifetime">'vir</span>&gt;],
+<a href=#114 id=114 data-nosnippet>114</a>    builder: <span class="kw-2">&amp;mut </span>PredicateBuilder&lt;<span class="lifetime">'vir</span>&gt;,
+<a href=#115 id=115 data-nosnippet>115</a>) -&gt; (
+<a href=#116 id=116 data-nosnippet>116</a>    TyImpureBoxData&lt;<span class="lifetime">'vir</span>&gt;,
+<a href=#117 id=117 data-nosnippet>117</a>    vir::FunctionIdn&lt;<span class="lifetime">'vir</span>, (vir::Ref, vir::ManyTyVal, vir::ManyCSnap), vir::Ref&gt;,
+<a href=#118 id=118 data-nosnippet>118</a>) {
+<a href=#119 id=119 data-nosnippet>119</a>    <span class="kw">let </span>ref_decl = builder.ref_self_decl();
+<a href=#120 id=120 data-nosnippet>120</a>    <span class="kw">let </span>ref_self = builder.vcx.mk_local_ex(ref_decl);
+<a href=#121 id=121 data-nosnippet>121</a>    <span class="kw">let </span>TyPureFieldRef::Constant(unique_field_ref) = data.fields[<span class="number">0</span>].<span class="number">1</span>.ref_to_field_ref <span class="kw">else </span>{
+<a href=#122 id=122 data-nosnippet>122</a>        <span class="macro">unreachable!</span>()
+<a href=#123 id=123 data-nosnippet>123</a>    };
+<a href=#124 id=124 data-nosnippet>124</a>    <span class="kw">let </span>b_params = <span class="kw-2">&amp;</span>builder.params;
+<a href=#125 id=125 data-nosnippet>125</a>    <span class="kw">let </span>unique_ref = unique_field_ref(ref_self, b_params.ty_exprs(), b_params.const_exprs());
+<a href=#126 id=126 data-nosnippet>126</a>    <span class="kw">let </span>unique_snap = fields[<span class="number">0</span>].ref_to_snap(unique_ref).downcast_ty();
+<a href=#127 id=127 data-nosnippet>127</a>    <span class="kw">let </span>unique_pred = fields[<span class="number">0</span>].ref_to_pred(builder.vcx, unique_ref, <span class="prelude-val">None</span>);
+<a href=#128 id=128 data-nosnippet>128</a>    <span class="kw">let </span>pure = data.<span class="number">1</span>.box_data.unwrap();
+<a href=#129 id=129 data-nosnippet>129</a>    <span class="kw">let </span>TyPureFieldRef::Dynamic(address_access) = data.fields.last().unwrap().<span class="number">1</span>.ref_to_field_ref
+<a href=#130 id=130 data-nosnippet>130</a>    <span class="kw">else </span>{
+<a href=#131 id=131 data-nosnippet>131</a>        <span class="macro">unreachable!</span>()
+<a href=#132 id=132 data-nosnippet>132</a>    };
+<a href=#133 id=133 data-nosnippet>133</a>    <span class="kw">let </span>args = (ref_decl.ty(), b_params.ty_args(), b_params.const_args());
+<a href=#134 id=134 data-nosnippet>134</a>    <span class="kw">let </span>params = (ref_decl, b_params.ty_decls(), b_params.const_decls());
+<a href=#135 id=135 data-nosnippet>135</a>    <span class="kw">let </span>address = builder.inner.function(
+<a href=#136 id=136 data-nosnippet>136</a>        <span class="string">"address"</span>,
+<a href=#137 id=137 data-nosnippet>137</a>        args,
+<a href=#138 id=138 data-nosnippet>138</a>        vir::TYPE_REF,
+<a href=#139 id=139 data-nosnippet>139</a>        params,
+<a href=#140 id=140 data-nosnippet>140</a>        <span class="kw-2">&amp;</span>[unique_pred],
+<a href=#141 id=141 data-nosnippet>141</a>        <span class="kw-2">&amp;</span>[],
+<a href=#142 id=142 data-nosnippet>142</a>        <span class="prelude-val">Some</span>(address_access.call()(unique_snap)),
+<a href=#143 id=143 data-nosnippet>143</a>    );
+<a href=#144 id=144 data-nosnippet>144</a>    <span class="kw">let </span>metadata = builder.inner.function(
+<a href=#145 id=145 data-nosnippet>145</a>        <span class="string">"metadata"</span>,
+<a href=#146 id=146 data-nosnippet>146</a>        args,
+<a href=#147 id=147 data-nosnippet>147</a>        vir::TYPE_PSNAP,
+<a href=#148 id=148 data-nosnippet>148</a>        params,
+<a href=#149 id=149 data-nosnippet>149</a>        <span class="kw-2">&amp;</span>[unique_pred],
+<a href=#150 id=150 data-nosnippet>150</a>        <span class="kw-2">&amp;</span>[],
+<a href=#151 id=151 data-nosnippet>151</a>        <span class="prelude-val">Some</span>(pure.metadata_access.call()(unique_snap)),
+<a href=#152 id=152 data-nosnippet>152</a>    );
+<a href=#153 id=153 data-nosnippet>153</a>    (TyImpureBoxData { metadata }, address)
+<a href=#154 id=154 data-nosnippet>154</a>}
+</code></pre></div></section></main></body></html>

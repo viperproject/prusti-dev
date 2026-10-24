@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["BorrowFlowEdgeKind","OperandType"],"struct":["AssignmentData","BorrowFlowEdge","CastData"]};

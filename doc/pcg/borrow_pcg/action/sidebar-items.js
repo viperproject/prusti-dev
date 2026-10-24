@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["BorrowPcgActionKind","BorrowPcgActionKindDiscriminants","LabelPlaceReason"],"mod":["actions"],"struct":["LabelPlaceAction"],"type":["MakePlaceOldReason"]};

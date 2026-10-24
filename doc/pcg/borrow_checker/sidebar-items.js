@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["impl"],"trait":["BorrowCheckerInterface","RustBorrowCheckerInterface"],"type":["InScopeBorrows"]};

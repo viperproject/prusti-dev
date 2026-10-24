@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["EncodeFullError","NeverError","TaskEncoderCacheState","TaskEncoderError"],"fn":["drain_triggers"],"macro":[["encoder_cache",1]],"struct":["Program","TaskEncoderDependencies"],"trait":["OutputRefAny","TaskEncoder"],"type":["Cache","CacheRef","CacheStatic","CacheStaticRef","EncodeFullResult","EncodeResult","WatchersRef","WatchersStaticRef"]};

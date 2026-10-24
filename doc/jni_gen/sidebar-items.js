@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ItemWrapperSpec"],"macro":[["constructor",1],["field",1],["java_class",1],["method",1],["object_getter",1],["trait_field",1]],"mod":["errors"],"struct":["ClassWrapperSpec","WrapperGenerator"]};

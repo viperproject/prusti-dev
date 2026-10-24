@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["PlaceOrdering"],"mod":["corrected","maybe_old","maybe_remote","remote"],"struct":["BorrowedPlace","OwnedPlace","Place"],"trait":["HasPlace","PlaceLike","PlaceProjectable","PrefixRelation"],"traitalias":["PcgNodeComponent","PcgPlace"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["abstraction","borrow","borrow_flow","delegation","deref","kind","rawptr_deref"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"derive":["VirFoldable","VirHash","VirReify","VirSerde","VirVisitable"]};

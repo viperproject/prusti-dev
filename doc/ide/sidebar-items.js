@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["fake_error"],"struct":["EncodingInfo","IdeInfo","IdeVerificationResult","ProcDef","SpanOfCallContracts"]};

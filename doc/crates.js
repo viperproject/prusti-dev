@@ -1,0 +1,2 @@
+window.ALL_CRATES = ["cargo_prusti","ide","jni_gen","pcg","pcg_macros","proc_macro_tracing","prusti_contracts_build","prusti_driver","prusti_encoder","prusti_interface","prusti_rustc","prusti_rustc_interface","prusti_server","prusti_server_driver","prusti_smt_solver","prusti_specs","prusti_utils","prusti_viper","smt_log_analyzer","task_encoder","tracing","viper","viper_sys","vir","vir_proc_macro"];
+//{"start":21,"fragment_lengths":[14,6,10,6,13,21,25,16,17,19,15,25,16,23,20,15,15,15,19,15,10,8,12,6,17]}

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["CoupleAbstractionError","CouplingErrorType"],"struct":["CoupleInputError","CoupledEdgeKind","CoupledEdges","CoupledEdgesData","CouplingError","PcgCoupledEdgeKind","PcgCoupledEdges"],"type":["FunctionCallCoupledEdgeKind","LoopCoupledEdgeKind","MaybeCoupledEdgeKind","MaybeCoupledEdges"]};

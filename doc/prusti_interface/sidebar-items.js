@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["PrustiDiagnosticKind"],"mod":["data","environment","specs","utils"],"struct":["PrustiError"]};

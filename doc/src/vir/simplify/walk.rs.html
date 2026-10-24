@@ -1,0 +1,351 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/simplify/walk.rs`."><title>walk.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-0c87338a.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="vir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.99.0-nightly (d453bdd8f 2026-08-14)" data-channel="nightly" data-search-js="search-cf4fc35e.js" data-stringdex-js="stringdex-b5109af9.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-9f56287d.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">vir/simplify/</div>walk.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! The traversal: simplifies each expression tree bottom-up, keeping track
+<a href=#2 id=2 data-nosnippet>2</a>//! of the `let` bindings in scope, and hands each node, once its children
+<a href=#3 id=3 data-nosnippet>3</a>//! are simplified, to the [equations](super::equations).
+<a href=#4 id=4 data-nosnippet>4</a>
+<a href=#5 id=5 data-nosnippet>5</a></span><span class="kw">use </span>prusti_rustc_interface::data_structures::fx::{FxHashMap, FxHashSet};
+<a href=#6 id=6 data-nosnippet>6</a>
+<a href=#7 id=7 data-nosnippet>7</a><span class="kw">use </span><span class="kw">super</span>::SimplifyCtx;
+<a href=#8 id=8 data-nosnippet>8</a><span class="kw">use crate</span>::{
+<a href=#9 id=9 data-nosnippet>9</a>    collect_locals, gendata::<span class="kw-2">*</span>, refs::<span class="kw-2">*</span>, CastType, Foldable, Folder, VirCtxt, Visitable, Visitor,
+<a href=#10 id=10 data-nosnippet>10</a>};
+<a href=#11 id=11 data-nosnippet>11</a>
+<a href=#12 id=12 data-nosnippet>12</a><span class="kw">type </span>Ptr&lt;<span class="lifetime">'vir</span>&gt; = <span class="kw-2">*const </span>ExprGenData&lt;<span class="lifetime">'vir</span>, (), !, <span class="kw">crate</span>::Dyn&gt;;
+<a href=#13 id=13 data-nosnippet>13</a>
+<a href=#14 id=14 data-nosnippet>14</a><span class="doccomment">/// A `let`-bound local in scope.
+<a href=#15 id=15 data-nosnippet>15</a></span><span class="attr">#[derive(Clone, Copy)]
+<a href=#16 id=16 data-nosnippet>16</a></span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Binding&lt;<span class="lifetime">'vir</span>&gt; {
+<a href=#17 id=17 data-nosnippet>17</a>    <span class="kw">pub</span>(<span class="kw">super</span>) val: ExprDyn&lt;<span class="lifetime">'vir</span>&gt;,
+<a href=#18 id=18 data-nosnippet>18</a>    <span class="doccomment">/// The locals `val` mentions.
+<a href=#19 id=19 data-nosnippet>19</a>    </span>locals: <span class="kw-2">&amp;</span><span class="lifetime">'vir </span>[<span class="kw-2">&amp;</span><span class="lifetime">'vir </span>str],
+<a href=#20 id=20 data-nosnippet>20</a>    <span class="doccomment">/// Whether `val` is a local or constant: it means the same in any state
+<a href=#21 id=21 data-nosnippet>21</a>    /// and costs nothing to copy.
+<a href=#22 id=22 data-nosnippet>22</a>    </span>trivial: bool,
+<a href=#23 id=23 data-nosnippet>23</a>    <span class="doccomment">/// How often the `let` body mentions the local.
+<a href=#24 id=24 data-nosnippet>24</a>    </span>uses: usize,
+<a href=#25 id=25 data-nosnippet>25</a>}
+<a href=#26 id=26 data-nosnippet>26</a>
+<a href=#27 id=27 data-nosnippet>27</a><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Simplifier&lt;<span class="lifetime">'a</span>, <span class="lifetime">'vir</span>, <span class="lifetime">'tcx</span>&gt; {
+<a href=#28 id=28 data-nosnippet>28</a>    <span class="kw">pub</span>(<span class="kw">super</span>) vcx: <span class="kw-2">&amp;</span><span class="lifetime">'vir </span>VirCtxt&lt;<span class="lifetime">'tcx</span>&gt;,
+<a href=#29 id=29 data-nosnippet>29</a>    <span class="kw">pub</span>(<span class="kw">super</span>) ctx: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>SimplifyCtx&lt;<span class="lifetime">'vir</span>&gt;,
+<a href=#30 id=30 data-nosnippet>30</a>    <span class="doccomment">/// The bindings whose values mean the same at the current node as at
+<a href=#31 id=31 data-nosnippet>31</a>    /// their `let`: a binder hides the bindings it rebinds or whose values
+<a href=#32 id=32 data-nosnippet>32</a>    /// mention a local it binds, and `old(..)` and `unfolding` hide those
+<a href=#33 id=33 data-nosnippet>33</a>    /// with a non-trivial value.
+<a href=#34 id=34 data-nosnippet>34</a>    </span><span class="kw">pub</span>(<span class="kw">super</span>) env: FxHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'vir </span>str, Binding&lt;<span class="lifetime">'vir</span>&gt;&gt;,
+<a href=#35 id=35 data-nosnippet>35</a>    <span class="doccomment">/// The node being rewritten, whose span and debug information the nodes
+<a href=#36 id=36 data-nosnippet>36</a>    /// built for it take.
+<a href=#37 id=37 data-nosnippet>37</a>    </span><span class="kw">pub</span>(<span class="kw">super</span>) orig: <span class="prelude-ty">Option</span>&lt;ExprDyn&lt;<span class="lifetime">'vir</span>&gt;&gt;,
+<a href=#38 id=38 data-nosnippet>38</a>    <span class="doccomment">/// Identifies the bindings in scope: a fresh number for every scope
+<a href=#39 id=39 data-nosnippet>39</a>    /// entered.
+<a href=#40 id=40 data-nosnippet>40</a>    </span>scope: usize,
+<a href=#41 id=41 data-nosnippet>41</a>    scopes: usize,
+<a href=#42 id=42 data-nosnippet>42</a>    <span class="doccomment">/// Memoized [`Self::simplify`], by node and scope: an expression shared
+<a href=#43 id=43 data-nosnippet>43</a>    /// in a tree is simplified once.
+<a href=#44 id=44 data-nosnippet>44</a>    </span>simplified: FxHashMap&lt;(Ptr&lt;<span class="lifetime">'vir</span>&gt;, usize), <span class="prelude-ty">Option</span>&lt;ExprDyn&lt;<span class="lifetime">'vir</span>&gt;&gt;&gt;,
+<a href=#45 id=45 data-nosnippet>45</a>    <span class="doccomment">/// Memoized [`Self::is_impure`].
+<a href=#46 id=46 data-nosnippet>46</a>    </span>impure: FxHashMap&lt;Ptr&lt;<span class="lifetime">'vir</span>&gt;, bool&gt;,
+<a href=#47 id=47 data-nosnippet>47</a>}
+<a href=#48 id=48 data-nosnippet>48</a>
+<a href=#49 id=49 data-nosnippet>49</a><span class="doccomment">/// Hands the roots of the expression trees of an item (contract clauses,
+<a href=#50 id=50 data-nosnippet>50</a>/// invariants, bodies, axioms and statement operands) to
+<a href=#51 id=51 data-nosnippet>51</a>/// [`Simplifier::root`].
+<a href=#52 id=52 data-nosnippet>52</a></span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Roots&lt;<span class="lifetime">'s</span>, <span class="lifetime">'a</span>, <span class="lifetime">'vir</span>, <span class="lifetime">'tcx</span>&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>Simplifier&lt;<span class="lifetime">'a</span>, <span class="lifetime">'vir</span>, <span class="lifetime">'tcx</span>&gt;);
+<a href=#53 id=53 data-nosnippet>53</a>
+<a href=#54 id=54 data-nosnippet>54</a><span class="kw">impl</span>&lt;<span class="lifetime">'vir</span>&gt; Folder&lt;<span class="lifetime">'vir</span>, (), !&gt; <span class="kw">for </span>Roots&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'vir</span>, <span class="lifetime">'_</span>&gt; {
+<a href=#55 id=55 data-nosnippet>55</a>    <span class="kw">fn </span>fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: ExprDyn&lt;<span class="lifetime">'vir</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;ExprDyn&lt;<span class="lifetime">'vir</span>&gt;&gt; {
+<a href=#56 id=56 data-nosnippet>56</a>        <span class="self">self</span>.<span class="number">0</span>.root(e)
+<a href=#57 id=57 data-nosnippet>57</a>    }
+<a href=#58 id=58 data-nosnippet>58</a>
+<a href=#59 id=59 data-nosnippet>59</a>    <span class="kw">fn </span>fold_wand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: Wand&lt;<span class="lifetime">'vir</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Wand&lt;<span class="lifetime">'vir</span>&gt;&gt; {
+<a href=#60 id=60 data-nosnippet>60</a>        <span class="prelude-val">None
+<a href=#61 id=61 data-nosnippet>61</a>    </span>}
+<a href=#62 id=62 data-nosnippet>62</a>}
+<a href=#63 id=63 data-nosnippet>63</a>
+<a href=#64 id=64 data-nosnippet>64</a><span class="doccomment">/// Magic wands are left untouched, wherever they occur: Viper matches
+<a href=#65 id=65 data-nosnippet>65</a>/// packaged wand instances syntactically, and evaluates the heap-dependent
+<a href=#66 id=66 data-nosnippet>66</a>/// subterms of a wand only when applying it, in the order of its conjuncts,
+<a href=#67 id=67 data-nosnippet>67</a>/// so moving them around inside a wand changes which permissions are there.
+<a href=#68 id=68 data-nosnippet>68</a></span><span class="kw">impl</span>&lt;<span class="lifetime">'vir</span>&gt; Folder&lt;<span class="lifetime">'vir</span>, (), !&gt; <span class="kw">for </span>Simplifier&lt;<span class="lifetime">'_</span>, <span class="lifetime">'vir</span>, <span class="lifetime">'_</span>&gt; {
+<a href=#69 id=69 data-nosnippet>69</a>    <span class="kw">fn </span>fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: ExprDyn&lt;<span class="lifetime">'vir</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;ExprDyn&lt;<span class="lifetime">'vir</span>&gt;&gt; {
+<a href=#70 id=70 data-nosnippet>70</a>        <span class="self">self</span>.simplify(e)
+<a href=#71 id=71 data-nosnippet>71</a>    }
+<a href=#72 id=72 data-nosnippet>72</a>
+<a href=#73 id=73 data-nosnippet>73</a>    <span class="kw">fn </span>fold_wand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: Wand&lt;<span class="lifetime">'vir</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Wand&lt;<span class="lifetime">'vir</span>&gt;&gt; {
+<a href=#74 id=74 data-nosnippet>74</a>        <span class="prelude-val">None
+<a href=#75 id=75 data-nosnippet>75</a>    </span>}
+<a href=#76 id=76 data-nosnippet>76</a>}
+<a href=#77 id=77 data-nosnippet>77</a>
+<a href=#78 id=78 data-nosnippet>78</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'vir</span>, <span class="lifetime">'tcx</span>&gt; Simplifier&lt;<span class="lifetime">'a</span>, <span class="lifetime">'vir</span>, <span class="lifetime">'tcx</span>&gt; {
+<a href=#79 id=79 data-nosnippet>79</a>    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(vcx: <span class="kw-2">&amp;</span><span class="lifetime">'vir </span>VirCtxt&lt;<span class="lifetime">'tcx</span>&gt;, ctx: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>SimplifyCtx&lt;<span class="lifetime">'vir</span>&gt;) -&gt; <span class="self">Self </span>{
+<a href=#80 id=80 data-nosnippet>80</a>        <span class="self">Self </span>{
+<a href=#81 id=81 data-nosnippet>81</a>            vcx,
+<a href=#82 id=82 data-nosnippet>82</a>            ctx,
+<a href=#83 id=83 data-nosnippet>83</a>            env: FxHashMap::default(),
+<a href=#84 id=84 data-nosnippet>84</a>            orig: <span class="prelude-val">None</span>,
+<a href=#85 id=85 data-nosnippet>85</a>            scope: <span class="number">0</span>,
+<a href=#86 id=86 data-nosnippet>86</a>            scopes: <span class="number">0</span>,
+<a href=#87 id=87 data-nosnippet>87</a>            simplified: FxHashMap::default(),
+<a href=#88 id=88 data-nosnippet>88</a>            impure: FxHashMap::default(),
+<a href=#89 id=89 data-nosnippet>89</a>        }
+<a href=#90 id=90 data-nosnippet>90</a>    }
+<a href=#91 id=91 data-nosnippet>91</a>
+<a href=#92 id=92 data-nosnippet>92</a>    <span class="doccomment">/// Simplifies the root of an expression tree, keeping the root's span.
+<a href=#93 id=93 data-nosnippet>93</a>    /// Viper blames e.g. a failing postcondition on the clause's root node,
+<a href=#94 id=94 data-nosnippet>94</a>    /// and the error handler is registered on the span of that node only (see
+<a href=#95 id=95 data-nosnippet>95</a>    /// `realloc_span`); replacing the root by a subexpression would make the
+<a href=#96 id=96 data-nosnippet>96</a>    /// error impossible to backtranslate.
+<a href=#97 id=97 data-nosnippet>97</a>    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>root(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: ExprDyn&lt;<span class="lifetime">'vir</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;ExprDyn&lt;<span class="lifetime">'vir</span>&gt;&gt; {
+<a href=#98 id=98 data-nosnippet>98</a>        <span class="kw">let </span>simplified = <span class="self">self</span>.simplify(e)<span class="question-mark">?</span>;
+<a href=#99 id=99 data-nosnippet>99</a>        <span class="comment">// A root without a span has no handler; keep the result's own.
+<a href=#100 id=100 data-nosnippet>100</a>        </span><span class="prelude-val">Some</span>(<span class="kw">match </span>e.span {
+<a href=#101 id=101 data-nosnippet>101</a>            <span class="prelude-val">None </span>=&gt; simplified,
+<a href=#102 id=102 data-nosnippet>102</a>            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.node_of_kind(e, simplified.kind),
+<a href=#103 id=103 data-nosnippet>103</a>        })
+<a href=#104 id=104 data-nosnippet>104</a>    }
+<a href=#105 id=105 data-nosnippet>105</a>
+<a href=#106 id=106 data-nosnippet>106</a>    <span class="doccomment">/// The simplified `e`, `None` if nothing about it changes.
+<a href=#107 id=107 data-nosnippet>107</a>    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>simplify(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: ExprDyn&lt;<span class="lifetime">'vir</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;ExprDyn&lt;<span class="lifetime">'vir</span>&gt;&gt; {
+<a href=#108 id=108 data-nosnippet>108</a>        <span class="kw">let </span>key = (std::ptr::from_ref(e), <span class="self">self</span>.scope);
+<a href=#109 id=109 data-nosnippet>109</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>simplified) = <span class="self">self</span>.simplified.get(<span class="kw-2">&amp;</span>key) {
+<a href=#110 id=110 data-nosnippet>110</a>            <span class="kw">return </span>simplified;
+<a href=#111 id=111 data-nosnippet>111</a>        }
+<a href=#112 id=112 data-nosnippet>112</a>        <span class="kw">let </span>simplified = <span class="self">self</span>.simplify_node(e);
+<a href=#113 id=113 data-nosnippet>113</a>        <span class="self">self</span>.simplified.insert(key, simplified);
+<a href=#114 id=114 data-nosnippet>114</a>        simplified
+<a href=#115 id=115 data-nosnippet>115</a>    }
+<a href=#116 id=116 data-nosnippet>116</a>
+<a href=#117 id=117 data-nosnippet>117</a>    <span class="doccomment">/// The simplified `e`. A local bound to a trivial value, or used only
+<a href=#118 id=118 data-nosnippet>118</a>    /// once, is replaced by its value; the `let` is then dropped by the
+<a href=#119 id=119 data-nosnippet>119</a>    /// equations, unless a use the traversal does not substitute (in a
+<a href=#120 id=120 data-nosnippet>120</a>    /// trigger, a wand, or where the binding is hidden) remains.
+<a href=#121 id=121 data-nosnippet>121</a>    </span><span class="kw">fn </span>simplify_node(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: ExprDyn&lt;<span class="lifetime">'vir</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;ExprDyn&lt;<span class="lifetime">'vir</span>&gt;&gt; {
+<a href=#122 id=122 data-nosnippet>122</a>        <span class="kw">let </span>children = <span class="kw">match </span>e.kind {
+<a href=#123 id=123 data-nosnippet>123</a>            ExprKindGenData::Local(l) =&gt; {
+<a href=#124 id=124 data-nosnippet>124</a>                <span class="kw">let </span>b = <span class="self">self</span>.env.get(l.name)<span class="question-mark">?</span>;
+<a href=#125 id=125 data-nosnippet>125</a>                <span class="kw">return </span>(b.trivial || b.uses == <span class="number">1</span>).then_some(b.val);
+<a href=#126 id=126 data-nosnippet>126</a>            }
+<a href=#127 id=127 data-nosnippet>127</a>            ExprKindGenData::Let(l) =&gt; {
+<a href=#128 id=128 data-nosnippet>128</a>                <span class="kw">let </span>new_val = <span class="self">self</span>.simplify(l.val);
+<a href=#129 id=129 data-nosnippet>129</a>                <span class="kw">let </span>val = new_val.unwrap_or(l.val);
+<a href=#130 id=130 data-nosnippet>130</a>                <span class="kw">let </span>binding = Binding::new(<span class="self">self</span>.vcx, val, l.name, l.expr);
+<a href=#131 id=131 data-nosnippet>131</a>                <span class="kw">let </span><span class="kw-2">mut </span>body = <span class="self">self</span>.with_binding(l.name, binding, |s| s.simplify(l.expr));
+<a href=#132 id=132 data-nosnippet>132</a>                <span class="comment">// Folding may leave a single use of a local used more than
+<a href=#133 id=133 data-nosnippet>133</a>                // once before; a second pass substitutes it.
+<a href=#134 id=134 data-nosnippet>134</a>                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(b) = body.filter(|b| binding.uses &gt; <span class="number">1 </span>&amp;&amp; occurrences(l.name, b) == <span class="number">1</span>) {
+<a href=#135 id=135 data-nosnippet>135</a>                    <span class="kw">let </span>binding = Binding::new(<span class="self">self</span>.vcx, val, l.name, b);
+<a href=#136 id=136 data-nosnippet>136</a>                    body = <span class="self">self
+<a href=#137 id=137 data-nosnippet>137</a>                        </span>.with_binding(l.name, binding, |s| s.simplify(b))
+<a href=#138 id=138 data-nosnippet>138</a>                        .or(body);
+<a href=#139 id=139 data-nosnippet>139</a>                }
+<a href=#140 id=140 data-nosnippet>140</a>                (new_val.is_some() || body.is_some()).then(|| {
+<a href=#141 id=141 data-nosnippet>141</a>                    <span class="kw">let </span>expr = body.unwrap_or(l.expr);
+<a href=#142 id=142 data-nosnippet>142</a>                    <span class="kw">let </span>l = LetGenData {
+<a href=#143 id=143 data-nosnippet>143</a>                        name: l.name,
+<a href=#144 id=144 data-nosnippet>144</a>                        val,
+<a href=#145 id=145 data-nosnippet>145</a>                        expr,
+<a href=#146 id=146 data-nosnippet>146</a>                    };
+<a href=#147 id=147 data-nosnippet>147</a>                    <span class="self">self</span>.node_at(e, ExprKindGenData::Let(<span class="self">self</span>.vcx.alloc(l)))
+<a href=#148 id=148 data-nosnippet>148</a>                })
+<a href=#149 id=149 data-nosnippet>149</a>            }
+<a href=#150 id=150 data-nosnippet>150</a>            <span class="comment">// `old(..)` evaluates in another heap and the body of `unfolding`
+<a href=#151 id=151 data-nosnippet>151</a>            // with other permissions, so only trivial values move into them.
+<a href=#152 id=152 data-nosnippet>152</a>            </span>ExprKindGenData::Old(<span class="kw">_</span>) =&gt; <span class="self">self</span>.scoped(|<span class="kw">_</span>, b| b.trivial, |s| e.super_fold_with(s)),
+<a href=#153 id=153 data-nosnippet>153</a>            ExprKindGenData::Unfolding(u) =&gt; {
+<a href=#154 id=154 data-nosnippet>154</a>                <span class="kw">let </span>target = u.target.fold_with(<span class="self">self</span>);
+<a href=#155 id=155 data-nosnippet>155</a>                <span class="kw">let </span>body = <span class="self">self</span>.scoped(|<span class="kw">_</span>, b| b.trivial, |s| s.simplify(u.expr));
+<a href=#156 id=156 data-nosnippet>156</a>                (target.is_some() || body.is_some()).then(|| {
+<a href=#157 id=157 data-nosnippet>157</a>                    <span class="kw">let </span>u = UnfoldingGenData {
+<a href=#158 id=158 data-nosnippet>158</a>                        target: target.unwrap_or(u.target),
+<a href=#159 id=159 data-nosnippet>159</a>                        expr: body.unwrap_or(u.expr),
+<a href=#160 id=160 data-nosnippet>160</a>                    };
+<a href=#161 id=161 data-nosnippet>161</a>                    <span class="self">self</span>.node_at(e, ExprKindGenData::Unfolding(<span class="self">self</span>.vcx.alloc(u)))
+<a href=#162 id=162 data-nosnippet>162</a>                })
+<a href=#163 id=163 data-nosnippet>163</a>            }
+<a href=#164 id=164 data-nosnippet>164</a>            <span class="comment">// The triggers are left as encoded.
+<a href=#165 id=165 data-nosnippet>165</a>            </span>ExprKindGenData::Forall(ForallGenData {
+<a href=#166 id=166 data-nosnippet>166</a>                qvars,
+<a href=#167 id=167 data-nosnippet>167</a>                triggers,
+<a href=#168 id=168 data-nosnippet>168</a>                body,
+<a href=#169 id=169 data-nosnippet>169</a>            })
+<a href=#170 id=170 data-nosnippet>170</a>            | ExprKindGenData::Exists(ExistsGenData {
+<a href=#171 id=171 data-nosnippet>171</a>                qvars,
+<a href=#172 id=172 data-nosnippet>172</a>                triggers,
+<a href=#173 id=173 data-nosnippet>173</a>                body,
+<a href=#174 id=174 data-nosnippet>174</a>            }) =&gt; <span class="self">self
+<a href=#175 id=175 data-nosnippet>175</a>                </span>.in_quantifier(qvars, |s| s.simplify(body.as_dyn()))
+<a href=#176 id=176 data-nosnippet>176</a>                .map(|body| {
+<a href=#177 id=177 data-nosnippet>177</a>                    <span class="kw">let </span>(qvars, triggers, body) = (<span class="kw-2">*</span>qvars, <span class="kw-2">*</span>triggers, body.inner_cast_ty());
+<a href=#178 id=178 data-nosnippet>178</a>                    <span class="kw">let </span>kind = <span class="kw">match </span>e.kind {
+<a href=#179 id=179 data-nosnippet>179</a>                        ExprKindGenData::Forall(<span class="kw">_</span>) =&gt; {
+<a href=#180 id=180 data-nosnippet>180</a>                            <span class="kw">let </span>q = ForallGenData {
+<a href=#181 id=181 data-nosnippet>181</a>                                qvars,
+<a href=#182 id=182 data-nosnippet>182</a>                                triggers,
+<a href=#183 id=183 data-nosnippet>183</a>                                body,
+<a href=#184 id=184 data-nosnippet>184</a>                            };
+<a href=#185 id=185 data-nosnippet>185</a>                            ExprKindGenData::Forall(<span class="self">self</span>.vcx.alloc(q))
+<a href=#186 id=186 data-nosnippet>186</a>                        }
+<a href=#187 id=187 data-nosnippet>187</a>                        <span class="kw">_ </span>=&gt; {
+<a href=#188 id=188 data-nosnippet>188</a>                            <span class="kw">let </span>q = ExistsGenData {
+<a href=#189 id=189 data-nosnippet>189</a>                                qvars,
+<a href=#190 id=190 data-nosnippet>190</a>                                triggers,
+<a href=#191 id=191 data-nosnippet>191</a>                                body,
+<a href=#192 id=192 data-nosnippet>192</a>                            };
+<a href=#193 id=193 data-nosnippet>193</a>                            ExprKindGenData::Exists(<span class="self">self</span>.vcx.alloc(q))
+<a href=#194 id=194 data-nosnippet>194</a>                        }
+<a href=#195 id=195 data-nosnippet>195</a>                    };
+<a href=#196 id=196 data-nosnippet>196</a>                    <span class="self">self</span>.node_at(e, kind)
+<a href=#197 id=197 data-nosnippet>197</a>                }),
+<a href=#198 id=198 data-nosnippet>198</a>            <span class="kw">_ </span>=&gt; e.super_fold_with(<span class="self">self</span>),
+<a href=#199 id=199 data-nosnippet>199</a>        };
+<a href=#200 id=200 data-nosnippet>200</a>        <span class="kw">let </span>node = children.unwrap_or(e);
+<a href=#201 id=201 data-nosnippet>201</a>        <span class="kw">let </span>outer = <span class="self">self</span>.orig.replace(node);
+<a href=#202 id=202 data-nosnippet>202</a>        <span class="kw">let </span>folded = <span class="self">self</span>.fold(node);
+<a href=#203 id=203 data-nosnippet>203</a>        <span class="self">self</span>.orig = outer;
+<a href=#204 id=204 data-nosnippet>204</a>        folded.or(children)
+<a href=#205 id=205 data-nosnippet>205</a>    }
+<a href=#206 id=206 data-nosnippet>206</a>
+<a href=#207 id=207 data-nosnippet>207</a>    <span class="doccomment">/// Runs `f` in the body of a `let` binding `local`. A value that mentions
+<a href=#208 id=208 data-nosnippet>208</a>    /// the local it is bound to means the outer local, which the body cannot
+<a href=#209 id=209 data-nosnippet>209</a>    /// see, so such a binding is not entered.
+<a href=#210 id=210 data-nosnippet>210</a>    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>with_binding&lt;R&gt;(
+<a href=#211 id=211 data-nosnippet>211</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#212 id=212 data-nosnippet>212</a>        local: <span class="kw-2">&amp;</span><span class="lifetime">'vir </span>str,
+<a href=#213 id=213 data-nosnippet>213</a>        binding: Binding&lt;<span class="lifetime">'vir</span>&gt;,
+<a href=#214 id=214 data-nosnippet>214</a>        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; R,
+<a href=#215 id=215 data-nosnippet>215</a>    ) -&gt; R {
+<a href=#216 id=216 data-nosnippet>216</a>        <span class="self">self</span>.scoped(
+<a href=#217 id=217 data-nosnippet>217</a>            |name, b| name != local &amp;&amp; !b.mentions(local),
+<a href=#218 id=218 data-nosnippet>218</a>            |s| {
+<a href=#219 id=219 data-nosnippet>219</a>                <span class="kw">if </span>!binding.mentions(local) {
+<a href=#220 id=220 data-nosnippet>220</a>                    s.env.insert(local, binding);
+<a href=#221 id=221 data-nosnippet>221</a>                }
+<a href=#222 id=222 data-nosnippet>222</a>                f(s)
+<a href=#223 id=223 data-nosnippet>223</a>            },
+<a href=#224 id=224 data-nosnippet>224</a>        )
+<a href=#225 id=225 data-nosnippet>225</a>    }
+<a href=#226 id=226 data-nosnippet>226</a>
+<a href=#227 id=227 data-nosnippet>227</a>    <span class="doccomment">/// Runs `f` in the body of a quantifier over `qvars`.
+<a href=#228 id=228 data-nosnippet>228</a>    </span><span class="kw">fn </span>in_quantifier&lt;R&gt;(
+<a href=#229 id=229 data-nosnippet>229</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#230 id=230 data-nosnippet>230</a>        qvars: <span class="kw-2">&amp;</span>[LocalDeclDyn&lt;<span class="lifetime">'vir</span>&gt;],
+<a href=#231 id=231 data-nosnippet>231</a>        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; R,
+<a href=#232 id=232 data-nosnippet>232</a>    ) -&gt; R {
+<a href=#233 id=233 data-nosnippet>233</a>        <span class="self">self</span>.scoped(
+<a href=#234 id=234 data-nosnippet>234</a>            |name, b| qvars.iter().all(|q| q.name != name &amp;&amp; !b.mentions(q.name)),
+<a href=#235 id=235 data-nosnippet>235</a>            f,
+<a href=#236 id=236 data-nosnippet>236</a>        )
+<a href=#237 id=237 data-nosnippet>237</a>    }
+<a href=#238 id=238 data-nosnippet>238</a>
+<a href=#239 id=239 data-nosnippet>239</a>    <span class="doccomment">/// Runs `f` with only the bindings that `visible` keeps in scope.
+<a href=#240 id=240 data-nosnippet>240</a>    </span><span class="kw">fn </span>scoped&lt;R&gt;(
+<a href=#241 id=241 data-nosnippet>241</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#242 id=242 data-nosnippet>242</a>        visible: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>Binding&lt;<span class="lifetime">'vir</span>&gt;) -&gt; bool,
+<a href=#243 id=243 data-nosnippet>243</a>        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; R,
+<a href=#244 id=244 data-nosnippet>244</a>    ) -&gt; R {
+<a href=#245 id=245 data-nosnippet>245</a>        <span class="kw">let </span>saved = <span class="self">self</span>.env.clone();
+<a href=#246 id=246 data-nosnippet>246</a>        <span class="self">self</span>.env.retain(|name, b| visible(name, b));
+<a href=#247 id=247 data-nosnippet>247</a>        <span class="self">self</span>.scopes += <span class="number">1</span>;
+<a href=#248 id=248 data-nosnippet>248</a>        <span class="kw">let </span>outer = std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.scope, <span class="self">self</span>.scopes);
+<a href=#249 id=249 data-nosnippet>249</a>        <span class="kw">let </span>result = f(<span class="self">self</span>);
+<a href=#250 id=250 data-nosnippet>250</a>        <span class="self">self</span>.scope = outer;
+<a href=#251 id=251 data-nosnippet>251</a>        <span class="self">self</span>.env = saved;
+<a href=#252 id=252 data-nosnippet>252</a>        result
+<a href=#253 id=253 data-nosnippet>253</a>    }
+<a href=#254 id=254 data-nosnippet>254</a>
+<a href=#255 id=255 data-nosnippet>255</a>    <span class="doccomment">/// A node of kind `kind` with the span and debug information of `e`.
+<a href=#256 id=256 data-nosnippet>256</a>    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>node_at(
+<a href=#257 id=257 data-nosnippet>257</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
+<a href=#258 id=258 data-nosnippet>258</a>        e: ExprDyn&lt;<span class="lifetime">'vir</span>&gt;,
+<a href=#259 id=259 data-nosnippet>259</a>        kind: ExprKindGenData&lt;<span class="lifetime">'vir</span>, (), !&gt;,
+<a href=#260 id=260 data-nosnippet>260</a>    ) -&gt; ExprDyn&lt;<span class="lifetime">'vir</span>&gt; {
+<a href=#261 id=261 data-nosnippet>261</a>        <span class="self">self</span>.node_of_kind(e, <span class="self">self</span>.vcx.alloc(kind))
+<a href=#262 id=262 data-nosnippet>262</a>    }
+<a href=#263 id=263 data-nosnippet>263</a>
+<a href=#264 id=264 data-nosnippet>264</a>    <span class="doccomment">/// A node of the allocated kind `kind` with the span and debug
+<a href=#265 id=265 data-nosnippet>265</a>    /// information of `e`.
+<a href=#266 id=266 data-nosnippet>266</a>    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>node_of_kind(
+<a href=#267 id=267 data-nosnippet>267</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
+<a href=#268 id=268 data-nosnippet>268</a>        e: ExprDyn&lt;<span class="lifetime">'vir</span>&gt;,
+<a href=#269 id=269 data-nosnippet>269</a>        kind: <span class="kw-2">&amp;</span><span class="lifetime">'vir </span>ExprKindGenData&lt;<span class="lifetime">'vir</span>, (), !&gt;,
+<a href=#270 id=270 data-nosnippet>270</a>    ) -&gt; ExprDyn&lt;<span class="lifetime">'vir</span>&gt; {
+<a href=#271 id=271 data-nosnippet>271</a>        <span class="self">self</span>.vcx.alloc(ExprGenData::new_inner(
+<a href=#272 id=272 data-nosnippet>272</a>            kind,
+<a href=#273 id=273 data-nosnippet>273</a>            e.debug_info,
+<a href=#274 id=274 data-nosnippet>274</a>            e.span,
+<a href=#275 id=275 data-nosnippet>275</a>            kind.ty(),
+<a href=#276 id=276 data-nosnippet>276</a>        ))
+<a href=#277 id=277 data-nosnippet>277</a>    }
+<a href=#278 id=278 data-nosnippet>278</a>
+<a href=#279 id=279 data-nosnippet>279</a>    <span class="doccomment">/// Whether `e` contains an assertion (an access predicate, magic wand or
+<a href=#280 id=280 data-nosnippet>280</a>    /// inhale-exhale expression).
+<a href=#281 id=281 data-nosnippet>281</a>    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_impure(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: ExprDyn&lt;<span class="lifetime">'vir</span>&gt;) -&gt; bool {
+<a href=#282 id=282 data-nosnippet>282</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>impure) = <span class="self">self</span>.impure.get(<span class="kw-2">&amp;</span>std::ptr::from_ref(e)) {
+<a href=#283 id=283 data-nosnippet>283</a>            <span class="kw">return </span>impure;
+<a href=#284 id=284 data-nosnippet>284</a>        }
+<a href=#285 id=285 data-nosnippet>285</a>        <span class="kw">let </span>impure = <span class="kw">match </span>e.kind {
+<a href=#286 id=286 data-nosnippet>286</a>            ExprKindGenData::AccField(<span class="kw">_</span>)
+<a href=#287 id=287 data-nosnippet>287</a>            | ExprKindGenData::PredicateApp(<span class="kw">_</span>)
+<a href=#288 id=288 data-nosnippet>288</a>            | ExprKindGenData::Wand(<span class="kw">_</span>)
+<a href=#289 id=289 data-nosnippet>289</a>            | ExprKindGenData::InhaleExhale(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+<a href=#290 id=290 data-nosnippet>290</a>            <span class="kw">_ </span>=&gt; {
+<a href=#291 id=291 data-nosnippet>291</a>                <span class="kw">let </span><span class="kw-2">mut </span>children = Children(Vec::new());
+<a href=#292 id=292 data-nosnippet>292</a>                e.super_visit_with(<span class="kw-2">&amp;mut </span>children);
+<a href=#293 id=293 data-nosnippet>293</a>                children.<span class="number">0</span>.into_iter().any(|child| <span class="self">self</span>.is_impure(child))
+<a href=#294 id=294 data-nosnippet>294</a>            }
+<a href=#295 id=295 data-nosnippet>295</a>        };
+<a href=#296 id=296 data-nosnippet>296</a>        <span class="self">self</span>.impure.insert(std::ptr::from_ref(e), impure);
+<a href=#297 id=297 data-nosnippet>297</a>        impure
+<a href=#298 id=298 data-nosnippet>298</a>    }
+<a href=#299 id=299 data-nosnippet>299</a>}
+<a href=#300 id=300 data-nosnippet>300</a>
+<a href=#301 id=301 data-nosnippet>301</a><span class="kw">impl</span>&lt;<span class="lifetime">'vir</span>&gt; Binding&lt;<span class="lifetime">'vir</span>&gt; {
+<a href=#302 id=302 data-nosnippet>302</a>    <span class="doccomment">/// The binding of `name` to `val` in `body`.
+<a href=#303 id=303 data-nosnippet>303</a>    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(
+<a href=#304 id=304 data-nosnippet>304</a>        vcx: <span class="kw-2">&amp;</span><span class="lifetime">'vir </span>VirCtxt&lt;<span class="lifetime">'_</span>&gt;,
+<a href=#305 id=305 data-nosnippet>305</a>        val: ExprDyn&lt;<span class="lifetime">'vir</span>&gt;,
+<a href=#306 id=306 data-nosnippet>306</a>        name: <span class="kw-2">&amp;</span>str,
+<a href=#307 id=307 data-nosnippet>307</a>        body: ExprDyn&lt;<span class="lifetime">'vir</span>&gt;,
+<a href=#308 id=308 data-nosnippet>308</a>    ) -&gt; <span class="self">Self </span>{
+<a href=#309 id=309 data-nosnippet>309</a>        <span class="kw">let </span><span class="kw-2">mut </span>locals = FxHashSet::default();
+<a href=#310 id=310 data-nosnippet>310</a>        collect_locals(val, <span class="kw-2">&amp;mut </span>locals);
+<a href=#311 id=311 data-nosnippet>311</a>        <span class="self">Self </span>{
+<a href=#312 id=312 data-nosnippet>312</a>            val,
+<a href=#313 id=313 data-nosnippet>313</a>            locals: vcx.alloc_slice(<span class="kw-2">&amp;</span>locals.into_iter().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()),
+<a href=#314 id=314 data-nosnippet>314</a>            trivial: <span class="macro">matches!</span>(
+<a href=#315 id=315 data-nosnippet>315</a>                val.kind,
+<a href=#316 id=316 data-nosnippet>316</a>                ExprKindGenData::Local(<span class="kw">_</span>) | ExprKindGenData::Const(<span class="kw">_</span>)
+<a href=#317 id=317 data-nosnippet>317</a>            ),
+<a href=#318 id=318 data-nosnippet>318</a>            uses: occurrences(name, body),
+<a href=#319 id=319 data-nosnippet>319</a>        }
+<a href=#320 id=320 data-nosnippet>320</a>    }
+<a href=#321 id=321 data-nosnippet>321</a>
+<a href=#322 id=322 data-nosnippet>322</a>    <span class="kw">fn </span>mentions(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; bool {
+<a href=#323 id=323 data-nosnippet>323</a>        <span class="self">self</span>.locals.contains(<span class="kw-2">&amp;</span>name)
+<a href=#324 id=324 data-nosnippet>324</a>    }
+<a href=#325 id=325 data-nosnippet>325</a>}
+<a href=#326 id=326 data-nosnippet>326</a>
+<a href=#327 id=327 data-nosnippet>327</a><span class="doccomment">/// How often `e` mentions the local `name`, also where it is rebound.
+<a href=#328 id=328 data-nosnippet>328</a></span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>occurrences(name: <span class="kw-2">&amp;</span>str, e: ExprDyn&lt;<span class="lifetime">'_</span>&gt;) -&gt; usize {
+<a href=#329 id=329 data-nosnippet>329</a>    <span class="kw">struct </span>Count&lt;<span class="lifetime">'n</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'n </span>str, usize);
+<a href=#330 id=330 data-nosnippet>330</a>    <span class="kw">impl</span>&lt;<span class="lifetime">'vir</span>&gt; Visitor&lt;<span class="lifetime">'vir</span>, (), !&gt; <span class="kw">for </span>Count&lt;<span class="lifetime">'_</span>&gt; {
+<a href=#331 id=331 data-nosnippet>331</a>        <span class="kw">fn </span>visit_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: ExprDyn&lt;<span class="lifetime">'vir</span>&gt;) {
+<a href=#332 id=332 data-nosnippet>332</a>            <span class="kw">if </span><span class="macro">matches!</span>(e.kind, ExprKindGenData::Local(l) <span class="kw">if </span>l.name == <span class="self">self</span>.<span class="number">0</span>) {
+<a href=#333 id=333 data-nosnippet>333</a>                <span class="self">self</span>.<span class="number">1 </span>+= <span class="number">1</span>;
+<a href=#334 id=334 data-nosnippet>334</a>            }
+<a href=#335 id=335 data-nosnippet>335</a>            e.super_visit_with(<span class="self">self</span>);
+<a href=#336 id=336 data-nosnippet>336</a>        }
+<a href=#337 id=337 data-nosnippet>337</a>    }
+<a href=#338 id=338 data-nosnippet>338</a>    <span class="kw">let </span><span class="kw-2">mut </span>count = Count(name, <span class="number">0</span>);
+<a href=#339 id=339 data-nosnippet>339</a>    e.visit_with(<span class="kw-2">&amp;mut </span>count);
+<a href=#340 id=340 data-nosnippet>340</a>    count.<span class="number">1
+<a href=#341 id=341 data-nosnippet>341</a></span>}
+<a href=#342 id=342 data-nosnippet>342</a>
+<a href=#343 id=343 data-nosnippet>343</a><span class="doccomment">/// Collects the direct subexpressions of an expression.
+<a href=#344 id=344 data-nosnippet>344</a></span><span class="kw">struct </span>Children&lt;<span class="lifetime">'vir</span>&gt;(Vec&lt;ExprDyn&lt;<span class="lifetime">'vir</span>&gt;&gt;);
+<a href=#345 id=345 data-nosnippet>345</a>
+<a href=#346 id=346 data-nosnippet>346</a><span class="kw">impl</span>&lt;<span class="lifetime">'vir</span>&gt; Visitor&lt;<span class="lifetime">'vir</span>, (), !&gt; <span class="kw">for </span>Children&lt;<span class="lifetime">'vir</span>&gt; {
+<a href=#347 id=347 data-nosnippet>347</a>    <span class="kw">fn </span>visit_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: ExprDyn&lt;<span class="lifetime">'vir</span>&gt;) {
+<a href=#348 id=348 data-nosnippet>348</a>        <span class="self">self</span>.<span class="number">0</span>.push(e);
+<a href=#349 id=349 data-nosnippet>349</a>    }
+<a href=#350 id=350 data-nosnippet>350</a>}
+</code></pre></div></section></main></body></html>

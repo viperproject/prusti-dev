@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["callee_arg_labels"],"struct":["ShapeLabelFormatter","SourcePos"]};

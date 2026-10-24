@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Adt","AdtConstructor","AdtConstructorApp","AdtDestructorApp","AdtDiscriminatorApp","AdtType"]};

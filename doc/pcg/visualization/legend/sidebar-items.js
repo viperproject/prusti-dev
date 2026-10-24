@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["generate_edge_legend","generate_node_legend"]};

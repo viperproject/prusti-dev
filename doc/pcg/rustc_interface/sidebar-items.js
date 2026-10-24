@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"externcrate":["abi","ast","data_structures","driver","hir","index","infer","interface","middle","mir_dataflow","rs_borrowck","session","span","target","trait_selection"],"mod":["borrowck","dataflow"]};

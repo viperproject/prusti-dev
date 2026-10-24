@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["AbstractionBlockEdgeWithMetadata","DefinedFnCall","DefinedFnCallWithCallTys","DefinedFnSigShapeDataSource","FunctionCallAbstractionEdgeMetadata"],"type":["FunctionCallAbstraction"]};

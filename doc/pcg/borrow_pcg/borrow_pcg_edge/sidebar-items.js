@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["BorrowPcgEdgeRef"],"trait":["BorrowPcgEdgeLike"],"type":["BlockedNode","BlockingNode","BorrowPcgEdge","LocalNode"]};
