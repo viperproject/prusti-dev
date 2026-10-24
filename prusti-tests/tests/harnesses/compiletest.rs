@@ -18,6 +18,9 @@ use std::{
 };
 use ui_test::{run_tests, spanned::Spanned, Config};
 
+/// Silicon's time limit (in seconds) per test file, so that a slow test cannot hold up the suite.
+const EXTRA_VERIFIER_ARGS: &str = "--timeout=90";
+
 fn find_prusti_rustc_path() -> PathBuf {
     let target_directory = if cfg!(debug_assertions) {
         "debug"
@@ -142,6 +145,7 @@ fn run_verification_no_overflow(group_name: &str) {
             ("PRUSTI_FULL_COMPILATION", "true"),
             ("PRUSTI_QUIET", "true"),
             ("PRUSTI_CHECK_OVERFLOWS", "false"),
+            ("PRUSTI_EXTRA_VERIFIER_ARGS", EXTRA_VERIFIER_ARGS),
         ],
     )
     .unwrap();
@@ -154,6 +158,7 @@ fn run_verification_overflow(group_name: &str) {
         &[
             ("PRUSTI_FULL_COMPILATION", "true"),
             ("PRUSTI_QUIET", "true"),
+            ("PRUSTI_EXTRA_VERIFIER_ARGS", EXTRA_VERIFIER_ARGS),
         ],
     )
     .unwrap();
@@ -168,6 +173,7 @@ fn run_verification_core_proof(group_name: &str) {
             ("PRUSTI_QUIET", "true"),
             ("PRUSTI_CHECK_PANICS", "false"),
             ("PRUSTI_CHECK_OVERFLOWS", "false"),
+            ("PRUSTI_EXTRA_VERIFIER_ARGS", EXTRA_VERIFIER_ARGS),
         ],
     )
     .unwrap();
