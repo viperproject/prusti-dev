@@ -40,6 +40,8 @@ pub enum VerificationResultKind {
     ConsistencyErrors(Vec<ConsistencyError>),
     /// The verification raised a Java exception.
     JavaException(JavaException),
+    /// The verifier gave up after the given number of seconds.
+    Timeout(u64),
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]

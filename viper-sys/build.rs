@@ -818,6 +818,9 @@ fn main() {
             ]),
             java_class!("viper.silver.verifier.AbstractError", vec![
             ]),
+            java_class!("viper.silver.verifier.TimeoutOccurred", vec![
+                method!("n"),
+            ]),
             java_class!("viper.silver.verifier.VerificationError", vec![
                 method!("id"),
                 method!("offendingNode"),

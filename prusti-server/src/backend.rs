@@ -1,6 +1,9 @@
 use crate::{ServerMessage, VIPER};
 use log::{debug, info};
-use std::{sync::mpsc, thread, time};
+use std::{
+    sync::mpsc::{self, RecvTimeoutError},
+    thread, time,
+};
 use viper::{jni_utils::JniUtils, VerificationContext, VerificationResultKind};
 use viper_sys::wrappers::{java, viper::*};
 
@@ -71,9 +74,12 @@ fn verify_and_poll_msgs(
     debug!("Starting viper message polling thread");
 
     // start thread for polling messages
+    let (stop, stopped) = mpsc::channel::<()>();
     thread::scope(|scope| {
-        let polling_thread = scope.spawn(|| polling_function(&rep_glob_ref, procedures, sender));
+        let polling_thread =
+            scope.spawn(|| polling_function(&rep_glob_ref, procedures, sender, stopped));
         kind = verifier.verify(viper_program, Some(polling_thread));
+        drop(stop);
     });
     debug!("Viper message polling thread terminated");
     kind
@@ -84,6 +90,7 @@ fn polling_function(
     rep_glob_ref: &jni::objects::GlobalRef,
     procedures: std::collections::HashSet<String>,
     sender: mpsc::Sender<ServerMessage>,
+    stopped: mpsc::Receiver<()>,
 ) -> std::collections::HashSet<u64> {
     debug!("attach polling thread to JVM.");
     let verification_context = VIPER
@@ -243,6 +250,11 @@ fn polling_function(
                 _ => (),
             }
         }
-        thread::sleep(time::Duration::from_millis(10));
+        if !matches!(
+            stopped.recv_timeout(time::Duration::from_millis(10)),
+            Err(RecvTimeoutError::Timeout)
+        ) {
+            return error_hashes;
+        }
     }
 }

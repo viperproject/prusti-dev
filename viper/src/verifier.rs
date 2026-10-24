@@ -359,6 +359,14 @@ impl<'a> Verifier<'a> {
 
             self.smt_manager.stop_and_check();
 
+            // A timed-out run returns before its termination message is sent,
+            // if it is sent at all, so the polling thread must not be waited for.
+            if is_failure {
+                if let Some(seconds) = extract_timeout(&self.jni, self.env, viper_result) {
+                    return VerificationResultKind::Timeout(seconds);
+                }
+            }
+
             // wait for the polling thread if present so no errors get processed here that should
             // be processed by the polling thread. Also avoids the need for locking.
             let error_hashes_opt = polling_thread.map(|pt| pt.join().unwrap());
@@ -405,6 +413,25 @@ fn extract_pos_id(jni_utils: &JniUtils<'_>, env: &JNIEnv<'_>, pos: JObject<'_>) 
     } else {
         None
     }
+}
+
+/// The time limit in seconds if the failure is a timeout of the whole verification.
+fn extract_timeout(
+    jni_utils: &JniUtils<'_>,
+    env: &JNIEnv<'_>,
+    viper_result: JObject<'_>, // viper::silicon::verification::Failure
+) -> Option<u64> {
+    jni_utils
+        .seq_to_vec(
+            jni_utils.unwrap_result(silver::verifier::Failure::with(env).call_errors(viper_result)),
+        )
+        .into_iter()
+        .find(|&error| jni_utils.is_instance_of(error, "viper/silver/verifier/TimeoutOccurred"))
+        .map(|error| {
+            let seconds =
+                jni_utils.unwrap_result(silver::verifier::TimeoutOccurred::with(env).call_n(error));
+            seconds.try_into().unwrap()
+        })
 }
 
 pub fn extract_errors(
