@@ -10,8 +10,8 @@ use prusti_rustc_interface::{
 };
 use task_encoder::{EncodeFullResult, TaskEncoder, TaskEncoderDependencies};
 use vir::{
-    AdtDestructor, Arity, BackendInterpretationPair, CastType, CompType, DomainAxiomData,
-    DomainIdnSnap, FunctionIdn, Type,
+    AdtDestructor, Arity, BackendInterpretationPair, CallableIdn, CastType, CompType,
+    DomainAxiomData, DomainIdnSnap, FunctionIdn, Type,
 };
 
 use crate::encoders::Pure;
@@ -161,8 +161,6 @@ pub struct TyPureImmRefData<'vir> {
     pub(super) deref_access: AdtDestructor<'vir, vir::CSnap, vir::Ref>,
     /// Function to access the reference metadata (fat pointer).
     pub(super) metadata_access: AdtDestructor<'vir, vir::CSnap, vir::PSnap>,
-    /// Function to make a immref snapshot independent of address.
-    pub(super) value_snap_fn: vir::FunctionIdn<'vir, vir::CSnap, vir::CSnap>,
     /// Function to access the snapshot value.
     pub(super) value_access: AdtDestructor<'vir, vir::CSnap, vir::PSnap>,
 }
@@ -255,6 +253,7 @@ pub struct TyPureEncLocal<'vir> {
 pub enum TyPureEncLocalKind<'vir> {
     Domain {
         domain: vir::Domain<'vir>,
+        literal_inverse: Option<vir::simplify::LiteralInverse<'vir>>,
     },
     Adt {
         adt: vir::Adt<'vir>,
@@ -359,7 +358,15 @@ impl TaskEncoder for TyPureEnc {
                 program.add_function(function);
             }
             match output.kind {
-                TyPureEncLocalKind::Domain { domain } => program.add_domain(domain),
+                TyPureEncLocalKind::Domain {
+                    domain,
+                    literal_inverse,
+                } => {
+                    program.add_domain(domain);
+                    if let Some(literal_inverse) = literal_inverse {
+                        program.add_literal_inverse(literal_inverse);
+                    }
+                }
                 TyPureEncLocalKind::Adt { adt, discr_fn } => {
                     program.add_adt(adt);
                     if let Some(discr_fn) = discr_fn {
@@ -438,6 +445,7 @@ pub(crate) struct DomainBuilderData<'vir> {
     axioms: Vec<vir::DomainAxiom<'vir>>,
     functions: Vec<vir::DomainFunction<'vir>>,
     interpretation: Option<&'vir [&'vir BackendInterpretationPair<'vir>]>,
+    literal_inverse: Option<vir::simplify::LiteralInverse<'vir>>,
 }
 
 #[derive(Clone, Copy)]
@@ -572,7 +580,10 @@ impl<'vir> TyPureBuilder<'vir> {
                     self.vcx.alloc_slice(data.functions.as_slice()),
                     data.interpretation,
                 );
-                TyPureEncLocalKind::Domain { domain }
+                TyPureEncLocalKind::Domain {
+                    domain,
+                    literal_inverse: data.literal_inverse,
+                }
             }
             BuilderData::Adt(data) => {
                 let adt = self.vcx.mk_adt(
@@ -751,6 +762,27 @@ impl<'vir> DomainBuilder<'vir> {
         let name = vir::vir_format!(self.vcx, "{}_ax_{name}", self.name);
         let axiom = self.vcx.alloc(DomainAxiomData { name, expr });
         self.data().axioms.push(axiom);
+    }
+
+    /// Declares that `outer(inner(k)) == k` for every integer literal `k` in
+    /// one of the inclusive `ranges`, so that the simplifier can fold such
+    /// applications (see [`vir::simplify::LiteralInverse`]).
+    pub(crate) fn literal_inverse<A1: Arity, T1: CompType, A2: Arity, T2: CompType>(
+        &mut self,
+        outer: FunctionIdn<'vir, A1, T1>,
+        inner: FunctionIdn<'vir, A2, T2>,
+        ranges: &'vir [(vir::ExprInt<'vir>, vir::ExprInt<'vir>)],
+    ) {
+        let data = self.data();
+        assert!(
+            data.literal_inverse.is_none(),
+            "a domain declares at most one literal inverse"
+        );
+        data.literal_inverse = Some(vir::simplify::LiteralInverse {
+            outer: outer.name(),
+            inner: inner.name(),
+            ranges,
+        });
     }
 
     pub(crate) fn set_interpretation(

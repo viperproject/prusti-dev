@@ -424,11 +424,18 @@ impl<'vir> TyUsePureImmRef<'vir> {
             .cast_to_caller_ctx(metadata.upcast_ty())
     }
 
+    /// The snapshot with the address replaced by `null`.
     pub fn value_snap_of<Curr, Next>(
         &self,
         snap: vir::ExprGenCSnap<'vir, Curr, Next>,
     ) -> vir::ExprGenCSnap<'vir, Curr, Next> {
-        self.pure.value_snap_fn.call()(snap)
+        vir::with_vcx(|vcx| {
+            self.pure.prim_to_snap.call()(
+                vcx.mk_null().lazy(),
+                self.pure.metadata_access.call()(snap),
+                self.pure.value_access.call()(snap),
+            )
+        })
     }
 
     pub fn value_access<Curr, Next>(
