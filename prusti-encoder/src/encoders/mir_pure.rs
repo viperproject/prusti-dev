@@ -43,10 +43,8 @@ type ExprRetRef<'vir> = vir::ExprGenRef<'vir, ExprInput<'vir>, vir::ExprKind<'vi
 type ExprRetAny<'vir, T> = vir::ExprGen<'vir, ExprInput<'vir>, vir::ExprKind<'vir>, T>;
 /// An encoded spec closure (see `Enc::encode_spec_closure`): the quantified
 /// variables derived from the closure's arguments, and the closure's body.
-type SpecClosure<'vir> = (
-    &'vir [vir::LocalDeclSnap<'vir>],
-    ExprRetAny<'vir, vir::Bool>,
-);
+type SpecClosure<'vir> = (&'vir [vir::LocalDeclSnap<'vir>], ExprRet<'vir>);
+type TriggerRet<'vir> = vir::TriggerGen<'vir, ExprInput<'vir>, vir::ExprKind<'vir>>;
 
 #[derive(Clone, Debug)]
 pub struct MirPureEncOutput<'vir> {
@@ -1397,7 +1395,50 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 body.reify(vcx, (cl_def_id, reify_args, lctx.2)).kind
             }),
         );
-        Ok((qvars, body.downcast_ty::<vir::Bool>()))
+        Ok((qvars, body))
+    }
+
+    /// Encodes the trigger-set argument of a quantifier builtin: a tuple of
+    /// trigger sets, each itself a tuple of spec closures whose arguments are
+    /// the quantified variables and whose body is one trigger expression.
+    fn encode_trigger_sets(
+        &mut self,
+        name: &str,
+        sets_ty: ty::Ty<'vir>,
+        sets_snap: ExprRet<'vir>,
+        qvars: &'vir [vir::LocalDeclSnap<'vir>],
+    ) -> EncodeResult<'vir, &'vir [TriggerRet<'vir>], MirPureEnc> {
+        let TyKind::Tuple(set_tys) = sets_ty.kind() else {
+            panic!("illegal prusti::{name}: expected a trigger-set tuple, got {sets_ty:?}")
+        };
+        if set_tys.is_empty() {
+            return Ok(&[]);
+        }
+        let sets_fields = self.ty_use(sets_ty).expect_structlike();
+        let mut sets = Vec::with_capacity(set_tys.len());
+        for (set_idx, set_ty) in set_tys.iter().enumerate() {
+            let set_snap = sets_fields.fields[set_idx].read(sets_snap.downcast_ty());
+            let TyKind::Tuple(cl_tys) = set_ty.kind() else {
+                panic!("illegal prusti::{name}: expected a trigger tuple, got {set_ty:?}")
+            };
+            let cl_fields = self.ty_use(set_ty).expect_structlike();
+            let mut exprs = Vec::with_capacity(cl_tys.len());
+            for (cl_idx, cl_ty) in cl_tys.iter().enumerate() {
+                let cl_snap = cl_fields.fields[cl_idx].read(set_snap.downcast_ty());
+                // The closures are behind a shared reference, whose snapshot is
+                // what `encode_spec_closure` expects (as for the body closure).
+                let TyKind::Ref(_, cl_ty, _) = cl_ty.kind() else {
+                    panic!("illegal prusti::{name}: expected a trigger closure, got {cl_ty:?}")
+                };
+                let (cl_qvars, expr) = self.encode_spec_closure(name, *cl_ty, cl_snap)?;
+                // The triggers are parsed with the quantifier's own binders, so
+                // they must quantify exactly the same variables as the body.
+                assert_eq!(cl_qvars, qvars);
+                exprs.push(expr);
+            }
+            sets.push(self.vcx.mk_trigger(&exprs));
+        }
+        Ok(self.vcx.alloc_slice(&sets))
     }
 
     /// Encodes the pure-only `prusti_contracts` builtins (quantifiers, spec
@@ -1420,9 +1461,8 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     .iter()
                     .map(|oper| self.encode_operand_snap(&oper.node, curr_ver))
                     .collect::<Result<Vec<_>, _>>()?;
-                // TODO: for now, let's expect this to give us these two:
-                //   - expression for the triggers
-                //   - expression for the body
+                // The two arguments are the expressions for the trigger sets
+                // and for the body.
                 assert_eq!(encoded_args.len(), 2);
 
                 let name = if builtin == SpecBuiltin::Forall {
@@ -1432,11 +1472,13 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                 };
                 let (qvars, body) =
                     self.encode_spec_closure(name, arg_tys[2].expect_ty(), encoded_args[1])?;
-                // TODO: triggers
+                let body = body.downcast_ty::<vir::Bool>();
+                let triggers =
+                    self.encode_trigger_sets(name, arg_tys[0].expect_ty(), encoded_args[0], qvars)?;
                 let res = if builtin == SpecBuiltin::Forall {
-                    self.vcx.mk_forall_expr(qvars, &[], body)
+                    self.vcx.mk_forall_expr(qvars, triggers, body)
                 } else {
-                    self.vcx.mk_exists_expr(qvars, &[], body)
+                    self.vcx.mk_exists_expr(qvars, triggers, body)
                 };
                 mk_bool(res)
             }
@@ -1455,7 +1497,7 @@ impl<'vir: 'enc, 'enc> Enc<'vir, 'enc> {
                     encoded_args[0],
                 )?;
                 assert!(qvars.is_empty(), "`spec_block` closures take no arguments");
-                mk_bool(body)
+                mk_bool(body.downcast_ty::<vir::Bool>())
             }
             SpecBuiltin::ModeStart(mode) => {
                 match mode {
