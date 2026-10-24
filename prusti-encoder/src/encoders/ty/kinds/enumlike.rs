@@ -23,7 +23,7 @@ pub(crate) fn ty_pure<'vir>(
     let discr_ty =
         deps.require_dep::<TyPureEnc>(RustTyDecomposition::from_prim_ty(data.discr).ty)?;
     let discr_prim = discr_ty.expect_primitive();
-    let discr_ty = discr_ty.snapshot;
+    let discr_ty = discr_ty.deep_snapshot;
 
     let variants = data
         .variants
@@ -83,7 +83,7 @@ pub(crate) fn ty_impure<'vir>(
         None,
     );
     let ref_disc = fdisc_func(ref_self);
-    let snap_disc = discr_ty_impure.ref_to_snap(ref_disc).downcast_ty();
+    let snap_disc = discr_ty_impure.ref_to_deep_snap(ref_disc).downcast_ty();
 
     let variants = data
         .variants
@@ -91,7 +91,7 @@ pub(crate) fn ty_impure<'vir>(
         .map(|variant| {
             let var_idx_num = variant.0.vid.as_u32();
 
-            let (inner, variant_pred, variant_snap_expr) =
+            let (inner, variant_pred, deep_variant_snap_expr, shallow_variant_snap_expr) =
                 super::structlike::ty_impure_variant(
                 &format!("{var_idx_num}_"),
                 task_key,
@@ -118,12 +118,16 @@ pub(crate) fn ty_impure<'vir>(
                     == ([variant.1.discr])) ==> (([variant_inhabited])
                         && ([variant_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])))
             };
-            let variant_snap_expr = vir::expr! {
-                unfolding ([variant_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) in (variant_snap_expr)
+            let deep_variant_snap_expr = vir::expr! {
+                unfolding ([variant_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) in (deep_variant_snap_expr)
+            };
+            let shallow_variant_snap_expr = vir::expr! {
+                unfolding ([variant_pred](ref_self, [..[builder.params.ty_exprs()]], [..[builder.params.const_exprs()]])) in (shallow_variant_snap_expr)
             };
 
             Ok((
-                variant_snap_expr,
+                deep_variant_snap_expr,
+                shallow_variant_snap_expr,
                 variant_pred_expr,
                 variant.1.discr,
                 VariantData::new(TyImpureVariantData {
@@ -138,12 +142,12 @@ pub(crate) fn ty_impure<'vir>(
     let variant_values = builder.vcx.mk_disj(
         &variants
             .iter()
-            .map(|variant| vir::expr! { ([snap_disc]) == ([variant.2]) })
+            .map(|variant| vir::expr! { ([snap_disc]) == ([variant.3]) })
             .collect::<Vec<_>>(),
     );
     let variant_predicates = builder
         .vcx
-        .mk_conj(&variants.iter().map(|v| v.1).collect::<Vec<_>>());
+        .mk_conj(&variants.iter().map(|v| v.2).collect::<Vec<_>>());
     builder.mk_predicate(
         "",
         Some(vir::expr! {
@@ -157,20 +161,29 @@ pub(crate) fn ty_impure<'vir>(
     let base =
         (task_key.1.unreachable_to_snap)(builder.params.ty_exprs(), builder.params.const_exprs())
             .downcast_ty();
-    let inner = variants.iter().fold(base, |else_, variant| {
+    let deep_inner = variants.iter().fold(base, |else_, variant| {
         builder.vcx.mk_ternary_expr(
-            vir::expr! { ([snap_disc]) == ([variant.2]) },
+            vir::expr! { ([snap_disc]) == ([variant.3]) },
             variant.0,
             else_,
         )
     });
-    builder.mk_snap_function(Some(inner), &[]);
+    let shallow_inner = variants.iter().fold(base, |else_, variant| {
+        builder.vcx.mk_ternary_expr(
+            vir::expr! { ([snap_disc]) == ([variant.3]) },
+            variant.1,
+            else_,
+        )
+    });
+    let deep_pres = builder.indirect_deep_pres(deps)?;
+    builder.mk_deep_snap_function(Some(deep_inner), &deep_pres, &[]);
+    builder.mk_shallow_snap_function(Some(shallow_inner), &[]);
 
     Ok(EnumData::new(
         TyImpureEnumData {
             discr: fdisc_func,
             discr_ty: discr_ty_impure,
         },
-        variants.into_iter().map(|v| v.3).collect::<Vec<_>>(),
+        variants.into_iter().map(|v| v.4).collect::<Vec<_>>(),
     ))
 }

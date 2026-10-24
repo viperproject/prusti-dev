@@ -71,7 +71,7 @@ impl<'vir: 'a, 'a, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 inv.extend(indirect.predicate_applications.iter().map(|p| {
                     p.reify(
                         self.vcx,
-                        ty_out.ref_to_snap(place_res.expr.expect_predicate()),
+                        ty_out.ref_to_shallow_snap(place_res.expr.expect_predicate()),
                     )
                 }));
             }

@@ -208,6 +208,8 @@ impl PrustiBuiltin {
                 None => match item {
                     // TODO: how to handle this function?
                     "prusti_terminates_trusted" => return None,
+                    // Uninterpreted spec function, encoded as a normal call.
+                    "slice_index_touches" => return None,
                     "forall" => Self::Spec(SpecBuiltin::Forall),
                     "exists" => Self::Spec(SpecBuiltin::Exists),
                     "spec_block" => Self::Spec(SpecBuiltin::SpecBlock),

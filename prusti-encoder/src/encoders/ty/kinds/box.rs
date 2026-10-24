@@ -123,7 +123,7 @@ pub(super) fn mk_impure_box_data<'vir>(
     };
     let b_params = &builder.params;
     let unique_ref = unique_field_ref(ref_self, b_params.ty_exprs(), b_params.const_exprs());
-    let unique_snap = fields[0].ref_to_snap(unique_ref).downcast_ty();
+    let unique_snap = fields[0].ref_to_deep_snap(unique_ref).downcast_ty();
     let unique_pred = fields[0].ref_to_pred(builder.vcx, unique_ref, None);
     let pure = data.1.box_data.unwrap();
     let TyPureFieldRef::Dynamic(address_access) = data.fields.last().unwrap().1.ref_to_field_ref

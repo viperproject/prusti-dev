@@ -217,6 +217,19 @@ macro_rules! comment {
 /// effect; all other operand reads (terminators, repack guides) pass `None`.
 type OperandSnaps<'vir> = Option<FxHashMap<mir::Place<'vir>, vir::ExprSnap<'vir>>>;
 
+/// Which snapshot of a place to read.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum SnapDepth {
+    /// Includes the values behind the mutable references in the place. Used
+    /// where the value is observed, e.g. by a pure function or a spec.
+    Deep,
+    /// Only the addresses (and metadata) of the mutable references in the
+    /// place, like what the compiler copies. Used for a value that is
+    /// assigned, as `method_assign` sets the *shallow* snapshot of the
+    /// destination
+    Shallow,
+}
+
 struct EncodedRvalue<'vir> {
     /// A snapshot of the rvalue. This snapshot is guaranteed to be well-formed
     /// in the state *before* the Rvalue has been assigned to a place. For
@@ -316,6 +329,19 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     .encode_cast_snap(rvalue_ty, *cast_kind, operand, operand_snaps)
                     .map_err(EncodeRvalueError::from)?;
                 self.stmts(stmt);
+                // A mutable reference is assigned as its shallow snapshot.
+                let cast = if let ty::TyKind::Ref(_, _, ty::Mutability::Mut) = rvalue_ty.kind() {
+                    let mutref = self.ty_use_pure(rvalue_ty).expect_mutref();
+                    let cast = cast.downcast_ty();
+                    mutref
+                        .prim_to_shallow_snap(
+                            mutref.deref_access(cast),
+                            mutref.metadata_access(cast),
+                        )
+                        .upcast_ty()
+                } else {
+                    cast
+                };
                 Ok(cast.into())
             }
             mir::Rvalue::BinaryOp(op, box (l, r)) => Ok(self
@@ -394,7 +420,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                             self.vcx.mk_unfolding_expr(
                                 ty.ref_to_pred_app(place_expr, Some(self.vcx.mk_wildcard())),
                                 el.discr_ty()
-                                    .ref_to_snap(el.discr(place_expr))
+                                    .ref_to_deep_snap(el.discr(place_expr))
                                     .downcast_ty(),
                             )
                         }
@@ -424,16 +450,19 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         .into()
                 }
                 TyKind::Ref(.., ty::Mutability::Mut) => {
-                    let p_rvalue_ty = self.ty_use_impure(rvalue_ty);
-                    let place_expr = self.encode_place(Place::from(*place))?;
+                    let (address, _, _, _) = self.encode_place_with_snap(Place::from(*place))?;
 
-                    let metadata = place_expr.expr.metadata;
+                    let metadata = address.expr.metadata;
                     let metadata =
                         metadata.unwrap_or_else(|| self.expect_thin_ptr_metadata(rvalue_ty));
-                    let inner = p_rvalue_ty.expect_mutref();
-                    let place_ref = place_expr.expr.expect_predicate();
+                    // Assign stores the shallow snapshot, so the reference
+                    // is built with the shallow constructor.
+                    let inner = self.ty_use_pure(rvalue_ty).expect_mutref();
+                    let p_rvalue_ty = self.ty_use_impure(rvalue_ty);
                     EncodedRvalue {
-                        expr: inner.prim_to_snap_assign(place_ref, metadata).upcast_ty(),
+                        expr: inner
+                            .prim_to_shallow_snap(address.expr.address, metadata)
+                            .upcast_ty(),
                         post_assign_folds: Some(Box::new(move |lhs_place| {
                             p_rvalue_ty.fold(None, lhs_place, None, None, None)
                         })),
@@ -1133,12 +1162,16 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
     fn capture_operand_snap(
         &mut self,
         operand: &mir::Operand<'vir>,
+        depth: SnapDepth,
     ) -> EncodeResult<'vir, vir::ExprSnap<'vir>, E> {
         match operand {
             &mir::Operand::Copy(place) | &mir::Operand::Move(place) => {
                 let (result, snap_val, _, ty_out) =
-                    self.encode_place_with_snap(Place::from(place))?;
-                let tmp = self.new_tmp(ty_out.snapshot());
+                    self.encode_place_with_snap_at_depth(Place::from(place), depth)?;
+                let tmp = self.new_tmp(match depth {
+                    SnapDepth::Deep => ty_out.deep_snapshot(),
+                    SnapDepth::Shallow => ty_out.shallow_snapshot(),
+                });
                 self.stmt(self.vcx.mk_pure_assign_stmt(tmp, snap_val));
                 if matches!(operand, mir::Operand::Move(_)) {
                     self.stmt(self.vcx.mk_exhale_stmt(ty_out.ref_to_pred(
@@ -1174,13 +1207,25 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         }
         let mut collector = OperandCollector(Vec::new());
         collector.visit_statement(statement, location);
+        // Unsizing a mutable reference casts the value behind it, so it reads
+        // the deep snapshot; its result is made shallow before it is assigned.
+        let depth = match &statement.kind {
+            mir::StatementKind::Assign(box (_, mir::Rvalue::Cast(_, _, ty)))
+                if matches!(ty.kind(), ty::TyKind::Ref(_, _, ty::Mutability::Mut)) =>
+            {
+                SnapDepth::Deep
+            }
+            // The statement's effect assigns the operands (or values built
+            // from them), see [SnapDepth::Shallow].
+            _ => SnapDepth::Shallow,
+        };
         let mut snaps = FxHashMap::default();
         for operand in &collector.0 {
             let place = operand.place().unwrap();
             if snaps.contains_key(&place) {
                 continue;
             }
-            let snap = self.capture_operand_snap(operand)?;
+            let snap = self.capture_operand_snap(operand, depth)?;
             snaps.insert(place, snap);
         }
         Ok(Some(snaps))
@@ -1207,9 +1252,27 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         })
     }
 
+    /// The place and its deep snapshot, see [SnapDepth::Deep].
     pub(crate) fn encode_place_with_snap(
         &mut self,
         place: Place<'vir>,
+    ) -> EncodeResult<
+        'vir,
+        (
+            EncodePlaceResult<'vir>,
+            vir::ExprSnap<'vir>,
+            mir::PlaceTy<'vir>,
+            TyUseImpure<'vir>,
+        ),
+        E,
+    > {
+        self.encode_place_with_snap_at_depth(place, SnapDepth::Deep)
+    }
+
+    fn encode_place_with_snap_at_depth(
+        &mut self,
+        place: Place<'vir>,
+        depth: SnapDepth,
     ) -> EncodeResult<
         'vir,
         (
@@ -1225,10 +1288,10 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
         let ty_out = self.ty_use_impure(ty.ty);
         let result = self.encode_place(place)?;
-        let snap = result
-            .expr
-            .snap
-            .unwrap_or_else(|| ty_out.ref_to_snap(result.expr.address));
+        let snap = result.expr.snap.unwrap_or_else(|| match depth {
+            SnapDepth::Deep => ty_out.ref_to_deep_snap(result.expr.address),
+            SnapDepth::Shallow => ty_out.ref_to_shallow_snap(result.expr.address),
+        });
         Ok((result, snap, ty, ty_out))
     }
 
@@ -1333,7 +1396,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     ty::TyKind::Ref(_, _, ty::Mutability::Not) => {
                         let snap = expr
                             .snap
-                            .unwrap_or_else(|| e_ty.ref_to_snap(expr.address))
+                            .unwrap_or_else(|| e_ty.ref_to_deep_snap(expr.address))
                             .downcast_ty();
                         let p_ty = self.ty_use_pure(place_ty.ty).expect_immref();
                         PlaceExpr {
@@ -1343,7 +1406,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                         }
                     }
                     ty::TyKind::Ref(_, _, ty::Mutability::Mut) => {
-                        let ref_snap = e_ty.ref_to_snap(expr.address).downcast_ty();
+                        let ref_snap = e_ty.ref_to_shallow_snap(expr.address).downcast_ty();
                         let p_ty = self.ty_use_pure(place_ty.ty).expect_mutref();
                         PlaceExpr {
                             address: p_ty.deref_access(ref_snap),
@@ -2580,7 +2643,7 @@ impl<'vir, 'enc, E: TaskEncoder> PureRvalueEnc<'vir> for ImpureEncVisitor<'vir, 
             return Ok(*snap);
         }
         match operand {
-            mir::Operand::Move(_) => self.capture_operand_snap(operand),
+            mir::Operand::Move(_) => self.capture_operand_snap(operand, SnapDepth::Deep),
             _ => self.encode_operand_snap_immediate(operand),
         }
     }

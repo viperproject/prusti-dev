@@ -78,13 +78,13 @@ pub(crate) fn ty_impure<'vir>(
     );
 
     // Ref-to-snap
-    builder.mk_snap_function(
+    builder.mk_shallow_snap_function(
         Some(data.1.prim_to_snap.call()(
             vir::expr! { [addr_field](ref_self) },
             vir::expr! { [metadata_field](ref_self) },
         )),
         &[metadata_typ(data.1.metadata_access.call()(
-            vcx.mk_result(builder.csnap_type()),
+            vcx.mk_result(builder.csnap_type_shallow()),
         ))],
     );
 

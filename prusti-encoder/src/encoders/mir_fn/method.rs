@@ -244,7 +244,7 @@ impl TaskEncoder for MethodEnc {
             // ..
             pres.extend(wands.indirect_pres(vcx, &arg_defs, deps));
             posts.extend(wands.indirect_posts(vcx, &arg_defs, deps));
-            posts.extend(wands.wand_posts(vcx, &arg_defs, deps));
+            posts.extend(wands.wand_posts(vcx, &arg_defs, false, deps));
 
             // Trusted functions, call stubs, external functions and trait
             // functions without a default implementation have no body to
