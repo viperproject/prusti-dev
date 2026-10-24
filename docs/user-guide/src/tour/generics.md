@@ -24,11 +24,13 @@ This code still fails to compile, this time with an error from the function `lin
 
 To fix this, we will change `List::lookup` and `link_lookup` to return a reference to the element at index `i`, instead of the element itself. This was not needed for `i32`, since it implements the [`Copy`](https://doc.rust-lang.org/std/marker/trait.Copy.html) trait. For a general type `T`, returning it by value would move it out of the list, which we don't want. By returning a reference instead, the lookups will work for any type `T`, because the element stays in the list.
 
-In addition to returning a reference, we will have to adjust some of the places where `lookup` is used, mostly by dereferencing or using `snap` on the returned reference:
+In addition to returning a reference, we will have to adjust some of the places where `lookup` is used, mostly by dereferencing the returned reference:
 
 ```rust,noplaypen
 {{#rustdoc_include ../../../../prusti-tests/tests/verify/pass/user-guide/generic.rs:lookup_reference}}
 ```
+
+The postcondition of `try_pop` compared `result` with `Some(old(self.lookup(0)))`. Now that `lookup` returns a reference, building a `Some` from the element would move it out of the list, so instead we use a `match` to compare the element inside `result` with the reference: `match &result { Some(r) => r === old(self.lookup(0)), None => false }`.
 
 After all these changes, Prusti is able to verify the code again, so now our linked list can be used to store elements of any type, not just `i32`!
 If you want to see the full code after all the changes, expand the following code block.

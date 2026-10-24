@@ -23,8 +23,9 @@ struct Node {
 
 //// ANCHOR: extern_spec
 #[extern_spec(std::mem)]
-#[ensures(snap(dest) === src)]
-#[ensures(result === old(snap(dest)))]
+#[trusted]
+#[ensures(*dest === src)]
+#[ensures(result === *old(&*dest))]
 fn replace<T>(dest: &mut T, src: T) -> T;
 
 // Specs for std::option::Option<T>::unwrap(self) (and others) can be found here (work in progress):
@@ -32,14 +33,17 @@ fn replace<T>(dest: &mut T, src: T) -> T;
 
 #[extern_spec]
 impl<T> std::option::Option<T> {
+    #[trusted]
     #[requires(self.is_some())]
     #[ensures(old(self) === Some(result))]
     pub fn unwrap(self) -> T;
 
+    #[trusted]
     #[pure]
     #[ensures(result == matches!(self, None))]
     pub const fn is_none(&self) -> bool;
 
+    #[trusted]
     #[pure]
     #[ensures(result == matches!(self, Some(_)))]
     pub const fn is_some(&self) -> bool;
@@ -113,11 +117,11 @@ impl List {
     //// ANCHOR: try_pop_result_correct
     #[ensures(!old(self.is_empty()) ==>
         //// ANCHOR_END: try_pop_result_correct
-        self.head_removed(&old(snap(self)))
+        self.head_removed(old(&*self))
         //// ANCHOR_END: predicate_use
         &&
         //// ANCHOR: try_pop_result_correct
-        result === Some(old(snap(self)).lookup(0))
+        result === Some(old(self.lookup(0)))
         //// ANCHOR: predicate_use
     )]
     //// ANCHOR: try_pop_empty
@@ -139,10 +143,10 @@ impl List {
     //// ANCHOR_END: predicate_use
     #[requires(!self.is_empty())]
     //// ANCHOR: predicate_use
-    #[ensures(self.head_removed(&old(snap(self))))]
+    #[ensures(self.head_removed(old(&*self)))]
     //// ANCHOR_END: predicate_use
     //// ANCHOR: pop_result_correct
-    #[ensures(result === old(snap(self)).lookup(0))]
+    #[ensures(result === old(self.lookup(0)))]
     //// ANCHOR: predicate_use
     pub fn pop(&mut self) -> i32 {
         // ...
