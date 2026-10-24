@@ -491,14 +491,16 @@ fn verify_requests_local<'a>(
         for request in verification_requests {
             let request_hash = request.get_hash();
             if config::enable_cache() {
-                if let Some(result) = Lazy::force(cache).get(request_hash) {
+                if let Some(mut result) = Lazy::force(cache).get(request_hash) {
                     info!(
                         "Using cached result {:?}",
                         result,
                     );
+                    result.cached = true;
                     yield futures::stream::once(async move {
                         ServerMessage::Termination(result)
                     }).left_stream();
+                    continue;
                 }
             }
             yield vrp.verify(request).map(move |msg| {

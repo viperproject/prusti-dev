@@ -101,7 +101,7 @@ impl VerificationRequest {
         use std::hash::{Hash, Hasher};
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
         self.program.get_hash().hash(&mut hasher);
-        self.backend_config.verify_mode.hash(&mut hasher);
+        self.backend_config.hash(&mut hasher);
         hasher.finish()
     }
 
