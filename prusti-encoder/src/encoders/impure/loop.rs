@@ -46,8 +46,18 @@ impl<'vir: 'a, 'a, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         let mut inv = Vec::new();
         let start = &cfpcs.statements[0];
         let state = &start.states[EvalStmtPhase::PreOperands];
-        let loop_invariant_place_capabilities =
+        let mut loop_invariant_place_capabilities =
             cfpcs.loop_invariant_place_capabilities(loop_place_usages, ctxt);
+        // A place the loop only writes is reported at write capability, but
+        // the PCG state keeps the value it holds here (dropped only before
+        // the write), so the invariant holds the value.
+        for (place, capability) in loop_invariant_place_capabilities.iter_mut() {
+            if capability.is_write()
+                && let Some(held) = state.place_capability(*place, self.pcg_ctxt())
+            {
+                *capability = held;
+            }
+        }
 
         for (place, capability) in loop_invariant_place_capabilities.iter() {
             if self.is_spec_only_local(place.local) {
