@@ -21,8 +21,8 @@ use pcg::{
     pcg::{CapabilityKind, EvalStmtPhase, Pcg, PcgNode, PcgSuccessor},
     results::{PcgBasicBlock, PcgLocation},
     utils::{
-        CompilerCtxt, HasPlace, Place, PrefixRelation, SnapshotLocation, display::DisplayWithCtxt,
-        maybe_old::MaybeLabelledPlace,
+        CompilerCtxt, HasPlace, Place, PlaceLike, PrefixRelation, SnapshotLocation,
+        display::DisplayWithCtxt, maybe_old::MaybeLabelledPlace,
     },
 };
 use prusti_interface::PrustiError;
@@ -912,6 +912,14 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     CapabilityKind::Exclusive | CapabilityKind::ShallowExclusive
                 ) && matches!(weaken.to_cap(), None | Some(CapabilityKind::Write)) =>
             {
+                // A borrowed place whose lifetime projection is dead is
+                // weakened as well, but its permission still belongs to the
+                // lender (or the caller): it is kept until the place is
+                // overwritten (see `visit_statement`).
+                if !weaken.place().is_owned(self.pcg_ctxt()) {
+                    comment!(self, "(keeping permission) {weaken:?}");
+                    return Ok(());
+                }
                 self.pcg_weaken(weaken.place(), weaken.is_for_storage_dead())
             }
             //RenamePlace {
@@ -2020,6 +2028,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
             match &statement.kind {
                 mir::StatementKind::Assign(box (dest, rvalue)) => {
+                    // A borrowed place keeps its permission when weakened by
+                    // the PCG, so it is released here, before the overwrite.
+                    if !Place::from(*dest).is_owned(self.pcg_ctxt()) {
+                        self.pcg_weaken(Place::from(*dest), false)?;
+                    }
+
                     // What are we assigning to?
                     let proj_enc = self
                         .encode_place(Place::from(*dest))?
