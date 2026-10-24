@@ -252,6 +252,15 @@ fn handle_result(
             PrustiError::internal(format!("in: {exception}"), DUMMY_SP.into()).emit(env_diagnostic);
             *overall_result = VerificationResult::Failure;
         }
+        viper::VerificationResultKind::Timeout(seconds) => {
+            PrustiError::verification(
+                format!("verification timed out after {seconds} seconds"),
+                DUMMY_SP.into(),
+            )
+            .set_help("the time limit is set by the `--timeout` option in `extra_verifier_args`")
+            .emit(env_diagnostic);
+            *overall_result = VerificationResult::Failure;
+        }
     }
 }
 
@@ -494,7 +503,7 @@ fn verify_requests_local<'a>(
             }
             yield vrp.verify(request).map(move |msg| {
                 if let ServerMessage::Termination(result) = &msg {
-                    if config::enable_cache() && !matches!(result.kind, viper::VerificationResultKind::JavaException(_)) {
+                    if config::enable_cache() && !matches!(result.kind, viper::VerificationResultKind::JavaException(_) | viper::VerificationResultKind::Timeout(_)) {
                         info!(
                             "Storing new cached result {:?}",
                             result,

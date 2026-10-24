@@ -182,7 +182,11 @@ where
         while let Some(server_msg) = stream.next().await {
             if let ServerMessage::Termination(result) = &server_msg {
                 if config::enable_cache()
-                    && !matches!(result.kind, VerificationResultKind::JavaException(_))
+                    && !matches!(
+                        result.kind,
+                        VerificationResultKind::JavaException(_)
+                            | VerificationResultKind::Timeout(_)
+                    )
                     && !result.cached
                 {
                     info!(
