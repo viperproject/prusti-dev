@@ -856,21 +856,11 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         actions: &PcgActions<'vir>,
         edge_to_loop: bool,
     ) -> EncodeResult<'vir, (), E> {
-        // The PCG weakens a place once its lifetime projection is dead, which
-        // may precede the removal of an edge whose encoding still reads the
-        // place (e.g. the expiry of the borrow it holds). These weakens are
-        // thus emitted after the other actions, each place at most once.
-        let mut weakens = Vec::new();
         for action in actions.iter() {
             match action {
-                PcgAction::Borrow(action) => {
-                    self.borrow_action(pcg, action, edge_to_loop, &mut weakens)?
-                }
+                PcgAction::Borrow(action) => self.borrow_action(pcg, action, edge_to_loop)?,
                 PcgAction::Owned(action) => self.pcg_repack(action.kind())?,
             }
-        }
-        for (place, for_storage_dead) in weakens {
-            self.pcg_weaken(place, for_storage_dead)?;
         }
         Ok(())
     }
@@ -893,7 +883,6 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         pcg: &Pcg<'_, 'vir>,
         action: &BorrowPcgAction<'vir>,
         edge_to_loop: bool,
-        weakens: &mut Vec<(Place<'vir>, bool)>,
     ) -> EncodeResult<'vir, (), E> {
         let mut to_skip = Vec::new();
         match action.kind() {
@@ -931,11 +920,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     comment!(self, "(keeping permission) {weaken:?}");
                     return Ok(());
                 }
-                let weaken = (weaken.place(), weaken.is_for_storage_dead());
-                if !weakens.contains(&weaken) {
-                    weakens.push(weaken);
-                }
-                Ok(())
+                self.pcg_weaken(weaken.place(), weaken.is_for_storage_dead())
             }
             //RenamePlace {
             //    old: MaybeLabelledPlace<'tcx>,
