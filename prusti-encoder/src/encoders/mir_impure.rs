@@ -21,8 +21,8 @@ use pcg::{
     pcg::{CapabilityKind, EvalStmtPhase, Pcg, PcgNode, PcgSuccessor},
     results::{PcgBasicBlock, PcgLocation},
     utils::{
-        CompilerCtxt, HasPlace, Place, PrefixRelation, SnapshotLocation, display::DisplayWithCtxt,
-        maybe_old::MaybeLabelledPlace,
+        CompilerCtxt, HasPlace, Place, PlaceLike, PrefixRelation, SnapshotLocation,
+        display::DisplayWithCtxt, maybe_old::MaybeLabelledPlace,
     },
 };
 use prusti_interface::PrustiError;
@@ -856,11 +856,21 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         actions: &PcgActions<'vir>,
         edge_to_loop: bool,
     ) -> EncodeResult<'vir, (), E> {
+        // The PCG weakens a place once its lifetime projection is dead, which
+        // may precede the removal of an edge whose encoding still reads the
+        // place (e.g. the expiry of the borrow it holds). These weakens are
+        // thus emitted after the other actions, each place at most once.
+        let mut weakens = Vec::new();
         for action in actions.iter() {
             match action {
-                PcgAction::Borrow(action) => self.borrow_action(pcg, action, edge_to_loop)?,
+                PcgAction::Borrow(action) => {
+                    self.borrow_action(pcg, action, edge_to_loop, &mut weakens)?
+                }
                 PcgAction::Owned(action) => self.pcg_repack(action.kind())?,
             }
+        }
+        for (place, for_storage_dead) in weakens {
+            self.pcg_weaken(place, for_storage_dead)?;
         }
         Ok(())
     }
@@ -883,6 +893,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         pcg: &Pcg<'_, 'vir>,
         action: &BorrowPcgAction<'vir>,
         edge_to_loop: bool,
+        weakens: &mut Vec<(Place<'vir>, bool)>,
     ) -> EncodeResult<'vir, (), E> {
         let mut to_skip = Vec::new();
         match action.kind() {
@@ -912,7 +923,19 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                     CapabilityKind::Exclusive | CapabilityKind::ShallowExclusive
                 ) && matches!(weaken.to_cap(), None | Some(CapabilityKind::Write)) =>
             {
-                self.pcg_weaken(weaken.place(), weaken.is_for_storage_dead())
+                // A borrowed place whose lifetime projection is dead is
+                // weakened as well, but its permission still belongs to the
+                // lender (or the caller): it is kept until the place is
+                // overwritten (see `visit_statement`).
+                if !weaken.place().is_owned(self.pcg_ctxt()) {
+                    comment!(self, "(keeping permission) {weaken:?}");
+                    return Ok(());
+                }
+                let weaken = (weaken.place(), weaken.is_for_storage_dead());
+                if !weakens.contains(&weaken) {
+                    weakens.push(weaken);
+                }
+                Ok(())
             }
             //RenamePlace {
             //    old: MaybeLabelledPlace<'tcx>,
@@ -2020,6 +2043,12 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
 
             match &statement.kind {
                 mir::StatementKind::Assign(box (dest, rvalue)) => {
+                    // A borrowed place keeps its permission when weakened by
+                    // the PCG, so it is released here, before the overwrite.
+                    if !Place::from(*dest).is_owned(self.pcg_ctxt()) {
+                        self.pcg_weaken(Place::from(*dest), false)?;
+                    }
+
                     // What are we assigning to?
                     let proj_enc = self
                         .encode_place(Place::from(*dest))?
