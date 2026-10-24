@@ -1,4 +1,3 @@
-//@ known-failure
 //! An adaptation of the example from
 //! https://rosettacode.org/wiki/Fibonacci_sequence#Rust
 //!

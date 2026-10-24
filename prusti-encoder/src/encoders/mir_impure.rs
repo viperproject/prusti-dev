@@ -14,6 +14,7 @@ use pcg::{
         region_projection::PlaceOrConst,
         state::BorrowsState,
         unblock_graph::BorrowPcgUnblockAction,
+        validity_conditions::BranchChoices,
     },
     coupling::PcgCoupledEdgeKind,
     free_pcs::{RepackGuide, RepackOp},
@@ -602,6 +603,17 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         Ok(())
     }
 
+    fn branch_choices_cond(&mut self, choices: &BranchChoices) -> vir::ExprBool<'vir> {
+        let successors = choices.successors(self.body);
+        let from = choices.from();
+        let conj = successors
+            .iter()
+            .map(|to| self.from_to_vars.get_or_create(self.vcx, from, *to).expr)
+            .collect::<Vec<_>>();
+        // Control flow must continue from `choices.from()` to any one of the `successors`
+        self.vcx.mk_disj(self.vcx.alloc_slice(&conj))
+    }
+
     fn pcs_handle_edge(
         &mut self,
         borrows_state: &BorrowsState<'_, 'vir>,
@@ -618,16 +630,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
         // contains the corresponding VIR expression.
         let cond_conjuncts = conditions
             .all_branch_choices()
-            .map(|choices| {
-                let successors = choices.successors(self.body);
-                let from = choices.from();
-                let conj = successors
-                    .iter()
-                    .map(|to| self.from_to_vars.get_or_create(self.vcx, from, *to).expr)
-                    .collect::<Vec<_>>();
-                // Control flow must continue from `choices.from()` to any one of the `successors`
-                self.vcx.mk_disj(self.vcx.alloc_slice(&conj))
-            })
+            .map(|choices| self.branch_choices_cond(choices))
             .collect::<Vec<_>>();
         // For each block `b` where the edge validity depends on the successor taken from `b`,
         // every successor must be valid.
@@ -1856,9 +1859,23 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 .loop_place_usages(loop_spec.loop_id)
                 .clone();
             let invariants = loop_spec.invariants.clone();
+            let loop_id = loop_spec.loop_id;
             let (permissions, place_capabilities) =
                 self.get_loop_inv(&cfpcs, &loop_place_usages, self.pcg_ctxt())?;
             let pcg_state = &cfpcs.statements[0].states[EvalStmtPhase::PreOperands];
+            // The Viper loop havocs the edge flags set in the loop, including
+            // those set between the loop's first block and the body invariant,
+            // which guards of PCG actions further in the loop still refer to.
+            let loop_branch_choices = pcg_state
+                .borrow_pcg()
+                .validity_conditions()
+                .all_branch_choices()
+                .filter(|choices| self.loop_analysis().in_loop(choices.from(), loop_id))
+                .collect::<Vec<_>>();
+            let branch_choices = loop_branch_choices
+                .into_iter()
+                .map(|choices| self.branch_choices_cond(choices))
+                .collect::<Vec<_>>();
             let functional = invariants
                 .into_iter()
                 .map(|(spec_block, span)| {
@@ -1886,6 +1903,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 self.vcx.alloc_slice(
                     &permissions
                         .into_iter()
+                        .chain(branch_choices)
                         .chain(functional)
                         .collect::<Vec<_>>(),
                 ),
