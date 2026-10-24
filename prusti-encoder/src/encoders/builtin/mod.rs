@@ -5,10 +5,12 @@ mod un_op;
 mod bin_op;
 mod metadata;
 mod prusti;
+mod uninit;
 
 pub use bin_op::*;
 pub use metadata::*;
 pub use prusti::*;
 pub use un_op::*;
+pub use uninit::*;
 pub use use_cast::*;
 pub use use_metadata::*;
