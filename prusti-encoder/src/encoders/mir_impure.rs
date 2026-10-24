@@ -1247,7 +1247,7 @@ impl<'vir, 'enc, E: TaskEncoder> ImpureEncVisitor<'vir, 'enc, E> {
                 // tail); it then shares the containing value's pointer metadata.
                 let is_last_field = field_idx.index() + 1 == field_access.fields.len();
                 PlaceExpr {
-                    address: field_access[field_idx].field_ref(expr.address),
+                    address: field_access[field_idx].field_ref(expr.address, None),
                     metadata: if is_last_field { expr.metadata } else { None },
                     snap: expr.snap.map(|snap| {
                         let e_ty = self.ty_use_pure(place_ty.ty);
