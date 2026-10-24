@@ -4,15 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{
-    fs,
-    path::PathBuf,
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc, Mutex,
-    },
+use std::{fs, path::PathBuf, sync::Mutex};
+use ui_test::{
+    default_any_file_filter, run_tests_generic, spanned::Spanned, status_emitter::StatusEmitter,
+    AbortCheck, Args, Config,
 };
-use ui_test::{default_any_file_filter, run_tests_generic, spanned::Spanned, Args, Config};
 
 fn find_cargo_prusti_path() -> PathBuf {
     let target_directory = if cfg!(debug_assertions) {
@@ -48,10 +44,10 @@ fn find_cargo_prusti_path() -> PathBuf {
 }
 
 fn run_cargo_tests(root_dir: &str, cargo_flags: &[&str], cargo_env: &[(&str, &str)]) {
-    static ABORT_CHECK: Mutex<Option<Arc<AtomicBool>>> = Mutex::new(None);
+    static ABORT_CHECK: Mutex<Option<AbortCheck>> = Mutex::new(None);
     _ = ctrlc::try_set_handler(move || {
-        if let Some(flag) = &*ABORT_CHECK.lock().unwrap() {
-            flag.store(true, Ordering::Relaxed);
+        if let Some(abort_check) = &*ABORT_CHECK.lock().unwrap() {
+            abort_check.abort();
         }
     });
 
@@ -87,7 +83,7 @@ fn run_cargo_tests(root_dir: &str, cargo_flags: &[&str], cargo_env: &[(&str, &st
     let mut config_fail = config;
     config_fail.comment_defaults.base().exit_status = Some(Spanned::dummy(101)).into();
 
-    let text = ui_test::status_emitter::Text::from(args.format);
+    let text: Box<dyn StatusEmitter> = args.format.into();
     run_tests_generic(
         vec![config_pass, config_fail],
         |path, config| {
