@@ -10,7 +10,6 @@ use crate::encoders::{
 use pcg::borrow_pcg::{
     FunctionData, FunctionShape, FunctionShapeInput, FunctionShapeNode, FunctionShapeOutput,
     MakeFunctionShapeError, region_projection::Generalized, state::BorrowsState,
-    unblock_graph::UnblockGraph,
 };
 use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
@@ -51,42 +50,24 @@ impl<'vir, E: TaskEncoder> ImpureEncVisitor<'vir, '_, E> {
             else {
                 continue;
             };
-            let mut package_script = Vec::new();
-            for rhs in wand_data.rhs.iter() {
-                let ug = UnblockGraph::for_node(
-                    mir::Place::from(rhs.mir_local()),
-                    final_borrow_state,
-                    self.pcg_ctxt(),
-                );
-                let actions = ug.actions(self.pcg_ctxt()).unwrap();
-                let unblock = self.block(|visitor| {
-                    visitor.pcs_unblock_actions(final_borrow_state, &actions, Some(label))
-                })?;
-                package_script.extend(unblock);
-            }
-
-            if !wand_data.pledges.is_empty() {
-                // Statements in the package script only see resources already
-                // in the package state. A resource that is not obtained from
-                // the LHS (e.g. an argument the result does not borrow from)
-                // is only moved there when consumed, which for the RHS happens
-                // after the script. Asserting the RHS resources moves them in
-                // early, so that the pledge exhales below can read them.
-                let resources = wand_data
-                    .rhs
-                    .iter()
-                    .filter_map(|g| {
-                        self.wands.encode_predicates_for_function_shape_node(
-                            self.vcx,
-                            self.deps,
-                            *g,
-                            None,
-                            |i| args[i],
-                        )
-                    })
-                    .collect::<Vec<_>>();
-                package_script.push(self.vcx.mk_assert_stmt(self.vcx.mk_conj(&resources)));
-            }
+            let rhs = wand_data
+                .rhs
+                .iter()
+                .map(|g| {
+                    let resources = self.wands.encode_predicates_for_function_shape_node(
+                        self.vcx,
+                        self.deps,
+                        *g,
+                        None,
+                        |i| args[i],
+                    );
+                    (
+                        mir::Place::from(g.mir_local()),
+                        resources.into_iter().collect(),
+                    )
+                })
+                .collect();
+            let mut package_script = self.pcs_package_script(final_borrow_state, rhs, label)?;
 
             for EncodedPledge {
                 expiry_postcondition,
@@ -117,7 +98,7 @@ type EncodedPledges<'vir> = Vec<EncodedPledge<'vir>>;
 
 /// Not tied to a caller or callee context. `indirect_pres`, `indirect_posts`,
 /// `wand_posts`, and `package_wands` are identity-substituted and intended for
-/// use in the callee's own contract; `apply_wands` is for caller use and
+/// use in the callee's own contract; `call_wands` is for caller use and
 /// re-substitutes via a [`WandCallContext`].
 #[derive(Clone)]
 pub struct WandEncOutput<'vir> {
@@ -287,14 +268,14 @@ impl<'vir> WandEncOutput<'vir> {
         })
     }
 
-    pub fn apply_wands<E: TaskEncoder>(
+    pub fn call_wands<E: TaskEncoder>(
         &self,
         arguments: &[vir::ExprSnap<'vir>],
         label_pre: &'vir str,
         label_post: &'vir str,
         call_ctx: GArgs<'vir>,
         visitor: &mut ImpureEncVisitor<'vir, '_, E>,
-    ) {
+    ) -> Vec<vir::Wand<'vir>> {
         let result = visitor
             .vcx
             .mk_local_labelled_old_expr(arguments[mir::RETURN_PLACE.as_usize()], label_post);
@@ -304,6 +285,7 @@ impl<'vir> WandEncOutput<'vir> {
                 .mk_local_labelled_old_expr(arguments[l], label_pre)
         });
         let args = PledgeExpr::pledge_args(result, args);
+        let mut wands = Vec::new();
         for wand_data in self.viper_wands() {
             let Some(wand) = self.mk_wand(
                 &wand_data,
@@ -315,8 +297,9 @@ impl<'vir> WandEncOutput<'vir> {
             ) else {
                 continue;
             };
-            visitor.stmt(visitor.vcx.mk_apply_stmt(wand));
+            wands.push(wand);
         }
+        wands
     }
 
     fn mk_wand<E: TaskEncoder>(
