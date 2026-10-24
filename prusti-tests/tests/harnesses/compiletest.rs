@@ -8,15 +8,8 @@
 
 // use log::{error, info};
 use prusti_server::spawn_server_thread;
-use std::{
-    env,
-    path::PathBuf,
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc, Mutex,
-    },
-};
-use ui_test::{run_tests, spanned::Spanned, Config};
+use std::{env, path::PathBuf, sync::Mutex};
+use ui_test::{run_tests, spanned::Spanned, AbortCheck, Config};
 
 /// Silicon's time limit (in seconds) per test file, so that a slow test cannot hold up the suite.
 const EXTRA_VERIFIER_ARGS: &str = "--timeout=90";
@@ -55,10 +48,10 @@ fn run_prusti_tests(
     rustc_flags: &[&str],
     rustc_env: &[(&str, &str)],
 ) -> ui_test::color_eyre::Result<()> {
-    static ABORT_CHECK: Mutex<Option<Arc<AtomicBool>>> = Mutex::new(None);
+    static ABORT_CHECK: Mutex<Option<AbortCheck>> = Mutex::new(None);
     _ = ctrlc::try_set_handler(move || {
-        if let Some(flag) = &*ABORT_CHECK.lock().unwrap() {
-            flag.store(true, Ordering::Relaxed);
+        if let Some(abort_check) = &*ABORT_CHECK.lock().unwrap() {
+            abort_check.abort();
         }
     });
 
